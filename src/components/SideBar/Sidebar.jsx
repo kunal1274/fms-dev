@@ -1,26 +1,29 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { 
-  FaHome, 
-  FaUser, 
-  FaBox, 
-  FaBars, 
-  FaWrench, 
-  FaShoppingCart, 
-  FaChartBar, 
-  FaListAlt, 
-  FaCheck, 
-  FaUsers, 
-  FaBoxes, 
-  FaFileInvoiceDollar, 
-  FaCheckCircle, 
-  FaMoneyCheckAlt, 
-  FaBuilding, 
-  FaTruck, 
-  FaCartPlus, 
-  FaBookOpen, 
-  FaUniversity, 
-  FaPercentage 
+import {
+  FaHome,
+  FaUser,
+  FaBox,
+  FaBars,
+  FaWrench,
+  FaChartBar,
+  FaListAlt,
+  FaCheck,
+  FaUsers,
+  FaBoxes,
+  FaExchangeAlt,
+  FaClipboardList,
+  FaFileInvoiceDollar,
+  FaCheckCircle,
+  FaMoneyCheckAlt,
+  FaBuilding,
+  FaWarehouse,
+  FaTruck,
+  FaCartPlus,
+  FaBookOpen,
+  FaUniversity,
+  FaPercentage,
+  FaMarsDouble,
 } from "react-icons/fa";
 import nimamiLogo from "./nimami.jpeg";
 
@@ -60,9 +63,7 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`bg-white h-screen transition-all ${
-        isOpen ? "w-64" : "w-16"
-      }`}
+      className={`bg-white h-screen transition-all ${isOpen ? "w-64" : "w-16"}`}
     >
       {/* Toggle Button */}
       <div
@@ -102,7 +103,7 @@ const Sidebar = () => {
       {/* Sales Menu */}
       <div>
         <SidebarItem
-          icon={<FaShoppingCart />}
+          icon={<FaMarsDouble />}
           label="Sales"
           isOpen={isOpen}
           onClick={() => toggleSubMenu("sales")}
@@ -110,8 +111,16 @@ const Sidebar = () => {
         {activeMenu === "sales" && isOpen && (
           <div className="ml-6 space-y-2">
             {[
-              { label: "All Sale Orders", path: "/salepage", icon: <FaListAlt /> },
-              { label: "Confirm Sale Orders", path: "/ConfirmSaleorder", icon: <FaCheck /> },
+              {
+                label: "All Sale Orders",
+                path: "/salepage",
+                icon: <FaListAlt />,
+              },
+              {
+                label: "Confirm Sale Orders",
+                path: "/ConfirmSaleorder",
+                icon: <FaCheck />,
+              },
               {
                 label: "Report",
                 path: null, // No navigation, just opens submenu
@@ -131,11 +140,31 @@ const Sidebar = () => {
             {activeSubmenu === "report" && (
               <div className="ml-6 space-y-2">
                 {[
-                  { label: "By Customer", path: "/bycustomerreport", icon: <FaUsers /> },
-                  { label: "By Item", path: "/byitemreport", icon: <FaBoxes /> },
-                  { label: "By Invoice", path: "/ReportByInvoice", icon: <FaFileInvoiceDollar /> },
-                  { label: "By Confirm", path: "ByConfirmReport", icon: <FaCheckCircle /> },
-                  { label: "By Payment", path: "/ReportByPayment", icon: <FaMoneyCheckAlt /> },
+                  {
+                    label: "By Customer",
+                    path: "/bycustomerreport",
+                    icon: <FaUsers />,
+                  },
+                  {
+                    label: "By Item",
+                    path: "/byitemreport",
+                    icon: <FaBoxes />,
+                  },
+                  {
+                    label: "By Invoice",
+                    path: "/ReportByInvoice",
+                    icon: <FaFileInvoiceDollar />,
+                  },
+                  {
+                    label: "By Confirm",
+                    path: "ByConfirmReport",
+                    icon: <FaCheckCircle />,
+                  },
+                  {
+                    label: "By Payment",
+                    path: "/ReportByPayment",
+                    icon: <FaMoneyCheckAlt />,
+                  },
                 ].map((subItem) => (
                   <SidebarItem
                     key={subItem.label}
@@ -158,18 +187,130 @@ const Sidebar = () => {
         path="/CompanyPage"
         isOpen={isOpen}
       />
+
+      <div>
+        <SidebarItem
+          icon={<FaWarehouse />}
+          label="Inventory"
+          path="/Inventory"
+          isOpen={isOpen}
+          onClick={() => toggleSubMenu("inventory")}
+        />
+        {activeMenu === "inventory" && isOpen && (
+          <div className="ml-6 space-y-2">
+            {[
+              {
+                label: "Inventory Transaction",
+                path: "/InventoryTransaction",
+                icon: <FaExchangeAlt />,
+              },
+              {
+                label: "On-Hand Inventory",
+                path: "/OnHandInventory",
+                icon: <FaClipboardList />,
+              },
+            ].map((item) => (
+              <SidebarItem
+                key={item.label}
+                icon={item.icon || <FaBox />}
+                label={item.label}
+                path={item.path}
+                isOpen={isOpen}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* inventry trancstion fliter item  search bar  */}
+      {/* on hand inventry  */}
+
       <SidebarItem
         icon={<FaTruck />}
         label="Vendor"
         path="/vender"
         isOpen={isOpen}
       />
-      <SidebarItem
-        icon={<FaCartPlus />}
-        label="Purchase"
-        path="/purchasepage"
-        isOpen={isOpen}
-      />
+
+      <div>
+        <SidebarItem
+          icon={<FaCartPlus />}
+          label="Purchase"
+          path="/purchasepage"
+          isOpen={isOpen}
+          onClick={() => toggleSubMenu("purchase")}
+        />
+        {activeMenu === "purchase" && isOpen && (
+          <div className="ml-6 space-y-2">
+            {[
+              {
+                label: "All Purchase Orders",
+                path: "/purchasepage",
+                icon: <FaListAlt />,
+              },
+              {
+                label: "Confirm Purchase Orders",
+                path: "/ConfirmPurchaseorder",
+                icon: <FaCheck />,
+              },
+              {
+                label: "Report",
+                path: null, // No navigation, just opens submenu
+                onClick: toggleReportSubMenu,
+                icon: <FaChartBar />,
+              },
+            ].map((item) => (
+              <SidebarItem
+                key={item.label}
+                icon={item.icon || <FaBox />}
+                label={item.label}
+                path={item.path}
+                isOpen={isOpen}
+                onClick={item.onClick}
+              />
+            ))}
+            {activeSubmenu === "report" && (
+              <div className="ml-6 space-y-2">
+                {[
+                  {
+                    label: "By Vendor",
+                    path: "/byvendorreport",
+                    icon: <FaUsers />,
+                  },
+                  {
+                    label: "By Item",
+                    path: "/byitemreport",
+                    icon: <FaBoxes />,
+                  },
+                  {
+                    label: "By Invoice",
+                    path: "/ReportByInvoice",
+                    icon: <FaFileInvoiceDollar />,
+                  },
+                  {
+                    label: "By Confirm",
+                    path: "ByConfirmReport",
+                    icon: <FaCheckCircle />,
+                  },
+                  {
+                    label: "By Payment",
+                    path: "/ReportByPayment",
+                    icon: <FaMoneyCheckAlt />,
+                  },
+                ].map((subItem) => (
+                  <SidebarItem
+                    key={subItem.label}
+                    icon={subItem.icon || <FaBox />}
+                    label={subItem.label}
+                    path={subItem.path}
+                    isOpen={isOpen}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
       <SidebarItem
         icon={<FaBookOpen />}
         label="Ledger"

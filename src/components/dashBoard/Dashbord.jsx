@@ -7,10 +7,15 @@ import ItemPage from "../../item/Itempage";
 import VendorPage from "../../Vender/VendorPage";
 import SaleOrderPage from "../../Sale/SaleOrderPage";
 import AllocationHistory from "../../Sale/ByReport/AllocationHistory";
-import ByInvoiced from "../../Sale/ByReport/ByInvoiced";import ByPayment from "../../Sale/ByReport/ByPayment";
-// import CampanyPage from "../../Campany/CompanyPage";
-
-// import CancelSaleOrder from "../../Sale/ByReport/CancelSaleOrder";
+import ByInvoiced from "../../Sale/ByReport/ByInvoiced";
+import ByPayment from "../../Sale/ByReport/ByPayment";
+// import CampanyPage from "../../Campany/CompanyPage"import
+import PurchaseAllocationHistory from "../../Purchase/ByReport/PurchaseAllocationHistory";
+import PurchaseCancelSaleOrder from "../../Purchase/ByReport/PurchaseCancelSaleOrder";
+import PurchaseConfirmSaleOrder from "../../Purchase/ByReport/PurchaseConfirmSaleOrder";
+import ByVendorReport from "../../Purchase/ByReport/ByVendorReport";
+import InventryTransaction from "../../Sale/InventryTransaction";
+import InventoryHand from "../../Sale/HandOnInventry";
 import PurchaseOrderPage from "../../Purchase/PurchaseOrderPage";
 import Invoice from "../../Sale/Invoice/Icopy";
 import SaleorderViewPage from "../../Sale/SaleorderViewPage";
@@ -52,7 +57,19 @@ const Dashboard = () => {
           {/* Add padding to main content */}
           <Routes>
             {/* Define Routes */}
-            <Route path="/" element={<CustomerPage />} />
+            <Route
+              path="/PurchaseAllocationHistory"
+              element={<PurchaseAllocationHistory />}
+            />
+            <Route path="/ByVendorReport" element={<ByVendorReport />} />
+            <Route
+              path="/PurchaseCancelSaleOrder"
+              element={<PurchaseCancelSaleOrder />}
+            />
+            <Route
+              path="/PurchaseConfirmSaleOrder"
+              element={<PurchaseConfirmSaleOrder />}
+            />
             <Route path="/customer" element={<CustomerPage />} />
             <Route path="/itempage" element={<ItemPage />} />
             <Route path="/vender" element={<VendorPage />} />
@@ -73,9 +90,13 @@ const Dashboard = () => {
             <Route path="/ByConfirmReport" element={<ByConfirmReport />} />
             <Route path="/ConfirmSaleorder" element={<Confirmsaleorder />} />
             <Route path="/CancelSaleOrder" element={<CancelsaleOrder />} />
-            <Route path="/ReportByInvoice" element={<ByInvoiced/>} />
-            <Route path="/ReportByPayment" element={<ByPayment/>} />
-
+            <Route path="/ReportByInvoice" element={<ByInvoiced />} />
+            <Route path="/ReportByPayment" element={<ByPayment />} />
+            <Route path="/OnHandInventory" element={<InventoryHand />} />
+            <Route
+              path="/InventoryTransaction"
+              element={<InventryTransaction />}
+            />
             {/* Add more routes as needed */}
           </Routes>
         </div>
