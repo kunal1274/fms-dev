@@ -372,12 +372,12 @@ const CustomerList = ({ handleAddCustomer }) => {
               <div className="flex items-center space-x-4">
                 {/* Sort By */}
                 <div className="relative">
-                  <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400" />
                   <select
                     defaultValue=""
                     value={selectedOption}
                     onChange={handleFilterChange}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                    className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                   >
                     <option value="" disabled>
                       Sort By
@@ -394,10 +394,10 @@ const CustomerList = ({ handleAddCustomer }) => {
 
                 {/* Filter By Status */}
                 <div className="relative">
-                  <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400" />
                   <select
                     defaultValue="All"
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                    className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     value={selectedOption}
                     onChange={handleFilterChange}
                   >
