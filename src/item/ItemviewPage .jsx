@@ -31,7 +31,7 @@ const ItemviewPage = ({ item, itemId, goBack, handleSaveItem, toggleView }) => {
     async function fetchitemDetail() {
       try {
         const response = await axios.get(
-          `https://befr8n.vercel.app/fms/api/v0/items/${itemId}`
+          `https://fms-qkmw.onrender.com/fms/api/v0/items/${itemId}`
         );
         if (response.status === 200) {
           console.log("itemview page line 39", response.data.data);

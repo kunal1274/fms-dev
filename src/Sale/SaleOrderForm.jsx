@@ -702,7 +702,7 @@ const SaleOrderForm = ({ handleCancel }) => {
                               setPrice(Number(sel.price) || 0);
                             }
                           }}
-                          className="border rounded p-1 text-center w-60"
+                          className="border rounded p-1 text-left w-60"
                         >
                           <option value="">Select Item</option>
                           {items.map((itemOption) => (

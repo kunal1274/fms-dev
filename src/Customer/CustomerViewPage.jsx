@@ -162,7 +162,9 @@ const CustomerViewPage = ({
     async function fetchCustomerDetail() {
       try {
         const response = await axios.get(
-          `https://befr8n.vercel.app/fms/api/v0/customers/${customerId || id}`
+          `https://fms-qkmw.onrender.com/fms/api/v0/customers/${
+            customerId || id
+          }`
         );
         if (response.status === 200) {
           setCustomerDetail(response.data.data);
