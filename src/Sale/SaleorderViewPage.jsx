@@ -987,7 +987,7 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
                               item: sel, // Update saleData with selected item
                             }));
                           }}
-                          className="border rounded p-1 text-center w-60"
+                          className="border rounded p-1 text-left w-60"
                         >
                           <option value="">Select Item</option>
                           {items.map((itemOption) => (

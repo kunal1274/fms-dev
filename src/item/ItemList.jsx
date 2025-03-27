@@ -442,7 +442,7 @@ function ItemList({ handleAddItem }) {
                     {filteredItems.map((item) => (
                       <tr key={item._id} className="hover:bg-gray-50">
                         <td className="">
-                          <th className="px-4 py-2 border-white-300 text-left">
+                          <th className="px-4 py-2 border-white-300 ">
                             <input
                               type="checkbox"
                               checked={selectedItems.includes(item._id)}
@@ -450,7 +450,7 @@ function ItemList({ handleAddItem }) {
                             />{" "}
                           </th>
                         </td>
-                        <td>
+                        <td className="px-6 py-3 truncate">
                           <button onClick={() => handleItemClick(item._id)}>
                             {item.code}
                           </button>
