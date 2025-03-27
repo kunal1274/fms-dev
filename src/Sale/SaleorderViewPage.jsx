@@ -4,9 +4,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 
 // API endpoints
-const itemsBaseUrl = "https://befr8n.vercel.app/fms/api/v0/items";
-const customersBaseUrl = "https://befr8n.vercel.app/fms/api/v0/customers";
-const salesOrderUrl = "https://befr8n.vercel.app/fms/api/v0/salesorders";
+const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
+const customersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
+const salesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
 // mergedUrl is the same as salesOrderUrl for update and payment requests.
 const mergedUrl = salesOrderUrl;
 
@@ -15,7 +15,7 @@ const PaymentModal = ({ onClose, onSubmit, loading }) => {
   const [transactionId, setTransactionId] = useState("");
   const [paymentMode, setPaymentMode] = useState("Cash");
   // New state for payment date with default value formatted for input "datetime-local"
-  const [paymentDate, setPaymentDate] = useState(
+  const [paymentDate, setPaymentDate] = useState( 
     new Date().toISOString().slice(0, 16)
   );
 
@@ -882,7 +882,6 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
                 }
                 readOnly
                 className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300  bg-gray-100 cursor-not-allowed"
-           
               />
             </div>
             <div className="flex flex-col">
@@ -893,7 +892,6 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
                   saleData.customer?.currency ||
                   selectedCustomerDetails.currency
                 }
-              
                 className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300  bg-gray-100 cursor-not-allowed"
                 readOnly
               />
@@ -917,7 +915,7 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
                   setSaleData({ ...saleData, advance: e.target.value })
                 }
                 disabled={!isEditing}
-                 className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
+                className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
               />
             </div>
             <div className="flex flex-col">
@@ -928,9 +926,10 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
                 value={saleData.salesAddress || ""}
                 onChange={(e) =>
                   setSaleData({ ...saleData, salesAddress: e.target.value })
-                }      rows="4"
+                }
+                rows="4"
                 disabled={!isEditing}
-               className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300"
+                className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300"
               />
             </div>
             <div className="flex flex-col">
@@ -939,9 +938,10 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
                 value={saleData.remarks || ""}
                 onChange={(e) =>
                   setSaleData({ ...saleData, remarks: e.target.value })
-                }      rows="4"
+                }
+                rows="4"
                 disabled={!isEditing}
-               className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300"
+                className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300"
               />
             </div>
           </div>

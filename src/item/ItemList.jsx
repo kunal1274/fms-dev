@@ -441,12 +441,14 @@ function ItemList({ handleAddItem }) {
                   <tbody>
                     {filteredItems.map((item) => (
                       <tr key={item._id} className="hover:bg-gray-50">
-                        <td className="border px-4 py-2 text-center">
-                          <input
-                            type="checkbox"
-                            checked={selectedItems.includes(item._id)}
-                            onChange={() => handleCheckboxChange(item._id)}
-                          />
+                        <td className="">
+                          <th className="px-4 py-2 border-white-300 text-left">
+                            <input
+                              type="checkbox"
+                              checked={selectedItems.includes(item._id)}
+                              onChange={() => handleCheckboxChange(item._id)}
+                            />{" "}
+                          </th>
                         </td>
                         <td>
                           <button onClick={() => handleItemClick(item._id)}>
@@ -455,7 +457,7 @@ function ItemList({ handleAddItem }) {
                         </td>
                         <td className="px-6 py-3 truncate">{item.name}</td>
                         <td className="px-6 py-3 truncate">{item.type}</td>
-                        <td className="px-6 py-3 whitespace-normal truncate">
+                        <td className="px-6 py-3 break-words max-w-[500px] truncate">
                           {item.description}
                         </td>
                         <td className="px-6 py-3 whitespace-normal truncate">

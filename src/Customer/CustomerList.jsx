@@ -514,7 +514,7 @@ const CustomerList = ({ handleAddCustomer }) => {
                         <td className="px-6 py-3 whitespace-normal truncate">
                           {customer.contactNum}
                         </td>
-                        <td className="px-6 py-3 whitespace-normal truncate">
+                        <td className="px-6 py-3 break-words max-w-[500px] truncate">
                           {customer.address}
                         </td>
                         <td className="px-6 py-3 truncate">
