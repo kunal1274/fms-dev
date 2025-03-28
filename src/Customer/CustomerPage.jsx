@@ -163,9 +163,9 @@ const CustomerPage = () => {
   }
 
   return (
-    <div className="  min-h-screen">
+    <div className="bg-grey-400  min-h-screen">
       <ToastContainer />
-      <div className=" rounded-lg">
+      <div className="bg-slate-50 rounded-lg">
         {view === "form" && (
           <CustomerForm
             handleCancel={handleCancel}

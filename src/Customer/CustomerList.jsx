@@ -202,7 +202,11 @@ const CustomerList = ({ handleAddCustomer }) => {
         customer.code.toLowerCase().includes(search.toLowerCase())
     );
   };
-
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSelectedOption("Active Status ");
+    setFilteredCustomers(customerList);
+  };
   // Function to reset filters and search input
 
   const filteredCustomer = filterCustomer(customerList, searchTerm);
@@ -290,11 +294,6 @@ const CustomerList = ({ handleAddCustomer }) => {
     if (id) fetchCustomerDetails(id);
   }, [id]);
 
-  const resetFilters = () => {
-    setSearchTerm("");
-    setSelectedOption("Active Status ");
-    setFilteredCustomers(customerList);
-  };
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -367,7 +366,7 @@ const CustomerList = ({ handleAddCustomer }) => {
             </div>
 
             {/* new */}
-            <div className="flex flex-wrap Sales-center justify-between p-4 bg-white rounded-md shadow mb-6 space-y-4 md:space-y-0 md:space-x-4">
+            <div className="flex flex-wrap Sales-center justify-between p-3 bg-white rounded-md shadow mb-6 space-y-4 md:space-y-0 md:space-x-4">
               {/* Left group: Sort By, Filter By Status, Search */}
               <div className="flex items-center space-x-4">
                 {/* Sort By */}
@@ -429,8 +428,8 @@ const CustomerList = ({ handleAddCustomer }) => {
 
               {/* Right side: Reset Filter */}
               <button
+                onClick={resetFilters}
                 className="text-red-500 hover:text-red-600 font-medium"
-                onClick={() => resetFilters(setSearch, setFilters)} // Pass setSearch and setFilters
               >
                 Reset Filter
               </button>
@@ -444,7 +443,7 @@ const CustomerList = ({ handleAddCustomer }) => {
                 <table className="min-w-full border-collapse border border-gray-200">
                   <thead>
                     <tr className="bg-gray-100">
-                      <th className="px-4 py-2 border border-gray-300 text-left">
+                      <th className="px-4 py-2  border-gray-300 text-left">
                         <input
                           type="checkbox"
                           onChange={() =>
@@ -459,7 +458,7 @@ const CustomerList = ({ handleAddCustomer }) => {
                           }
                         />
                       </th>
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                      <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
                         Customer Account
                       </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
@@ -505,6 +504,7 @@ const CustomerList = ({ handleAddCustomer }) => {
                         </td>
                         <td>
                           <button
+                            className="text-blue-600 hover:underline  ml-6 focus:outline-none"
                             onClick={() => handleCustomerClick(customer._id)}
                           >
                             {customer.code}

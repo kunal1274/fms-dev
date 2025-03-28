@@ -5,7 +5,7 @@ import Dashboard from "../src/components/dashBoard/Dashbord";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter >
       <Dashboard />
     </BrowserRouter>
   );

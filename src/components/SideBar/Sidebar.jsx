@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import "./Sidebar.css"
 import {
   FaHome,
   FaUser,
@@ -63,7 +64,9 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`bg-white h-screen transition-all ${isOpen ? "w-64" : "w-16"}`}
+      className={`bg-white h-screen overflow-y-auto transition-all ${
+        isOpen ? "w-64" : "w-16"
+      } scrollbar-hide`}
     >
       {/* Toggle Button */}
       <div

@@ -35,7 +35,7 @@ function CustomerForm({ handleCancel }) {
 
   // Fetch Customers
   useEffect(() => {
-    toast.info("Customer form opened!");
+    // toast.info("Customer form opened!");
 
     async function loadCustomers() {
       try {
@@ -189,7 +189,7 @@ function CustomerForm({ handleCancel }) {
                   id="name"
                   name="name"
                   type="text"
-                  placeholder="  Customer Name"
+                  placeholder="eg - Amit kumar"
                   value={formData.name}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
@@ -209,7 +209,7 @@ function CustomerForm({ handleCancel }) {
                   id="contactNum"
                   name="contactNum"
                   type="tel"
-                  placeholder="Contact No"
+                  placeholder=" eg - 98637567**"
                   value={formData.contactNum}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
@@ -229,8 +229,8 @@ function CustomerForm({ handleCancel }) {
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg p-1 bg-white focus:outline-none focus:ring focus:ring-blue-300"
                 >
-                  <option value="">Select Currency</option>
                   <option value="INR">INR</option>
+
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
                   <option value="GBP">GBP</option>
@@ -246,7 +246,7 @@ function CustomerForm({ handleCancel }) {
                   id="panNum"
                   name="panNum"
                   type="text"
-                  placeholder="Customer PAN "
+                  placeholder=" eg - JGHFY98U7J"
                   value={formData.panNum}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
@@ -265,7 +265,7 @@ function CustomerForm({ handleCancel }) {
                   id="registrationNum"
                   name="registrationNum"
                   type="text"
-                  placeholder=" Registration No "
+                  placeholder=" eg - INHY98637567O9"
                   value={formData.registrationNum}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
@@ -280,11 +280,13 @@ function CustomerForm({ handleCancel }) {
                 <textarea
                   id="address"
                   name="address"
-                  placeholder=" Customer Address"
+                  placeholder=" eg - Sector -5c 
+Quarter no - 105 
+Bokaro Jharkhand "
                   value={formData.address}
                   onChange={handleInputChange}
                   rows="4"
-                  className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300"
+                  className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300 resize-y min-h-[6rem]"
                 ></textarea>
               </div>
             </div>
