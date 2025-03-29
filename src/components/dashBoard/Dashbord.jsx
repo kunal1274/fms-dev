@@ -44,7 +44,7 @@ const Dashboard = () => {
     <div className="flex h-screen">
       {/* Sidebar */}
       <Sidebar
-      className="fixed"
+        className="fixed"
         isOpen={isSidebarOpen}
         toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
         onNavigate={handleNavigation} // Pass navigation handler to Sidebar
@@ -53,7 +53,7 @@ const Dashboard = () => {
       {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-auto">
         <Header />
-        <div className="p-4 h-44 mt-10">
+        <div className="">
           {" "}
           {/* Add padding to main content */}
           <Routes>

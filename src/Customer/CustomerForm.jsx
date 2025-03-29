@@ -148,7 +148,7 @@ function CustomerForm({ handleCancel }) {
       <h1 className="text-2xl font-bold mb-4 text-center">Add New Customer</h1>
 
       <form onSubmit={createCustomer}>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="min-h-screen bg-gray-50 flex overflow-auto items-center justify-center p-6">
           <div className="bg-white shadow-lg rounded-lg w-full max-w-2xl p-8">
             {/* Upload Photo */}
             <div className="flex flex-col items-center mb-8">
@@ -189,7 +189,7 @@ function CustomerForm({ handleCancel }) {
                   id="name"
                   name="name"
                   type="text"
-                  placeholder="eg - Amit kumar"
+                  placeholder=" eg - Amit kumar"
                   value={formData.name}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
@@ -281,8 +281,8 @@ function CustomerForm({ handleCancel }) {
                   id="address"
                   name="address"
                   placeholder=" eg - Sector -5c 
-Quarter no - 105 
-Bokaro Jharkhand "
+ Quarter no - 105 
+ Bokaro Jharkhand "
                   value={formData.address}
                   onChange={handleInputChange}
                   rows="4"
@@ -306,21 +306,21 @@ Bokaro Jharkhand "
               <button
                 type="button"
                 onClick={handleReset}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 text-sm"
               >
                 Reset
               </button>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <button
                   type="submit"
-                  className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-700"
+                  className="bg-blue-500 text-white py-1 px-4 rounded-md text-sm hover:bg-blue-700"
                 >
                   Save
                 </button>
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="bg-red-500 text-white py-2 px-6 rounded-lg hover:bg-red-700"
+                  className="bg-red-500 text-white py-1 px-4 rounded-md text-sm hover:bg-red-700"
                 >
                   Cancel
                 </button>

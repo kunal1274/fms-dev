@@ -298,7 +298,7 @@ const CustomerList = ({ handleAddCustomer }) => {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
         <div className="w-16 h-16 border-4 border-black-500 border-t-transparent border-solid rounded-full animate-spin"></div>
-        <p className="mt-4 text-zinc-800 text-lg font-medium">
+        <p className="mt-2 text-zinc-800 text-sm font-small">
           {" "}
           Customer list ...
         </p>
@@ -319,22 +319,22 @@ const CustomerList = ({ handleAddCustomer }) => {
         ) : (
           <>
             {/* Header */}
-            <div className="flex justify-between space-x-3">
-              <h1 className="text-2xl font-bold mb-4">Customer Lists</h1>
+            <div className="flex justify-between space-x-2">
+              <h1 className="text-2xl font-bold mb-3  ">Customer Lists</h1>
               <div className="flex justify-between rounded-full mb-5">
-                <div className="flex justify-end gap-4">
+                <div className="flex justify-end items-center gap-1">
                   <button
                     onClick={handleAddCustomer}
-                    className="h-10 px-4 py-2 border border-green-500 bg-white rounded-md hover:bg-gray-100"
+                    className="h-9 px-4 border border-green-500 bg-white text-sm rounded-md transition hover:bg-green-50 hover:scale-[1.02]"
                   >
                     + Add
                   </button>
                   <button
                     onClick={handleDeleteSelected}
                     disabled={selectedCustomers.length === 0}
-                    className={`h-10 px-4 py-2 border border-green-500 bg-white rounded-md ${
+                    className={`h-9 px-4 border border-green-500 bg-white text-sm rounded-md transition ${
                       selectedCustomers.length > 0
-                        ? "hover:bg-gray-100"
+                        ? "hover:bg-green-50 hover:scale-[1.02]"
                         : "opacity-50 cursor-not-allowed"
                     }`}
                   >
@@ -342,17 +342,17 @@ const CustomerList = ({ handleAddCustomer }) => {
                   </button>
                   <button
                     onClick={generatePDF}
-                    className="h-10 px-4 py-2 border border-green-500 bg-white rounded-md hover:bg-gray-100"
+                    className="h-9 px-4 border border-green-500 bg-white text-sm rounded-md transition hover:bg-green-50 hover:scale-[1.02]"
                   >
                     PDF
                   </button>
                   <button
                     onClick={exportToExcel}
-                    className="h-10 px-4 py-2 border border-green-500 bg-white rounded-md hover:bg-gray-100"
+                    className="h-9 px-4 border border-green-500 bg-white text-sm rounded-md transition hover:bg-green-50 hover:scale-[1.02]"
                   >
                     Export
                   </button>
-                  <label className="border h-10 border-green-500 bg-white rounded-md py-2 px-4">
+                  <label className="h-9 px-4 flex items-center border border-green-500 bg-white text-sm rounded-md transition hover:bg-green-50 hover:scale-[1.02] cursor-pointer">
                     <input
                       type="file"
                       accept=".xls,.xlsx"
@@ -366,7 +366,7 @@ const CustomerList = ({ handleAddCustomer }) => {
             </div>
 
             {/* new */}
-            <div className="flex flex-wrap Sales-center justify-between p-3 bg-white rounded-md shadow mb-6 space-y-4 md:space-y-0 md:space-x-4">
+            <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md shadow mb-2 space-y-3 md:space-y-0 md:space-x-4">
               {/* Left group: Sort By, Filter By Status, Search */}
               <div className="flex items-center space-x-4">
                 {/* Sort By */}
@@ -393,10 +393,10 @@ const CustomerList = ({ handleAddCustomer }) => {
 
                 {/* Filter By Status */}
                 <div className="relative">
-                  <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <FaFilter className=" text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <select
                     defaultValue="All"
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                    className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     value={selectedOption}
                     onChange={handleFilterChange}
                   >
@@ -413,7 +413,7 @@ const CustomerList = ({ handleAddCustomer }) => {
                     placeholder="Search..."
                     value={searchTerm}
                     onChange={handleSearchChange}
-                    className="w-60 pl-4 pr-10 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                   <button
                     value={searchTerm}
@@ -438,7 +438,7 @@ const CustomerList = ({ handleAddCustomer }) => {
             {/* new */}
 
             {/* Customer Table */}
-            <div className="border border-green-500 rounded-lg bg-white p-8 overflow-hidden">
+            <div className="border border-green-500 rounded-lg bg-white p-10 overflow-hidden">
               <div className="max-h-96 overflow-y-auto">
                 <table className="min-w-full border-collapse border border-gray-200">
                   <thead>
@@ -488,7 +488,7 @@ const CustomerList = ({ handleAddCustomer }) => {
                     {filteredCustomers.map((customer) => (
                       <tr key={customer._id}>
                         <td>
-                          <th className="px-4 py-2 border-white-300 text-left">
+                          <th className=" px-4 py-2 border-white-300 text-left">
                             <input
                               type="checkbox"
                               checked={selectedCustomers.includes(customer._id)}

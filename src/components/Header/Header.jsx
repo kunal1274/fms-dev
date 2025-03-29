@@ -1,34 +1,51 @@
-import { FaSearch, FaBell } from "react-icons/fa";
+  import { useState } from "react";
+  import { FaSearch, FaBell } from "react-icons/fa";
 
-const Header = () => {
-  return (
-    <header className="flex justify-between items-center bg-white shadow-md px-6 py-3">
-      {/* Search Section */}
-      <div className="relative">
-        <input
-          type="text"
-          placeholder="Search"
-          className="block w-full border border-gray-300 rounded-full py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          aria-label="Search" // Accessibility improvement
-        />
-        <FaSearch className="absolute left-4 top-3 text-gray-400" />
-      </div>
+  function Header() {
+    const [searchTerm, setSearchTerm] = useState("");
 
-      {/* Right Section: Notifications and Profile */}
-      <div className="flex items-center space-x-4">
-        <FaBell className="cursor-pointer" aria-label="Notifications" />
-        <div className="flex items-center space-x-2">
-          <img
-            src="https://via.placeholder.com/32"
-            alt="profile"
-            className="rounded-full w-8 h-8"
-            aria-label="User Profile" // Accessibility improvement
+    const handleSearchChange = (e) => {
+      setSearchTerm(e.target.value);
+    };
+
+    const handleSearchBlur = () => {
+      setSearchTerm(""); // clear input on blur
+    };
+
+    return (
+      <header className="flex justify-between items-center text-sm bg-white shadow px-2 py-1">
+        {/* Search Section */}
+        <div className="relative">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            onBlur={handleSearchBlur}
+            placeholder="Search"
+            className="block w-48 border text-sm border-gray-300 rounded-full py-1.5 pl-9 pr-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 hover:shadow-sm"
+            aria-label="Search"
           />
-          <span className="text-sm">Moni Roy</span>
+          <FaSearch className="absolute text-sm left-3 top-2.5 text-gray-400 pointer-events-none" />
         </div>
-      </div>
-    </header>
-  );
-};
 
-export default Header;
+        {/* Right Section: Notifications and Profile */}
+        <div className="flex items-center space-x-3">
+          <FaBell
+            className="cursor-pointer text-gray-600 hover:text-blue-500 transition duration-150"
+            aria-label="Notifications"
+          />
+          <div className="flex items-center space-x-2 hover:bg-gray-100 rounded-full px-2 py-1 transition cursor-pointer">
+            <img
+              src="https://via.placeholder.com/28"
+              alt="profile"
+              className="rounded-full w-7 h-7 hover:ring-2 hover:ring-blue-400 transition"
+              aria-label="User Profile"
+            />
+            <span className="text-sm">Moni Roy</span>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  export default Header;
