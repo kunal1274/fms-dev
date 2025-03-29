@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "./Sidebar.css"
+import "./Sidebar.css";
 import {
   FaHome,
   FaUser,
@@ -68,22 +68,21 @@ const Sidebar = () => {
         isOpen ? "w-64" : "w-16"
       } scrollbar-hide`}
     >
-      {/* Toggle Button */}
+      {/* Toggle Section */}
       <div
         onClick={toggleSidebar}
-        className="flex items-center justify-between p-3 mt-2 cursor-pointer"
+        className="flex items-center bg-zinc-200 justify-between px-4 h-11 cursor-pointer"
         role="button"
         aria-label="Toggle Sidebar"
       >
-        {isOpen && (
-          <span className="text-lg font-bold h-12 w-auto ml-6 mt-3 ">
-            Nimami
-          </span>
-        )}
-        <FaBars />
+        <div className="flex items-center space-x-2">
+          {/* <img src={nimamiLogo} alt="Logo" className="h-6 w-6 rounded-full" /> */}
+          {isOpen && <span className="text-lg font-bold">Nimami</span>}
+        </div>
+        <FaBars className="text-lg" />
       </div>
 
-      {/* Sidebar Items */}
+      {/* Main Sidebar Items */}
       <SidebarItem
         icon={<FaHome />}
         label="Dashboard"
@@ -126,14 +125,14 @@ const Sidebar = () => {
               },
               {
                 label: "Report",
-                path: null, // No navigation, just opens submenu
+                path: null,
                 onClick: toggleReportSubMenu,
                 icon: <FaChartBar />,
               },
             ].map((item) => (
               <SidebarItem
                 key={item.label}
-                icon={item.icon || <FaBox />}
+                icon={item.icon}
                 label={item.label}
                 path={item.path}
                 isOpen={isOpen}
@@ -171,7 +170,7 @@ const Sidebar = () => {
                 ].map((subItem) => (
                   <SidebarItem
                     key={subItem.label}
-                    icon={subItem.icon || <FaBox />}
+                    icon={subItem.icon}
                     label={subItem.label}
                     path={subItem.path}
                     isOpen={isOpen}
@@ -183,7 +182,7 @@ const Sidebar = () => {
         )}
       </div>
 
-      {/* Additional Menus */}
+      {/* Other Menus */}
       <SidebarItem
         icon={<FaBuilding />}
         label="Company"
@@ -191,6 +190,7 @@ const Sidebar = () => {
         isOpen={isOpen}
       />
 
+      {/* Inventory Menu */}
       <div>
         <SidebarItem
           icon={<FaWarehouse />}
@@ -215,7 +215,7 @@ const Sidebar = () => {
             ].map((item) => (
               <SidebarItem
                 key={item.label}
-                icon={item.icon || <FaBox />}
+                icon={item.icon}
                 label={item.label}
                 path={item.path}
                 isOpen={isOpen}
@@ -225,9 +225,6 @@ const Sidebar = () => {
         )}
       </div>
 
-      {/* inventry trancstion fliter item  search bar  */}
-      {/* on hand inventry  */}
-
       <SidebarItem
         icon={<FaTruck />}
         label="Vendor"
@@ -235,6 +232,7 @@ const Sidebar = () => {
         isOpen={isOpen}
       />
 
+      {/* Purchase Menu */}
       <div>
         <SidebarItem
           icon={<FaCartPlus />}
@@ -258,14 +256,14 @@ const Sidebar = () => {
               },
               {
                 label: "Report",
-                path: null, // No navigation, just opens submenu
+                path: null,
                 onClick: toggleReportSubMenu,
                 icon: <FaChartBar />,
               },
             ].map((item) => (
               <SidebarItem
                 key={item.label}
-                icon={item.icon || <FaBox />}
+                icon={item.icon}
                 label={item.label}
                 path={item.path}
                 isOpen={isOpen}
@@ -303,7 +301,7 @@ const Sidebar = () => {
                 ].map((subItem) => (
                   <SidebarItem
                     key={subItem.label}
-                    icon={subItem.icon || <FaBox />}
+                    icon={subItem.icon}
                     label={subItem.label}
                     path={subItem.path}
                     isOpen={isOpen}
@@ -314,6 +312,8 @@ const Sidebar = () => {
           </div>
         )}
       </div>
+
+      {/* More Items */}
       <SidebarItem
         icon={<FaBookOpen />}
         label="Ledger"

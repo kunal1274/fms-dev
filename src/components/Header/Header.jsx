@@ -13,7 +13,7 @@
     };
 
     return (
-      <header className="flex justify-between items-center text-sm bg-white shadow px-2 py-1">
+      <header className="flex justify-between items-center text-sm bg-zinc-200  shadow px-2 py-1">
         {/* Search Section */}
         <div className="relative">
           <input

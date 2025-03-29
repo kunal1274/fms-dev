@@ -75,51 +75,65 @@ const CustomerList = ({ handleAddCustomer }) => {
   };
 
   const handleDeleteSelected = async () => {
-    console.log("Selected customers:", selectedCustomers);
-
-    if (!selectedCustomers.length) {
+    if (!selectedCustomers || selectedCustomers.length === 0) {
       toast.info("No customers selected to delete.", { autoClose: 1000 });
       return;
     }
 
-    if (
-      !window.confirm("Are you sure you want to delete the selected customers?")
-    ) {
-      return;
-    }
+    const confirmed = window.confirm(
+      "Are you sure you want to delete the selected customers?"
+    );
+    if (!confirmed) return;
 
     try {
-      // Perform delete requests for selected customers
-      const deleteResponses = await Promise.all(
-        selectedCustomers.map((itemId) => {
-          console.log(`Deleting customer with ID: ${itemId}`);
-          return axios.delete(`${baseUrl}/${itemId}`);
-        })
+      const deleteResponses = await Promise.allSettled(
+        selectedCustomers.map((customerId) =>
+          axios.delete(`${baseUrl}/${customerId}`)
+        )
       );
 
-      // Check if all delete requests succeeded
-      toast.success("Selected customers deleted successfully!", {
-        autoClose: 1000,
-      });
-      console.log("Delete responses:", deleteResponses);
-
-      // Update state to remove deleted customers
-      setItems((prev) =>
-        prev.filter((item) => !selectedCustomers.includes(item._id))
+      const successfulDeletes = deleteResponses.filter(
+        (res) => res.status === "fulfilled"
+      );
+      const failedDeletes = deleteResponses.filter(
+        (res) => res.status === "rejected"
       );
 
-      setSelectedCustomers([]);
+      if (successfulDeletes.length > 0) {
+        toast.success(
+          `${successfulDeletes.length} customer(s) deleted successfully!`,
+          {
+            autoClose: 1000,
+          }
+        );
 
-      // Optional: Refresh the page, but try to avoid if state is updated correctly
-      console.log("Page refresh triggered after deletion.");
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+        setCustomerList((prev) =>
+          prev.filter((customer) => !selectedCustomers.includes(customer._id))
+        );
+        setFilteredCustomers((prev) =>
+          prev.filter((customer) => !selectedCustomers.includes(customer._id))
+        );
+
+        setSelectedCustomers([]);
+      }
+
+      if (failedDeletes.length > 0) {
+        toast.error(
+          `${failedDeletes.length} deletion(s) failed. Check console for details.`
+        );
+        failedDeletes.forEach((err, index) => {
+          console.error(
+            `Error deleting customer ${selectedCustomers[index]}:`,
+            err.reason?.response || err.reason
+          );
+        });
+      }
     } catch (error) {
       console.error(
-        "Error deleting customers:",
+        "Unexpected error during deletion:",
         error.response || error.message
       );
+      toast.error("An unexpected error occurred while deleting customers.");
     }
   };
 
@@ -127,13 +141,37 @@ const CustomerList = ({ handleAddCustomer }) => {
   const importFromExcel = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
-    reader.onload = (event) => {
+
+    reader.onload = async (event) => {
       const data = new Uint8Array(event.target.result);
       const workbook = XLSX.read(data, { type: "array" });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const importedData = XLSX.utils.sheet_to_json(worksheet);
-      setCustomerList((prev) => [...prev, ...importedData]);
+
+      // Post each customer using a while loop
+      let i = 0;
+      while (i < importedData.length) {
+        const customer = importedData[i];
+        try {
+          const response = await axios.post(baseUrl, customer, {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          console.log(`Successfully posted customer ${i + 1}`, response.data);
+        } catch (err) {
+          console.error(
+            `Failed to post customer ${i + 1}`,
+            err.response?.data || err.message
+          );
+        }
+        i++;
+      }
+
+      toast.success("Imported and posted successfully!", { autoClose: 2000 });
+      fetchCustomers(); // Refresh the list after posting
     };
+
     reader.readAsArrayBuffer(file);
   };
 
