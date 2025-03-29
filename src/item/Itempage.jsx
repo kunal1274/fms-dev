@@ -109,7 +109,7 @@ const Page = () => {
 
   const handleError = (error) => {
     if (error.response) {
-      setError(error.response.data.message || "Server error occurred.");
+      // setError(error.response.data.message || "Server error occurred.");
     } else if (error.request) {
       setError("Network error. Please try again.");
     } else {
