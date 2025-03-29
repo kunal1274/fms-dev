@@ -163,7 +163,7 @@ const CustomerPage = () => {
   }
 
   return (
-    <div className=" bg-slate-50 min-h-screen">
+    <div className=" bg-zinc-50 min-h-screen">
       <ToastContainer />
       <div className=" rounded-lg">
         {view === "form" && (
