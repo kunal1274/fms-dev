@@ -148,7 +148,8 @@ const CustomerList = ({ handleAddCustomer }) => {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const importedData = XLSX.utils.sheet_to_json(worksheet);
 
-      // Post each customer using a while loop
+      let allSuccess = true;
+
       let i = 0;
       while (i < importedData.length) {
         const customer = importedData[i];
@@ -160,6 +161,7 @@ const CustomerList = ({ handleAddCustomer }) => {
           });
           console.log(`Successfully posted customer ${i + 1}`, response.data);
         } catch (err) {
+          allSuccess = false;
           console.error(
             `Failed to post customer ${i + 1}`,
             err.response?.data || err.message
@@ -168,8 +170,17 @@ const CustomerList = ({ handleAddCustomer }) => {
         i++;
       }
 
-      toast.success("Imported and posted successfully!", { autoClose: 2000 });
-      fetchCustomers(); // Refresh the list after posting
+      if (allSuccess) {
+        toast.success("All data imported and posted successfully!", {
+          autoClose: 2000,
+        });
+      } else {
+        toast.error("Some data failed to import. Check console for details.", {
+          autoClose: 3000,
+        });
+      }
+
+      fetchCustomers(); // Refresh the list after processing
     };
 
     reader.readAsArrayBuffer(file);
@@ -552,7 +563,7 @@ const CustomerList = ({ handleAddCustomer }) => {
                         <td className="px-6 py-3 whitespace-normal truncate">
                           {customer.contactNum}
                         </td>
-                        <td className="px-6 py-3 break-words max-w-[500px] truncate">
+                        <td className="px-6 py-3 break-words max-w-[500px] truncate hover:whitespace-normal hover:text-sm hover:max-w-none">
                           {customer.address}
                         </td>
                         <td className="px-6 py-3 truncate">

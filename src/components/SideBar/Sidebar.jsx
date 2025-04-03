@@ -79,7 +79,7 @@ const Sidebar = () => {
           {/* <img src={nimamiLogo} alt="Logo" className="h-6 w-6 rounded-full" /> */}
           {isOpen && <span className="text-lg font-bold">Nimami</span>}
         </div>
-        <FaBars className="text-sm" />
+        <FaBars className="text-lg" />
       </div>
 
       {/* Main Sidebar Items */}
