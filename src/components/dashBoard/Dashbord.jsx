@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Routes, Route } from "react-router-dom"; // Added Routes and Route
 import Sidebar from "../SideBar/Sidebar";
+import "./DashBord.css";
 import Header from "../Header/Header";
 import CustomerPage from "../../Customer/CustomerPage"; // Fixed component import
 import ItemPage from "../../item/Itempage";
@@ -44,14 +45,14 @@ const Dashboard = () => {
     <div className="flex h-screen">
       {/* Sidebar */}
       <Sidebar
-        className="fixed"
-        isOpen={isSidebarOpen}
-        toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
-        onNavigate={handleNavigation} // Pass navigation handler to Sidebar
-      />
+    className="fixed w-48"
+    isOpen={isSidebarOpen}
+    toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
+    onNavigate={handleNavigation} // Pass navigation handler to Sidebar
+  />
 
       {/* Main Content */}
-      <div className="flex flex-col flex-1 overflow-auto">
+      <div className="flex flex-col flex-1 overflow-auto hide-scrollbar">
         <Header />
         <div className="">
           {" "}

@@ -65,7 +65,7 @@ const Sidebar = () => {
   return (
     <div
       className={`bg-white h-screen overflow-y-auto transition-all ${
-        isOpen ? "w-64" : "w-16"
+        isOpen ? "w-48" : "w-14"
       } scrollbar-hide`}
     >
       {/* Toggle Section */}
