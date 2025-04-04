@@ -35,7 +35,10 @@ function CustomerForm({ handleCancel }) {
 
   // Fetch Customers
   useEffect(() => {
-    // toast.info("Customer form opened!");
+    toast.info("Customer form opened!", {
+      autoClose: 1000, // 1 second
+      style: { width: "180px" }, // custom width
+    });
 
     async function loadCustomers() {
       try {
@@ -48,7 +51,7 @@ function CustomerForm({ handleCancel }) {
         console.log("Customer data fetched:", response.data);
         setCustomerList(response.data.data);
       } catch (error) {
-        console.error("Error fetching customers:", error);
+        console.error("Error fetching Customers:", error);
       }
     }
 
