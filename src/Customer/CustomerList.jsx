@@ -550,7 +550,7 @@ const CustomerList = ({ handleAddCustomer }) => {
 
             {/* Customer Table */}
             <div className="border border-green-500 rounded-lg bg-white p-10 overflow-hidden">
-              <div className="max-h-96 overflow-y-auto">
+              <div className="h-[460px] overflow-y-auto">
                 <table className="min-w-full border-collapse border border-gray-200">
                   <thead>
                     <tr className="bg-gray-100">

@@ -42,14 +42,14 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-[calc(100vh-4rem)]">
       {/* Sidebar */}
       <Sidebar
-    className="fixed w-48"
-    isOpen={isSidebarOpen}
-    toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
-    onNavigate={handleNavigation} // Pass navigation handler to Sidebar
-  />
+        className="fixed w-48"
+        isOpen={isSidebarOpen}
+        toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
+        onNavigate={handleNavigation} // Pass navigation handler to Sidebar
+      />
 
       {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-auto hide-scrollbar">

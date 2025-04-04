@@ -233,7 +233,6 @@ function CustomerForm({ handleCancel }) {
                   className="w-full border border-gray-300 rounded-lg p-1 bg-white focus:outline-none focus:ring focus:ring-blue-300"
                 >
                   <option value="INR">INR</option>
-
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
                   <option value="GBP">GBP</option>
