@@ -35,7 +35,7 @@ const CustomerList = ({ handleAddCustomer }) => {
       setCustomerList(response.data.data);
       setFilteredCustomers(response.data.data);
     } catch (error) {
-      console.error("Failed to load customers:", error);
+      console.error.error("Failed to load customers:", error);
     } finally {
       setLoading(false);
     }
@@ -43,99 +43,104 @@ const CustomerList = ({ handleAddCustomer }) => {
   const importFromExcel = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
-
+  
+    // Catch errors during file reading
+    reader.onerror = (error) => {
+      console.error('Error reading file:', error);
+      toast.error(`Error reading file: ${error.target.error.message}`);
+    };
+  
     reader.onload = async (event) => {
-      const data = new Uint8Array(event.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const importedData = XLSX.utils.sheet_to_json(worksheet);
-
-      // Validate for duplicate registration numbers or PAN numbers locally
-      const duplicateErrors = [];
-      const seenRegistrations = new Set();
-      const seenPans = new Set();
-
-      importedData.forEach((customer, index) => {
-        if (customer.registrationNo) {
-          if (seenRegistrations.has(customer.registrationNo)) {
-            duplicateErrors.push(
-              `Duplicate registration number found: ${
-                customer.registrationNo
-              } at row ${index + 1}`
-            );
-          } else {
-            seenRegistrations.add(customer.registrationNo);
+      try {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const importedData = XLSX.utils.sheet_to_json(worksheet);
+  
+        // Validate for duplicate registration numbers or PAN numbers locally
+        const duplicateErrors = [];
+        const seenRegistrations = new Set();
+        const seenPans = new Set();
+  
+        importedData.forEach((customer, index) => {
+          if (customer.registrationNo) {
+            if (seenRegistrations.has(customer.registrationNo)) {
+              duplicateErrors.push(
+                `Finding the duplicate registration number: ${customer.registrationNo} at row ${index + 1}`
+              );
+            } else {
+              seenRegistrations.add(customer.registrationNo);
+            }
           }
-        }
-        if (customer.pan) {
-          if (seenPans.has(customer.pan)) {
-            duplicateErrors.push(
-              `Duplicate PAN number found: ${customer.pan} at row ${index + 1}`
-            );
-          } else {
-            seenPans.add(customer.pan);
+          if (customer.pan) {
+            if (seenPans.has(customer.pan)) {
+              duplicateErrors.push(
+                `Customer PAN match: ${customer.pan} at row ${index + 1}`
+              );
+            } else {
+              seenPans.add(customer.pan);
+            }
           }
-        }
-      });
-
-      if (duplicateErrors.length > 0) {
-        toast.error(`Errors occurred:\n${duplicateErrors.join("\n")}`, {
-          autoClose: 6000,
-          onClose: () => fetchCustomers(), // Refresh even if duplicate errors exist
         });
-        return; // Exit if duplicates are found
-      }
-
-      // Post each customer and count successes and failures
-      let successCount = 0;
-      const errors = [];
-      for (let i = 0; i < importedData.length; i++) {
-        const customer = importedData[i];
-        try {
-          const response = await axios.post(baseUrl, customer, {
-            headers: {
-              "Content-Type": "application/json",
-            },
+  
+        if (duplicateErrors.length > 0) {
+          toast.error(`Errors occurred:\n${duplicateErrors.join("\n")}`, {
+            autoClose: 1000,
+            onClose: () => fetchCustomers(), // Refresh even if duplicate errors exist
           });
-          successCount++;
-          toast.success(`Successfully posted customer ${i + 1}`, response.data);
-        } catch (err) {
-          errors.push(
-            `Failed to post customer ${i + 1}: ${
+          return; // Exit if duplicates are found
+        }
+  
+        // Post each customer and count successes and failures
+        let successCount = 0;
+        const errors = [];
+        for (let i = 0; i < importedData.length; i++) {
+          const customer = importedData[i];
+          try {
+            const response = await axios.post(baseUrl, customer, {
+              headers: { "Content-Type": "application/json" },
+            });
+            successCount++;
+            toast.success(`Successfully posted customer ${i + 1}`, response.data);
+          } catch (err) {
+            console.error(`error ${i + 1}:`, err);
+            errors.push(
+              `error ${i + 1}: ${err.response?.data.err || err.message}`
+            );
+            toast.error(
+              `error in import  ${i + 1}`,
               err.response?.data || err.message
-            }`
+            );
+          }
+        }
+  
+        // Display a summary toast and refresh the customer list on close
+        if (successCount === importedData.length) {
+          toast.success(
+            `All ${successCount} data imported and posted successfully!`,
+            {
+              autoClose: 1000,
+              onClose: () => fetchCustomers(),
+            }
           );
+        } else {
           toast.error(
-            `Failed to post customer ${i + 1}`,
-            err.response?.data || err.message
+            `Import Summary:\nSuccessfully imported: ${successCount}\nFailed: ${importedData.length - successCount}\nErrors:\n${errors.join("\n")}`,
+            {
+              autoClose: 1000,
+              onClose: () => fetchCustomers(),
+            }
           );
         }
-      }
-
-      // Display a summary toast and wait until it finishes before refreshing
-      if (successCount === importedData.length) {
-        toast.success(
-          `All ${successCount} data imported and posted successfully!`,
-          {
-            autoClose: 1000,
-            onClose: () => fetchCustomers(),
-          }
-        );
-      } else {
-        toast.error(
-          `Import Summary:\nSuccessfully imported: ${successCount}\nFailed: ${
-            importedData.length - successCount
-          }\nErrors:\n${errors.join("\n")}`,
-          {
-            autoClose: 1000,
-            onClose: () => fetchCustomers(),
-          }
-        );
+      } catch (err) {
+        console.error('Error processing file:', err);
+        toast.error(`Error processing file: ${err.message}`);
       }
     };
-
+  
     reader.readAsArrayBuffer(file);
   };
+  
 
   useEffect(() => {
     fetchCustomers();
