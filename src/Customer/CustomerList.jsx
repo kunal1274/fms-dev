@@ -43,30 +43,32 @@ const CustomerList = ({ handleAddCustomer }) => {
   const importFromExcel = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
-  
+
     // Catch errors during file reading
     reader.onerror = (error) => {
-      console.error('Error reading file:', error);
+      console.error("Error reading file:", error);
       toast.error(`Error reading file: ${error.target.error.message}`);
     };
-  
+
     reader.onload = async (event) => {
       try {
         const data = new Uint8Array(event.target.result);
         const workbook = XLSX.read(data, { type: "array" });
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
         const importedData = XLSX.utils.sheet_to_json(worksheet);
-  
+
         // Validate for duplicate registration numbers or PAN numbers locally
         const duplicateErrors = [];
         const seenRegistrations = new Set();
         const seenPans = new Set();
-  
+
         importedData.forEach((customer, index) => {
           if (customer.registrationNo) {
             if (seenRegistrations.has(customer.registrationNo)) {
               duplicateErrors.push(
-                `Finding the duplicate registration number: ${customer.registrationNo} at row ${index + 1}`
+                `Finding the duplicate registration number: ${
+                  customer.registrationNo
+                } at row ${index + 1}`
               );
             } else {
               seenRegistrations.add(customer.registrationNo);
@@ -82,7 +84,7 @@ const CustomerList = ({ handleAddCustomer }) => {
             }
           }
         });
-  
+
         if (duplicateErrors.length > 0) {
           toast.error(`Errors occurred:\n${duplicateErrors.join("\n")}`, {
             autoClose: 1000,
@@ -90,7 +92,7 @@ const CustomerList = ({ handleAddCustomer }) => {
           });
           return; // Exit if duplicates are found
         }
-  
+
         // Post each customer and count successes and failures
         let successCount = 0;
         const errors = [];
@@ -101,7 +103,10 @@ const CustomerList = ({ handleAddCustomer }) => {
               headers: { "Content-Type": "application/json" },
             });
             successCount++;
-            toast.success(`Successfully posted customer ${i + 1}`, response.data);
+            toast.success(
+              `Successfully posted customer ${i + 1}`,
+              response.data
+            );
           } catch (err) {
             console.error(`error ${i + 1}:`, err);
             errors.push(
@@ -113,7 +118,7 @@ const CustomerList = ({ handleAddCustomer }) => {
             );
           }
         }
-  
+
         // Display a summary toast and refresh the customer list on close
         if (successCount === importedData.length) {
           toast.success(
@@ -125,7 +130,9 @@ const CustomerList = ({ handleAddCustomer }) => {
           );
         } else {
           toast.error(
-            `Import Summary:\nSuccessfully imported: ${successCount}\nFailed: ${importedData.length - successCount}\nErrors:\n${errors.join("\n")}`,
+            `Import Summary:\nSuccessfully imported: ${successCount}\nFailed: ${
+              importedData.length - successCount
+            }\nErrors:\n${errors.join("\n")}`,
             {
               autoClose: 1000,
               onClose: () => fetchCustomers(),
@@ -133,14 +140,13 @@ const CustomerList = ({ handleAddCustomer }) => {
           );
         }
       } catch (err) {
-        console.error('Error processing file:', err);
+        console.error("Error processing file:", err);
         toast.error(`Error processing file: ${err.message}`);
       }
     };
-  
+
     reader.readAsArrayBuffer(file);
   };
-  
 
   useEffect(() => {
     fetchCustomers();
@@ -410,7 +416,7 @@ const CustomerList = ({ handleAddCustomer }) => {
   }
 
   return (
-    <div className="bg-grey-400 p-8 min-h-screen">
+    <div className="bg-grey-400 p-4 min-h-screen">
       <ToastContainer />
       <div className="rounded-full mb-5">
         {viewingCustomerId ? (
@@ -423,22 +429,23 @@ const CustomerList = ({ handleAddCustomer }) => {
           <>
             {/* Header */}
             <div className="flex justify-between space-x-2">
-              <h1 className="text-2xl font-bold mb-3  ">Customer Lists</h1>
+              <h1 className="text-xl font-bold mb-2  ">Customer Lists</h1>
 
-              <div className="flex justify-between rounded-full mb-5">
+              <div className="flex justify-between rounded-full mb-3">
                 <div className="flex justify-end items-center gap-1">
                   <button
                     onClick={handleAddCustomer}
-                    className="h-9 px-4 border border-green-500 bg-white text-sm rounded-md transition hover:bg-green-50 hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     + Add
                   </button>
+
                   <button
                     onClick={handleDeleteSelected}
                     disabled={selectedCustomers.length === 0}
-                    className={`h-9 px-4 border border-green-500 bg-white text-sm rounded-md transition ${
+                    className={`h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition ${
                       selectedCustomers.length > 0
-                        ? "hover:bg-green-50 hover:scale-[1.02]"
+                        ? " hover:text-blue-700 hover:scale-[1.02]"
                         : "opacity-50 cursor-not-allowed"
                     }`}
                   >
@@ -446,17 +453,17 @@ const CustomerList = ({ handleAddCustomer }) => {
                   </button>
                   <button
                     onClick={generatePDF}
-                    className="h-9 px-4 border border-green-500 bg-white text-sm rounded-md transition hover:bg-green-50 hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition  hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] hover:scale-[1.02]"
                   >
                     PDF
                   </button>
                   <button
                     onClick={exportToExcel}
-                    className="h-9 px-4 border border-green-500 bg-white text-sm rounded-md transition hover:bg-green-50 hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition  hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     Export
                   </button>
-                  <label className="h-9 px-4 flex items-center border border-green-500 bg-white text-sm rounded-md transition hover:bg-green-50 hover:scale-[1.02] cursor-pointer">
+                  <label className="h-8 px-3 flex items-center border border-green-500 bg-white text-sm rounded-md transition  hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] cursor-pointer">
                     <input
                       type="file"
                       accept=".xls,.xlsx"
