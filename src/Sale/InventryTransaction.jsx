@@ -11,7 +11,7 @@ import { useParams } from "react-router-dom";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-const InventryTransaction = () => {
+const HandOnInventry = () => {
   const [selectedSortOption, setSelectedSortOption] = useState("");
   const [selectedType, setSelectedType] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,7 +59,7 @@ const InventryTransaction = () => {
       <ToastContainer />
       {/* Header */}
       <div className="flex justify-between space-x-3">
-        <h1 className="text-2xl font-bold mb-4">Inventry Transaction</h1>
+        <h1 className="text-2xl font-bold mb-4">Hand On Inventry</h1>
         <div className="flex justify-between rounded-full mb-5">
           <div className="flex justify-end gap-4">
             {/* <button
@@ -207,4 +207,4 @@ const InventryTransaction = () => {
   );
 };
 
-export default InventryTransaction;
+export default HandOnInventry;

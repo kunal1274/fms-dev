@@ -71,7 +71,7 @@ const Sidebar = () => {
       {/* Toggle Section */}
       <div
         onClick={toggleSidebar}
-        className="flex items-center bg-zinc-200 justify-between px-4 h-11 cursor-pointer"
+        className="flex items-center bg-zinc-200 justify-between px-4 h-11  cursor-pointer"
         role="button"
         aria-label="Toggle Sidebar"
       >
@@ -205,12 +205,12 @@ const Sidebar = () => {
               {
                 label: "Inventory Transaction",
                 path: "/InventoryTransaction",
-                icon: <FaExchangeAlt />,
+                icon: <FaClipboardList />,
               },
               {
                 label: "On-Hand Inventory",
-                path: "/OnHandInventory",
-                icon: <FaClipboardList />,
+                path:"/OnHandInventory ",
+                icon: <FaExchangeAlt />,
               },
             ].map((item) => (
               <SidebarItem

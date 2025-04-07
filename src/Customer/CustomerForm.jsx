@@ -71,7 +71,7 @@ function CustomerForm({ handleCancel }) {
       } else if (name === "registrationNum") {
         // Allow only uppercase alphanumeric characters and up to 16 characters
         const uppercaseValue = value.toUpperCase();
-        if (/^[A-Z0-9]*$/.test(uppercaseValue) && uppercaseValue.length <= 16) {
+        if (/^[A-Z0-9]*$/.test(uppercaseValue) && uppercaseValue.length <= 15) {
           return { ...prev, [name]: uppercaseValue };
         }
       } else if (name === "panNum") {
