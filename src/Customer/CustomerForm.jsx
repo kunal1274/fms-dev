@@ -15,7 +15,7 @@ function CustomerForm({ handleCancel }) {
   const [formData, setFormData] = useState({
     name: "",
     contactNum: "",
-    currency: "",
+    currency: "INR",
     registrationNum: "",
     panNum: "",
     address: "",
@@ -36,7 +36,7 @@ function CustomerForm({ handleCancel }) {
   // Fetch Customers
   useEffect(() => {
     toast.info("Customer form opened!", {
-      autoClose: 1000, // 1 second
+      autoClose: 800, // 1 second
       style: { width: "180px" }, // custom width
     });
 
@@ -232,7 +232,7 @@ function CustomerForm({ handleCancel }) {
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg p-1 bg-white focus:outline-none focus:ring focus:ring-blue-300"
                 >
-                  <option value="INR">INR</option>
+                  <option value="">INR</option>
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
                   <option value="GBP">GBP</option>
