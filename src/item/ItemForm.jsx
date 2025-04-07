@@ -166,7 +166,7 @@ function ItemForm({ handleCancel }) {
                 </label>
                 <input
                   type="text"
-                  name="name"
+                  name="name"   placeholder="eg-Item name"
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
@@ -182,6 +182,7 @@ function ItemForm({ handleCancel }) {
                 <input
                   type="text"
                   name="itemNum"
+                   placeholder="eg-Item Number"
                   value={formData.itemNum}
                   onChange={
                     (e) =>
@@ -199,7 +200,7 @@ function ItemForm({ handleCancel }) {
                   Price <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="number"
+                  type="number"  placeholder="Price"
                   name="price"
                   value={formData.price}
                   onChange={(e) => {
@@ -264,13 +265,13 @@ function ItemForm({ handleCancel }) {
                   Description
                 </label>
                 <textarea
-                  name="description"
+                  name="description"placeholder="description"
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring focus:ring-blue-300"
-                />
+                  rows="4"
+                  className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300 resize-y min-h-[6rem]"                />
               </div>
             </div>
 

@@ -6,7 +6,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
-const baseUrl = "https://befr8n.vercel.app";
+const baseUrl = "https://fms-qkmw.onrender.com";
 const secondUrl = "/fms/api/v0";
 const thirdUrl = "/vendors";
 const mergedUrl = `${baseUrl}${secondUrl}${thirdUrl}`;
@@ -67,7 +67,7 @@ const VendorForm = ({ handleCancel }) => {
       } else if (name === "registrationNum") {
         // Allow only uppercase alphanumeric characters and up to 16 characters
         const uppercaseValue = value.toUpperCase();
-        if (/^[A-Z0-9]*$/.test(uppercaseValue) && uppercaseValue.length <= 16) {
+        if (/^[A-Z0-9]*$/.test(uppercaseValue) && uppercaseValue.length <= 15) {
           return { ...prev, [name]: uppercaseValue };
         }
       } else if (name === "panNum") {
@@ -193,7 +193,7 @@ const VendorForm = ({ handleCancel }) => {
                   id="name"
                   name="name"
                   type="text"
-                  placeholder="  Vendor Name"
+                  placeholder="eg - Amit kr."
                   value={formData.name}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
@@ -213,7 +213,7 @@ const VendorForm = ({ handleCancel }) => {
                   id="contactNum"
                   name="contactNum"
                   type="tel"
-                  placeholder="Contact No"
+                  placeholder=" eg - 98637567**"
                   value={formData.contactNum}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
@@ -233,7 +233,7 @@ const VendorForm = ({ handleCancel }) => {
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg p-1 bg-white focus:outline-none focus:ring focus:ring-blue-300"
                 >
-                  <option value="">Select Currency</option>
+           
                   <option value="INR">INR</option>
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
@@ -250,7 +250,7 @@ const VendorForm = ({ handleCancel }) => {
                   id="panNum"
                   name="panNum"
                   type="text"
-                  placeholder="Vendor PAN "
+                  placeholder=" eg - JGHFY98U7J"
                   value={formData.panNum}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
@@ -269,7 +269,7 @@ const VendorForm = ({ handleCancel }) => {
                   id="registrationNum"
                   name="registrationNum"
                   type="text"
-                  placeholder=" Registration No "
+                  placeholder=" eg - INHY98637567O9"
                   value={formData.registrationNum}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
@@ -284,11 +284,13 @@ const VendorForm = ({ handleCancel }) => {
                 <textarea
                   id="address"
                   name="address"
-                  placeholder=" Vendor Address"
+                  placeholder="  eg - Sector -5c 
+  Quarter no - 105 
+  Bokaro Jharkhand "
                   value={formData.address}
                   onChange={handleInputChange}
                   rows="4"
-                  className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300"
+                  className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300 resize-y min-h-[6rem]"
                 ></textarea>
               </div>
             </div>

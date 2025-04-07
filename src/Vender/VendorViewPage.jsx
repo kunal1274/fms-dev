@@ -7,10 +7,11 @@ import Checkbox_with_words from "../components/layout/Checkbox_with_words/Checkb
 
 import { useParams } from "react-router-dom";
 
-const baseUrl = "https://befr8n.vercel.app";
+const baseUrl = "https://fms-qkmw.onrender.com";
 const secondUrl = "/fms/api/v0";
 const thirdUrl = "/vendors";
 const mergedUrl = `${baseUrl}${secondUrl}${thirdUrl}`;
+
 
 const VendorViewPage = ({ vendorId, vendor, goBack, toggleView }) => {
   const [isEditing, setIsEditing] = useState(false);

@@ -10,7 +10,7 @@ import * as XLSX from "xlsx";
 import PurchaseViewPage from "./PurchaseViewPage";
 import Invoice from "../Sale/Invoice/Icopy"; // Make sure this path is correct
 
-const BASE_URL = "https://befr8n.vercel.app/fms/api/v0/purchaseorders";
+const BASE_URL = "https://fms-qkmw.onrender.com/fms/api/v0/purchaseorders";
 
 const PurchaseOrderList = ({ handleAddPurchaseOrder }) => {
   const [purchases, setPurchases] = useState([]);

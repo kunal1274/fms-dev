@@ -284,8 +284,8 @@ const ItemviewPage = ({ item, itemId, goBack, handleSaveItem, toggleView }) => {
                 }
                 rows="4"
                 disabled={!isEditing}
-                className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300"
-              ></textarea>
+               
+                className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300 resize-y min-h-[6rem]"                         ></textarea>
             </div>
           </div>
 

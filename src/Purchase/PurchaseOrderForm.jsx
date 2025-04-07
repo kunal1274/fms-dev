@@ -6,9 +6,9 @@ import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 
 // API endpoints
-const itemsBaseUrl = "https://befr8n.vercel.app/fms/api/v0/items";
-const vendorsBaseUrl = "https://befr8n.vercel.app/fms/api/v0/vendors";
-const purchasesOrderUrl = "https://befr8n.vercel.app/fms/api/v0/purchaseorders";
+const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
+const vendorsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/vendors";
+const purchasesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/purchaseorders";
 
 const PurchaseOrderForm = ({ handleCancel }) => {
   // -------------------------

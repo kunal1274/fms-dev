@@ -159,12 +159,10 @@ const CompanyPage = () => {
   };
 
   return (
-    <div className="bg-grey-400">
-      <div className="bg-slate-50 rounded-lg p-4">
-        {loading && <p className="text-yellow-500">Loading...</p>}
-        {message && <p className="text-green-500">{message}</p>}
-        {error && <p className="text-red-500">{error}</p>}
-        {view === "form" && (
+    <div className=" bg-zinc-50 min-h-screen">
+    
+    <div className=" rounded-lg">
+    {view === "form" && (
           <CompanyForm
             handleCancel={handleCancel}
             createCompany={createCompany}
@@ -174,14 +172,16 @@ const CompanyPage = () => {
             setNewCompany={setNewCompany}
           />
         )}
-        {view === "list" && (
+
+{view === "list" && (
           <CompanyList
             companies={companies}
             handleAddCompany={handleAddCompany}
             handleViewCompany={handleViewCompany}
           />
         )}
-        {view === "view" && (
+
+{view === "view" && (
           <CompanyViewPage
             company={selectedCompany}
             handleAddCompany={handleAddCompany}
@@ -189,9 +189,9 @@ const CompanyPage = () => {
             handleToggleView={handleToggleView}
           />
         )}
-      </div>
-      <ToastContainer />
     </div>
+  </div>
+   
   );
 };
 

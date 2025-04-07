@@ -118,14 +118,9 @@ const Page = () => {
   };
 
   return (
-    <div className="  min-h-screen">
-      <ToastContainer />
-      <div className=" rounded-lg">
-        {loading && <p className="text-yellow-500">Loading...</p>}
-        {message && <p className="text-green-500">{message}</p>}
-        {error && <p className="text-red-500">{error}</p>}
-
-        {view === "form" && (
+    <div className=" bg-zinc-50 min-h-screen">
+     <div className=" rounded-lg">
+     {view === "form" && (
           <ItemForm
             selectedItem={selectedItem}
             newItem={newItem}
@@ -136,15 +131,14 @@ const Page = () => {
           />
         )}
 
-        {view === "list" && (
+{view === "list" && (
           <ItemList
             items={items}
             handleAddItem={handleAddItem}
             handleViewItem={handleViewItem}
           />
         )}
-
-        {view === "view" && (
+{view === "view" && (
           <ItemviewPage
             item={selectedItem}
             handleCancel={handleCancel}
@@ -152,6 +146,7 @@ const Page = () => {
           />
         )}
       </div>
+    
     </div>
   );
 };

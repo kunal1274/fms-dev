@@ -4,7 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // Update these URLs as needed.
-const baseUrl = "https://befr8n.vercel.app";
+const baseUrl = "https://fms-qkmw.onrender.com";
 const secondUrl = "/fms/api/v0";
 const thirdUrl = "/companies";
 const mergedUrl = `${baseUrl}${secondUrl}${thirdUrl}`;

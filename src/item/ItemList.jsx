@@ -1,40 +1,32 @@
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { Select } from "flowbite-react";
-import ItemviewPage from "./ItemviewPage ";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
+import ItemviewPage from "./ItemviewPage ";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import autoTable from "jspdf-autotable";
+import { ToastContainer } from "react-toastify";
 
-const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
+const BASE_URL = "https://fms-qkmw.onrender.com/fms/api/v0/items";
 
 function ItemList({ handleAddItem }) {
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-  const [itemList, setItemList] = useState([]);
   const [items, setItems] = useState([]);
-  const [view, setView] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [selectedOption, setSelectedOption] = useState("All");
   const [viewingItemId, setViewingItemId] = useState(null);
 
-  const [selectedType, setSelectedType] = useState("All");
-
+  // Separate states for filtering and sorting
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState("All");
-  const [sortOption, setSortOption] = useState("");
-  const [filteredItems, setFilteredItems] = useState(items);
-
-  const { id } = useParams();
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState("All");
   const [selectedSortOption, setSelectedSortOption] = useState("All");
-  // Fetch all items from the API
+
+  // Fetch items from API
   const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(baseUrl);
+      const response = await axios.get(BASE_URL);
       setItems(response.data.data);
       setFilteredItems(response.data.data);
     } catch (error) {
@@ -48,29 +40,62 @@ function ItemList({ handleAddItem }) {
     fetchItems();
   }, [fetchItems]);
 
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    setFilteredItems(
-      items.filter((item) =>
-        item.name.toLowerCase().includes(value.toLowerCase())
-      )
-    );
-  };
-  const toggleView = (targetView) => {
-    if (view !== targetView) {
-      setView(targetView);
-      console.log("Toggle function working: View changed to", targetView);
-    } else {
-      console.log("Error in running function: View did not change");
+  // Apply filters and sorting
+  const applyFilters = useCallback(() => {
+    let updatedItems = [...items];
+
+    // Filter by status
+    if (selectedStatusFilter === "yes") {
+      updatedItems = updatedItems.filter((item) => item.active);
+    } else if (selectedStatusFilter === "no") {
+      updatedItems = updatedItems.filter((item) => !item.active);
     }
+
+    // Filter by search term
+    if (searchTerm.trim()) {
+      updatedItems = updatedItems.filter(
+        (item) =>
+          item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.code.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply sorting if needed
+    if (selectedSortOption !== "All") {
+      updatedItems.sort((a, b) => {
+        switch (selectedSortOption) {
+          case "Item Name":
+            return a.name.localeCompare(b.name);
+          case "Item Account no":
+            return a.code.localeCompare(b.code);
+          case "Item Account no descending":
+            return b.code.localeCompare(a.code);
+          case "By unit":
+            return a.unit.localeCompare(b.unit);
+          default:
+            return 0;
+        }
+      });
+    }
+
+    setFilteredItems(updatedItems);
+  }, [items, searchTerm, selectedStatusFilter, selectedSortOption]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
+
+  // Handlers for search and filter changes
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
-  const handleCheckboxChange = (id) => {
-    setSelectedItems((prevSelected) =>
-      prevSelected.includes(id)
-        ? prevSelected.filter((itemId) => itemId !== id)
-        : [...prevSelected, id]
-    );
+
+  const handleStatusFilterChange = (e) => {
+    setSelectedStatusFilter(e.target.value);
+  };
+
+  const handleSortChange = (e) => {
+    setSelectedSortOption(e.target.value);
   };
 
   const toggleSelectAll = () => {
@@ -80,41 +105,24 @@ function ItemList({ handleAddItem }) {
       setSelectedItems(filteredItems.map((item) => item._id));
     }
   };
-  const goBack = () => {
-    setViewingItemId(null);
-    window.location.reload();
+
+  const handleCheckboxChange = (id) => {
+    setSelectedItems((prev) =>
+      prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
+    );
   };
+
   const handleItemClick = (id) => {
-    // alert(`Item clicked: ${id}`);
     setViewingItemId(id);
   };
-  // Handle filtering logic
-  const applyFilters = useCallback(() => {
-    let filtered = [...items];
 
-    if (selectedFilter === "yes") {
-      filtered = filtered.filter((item) => item.active);
-    } else if (selectedFilter === "no") {
-      filtered = filtered.filter((item) => !item.active);
-    }
+  const goBack = () => {
+    setViewingItemId(null);
+    // Optionally avoid reloading if not needed
+    window.location.reload();
+  };
 
-    if (searchTerm.trim()) {
-      filtered = filtered.filter(
-        (item) =>
-          item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.code.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    setFilteredItems(filtered);
-  }, [items, searchTerm, selectedFilter]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
-
-  // Handle individual item selection
-
+  // PDF generation using jsPDF and autoTable
   const generatePDF = useCallback(() => {
     const doc = new jsPDF();
     const tableColumn = [
@@ -129,8 +137,8 @@ function ItemList({ handleAddItem }) {
     ];
     const tableRows = filteredItems.map((item, index) => [
       index + 1,
-      item.itemNo,
-      item.itemName,
+      item.code,
+      item.name,
       item.type,
       item.description,
       item.unit,
@@ -146,19 +154,23 @@ function ItemList({ handleAddItem }) {
     doc.save("item_list.pdf");
   }, [filteredItems]);
 
+  // Excel export
   const exportToExcel = useCallback(() => {
     const worksheet = XLSX.utils.json_to_sheet(filteredItems);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Items");
     XLSX.writeFile(workbook, "item_list.xlsx");
   }, [filteredItems]);
-  const importFromExcel = () => {};
-  // Handle "select all" functionality
 
-  // Handle deleting selected items
+  // Placeholder for Excel import functionality
+  const importFromExcel = () => {
+    // Implementation for importing Excel files can be added here
+  };
+
+  // Delete selected items
   const handleDeleteSelectedItems = async () => {
     if (selectedItems.length === 0) {
-      alert("No customers selected to delete.");
+      alert("No items selected to delete.");
       return;
     }
 
@@ -170,7 +182,7 @@ function ItemList({ handleAddItem }) {
 
     try {
       await Promise.all(
-        selectedItems.map((itemId) => axios.delete(`${baseUrl}/${itemId}`))
+        selectedItems.map((itemId) => axios.delete(`${BASE_URL}/${itemId}`))
       );
       setItems((prev) =>
         prev.filter((item) => !selectedItems.includes(item._id))
@@ -184,6 +196,13 @@ function ItemList({ handleAddItem }) {
   };
 
   // Reset filters
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSelectedStatusFilter("All");
+    setSelectedSortOption("All");
+    setFilteredItems([...items]);
+    console.log("Filters reset to default.");
+  };
 
   if (loading) {
     return (
@@ -195,113 +214,36 @@ function ItemList({ handleAddItem }) {
       </div>
     );
   }
-  const handleFilterChange = (e) => {
-    const value = e.target.value; // Get the selected filter value
-    setSelectedFilter(value); // Update the selected filter state
 
-    let filtered = [...items]; // Clone the original items array
-
-    switch (value) {
-      case "yes": // Show only active items
-        filtered = filtered.filter((item) => item.active === true);
-        break;
-
-      case "no": // Show only inactive items
-        filtered = filtered.filter((item) => item.active === false);
-        break;
-
-      case "All": // Show all items
-      default:
-        filtered = [...items];
-        break;
-    }
-
-    setFilteredItems(filtered); // Update the filteredItems state
-  };
-  const handleSortChange = (e) => {
-    const value = e.target.value;
-    setSelectedSortOption(value);
-
-    let sorted = [...filteredItems];
-
-    switch (value) {
-      case "Item Name":
-        sorted = sorted.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "Item Account no":
-        sorted = sorted.sort((a, b) => a.code.localeCompare(b.code));
-        break;
-      case "Item Account no descending":
-        sorted = sorted.sort((a, b) => b.code.localeCompare(a.code));
-        break;
-      case "By unit":
-        sorted = sorted.sort((a, b) => a.unit.localeCompare(b.unit));
-        break;
-      case "All":
-      default:
-        break;
-    }
-
-    setFilteredItems(sorted);
-  };
-  const handleTypeFilterChange = (e) => {
-    const value = e.target.value;
-
-    let filtered;
-
-    switch (value) {
-      case "Services":
-        filtered = items.filter((item) => item.type === "Services");
-        break;
-      case "Goods":
-        filtered = items.filter((item) => item.type === "Goods");
-        break;
-      case "All":
-        filtered = items; // No filter applied, show all items
-        break;
-      default:
-        filtered = items; // Fallback to show all items
-        break;
-    }
-
-    setFilteredItems(filtered);
-  };
-  const resetFilters = () => {
-    // Reset all relevant states
-    setSearchTerm(""); // Clear search term if any
-    setSelectedFilter("All"); // Reset to default option
-    setSortOption(""); // Reset sorting to default
-    setFilteredItems([...items]); // Restore the original items array
-
-    console.log("Filters reset to default.");
-  };
   return (
-    <div className="bg-grey-400 min-h-screen">
-      <div className=" rounded-full mb-5">
+    <div className="bg-grey-400 p-4 min-h-screen">
+      {" "}
+      <ToastContainer />
+      <div className="rounded-full mb-5">
         {viewingItemId ? (
           <ItemviewPage
-            toggleView={toggleView}
+            toggleView={null}
             itemId={viewingItemId}
             goBack={goBack}
           />
         ) : (
           <>
-            <div className="flex justify-between space-x-3">
-              <h1 className="text-2xl font-bold mb-4">Item List</h1>
+            <div className="flex justify-between space-x-2">
+              <h1 className="text-xl font-bold mb-2  ">Item Lists</h1>
               <div className="flex justify-between rounded-full mb-5">
-                <div className="flex justify-end gap-4">
+                <div className="flex justify-end items-center gap-1">
                   <button
                     onClick={handleAddItem}
-                    className="h-10 px-4 py-2 border border-green-500 bg-white rounded-md hover:bg-gray-100"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     + Add
                   </button>
                   <button
                     onClick={handleDeleteSelectedItems}
                     disabled={selectedItems.length === 0}
-                    className={`h-10 px-4 py-2 border border-green-500 bg-white rounded-md ${
+                    className={`h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition ${
                       selectedItems.length > 0
-                        ? "hover:bg-gray-100"
+                        ? "hover:text-blue-700 hover:scale-[1.02]"
                         : "opacity-50 cursor-not-allowed"
                     }`}
                   >
@@ -309,17 +251,17 @@ function ItemList({ handleAddItem }) {
                   </button>
                   <button
                     onClick={generatePDF}
-                    className="h-10 px-4 py-2 border border-green-500 bg-white rounded-md hover:bg-gray-100"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     PDF
                   </button>
                   <button
                     onClick={exportToExcel}
-                    className="h-10 px-4 py-2 border border-green-500 bg-white rounded-md hover:bg-gray-100"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     Export
                   </button>
-                  <label className="border h-10 border-green-500 bg-white rounded-md py-2 px-4">
+                  <label className="h-8 px-3 flex items-center border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] cursor-pointer">
                     <input
                       type="file"
                       accept=".xls,.xlsx"
@@ -332,8 +274,8 @@ function ItemList({ handleAddItem }) {
               </div>
             </div>
 
-            <div className="flex flex-wrap Sales-center justify-between p-4 bg-white rounded-md shadow mb-6 space-y-4 md:space-y-0 md:space-x-4">
-              {/* Left group: Sort By, Filter By Status, Search */}
+            <div className="flex flex-wrap items-center text-sm justify-between p-2 bg-white rounded-md shadow mb-2 space-y-3 md:space-y-0 md:space-x-4">
+              {/* Left group: Sort, Filter, Search */}
               <div className="flex items-center space-x-4">
                 {/* Sort By */}
                 <div className="relative">
@@ -341,49 +283,40 @@ function ItemList({ handleAddItem }) {
                   <select
                     value={selectedSortOption}
                     onChange={handleSortChange}
-                    defaultValue=""
                     className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                   >
-                    <option value="All" disabled className="text-gray-500">
-                      Sort By
-                    </option>
-
+                    <option value="All">Sort By</option>
                     <option value="Item Name">Sort by Item Name</option>
                     <option value="Item Account no">By Item No</option>
                     <option value="Item Account no descending">
                       By Item No Descending
                     </option>
+                    <option value="By unit">By Unit</option>
                   </select>
                 </div>
-
                 {/* Filter By Status */}
                 <div className="relative">
                   <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <select
-                    defaultValue="All"
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                    value={selectedType}
-                    onChange={handleTypeFilterChange}
+                    value={selectedStatusFilter}
+                    onChange={handleStatusFilterChange}
+                    className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                   >
-                    <option value="All">Sort by Unit</option>
-                    <option value="Goods">Goods</option>
-                    <option value="Services">Services</option>
+                    <option value="All">Filter By Status</option>
+                    <option value="yes">Yes</option>
+                    <option value="no"> No </option>
                   </select>
                 </div>
-
                 {/* Search */}
                 <div className="relative">
                   <input
                     type="text"
                     placeholder="Search..."
                     value={searchTerm}
-                    aria-label="Search"
                     onChange={handleSearchChange}
-                    className="w-60 pl-4 pr-10 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                   <button
-                    value={searchTerm}
-                    onChange={handleSearchChange}
                     type="button"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
                   >
@@ -391,26 +324,26 @@ function ItemList({ handleAddItem }) {
                   </button>
                 </div>
               </div>
-
               {/* Right side: Reset Filter */}
               <button
                 className="text-red-500 hover:text-red-600 font-medium"
-                onClick={() => resetFilters(setSearch, setFilters)} // Pass setSearch and setFilters
+                onClick={resetFilters}
               >
                 Reset Filter
               </button>
             </div>
-            <div className="border border-green-500 rounded-lg bg-white p-3 overflow-hidden">
-              <div className="  max-h-96 overflow-y-auto">
-                {/* max-h-108   max-h-48 * */}
+
+            <div className="border border-green-500 rounded-lg bg-white p-10 overflow-hidden">
+              <div className="h-[460px] overflow-y-auto">
                 <table className="min-w-full border-collapse border border-gray-200">
                   <thead>
                     <tr className="bg-gray-100">
-                      <th className="px-4 py-2 border border-gray-300 text-left">
+                      <th className="px-4 py-2 border-gray-300 text-left">
                         <input
                           type="checkbox"
                           checked={
-                            selectedItems.length === filteredItems.length
+                            selectedItems.length === filteredItems.length &&
+                            filteredItems.length > 0
                           }
                           onChange={toggleSelectAll}
                         />
@@ -426,7 +359,7 @@ function ItemList({ handleAddItem }) {
                       </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
                         Description
-                      </th>{" "}
+                      </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
                         Unit
                       </th>
@@ -441,28 +374,27 @@ function ItemList({ handleAddItem }) {
                   <tbody>
                     {filteredItems.map((item) => (
                       <tr key={item._id} className="hover:bg-gray-50">
-                        <td className="">
-                          <th className="px-4 py-2 border-white-300 ">
-                            <input
-                              type="checkbox"
-                              checked={selectedItems.includes(item._id)}
-                              onChange={() => handleCheckboxChange(item._id)}
-                            />{" "}
-                          </th>
+                        <td className="px-4 py-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedItems.includes(item._id)}
+                            onChange={() => handleCheckboxChange(item._id)}
+                          />
                         </td>
-                        <td className="px-6 py-3 truncate">
-                          <button onClick={() => handleItemClick(item._id)}>
+                        <td >
+                          <button
+                            className="text-blue-600 hover:underline  ml-6 focus:outline-none"
+                            onClick={() => handleItemClick(item._id)}
+                          >
                             {item.code}
                           </button>
                         </td>
                         <td className="px-6 py-3 truncate">{item.name}</td>
                         <td className="px-6 py-3 truncate">{item.type}</td>
-                        <td className="px-6 py-3 break-words max-w-[500px] truncate">
+                        <td className="px-6 py-3 break-words max-w-[500px] truncate hover:whitespace-normal hover:text-sm hover:max-w-none">
                           {item.description}
                         </td>
-                        <td className="px-6 py-3 whitespace-normal truncate">
-                          {item.unit}
-                        </td>
+                        <td className="px-6 py-3 truncate">{item.unit}</td>
                         <td className="px-6 py-3 truncate">{item.price}</td>
                         <td className="px-6 py-3 truncate">
                           {item.active ? "Yes" : "No"}
