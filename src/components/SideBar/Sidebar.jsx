@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import "./Sidebar.css";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import {
   FaHome,
   FaUser,
@@ -209,7 +210,7 @@ const Sidebar = () => {
               },
               {
                 label: "On-Hand Inventory",
-                path:"/OnHandInventory ",
+                path: "/OnHandInventory ",
                 icon: <FaExchangeAlt />,
               },
             ].map((item) => (
