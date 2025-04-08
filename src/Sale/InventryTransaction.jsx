@@ -11,6 +11,7 @@ import { useParams } from "react-router-dom";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+
 const HandOnInventry = () => {
   const [selectedSortOption, setSelectedSortOption] = useState("");
   const [selectedType, setSelectedType] = useState("All");
@@ -18,33 +19,38 @@ const HandOnInventry = () => {
   const [filteredSales, setFilteredSales] = useState([]);
   const [selectedSales, setSelectedSales] = useState([]);
 
+  // Handlers for sort, filter, and search
   const handleSortChange = (e) => setSelectedSortOption(e.target.value);
   const handleTypeFilterChange = (e) => setSelectedType(e.target.value);
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
   const handleSearchSubmit = () => {
-    // Implement search logic
+    // Implement search logic here...
   };
+
   const handleInvoice = () => {
     if (selectedSales.length > 0) {
-      // Handle invoice logic
+      // Handle invoice logic here...
     }
   };
+
   const handleAddSaleOrder = () => {
-    // Handle add sale order logic
+    // Handle add sale order logic here...
   };
+
   const handleDeleteSelected = () => {
     if (selectedSales.length > 0) {
-      // Handle delete logic
+      // Handle delete logic here...
     }
   };
-  const generatePDF = () => {
-    // Generate PDF logic
-  };
+
+  // Function to reset filters
   const resetFilters = () => {
     setSearchTerm("");
     setSelectedSortOption("");
     setSelectedType("All");
   };
+
+  // Function to calculate inventory values per sale
   const calculateInventory = (sale) => {
     return {
       physicalInventory: sale?.physical || 0,
@@ -54,66 +60,114 @@ const HandOnInventry = () => {
     };
   };
 
-  return (
+  // Import from Excel file
+  const importFromExcel = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const data = evt.target.result;
+      const workbook = XLSX.read(data, { type: "binary" });
+      // Assuming data is in the first sheet
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const importedData = XLSX.utils.sheet_to_json(worksheet);
+      // Here you can process the imported data as needed.
+      setFilteredSales(importedData);
+      toast.success("Excel data imported successfully!");
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  // Export to Excel using filteredSales data
+  const exportToExcel = useCallback(() => {
+    if (!filteredSales.length) return alert("No data to export");
+    const worksheet = XLSX.utils.json_to_sheet(filteredSales);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Inventory");
+    XLSX.writeFile(workbook, "inventory_list.xlsx");
+  }, [filteredSales]);
+
+  // Generate PDF using filteredSales data
+  const generatePDF = useCallback(() => {
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "pt",
+      format: "A4",
+    });
+    // Create table headers and body using filteredSales
+    doc.autoTable({
+      head: [
+        [
+          "#",
+          "Item",
+          "Physical Inventory",
+          "Financial Inventory",
+          "Transit Inventory",
+          "Position Inventory",
+        ],
+      ],
+      body: filteredSales.map((sale, index) => {
+        const inventory = calculateInventory(sale);
+        return [
+          index + 1,
+          sale.item?.name || "",
+          inventory.physicalInventory,
+          inventory.financialInventory,
+          inventory.transitInventory,
+          inventory.positionInventory,
+        ];
+      }),
+    });
+    doc.save("inventory_list.pdf");
+  }, [filteredSales]);
+
+  return (   <div className="bg-grey-400 p-4 min-h-screen">
     <div className="bg-grey-400  min-h-screen">
       <ToastContainer />
       {/* Header */}
-      <div className="flex justify-between space-x-3">
-        <h1 className="text-2xl font-bold mb-4">Hand On Inventry</h1>
-        <div className="flex justify-between rounded-full mb-5">
-          <div className="flex justify-end gap-4">
-            {/* <button
-              onClick={handleInvoice}
-              className={`h-10 px-4 py-2 border border-green-500 bg-white rounded-md ${
-                selectedSales.length > 0
-                  ? "hover:bg-gray-100"
-                  : "opacity-50 cursor-not-allowed"
-              }`}
-            >
-              Invoice
-            </button>{" "}
-            <button
-              onClick={handleAddSaleOrder}
-              className="h-10 px-4 py-2 border border-green-500 bg-white rounded-md hover:bg-gray-100"
-            >
-              + Add
-            </button>
-            <button
-              onClick={handleDeleteSelected}
-              disabled={selectedSales.length === 0}
-              className={`h-10 px-4 py-2 border border-green-500 bg-white rounded-md ${
-                selectedSales.length > 0
-                  ? "hover:bg-gray-100"
-                  : "opacity-50 cursor-not-allowed"
-              }`}
-            >
-              Delete
-            </button> */}
+      <div className="flex justify-between space-x-2">
+        <h1 className="text-xl font-bold mb-2"> Inventory Transaction</h1>
+        <div className="flex justify-between rounded-full mb-3">
+          <div className="flex justify-end items-center gap-1">
             <button
               onClick={generatePDF}
-              className="h-10 px-4 py-2 border border-green-500 bg-white rounded-md hover:bg-gray-100"
+              className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
             >
               PDF
             </button>
-            <button className="h-10 px-4 py-2 border border-green-500 bg-white rounded-md hover:bg-gray-100">
+            <button
+              onClick={exportToExcel}
+              className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+            >
               Export
             </button>
-            <label className="border h-10 border-green-500 bg-white rounded-md py-2 px-4">
-              <input type="file" accept=".xls,.xlsx" className="hidden" />
+            <label className="h-8 px-3 flex items-center border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] cursor-pointer">
+              <input
+                type="file"
+                accept=".xls,.xlsx"
+                onChange={importFromExcel}
+                className="hidden"
+              />
               Import
             </label>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between p-4 bg-white rounded-md shadow mb-6">
+      {/* Sort, Filter, and Search */}
+      <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md shadow mb-2 space-y-3 md:space-y-0 md:space-x-4">
+        {/* Left group: Sort By, Filter By Status, Search */}
         <div className="flex items-center space-x-4">
+          {/* Sort By */}
           <div className="relative">
             <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <select
+              defaultValue=""
               value={selectedSortOption}
               onChange={handleSortChange}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
             >
               <option value="" disabled>
                 Sort By
@@ -125,42 +179,52 @@ const HandOnInventry = () => {
               <option value="unit">By Unit</option>
             </select>
           </div>
+
+          {/* Filter By Status */}
           <div className="relative">
-            <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <FaFilter className="text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <select
+              defaultValue="All"
+              className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
               value={selectedType}
               onChange={handleTypeFilterChange}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
             >
+              <option value="All">Filter By Status</option>
               <option value="All">Filter by Status</option>
               <option value="Confirm">Confirm</option>
               <option value="Draft">Draft</option>
             </select>
           </div>
+
+          {/* Search */}
           <div className="relative">
             <input
               type="text"
               placeholder="Search..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className="w-60 pl-4 pr-10 py-2 border border-gray-300 rounded-full"
+              className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <button
               onClick={handleSearchSubmit}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
             >
               <FaSearch className="w-5 h-5" />
             </button>
           </div>
         </div>
+
+        {/* Right side: Reset Filter */}
         <button
-          className="text-red-500 hover:text-red-600 font-medium"
           onClick={resetFilters}
+          className="text-red-500 hover:text-red-600 font-medium"
         >
           Reset Filter
         </button>
       </div>
 
+      {/* Inventory Table */}
       <div className="border rounded-lg bg-white p-4 overflow-auto">
         <table className="min-w-full border-collapse border border-gray-200">
           <thead>
@@ -201,7 +265,7 @@ const HandOnInventry = () => {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );
