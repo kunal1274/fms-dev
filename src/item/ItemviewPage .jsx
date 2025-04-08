@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const baseUrl = "https://befr8n.vercel.app";
+const baseUrl = "https://fms-qkmw.onrender.com";
 const secondUrl = "/fms/api/v0";
 const thirdUrl = "/items";
 const mergedUrl = `${baseUrl}${secondUrl}${thirdUrl}`;
@@ -209,7 +209,19 @@ const ItemviewPage = ({ item, itemId, goBack, handleSaveItem, toggleView }) => {
                 disabled={!isEditing}
               />
             </div>
-
+            <div>
+              <label htmlFor="itemCode" className="block text-gray-600 mb-2">
+                Item Number <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="itemNum"
+                placeholder="eg-Item Number"
+                value={formData.itemNum}
+                disabled={!isEditing}
+                className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
+              />
+            </div>
             {/* Phone Number */}
             <div>
               <label htmlFor="itemName" className="block text-gray-600 mb-2">
@@ -270,22 +282,23 @@ const ItemviewPage = ({ item, itemId, goBack, handleSaveItem, toggleView }) => {
                 {/* <option value="Carton ">Carton - Carton Box</option> */}
               </select>
             </div>
-            {/* PAN Number */}
-            <div>
-              <label htmlFor="Price" className="block text-gray-600 mb-2">
+
+            <div className="md:col-span-2">
+              <label htmlFor="address" className="block text-gray-600 mb-2">
                 Description
               </label>
               <textarea
-                type="text"
+                id="address"
                 name="description"
+                placeholder=" eg - This is a ... "
                 value={formData?.description || ""}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                rows="4"
                 disabled={!isEditing}
-               
-                className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300 resize-y min-h-[6rem]"                         ></textarea>
+                rows="4"
+                className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300 resize-y min-h-[6rem]"
+              ></textarea>
             </div>
           </div>
 

@@ -230,7 +230,7 @@ function ItemList({ handleAddItem }) {
           <>
             <div className="flex justify-between space-x-2">
               <h1 className="text-xl font-bold mb-2  ">Item Lists</h1>
-              <div className="flex justify-between rounded-full mb-5">
+              <div className="flex justify-between rounded-full mb-3">
                 <div className="flex justify-end items-center gap-1">
                   <button
                     onClick={handleAddItem}
@@ -274,7 +274,7 @@ function ItemList({ handleAddItem }) {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center text-sm justify-between p-2 bg-white rounded-md shadow mb-2 space-y-3 md:space-y-0 md:space-x-4">
+            <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md shadow mb-2 space-y-3 md:space-y-0 md:space-x-4">
               {/* Left group: Sort, Filter, Search */}
               <div className="flex items-center space-x-4">
                 {/* Sort By */}
@@ -303,8 +303,8 @@ function ItemList({ handleAddItem }) {
                     className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                   >
                     <option value="All">Filter By Status</option>
-                    <option value="yes">Yes</option>
-                    <option value="no"> No </option>
+                    <option value="yes">Active </option>
+                    <option value="no"> Unactive</option>
                   </select>
                 </div>
                 {/* Search */}
@@ -349,6 +349,9 @@ function ItemList({ handleAddItem }) {
                         />
                       </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                        Item Code.
+                      </th>{" "}
+                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
                         Item No.
                       </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
@@ -381,14 +384,15 @@ function ItemList({ handleAddItem }) {
                             onChange={() => handleCheckboxChange(item._id)}
                           />
                         </td>
-                        <td >
+                        <td>
                           <button
                             className="text-blue-600 hover:underline  ml-6 focus:outline-none"
                             onClick={() => handleItemClick(item._id)}
                           >
                             {item.code}
                           </button>
-                        </td>
+                        </td>{" "}
+                        <td className="px-6 py-3 truncate">{item.itemNum}</td>
                         <td className="px-6 py-3 truncate">{item.name}</td>
                         <td className="px-6 py-3 truncate">{item.type}</td>
                         <td className="px-6 py-3 break-words max-w-[500px] truncate hover:whitespace-normal hover:text-sm hover:max-w-none">

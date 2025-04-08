@@ -453,7 +453,7 @@ const VendorList = ({ handleAddVendor }) => {
                 <table className="min-w-full border-collapse border border-gray-200">
                   <thead>
                     <tr className="bg-gray-100">
-                      <th className="px-4 py-2 text-left">
+                      {/* <th className="px-4 py-2 text-left">
                         <input
                           type="checkbox"
                           onChange={() =>
@@ -464,6 +464,20 @@ const VendorList = ({ handleAddVendor }) => {
                             )
                           }
                           checked={selectedVendors.length === vendorList.length}
+                        />
+                      </th> */}  <th className="px-4 py-2  border-gray-300 text-left">
+                        <input
+                          type="checkbox"
+                          onChange={() =>
+                            setSelectedVendors(
+                              selectedVendors.length
+                                ? []
+                                : vendorList.map((c) => c._id)
+                            )
+                          }
+                          checked={
+                            selectedVendors.length === vendorList.length
+                          }
                         />
                       </th>
                       <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">

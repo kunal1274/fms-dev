@@ -10,13 +10,13 @@ import SaleOrderPage from "../../Sale/SaleOrderPage";
 import AllocationHistory from "../../Sale/ByReport/AllocationHistory";
 import ByInvoiced from "../../Sale/ByReport/ByInvoiced";
 import ByPayment from "../../Sale/ByReport/ByPayment";
-// import CampanyPage from "../../Campany/CompanyPage"import
+
 import PurchaseAllocationHistory from "../../Purchase/ByReport/PurchaseAllocationHistory";
 import PurchaseCancelSaleOrder from "../../Purchase/ByReport/PurchaseCancelSaleOrder";
 import PurchaseConfirmSaleOrder from "../../Purchase/ByReport/PurchaseConfirmSaleOrder";
 import ByVendorReport from "../../Purchase/ByReport/ByVendorReport";
-import InventryTransaction from "../../Sale/InventryTransaction";
-import InventoryHand from "../../Sale/HandOnInventry";
+import InventoryTransaction from "../../Sale/InventoryTransaction";
+import HandOnInventory from "../../Sale/HandOnInventry";
 import PurchaseOrderPage from "../../Purchase/PurchaseOrderPage";
 import Invoice from "../../Sale/Invoice/Icopy";
 import SaleorderViewPage from "../../Sale/SaleorderViewPage";
@@ -94,10 +94,10 @@ const Dashboard = () => {
             <Route path="/CancelSaleOrder" element={<CancelsaleOrder />} />
             <Route path="/ReportByInvoice" element={<ByInvoiced />} />
             <Route path="/ReportByPayment" element={<ByPayment />} />
-            <Route path="/OnHandInventory" element={<InventoryHand />} />
+            <Route path="/OnHandInventory" element={<HandOnInventory />} />
             <Route
               path="/InventoryTransaction"
-              element={<InventryTransaction />}
+              element={<InventoryTransaction />}
             />
             {/* Add more routes as needed */}
           </Routes>

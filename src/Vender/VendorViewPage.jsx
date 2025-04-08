@@ -12,7 +12,6 @@ const secondUrl = "/fms/api/v0";
 const thirdUrl = "/vendors";
 const mergedUrl = `${baseUrl}${secondUrl}${thirdUrl}`;
 
-
 const VendorViewPage = ({ vendorId, vendor, goBack, toggleView }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isEdited, setIsEdited] = useState(false);
@@ -83,7 +82,7 @@ const VendorViewPage = ({ vendorId, vendor, goBack, toggleView }) => {
     async function fetchVendorDetail() {
       try {
         const response = await axios.get(
-          `https://befr8n.vercel.app/fms/api/v0/vendors/${vendorId || id}`
+          `https://fms-qkmw.onrender.com/fms/api/v0/vendors/${vendorId || id}`
         );
         if (response.status === 200) {
           setVendorDetail(response.data.data);
@@ -108,7 +107,9 @@ const VendorViewPage = ({ vendorId, vendor, goBack, toggleView }) => {
   const handleUpdate = async () => {
     if (window.confirm("Are you sure you want to update this vendor?")) {
       setLoading(true);
-      toast.success("vendor updated successfully!");
+      toast.success("Vendor updated successfully!", {
+        autoClose: 800, // 1000ms = 1 second
+      });
       console.log("vendor update");
       try {
         const response = await axios.put(`${mergedUrl}/${vendorId}`, formData, {
@@ -140,11 +141,16 @@ const VendorViewPage = ({ vendorId, vendor, goBack, toggleView }) => {
       ...prevData,
       [name]: value,
     }));
-  }; if (loading) {
-    return<div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-    <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
-    <p className="mt-4 text-blue-500 text-lg font-medium">Vendor View Page...</p>
-  </div>;
+  };
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
+        <p className="mt-4 text-blue-500 text-lg font-medium">
+          Vendor View Page...
+        </p>
+      </div>
+    );
   }
   return (
     <>

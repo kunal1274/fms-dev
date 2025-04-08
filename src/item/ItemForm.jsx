@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-
+import Label from "../components/common/Common/Label/Label";
+import Checkbox_with_words from "../components/layout/Checkbox_with_words/Checkbox_with_words";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -12,7 +13,7 @@ const mergedUrl = `${baseUrl}${secondUrl}${thirdUrl}`;
 function ItemForm({ handleCancel }) {
   const [itemList, setItemList] = useState([]);
   const [formData, setFormData] = useState({
-    itemNum: "",
+    // itemNum: "",
 
     name: "",
     type: "",
@@ -166,7 +167,8 @@ function ItemForm({ handleCancel }) {
                 </label>
                 <input
                   type="text"
-                  name="name"   placeholder="eg-Item name"
+                  name="name"
+                  placeholder="eg-Item name"
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
@@ -182,7 +184,7 @@ function ItemForm({ handleCancel }) {
                 <input
                   type="text"
                   name="itemNum"
-                   placeholder="eg-Item Number"
+                  placeholder="eg-Item Number"
                   value={formData.itemNum}
                   onChange={
                     (e) =>
@@ -200,7 +202,8 @@ function ItemForm({ handleCancel }) {
                   Price <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="number"  placeholder="Price"
+                  type="number"
+                  placeholder="Price"
                   name="price"
                   value={formData.price}
                   onChange={(e) => {
@@ -216,7 +219,6 @@ function ItemForm({ handleCancel }) {
                   required
                 />
               </div>
-
               <div>
                 <label htmlFor="type" className="block text-gray-600 mb-2">
                   Type
@@ -232,7 +234,6 @@ function ItemForm({ handleCancel }) {
                   <option value="Services">Services</option>
                 </select>
               </div>
-
               <div>
                 <label htmlFor="unit" className="block text-gray-600 mb-2">
                   Unit
@@ -247,7 +248,7 @@ function ItemForm({ handleCancel }) {
 
                   <option value="kgs">KG - Kilogram</option>
 
-                  <option value="mt ">Metric tonnes</option>
+                  <option value="mt">Metric tonnes</option>
                   <option value="ea">Ea - Each</option>
                   <option value="lbs"> lbs - pounds</option>
 
@@ -256,22 +257,33 @@ function ItemForm({ handleCancel }) {
                   <option value="qty">Quantity</option>
                 </select>
               </div>
-
-              <div>
-                <label
-                  htmlFor="description"
-                  className="block text-gray-600 mb-2"
-                >
+              <div className="md:col-span-2">
+                <label htmlFor="address" className="block text-gray-600 mb-2">
                   Description
                 </label>
                 <textarea
-                  name="description"placeholder="description"
+                  id="address"
+                  name="description"
+                  placeholder=" eg - This is a ... "
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
                   rows="4"
-                  className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300 resize-y min-h-[6rem]"                />
+                  className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300 resize-y min-h-[6rem]"
+                ></textarea>
+              </div>
+
+              <div className="flex items-center">
+                <Label label="Active" className="font-semibold text-blue-600" />
+                <Checkbox_with_words
+                  name="active"
+                  className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
+                  checked={formData.active}
+                  onChange={(e) =>
+                    setFormData({ ...formData, active: e.target.checked })
+                  }
+                />
               </div>
             </div>
 

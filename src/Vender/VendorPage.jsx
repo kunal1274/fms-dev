@@ -66,7 +66,7 @@ const VendorPage = () => {
  
   return (
      <div className="  min-h-screen">
-         <ToastContainer />
+   
          <div className=" rounded-lg">
         {view === "form" && (
           <VendorForm
