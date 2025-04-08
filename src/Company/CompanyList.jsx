@@ -3,48 +3,76 @@ import axios from "axios";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import autoTable from "jspdf-autotable";
 import { useParams } from "react-router-dom";
 import CompaniesDetail from "./CompanyViewPage";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
-import { Select } from "flowbite-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
 
 const CompaniesList = ({ handleAddCompanies }) => {
-  const [CompaniesList, setCompaniesList] = useState([]);
-  const [selectedCompanies, setSelectedCompanies] = useState([]);
-  const [selectedOption, setSelectedOption] = useState("All");
-  const [selectedCompaniess, setSelectedCompaniess] = useState([]);
-  const [viewingCompaniesId, setViewingCompaniesId] = useState(null);
-  const [search, setSearch] = useState("");
+  // Use consistent naming: companiesList and selectedCompanyIds
+  const [companiesList, setCompaniesList] = useState([]);
+  const [filteredCompanies, setFilteredCompanies] = useState([]);
+  const [selectedCompanyIds, setSelectedCompanyIds] = useState([]);
+  const [viewingCompanyId, setViewingCompanyId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [view, setView] = useState("list");
-  const { id } = useParams();
+  const [selectedOption, setSelectedOption] = useState("All");
+  const [filteredCampanys, setFilteredCampanys] = useState([]);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [filteredCompaniess, setFilteredCompaniess] = useState([]);
+  // Separate states for sorting and filtering
+  const [sortOption, setSortOption] = useState("");
+  const [filterOption, setFilterOption] = useState("All");
 
-  // Fetch Companiess
-  const fetchCompaniess = useCallback(async () => {
+  const { id } = useParams();
+
+  // Fetch companies data from the API
+  const fetchCompaniesList = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(baseUrl);
-      setCompaniesList(response.data.data);
-      setFilteredCompaniess(response.data.data);
-    } catch (error) {
-      console.error.error("Failed to load Companiess:", error);
+      // Provide a fallback to an empty array if the data shape is unexpected
+      const companies = response.data.data || [];
+      setCompaniesList(companies);
+      setFilteredCompanies(companies);
+    } catch (err) {
+      console.error("Failed to load companies:", err);
+      setMessage("Failed to load companies data.");
     } finally {
       setLoading(false);
     }
   }, []);
+
+  // Fetch a single company's details
+  const fetchCompanyDetails = async (companyId) => {
+    try {
+      const response = await axios.get(`${baseUrl}/${companyId}`);
+      setViewingCompanyId(response.data.data);
+    } catch (err) {
+      console.error("Error fetching company details:", err);
+      toast.error("Error fetching company details");
+    }
+  };
+
+  useEffect(() => {
+    fetchCompaniesList();
+  }, [fetchCompaniesList]);
+
+  useEffect(() => {
+    if (id) {
+      fetchCompanyDetails(id);
+    }
+  }, [id]);
+
+  // Import companies data from an Excel file
   const importFromExcel = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
 
-    // Catch errors during file reading
     reader.onerror = (error) => {
       console.error("Error reading file:", error);
       toast.error(`Error reading file: ${error.target.error.message}`);
@@ -62,25 +90,25 @@ const CompaniesList = ({ handleAddCompanies }) => {
         const seenRegistrations = new Set();
         const seenPans = new Set();
 
-        importedData.forEach((Companies, index) => {
-          if (Companies.registrationNo) {
-            if (seenRegistrations.has(Companies.registrationNo)) {
+        importedData.forEach((company, index) => {
+          if (company.registrationNo) {
+            if (seenRegistrations.has(company.registrationNo)) {
               duplicateErrors.push(
-                `Finding the duplicate registration number: ${
-                  Companies.registrationNo
+                `Duplicate registration number: ${
+                  company.registrationNo
                 } at row ${index + 1}`
               );
             } else {
-              seenRegistrations.add(Companies.registrationNo);
+              seenRegistrations.add(company.registrationNo);
             }
           }
-          if (Companies.pan) {
-            if (seenPans.has(Companies.pan)) {
+          if (company.pan) {
+            if (seenPans.has(company.pan)) {
               duplicateErrors.push(
-                `Companies PAN match: ${Companies.pan} at row ${index + 1}`
+                `Duplicate PAN: ${company.pan} at row ${index + 1}`
               );
             } else {
-              seenPans.add(Companies.pan);
+              seenPans.add(company.pan);
             }
           }
         });
@@ -88,44 +116,41 @@ const CompaniesList = ({ handleAddCompanies }) => {
         if (duplicateErrors.length > 0) {
           toast.error(`Errors occurred:\n${duplicateErrors.join("\n")}`, {
             autoClose: 1000,
-            onClose: () => fetchCompaniess(), // Refresh even if duplicate errors exist
+            onClose: () => fetchCompaniesList(),
           });
-          return; // Exit if duplicates are found
+          return;
         }
 
-        // Post each Companies and count successes and failures
         let successCount = 0;
         const errors = [];
+        // Post each company data to the API
         for (let i = 0; i < importedData.length; i++) {
-          const Companies = importedData[i];
+          const company = importedData[i];
           try {
-            const response = await axios.post(baseUrl, Companies, {
+            await axios.post(baseUrl, company, {
               headers: { "Content-Type": "application/json" },
             });
             successCount++;
-            toast.success(
-              `Successfully posted Companies ${i + 1}`,
-              response.data
-            );
+            toast.success(`Successfully posted company ${i + 1}`);
           } catch (err) {
-            console.error(`error ${i + 1}:`, err);
+            console.error(`Error posting company ${i + 1}:`, err);
             errors.push(
-              `error ${i + 1}: ${err.response?.data.err || err.message}`
+              `Error ${i + 1}: ${err.response?.data?.err || err.message}`
             );
             toast.error(
-              `error in import  ${i + 1}`,
-              err.response?.data || err.message
+              `Error in import ${i + 1}: ${
+                err.response?.data?.err || err.message
+              }`
             );
           }
         }
 
-        // Display a summary toast and refresh the Companies list on close
         if (successCount === importedData.length) {
           toast.success(
-            `All ${successCount} data imported and posted successfully!`,
+            `All ${successCount} companies imported successfully!`,
             {
               autoClose: 1000,
-              onClose: () => fetchCompaniess(),
+              onClose: () => fetchCompaniesList(),
             }
           );
         } else {
@@ -135,7 +160,7 @@ const CompaniesList = ({ handleAddCompanies }) => {
             }\nErrors:\n${errors.join("\n")}`,
             {
               autoClose: 1000,
-              onClose: () => fetchCompaniess(),
+              onClose: () => fetchCompaniesList(),
             }
           );
         }
@@ -148,54 +173,108 @@ const CompaniesList = ({ handleAddCompanies }) => {
     reader.readAsArrayBuffer(file);
   };
 
-  useEffect(() => {
-    fetchCompaniess();
-  }, [fetchCompaniess]);
+  // Export companies data to Excel
+  const exportToExcel = useCallback(() => {
+    if (!companiesList.length) return alert("No data to export");
+    const worksheet = XLSX.utils.json_to_sheet(companiesList);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Companies");
+    XLSX.writeFile(workbook, "Companies_list.xlsx");
+  }, [companiesList]);
 
-  useEffect(() => {
-    if (id) fetchCompaniesDetails(id);
-  }, [id]);
+  // Generate a PDF of the companies list
+  const generatePDF = useCallback(() => {
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "pt",
+      format: "A4",
+    });
+    // Ensure using filteredCompanies for current displayed data
+    jsPDF.autoTable(doc, {
+      head: [["#", "Company Code", "Name", "Contact", "Address", "Active"]],
+      body: filteredCompanies.map((company, index) => [
+        index + 1,
+        company.code,
+        company.name,
+        company.contactNum,
+        company.address,
+        company.active ? "Yes" : "No",
+      ]),
+    });
+    doc.save("Companies_list.pdf");
+  }, [filteredCompanies]);
 
-  const fetchCompaniesDetails = async (CompaniesId) => {
-    try {
-      const response = await axios.get(`${baseUrl}/${CompaniesId}`);
-      setViewingCompaniesId(response.data.data);
-    } catch (error) {
-      console.error("Error fetching Companies details:", error);
+  // Apply search, filter, and sort to the companies list
+  const applyFiltersAndSorting = (search, sort, filterStatus) => {
+    let data = [...companiesList];
+
+    if (search) {
+      data = data.filter(
+        (company) =>
+          company.name.toLowerCase().includes(search.toLowerCase()) ||
+          company.code.toLowerCase().includes(search.toLowerCase())
+      );
     }
+
+    if (filterStatus === "yes") {
+      data = data.filter((company) => company.active === true);
+    } else if (filterStatus === "no") {
+      data = data.filter((company) => company.active === false);
+    }
+
+    if (sort === "Company Name") {
+      data.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sort === "Account No Ascending") {
+      data.sort((a, b) => a.code.localeCompare(b.code));
+    } else if (sort === "Account No Descending") {
+      data.sort((a, b) => b.code.localeCompare(a.code));
+    }
+    setFilteredCompanies(data);
   };
 
-  // Search and Filter Logic
-
+  // Handlers for search, sort, and filter controls
   const handleSearchChange = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
-
-    const filtered = CompaniesList.filter(
-      (Companies) =>
-        Companies.name.toLowerCase().includes(term.toLowerCase()) ||
-        Companies.code.toLowerCase().includes(term.toLowerCase()) ||
-        Companies.contactNum.includes(term) // Add this line to search by phone number
-    );
-
-    setFilteredCompaniess(filtered);
+    applyFiltersAndSorting(term, sortOption, filterOption);
   };
 
+  const handleSortChange = (e) => {
+    const selected = e.target.value;
+    setSortOption(selected);
+    applyFiltersAndSorting(searchTerm, selected, filterOption);
+  };
+
+  const handleFilterChange = (e) => {
+    const selected = e.target.value;
+    setFilterOption(selected);
+    applyFiltersAndSorting(searchTerm, sortOption, selected);
+  };
+
+  // Reset filters and search term
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSortOption("");
+    setFilterOption("All");
+    setFilteredCompanies(companiesList);
+  };
+
+  // Delete selected companies
   const handleDeleteSelected = async () => {
-    if (!selectedCompaniess || selectedCompaniess.length === 0) {
-      toast.info("No Companiess selected to delete.", { autoClose: 1000 });
+    if (!selectedCompanyIds.length) {
+      toast.info("No companies selected to delete.", { autoClose: 1000 });
       return;
     }
 
     const confirmed = window.confirm(
-      "Are you sure you want to delete the selected Companiess?"
+      "Are you sure you want to delete the selected companies?"
     );
     if (!confirmed) return;
 
     try {
       const deleteResponses = await Promise.allSettled(
-        selectedCompaniess.map((CompaniesId) =>
-          axios.delete(`${baseUrl}/${CompaniesId}`)
+        selectedCompanyIds.map((companyId) =>
+          axios.delete(`${baseUrl}/${companyId}`)
         )
       );
 
@@ -208,20 +287,17 @@ const CompaniesList = ({ handleAddCompanies }) => {
 
       if (successfulDeletes.length > 0) {
         toast.success(
-          `${successfulDeletes.length} Companies(s) deleted successfully!`,
+          `${successfulDeletes.length} company(s) deleted successfully!`,
           {
             autoClose: 1000,
           }
         );
-
-        setCompaniesList((prev) =>
-          prev.filter((Companies) => !selectedCompaniess.includes(Companies._id))
+        const updatedList = companiesList.filter(
+          (company) => !selectedCompanyIds.includes(company._id)
         );
-        setFilteredCompaniess((prev) =>
-          prev.filter((Companies) => !selectedCompaniess.includes(Companies._id))
-        );
-
-        setSelectedCompaniess([]);
+        setCompaniesList(updatedList);
+        setFilteredCompanies(updatedList);
+        setSelectedCompanyIds([]);
       }
 
       if (failedDeletes.length > 0) {
@@ -230,186 +306,43 @@ const CompaniesList = ({ handleAddCompanies }) => {
         );
         failedDeletes.forEach((err, index) => {
           console.error(
-            `Error deleting Companies ${selectedCompaniess[index]}:`,
+            `Error deleting company ${selectedCompanyIds[index]}:`,
             err.reason?.response || err.reason
           );
         });
       }
-    } catch (error) {
+    } catch (err) {
       console.error(
         "Unexpected error during deletion:",
-        error.response || error.message
+        err.response || err.message
       );
-      toast.error("An unexpected error occurred while deleting Companiess.");
+      toast.error("An unexpected error occurred while deleting companies.");
     }
   };
 
-  // Import Data from Excel
-
-  // Export to Excel
-  const exportToExcel = useCallback(() => {
-    if (!CompaniesList.length) return alert("No data to export");
-    const worksheet = XLSX.utils.json_to_sheet(CompaniesList);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Companiess");
-    XLSX.writeFile(workbook, "Companies_list.xlsx");
-  }, [CompaniesList]);
-
-  // Generate PDF
-  const generatePDF = useCallback(() => {
-    const doc = new jsPDF({
-      orientation: "landscape",
-      unit: "pt",
-      format: "A4",
-    });
-    autoTable(doc, {
-      head: [["#", "Companies Code", "Name", "Contact", "Address", "Active"]],
-      body: filteredCompaniess.map((Companies, index) => [
-        index + 1,
-        Companies.code,
-        Companies.name,
-        Companies.contactNum,
-        Companies.address,
-        Companies.active ? "Yes" : "No",
-      ]),
-    });
-    doc.save("Companies_list.pdf");
-  }, [filteredCompaniess]);
-
-  const handleFilterChange = (e) => {
-    const value = e.target.value;
-    setSelectedOption(value);
-
-    let filtered = [...CompaniesList];
-
-    if (value === "All") {
-      setFilteredCompaniess(filtered);
-    } else if (value === "yes") {
-      setFilteredCompaniess(
-        filtered.filter((Companies) => Companies.active === true)
-      );
-    } else if (value === "no") {
-      setFilteredCompaniess(
-        filtered.filter((Companies) => Companies.active === false)
-      );
-    } else if (value === "Companies Name") {
-      filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
-      setFilteredCompaniess(filtered);
-    } else if (value === "Companies Account no") {
-      filtered = filtered.sort((a, b) => a.code.localeCompare(b.code));
-      setFilteredCompaniess(filtered);
-    } else if (value === "Companies Account no descending") {
-      filtered = filtered.sort((a, b) => b.code.localeCompare(a.code));
-      setFilteredCompaniess(filtered);
-    }
-  };
-
-  const filterCompanies = (Companiess, search) => {
-    return Companiess.filter(
-      (Companies) =>
-        Companies.name.toLowerCase().includes(search.toLowerCase()) ||
-        Companies.code.toLowerCase().includes(search.toLowerCase())
-    );
-  };
-  const resetFilters = () => {
-    setSearchTerm("");
-    setSelectedOption("Active Status ");
-    setFilteredCompaniess(CompaniesList);
-  };
-  // Function to reset filters and search input
-
-  const filteredCompanies = filterCompanies(CompaniesList, searchTerm);
-  const fetchCompanies = async (CompaniesId) => {
-    if (!CompaniesId.trim()) {
-      setError("Companies ID cannot be empty.");
-      return;
-    }
-
-    try {
-      setError(null); // Clear any previous errors
-      const response = await axios.get(`${baseUrl}/${CompaniesId}`, {
-        headers: {
-          // Authorization: `Bearer ${token}`, // Add token if needed
-        },
-        withCredentials: false,
-      });
-      console.log("Fetched Companies:", response.data);
-      setSelectedCompanies(response.data.data);
-    } catch (err) {
-      if (err.response) {
-        setError(err.response?.data?.message || "An error occurred.");
-      } else if (err.request) {
-        setError("Error: No response from the server.");
-      } else {
-        setError(`Error: ${err.message}`);
-      }
-      setSelectedCompanies(null);
-    }
-  };
-
-  useEffect(() => {
-    if (id) {
-      fetchCompanies(id); // Fetch using URL param id
-    }
-  }, [id]);
-
-  // Fetch Companiess
-  useEffect(() => {
-    async function loadCompaniess() {
-      try {
-        setLoading(true);
-        const response = await axios.get(baseUrl, {
-          withCredentials: false,
-        });
-        setCompaniesList(response.data.data);
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-        setMessage("Failed to load Companies data.");
-      }
-    }
-    loadCompaniess();
-  }, []);
-
-  // Handle Input Change
-
-  // Go back to Companies list view
+  // Go back from detailed view to list view
   const goBack = () => {
-    setViewingCompaniesId(null);
-    window.location.reload();
+    setViewingCompanyId(null);
   };
 
-  console.log(CompaniesList.length);
-
-  const handleCompaniesClick = (CompaniesId) => {
-    console.log("Companies.id");
-    setViewingCompaniesId(CompaniesId);
+  // Handle clicking a company row
+  const handleCompanyClick = (companyId) => {
+    setViewingCompanyId(companyId);
   };
 
+  // Toggle view (if needed)
   const toggleView = (targetView) => {
     if (view !== targetView) {
       setView(targetView);
-      console.log("Toggle function working: View changed to", targetView);
-    } else {
-      console.log("Error in running function: View did not change");
     }
   };
-
-  useEffect(() => {
-    fetchCompaniess();
-  }, [fetchCompaniess]);
-
-  useEffect(() => {
-    if (id) fetchCompaniesDetails(id);
-  }, [id]);
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
         <div className="w-16 h-16 border-4 border-black-500 border-t-transparent border-solid rounded-full animate-spin"></div>
         <p className="mt-2 text-zinc-800 text-sm font-small">
-          {" "}
-          Companies list ...
+          Loading companies...
         </p>
       </div>
     );
@@ -419,18 +352,17 @@ const CompaniesList = ({ handleAddCompanies }) => {
     <div className="bg-grey-400 p-4 min-h-screen">
       <ToastContainer />
       <div className="rounded-full mb-5">
-        {viewingCompaniesId ? (
+        {viewingCompanyId ? (
           <CompaniesDetail
             toggleView={toggleView}
-            CompaniesId={viewingCompaniesId}
+            CompaniesId={viewingCompanyId}
             goBack={goBack}
           />
         ) : (
           <>
             {/* Header */}
             <div className="flex justify-between space-x-2">
-              <h1 className="text-xl font-bold mb-2  ">Companies Lists</h1>
-
+              <h1 className="text-xl font-bold mb-2">Companies List</h1>
               <div className="flex justify-between rounded-full mb-3">
                 <div className="flex justify-end items-center gap-1">
                   <button
@@ -439,13 +371,12 @@ const CompaniesList = ({ handleAddCompanies }) => {
                   >
                     + Add
                   </button>
-
                   <button
                     onClick={handleDeleteSelected}
-                    disabled={selectedCompaniess.length === 0}
+                    disabled={selectedCompanyIds.length === 0}
                     className={`h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition ${
-                      selectedCompaniess.length > 0
-                        ? " hover:text-blue-700 hover:scale-[1.02]"
+                      selectedCompanyIds.length > 0
+                        ? "hover:text-blue-700 hover:scale-[1.02]"
                         : "opacity-50 cursor-not-allowed"
                     }`}
                   >
@@ -453,17 +384,17 @@ const CompaniesList = ({ handleAddCompanies }) => {
                   </button>
                   <button
                     onClick={generatePDF}
-                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition  hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     PDF
                   </button>
                   <button
                     onClick={exportToExcel}
-                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition  hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     Export
                   </button>
-                  <label className="h-8 px-3 flex items-center border border-green-500 bg-white text-sm rounded-md transition  hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] cursor-pointer">
+                  <label className="h-8 px-3 flex items-center border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] cursor-pointer">
                     <input
                       type="file"
                       accept=".xls,.xlsx"
@@ -476,7 +407,7 @@ const CompaniesList = ({ handleAddCompanies }) => {
               </div>
             </div>
 
-            {/* new */}
+            {/* Search, Sort, and Filter Controls */}
             <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md shadow mb-2 space-y-3 md:space-y-0 md:space-x-4">
               {/* Left group: Sort By, Filter By Status, Search */}
               <div className="flex items-center space-x-4">
@@ -489,14 +420,12 @@ const CompaniesList = ({ handleAddCompanies }) => {
                     onChange={handleFilterChange}
                     className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                   >
-                    <option value="" >
-                      Sort By
+                    <option value="">Sort By</option>
+                    <option value="Customer Name">Customer Name</option>
+                    <option value="Customer Account no">
+                      Customer Account no
                     </option>
-                    <option value="Companies Name">Companies Name</option>
-                    <option value="Companies Account no">
-                      Companies Account no
-                    </option>
-                    <option value="Companies Account no descending">
+                    <option value="Customer Account no descending">
                       Descending Account no
                     </option>
                   </select>
@@ -546,99 +475,96 @@ const CompaniesList = ({ handleAddCompanies }) => {
               </button>
             </div>
 
-            {/* new */}
-
             {/* Companies Table */}
             <div className="border border-green-500 rounded-lg bg-white p-10 overflow-hidden">
               <div className="h-[460px] overflow-y-auto">
                 <table className="min-w-full border-collapse border border-gray-200">
                   <thead>
                     <tr className="bg-gray-100">
-                      <th className="px-4 py-2  border-gray-300 text-left">
+                      <th className="px-4 py-2 border-gray-300 text-left">
                         <input
                           type="checkbox"
                           onChange={() =>
-                            setSelectedCompaniess(
-                              selectedCompaniess.length
+                            setSelectedCompanyIds(
+                              selectedCompanyIds.length
                                 ? []
-                                : CompaniesList.map((c) => c._id)
+                                : companiesList.map((c) => c._id)
                             )
                           }
                           checked={
-                            selectedCompaniess.length === CompaniesList.length
+                            selectedCompanyIds.length === companiesList.length
                           }
                         />
                       </th>
                       <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
-                        Companies Account
+                        Company Code
                       </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                        Name
+                        Email
                       </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                        Contact No.
+                        GST number
                       </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                        Address
+                        Primary GST Address
                       </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                        PAN
+                        Bank Name
                       </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                        Currency
+                        Account Number
                       </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                        Registration No.
-                      </th>
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                        Active
+                        IFSC Code
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredCompaniess.map((Companies) => (
-                      <tr key={Companies._id}>
+                    {filteredCampanys.map((Campany) => (
+                      <tr key={Campany._id}>
                         <td>
-                          <th className=" px-4 py-2 border-white-300 text-left">
+                          {" "}
+                          <th className="px-4 py-2 border-white-300 text-left">
                             <input
                               type="checkbox"
-                              checked={selectedCompaniess.includes(Companies._id)}
+                              checked={selectedCampanys.includes(Campany._id)}
                               onChange={() =>
-                                setSelectedCompaniess((prev) =>
-                                  prev.includes(Companies._id)
-                                    ? prev.filter((id) => id !== Companies._id)
-                                    : [...prev, Companies._id]
+                                setSelectedCampanys((prev) =>
+                                  prev.includes(Campany._id)
+                                    ? prev.filter((id) => id !== Campany._id)
+                                    : [...prev, Campany._id]
                                 )
                               }
-                            />
+                            />{" "}
                           </th>
                         </td>
-                        <td>
+
+                        <td className="px-6 py-3 border border-gray-300 truncate">
                           <button
-                            className="text-blue-600 hover:underline  ml-6 focus:outline-none"
-                            onClick={() => handleCompaniesClick(Companies._id)}
+                            onClick={() => handleCampanyClick(Campany._id)}
                           >
-                            {Companies.code}
+                            {Campany.companyCode}
                           </button>
                         </td>
-                        <td className="px-6 py-3 truncate">{Companies.name}</td>
-                        <td className="px-6 py-3 whitespace-normal truncate">
-                          {Companies.contactNum}
+
+                        <td className="px-6 py-3 truncate">
+                          {Campany.companyName}
                         </td>
-                        <td className="px-6 py-3 break-words max-w-[500px] truncate hover:whitespace-normal hover:text-sm hover:max-w-none">
-                          {Companies.address}
+                        <td className="px-6 py-3 truncate">{Campany.email}</td>
+                        <td className="px-6 py-3 truncate">
+                          {Campany.primaryGSTAddress}
                         </td>
                         <td className="px-6 py-3 truncate">
-                          {Companies.panNum}
+                          {Campany.taxInfo.gstNumber}
                         </td>
                         <td className="px-6 py-3 truncate">
-                          {Companies.currency}
+                          {Campany.bankDetails[0].accountNumber}
                         </td>
                         <td className="px-6 py-3 truncate">
-                          {Companies.registrationNum}
+                          {Campany.bankDetails[0].bankName}
                         </td>
                         <td className="px-6 py-3 truncate">
-                          {Companies.active ? "Yes" : "No"}
+                          {Campany.bankDetails[0].ifscCode}
                         </td>
                       </tr>
                     ))}

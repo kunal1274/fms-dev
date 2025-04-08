@@ -45,7 +45,7 @@ const Dashboard = () => {
     <div className="flex h-[calc(100vh-4rem)]">
       {/* Sidebar */}
       <Sidebar
-        className="fixed w-48"
+        className="fixed"
         isOpen={isSidebarOpen}
         toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
         onNavigate={handleNavigation} // Pass navigation handler to Sidebar

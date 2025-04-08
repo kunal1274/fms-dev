@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import "./Sidebar1.css";
 import { useNavigate, useLocation } from "react-router-dom";
-
 import {
   FaHome,
   FaUser,
@@ -27,19 +26,25 @@ import {
   FaPercentage,
   FaMarsDouble,
 } from "react-icons/fa";
-import nimamiLogo from "./nimami.jpeg";
+import nimamiLogo from "./nimami.jpeg"; // Potential logo usage for branding
 
+/**
+ * SidebarItem Component
+ * Renders an individual sidebar item. Navigates to the provided path, and supports an optional onClick function.
+ */
 const SidebarItem = ({ icon, label, isOpen, path, onClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isActive = location.pathname === path;
 
+  const handleItemClick = () => {
+    if (path) navigate(path);
+    if (onClick) onClick();
+  };
+
   return (
     <div
-      onClick={() => {
-        if (path) navigate(path);
-        if (onClick) onClick();
-      }}
+      onClick={handleItemClick}
       className={`flex items-center space-x-3 p-3 hover:bg-gray-100 cursor-pointer transition ${
         isActive ? "bg-gray-200 font-semibold" : ""
       }`}
@@ -52,16 +57,48 @@ const SidebarItem = ({ icon, label, isOpen, path, onClick }) => {
   );
 };
 
+/**
+ * Sidebar Component
+ * Renders the entire sidebar with dynamic menus and submenus.
+ */
 const Sidebar = () => {
+  // Manage sidebar expansion and submenu states
   const [isOpen, setIsOpen] = useState(true);
   const [activeMenu, setActiveMenu] = useState(null);
   const [activeSubmenu, setActiveSubmenu] = useState(null);
 
+  // Toggle the overall sidebar open/close state
   const toggleSidebar = () => setIsOpen(!isOpen);
-  const toggleSubMenu = (menu) =>
-    setActiveMenu(activeMenu === menu ? null : menu);
-  const toggleReportSubMenu = () =>
-    setActiveSubmenu(activeSubmenu === "report" ? null : "report");
+
+  // Toggle between different primary menus and reset report submenu on change
+  const toggleSubMenu = (menu) => {
+    setActiveMenu((prevMenu) => (prevMenu === menu ? null : menu));
+    setActiveSubmenu(null);
+  };
+
+  // Toggle the display of the report submenu
+  const toggleReportSubMenu = () => {
+    setActiveSubmenu((prevSubmenu) =>
+      prevSubmenu === "report" ? null : "report"
+    );
+  };
+
+  // Common Report Submenu Items for Sales and Purchase
+  const reportSubmenuItems = [
+    { label: "By Customer", path: "/bycustomerreport", icon: <FaUsers /> },
+    { label: "By Item", path: "/byitemreport", icon: <FaBoxes /> },
+    {
+      label: "By Invoice",
+      path: "/ReportByInvoice",
+      icon: <FaFileInvoiceDollar />,
+    },
+    { label: "By Confirm", path: "ByConfirmReport", icon: <FaCheckCircle /> },
+    {
+      label: "By Payment",
+      path: "/ReportByPayment",
+      icon: <FaMoneyCheckAlt />,
+    },
+  ];
 
   return (
     <div
@@ -69,21 +106,22 @@ const Sidebar = () => {
         isOpen ? "w-48" : "w-14"
       } scrollbar-hide`}
     >
-      {/* Toggle Section */}
+      {/* Sidebar Toggle Header */}
       <div
         onClick={toggleSidebar}
-        className="flex items-center bg-zinc-200 justify-between px-4 h-11  cursor-pointer"
+        className="flex items-center bg-zinc-200 justify-between px-4 h-11 cursor-pointer"
         role="button"
         aria-label="Toggle Sidebar"
       >
         <div className="flex items-center space-x-2">
+          {/* Uncomment below to display logo image */}
           {/* <img src={nimamiLogo} alt="Logo" className="h-6 w-6 rounded-full" /> */}
           {isOpen && <span className="text-lg font-bold">Nimami</span>}
         </div>
         <FaBars className="text-lg" />
       </div>
 
-      {/* Main Sidebar Items */}
+      {/* Main Navigation Items */}
       <SidebarItem
         icon={<FaHome />}
         label="Dashboard"
@@ -127,8 +165,8 @@ const Sidebar = () => {
               {
                 label: "Report",
                 path: null,
-                onClick: toggleReportSubMenu,
                 icon: <FaChartBar />,
+                onClick: toggleReportSubMenu,
               },
             ].map((item) => (
               <SidebarItem
@@ -142,33 +180,7 @@ const Sidebar = () => {
             ))}
             {activeSubmenu === "report" && (
               <div className="ml-6 space-y-2">
-                {[
-                  {
-                    label: "By Customer",
-                    path: "/bycustomerreport",
-                    icon: <FaUsers />,
-                  },
-                  {
-                    label: "By Item",
-                    path: "/byitemreport",
-                    icon: <FaBoxes />,
-                  },
-                  {
-                    label: "By Invoice",
-                    path: "/ReportByInvoice",
-                    icon: <FaFileInvoiceDollar />,
-                  },
-                  {
-                    label: "By Confirm",
-                    path: "ByConfirmReport",
-                    icon: <FaCheckCircle />,
-                  },
-                  {
-                    label: "By Payment",
-                    path: "/ReportByPayment",
-                    icon: <FaMoneyCheckAlt />,
-                  },
-                ].map((subItem) => (
+                {reportSubmenuItems.map((subItem) => (
                   <SidebarItem
                     key={subItem.label}
                     icon={subItem.icon}
@@ -183,7 +195,7 @@ const Sidebar = () => {
         )}
       </div>
 
-      {/* Other Menus */}
+      {/* Company */}
       <SidebarItem
         icon={<FaBuilding />}
         label="Company"
@@ -210,7 +222,7 @@ const Sidebar = () => {
               },
               {
                 label: "On-Hand Inventory",
-                path: "/OnHandInventory ",
+                path: "/OnHandInventory",
                 icon: <FaExchangeAlt />,
               },
             ].map((item) => (
@@ -226,6 +238,7 @@ const Sidebar = () => {
         )}
       </div>
 
+      {/* Vendor */}
       <SidebarItem
         icon={<FaTruck />}
         label="Vendor"
@@ -258,8 +271,8 @@ const Sidebar = () => {
               {
                 label: "Report",
                 path: null,
-                onClick: toggleReportSubMenu,
                 icon: <FaChartBar />,
+                onClick: toggleReportSubMenu,
               },
             ].map((item) => (
               <SidebarItem
@@ -273,33 +286,7 @@ const Sidebar = () => {
             ))}
             {activeSubmenu === "report" && (
               <div className="ml-6 space-y-2">
-                {[
-                  {
-                    label: "By Vendor",
-                    path: "/byvendorreport",
-                    icon: <FaUsers />,
-                  },
-                  {
-                    label: "By Item",
-                    path: "/byitemreport",
-                    icon: <FaBoxes />,
-                  },
-                  {
-                    label: "By Invoice",
-                    path: "/ReportByInvoice",
-                    icon: <FaFileInvoiceDollar />,
-                  },
-                  {
-                    label: "By Confirm",
-                    path: "ByConfirmReport",
-                    icon: <FaCheckCircle />,
-                  },
-                  {
-                    label: "By Payment",
-                    path: "/ReportByPayment",
-                    icon: <FaMoneyCheckAlt />,
-                  },
-                ].map((subItem) => (
+                {reportSubmenuItems.map((subItem) => (
                   <SidebarItem
                     key={subItem.label}
                     icon={subItem.icon}
@@ -314,7 +301,7 @@ const Sidebar = () => {
         )}
       </div>
 
-      {/* More Items */}
+      {/* Additional Navigation Items */}
       <SidebarItem
         icon={<FaBookOpen />}
         label="Ledger"
