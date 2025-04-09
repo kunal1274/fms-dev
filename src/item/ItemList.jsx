@@ -287,11 +287,18 @@ function ItemList({ handleAddItem }) {
                   >
                     <option value="All">Sort By</option>
                     <option value="Item Name">Sort by Item Name</option>
-                    <option value="Item Account no">By Item No</option>
-                    <option value="Item Account no descending">
-                      By Item No Descending
+                    <option value="Item Account no">
+                      Sort By Item code Ascending{" "}
                     </option>
-                    <option value="By unit">By Unit</option>
+                    <option value="Item Account no descending">
+                      Sort By Item code Descending
+                    </option>
+                    <option value="  By type  service ">
+                      Sort By Item Type Service
+                    </option>{" "}
+                    <option value="By type Good ">
+                      Sort By Item Type Good
+                    </option>
                   </select>
                 </div>
                 {/* Filter By Status */}

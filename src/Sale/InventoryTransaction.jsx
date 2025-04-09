@@ -1,124 +1,164 @@
-import { Select } from "flowbite-react";
-import { toast, ToastContainer } from "react-toastify";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
-
-import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
-
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+
+const purchaseorderAPI =
+  "https://fms-qkmw.onrender.com/fms/api/v0/purchaseorders";
+const salesordersAPI = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
+
 const InventoryTransaction = () => {
-  const [salesData, setSalesData] = useState([]);
-  const [filteredSales, setFilteredSales] = useState([]);
-  const [selectedSales, setSelectedSales] = useState([]);
+  // State variables for orders data and UI controls.
+  const [ordersData, setOrdersData] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [selectedOrders, setSelectedOrders] = useState([]);
   const [selectedSortOption, setSelectedSortOption] = useState("");
-  const [selectedType, setSelectedType] = useState("All");
+  const [selectedFilter, setSelectedFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Fetch purchase and sales orders from the APIs.
   useEffect(() => {
-    const fetchSales = async () => {
-      // Replace with actual API call
-      const data = []; // Example placeholder
-      setSalesData(data);
-      setFilteredSales(data);
+    const fetchData = async () => {
+      try {
+        // Fetch both purchase and sales orders concurrently.
+        const [purchaseRes, salesRes] = await Promise.all([
+          axios.get(purchaseorderAPI),
+          axios.get(salesordersAPI),
+        ]);
+
+        // Extract the data property if necessary.
+        const purchaseOrders = purchaseRes.data.data || purchaseRes.data;
+        const salesOrders = salesRes.data.data || salesRes.data;
+
+        // Tag each order with its respective type.
+        const formattedPurchaseOrders = purchaseOrders.map((order) => ({
+          ...order,
+          orderType: "purchase",
+        }));
+        const formattedSalesOrders = salesOrders.map((order) => ({
+          ...order,
+          orderType: "sales",
+        }));
+
+        // Merge both orders into one combined array.
+        const combinedOrders = [
+          ...formattedPurchaseOrders,
+          ...formattedSalesOrders,
+        ];
+
+        // Initialize state with combined data.
+        setOrdersData(combinedOrders);
+        setFilteredOrders(combinedOrders);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+        toast.error("Error fetching orders data!");
+      }
     };
-    fetchSales();
+
+    fetchData();
   }, []);
 
+  // Apply filtering and searching whenever orders data or filter/search criteria change.
   useEffect(() => {
-    let filtered = salesData;
-    if (selectedType !== "All") {
-      filtered = filtered.filter((sale) => sale.status === selectedType);
+    let filtered = ordersData;
+    if (selectedFilter !== "All") {
+      filtered = filtered.filter((order) => order.orderType === selectedFilter);
     }
     if (searchTerm) {
-      filtered = filtered.filter((sale) =>
-        sale.item?.name.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter((order) =>
+        (order.item?.name || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
       );
     }
-    setFilteredSales(filtered);
-  }, [searchTerm, selectedType, salesData]);
+    setFilteredOrders(filtered);
+  }, [searchTerm, selectedFilter, ordersData]);
 
+  // Handlers for sort, filter, and search controls.
   const handleSortChange = (e) => setSelectedSortOption(e.target.value);
-  const handleTypeFilterChange = (e) => setSelectedType(e.target.value);
+  const handleFilterChange = (e) => setSelectedFilter(e.target.value);
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
-  const handleSaleSelection = (saleId) => {
-    setSelectedSales((prev) =>
-      prev.includes(saleId)
-        ? prev.filter((id) => id !== saleId)
-        : [...prev, saleId]
+  // Handle selection of an individual order record.
+  const handleOrderSelection = (orderId) => {
+    setSelectedOrders((prev) =>
+      prev.includes(orderId)
+        ? prev.filter((id) => id !== orderId)
+        : [...prev, orderId]
     );
   };
 
+  // Select or deselect all orders on the current filtered page.
   const toggleSelectAll = () => {
-    setSelectedSales(
-      selectedSales.length === filteredSales.length
+    setSelectedOrders(
+      selectedOrders.length === filteredOrders.length
         ? []
-        : filteredSales.map((sale) => sale.id)
+        : filteredOrders.map((order) => order.id)
     );
   };
 
+  // Generate a PDF version of the table using jsPDF and autoTable.
   const generatePDF = () => {
     const doc = new jsPDF();
-    doc.text("Sales Report", 20, 10);
-    doc.autoTable({ html: "#salesTable" });
-    doc.save("sales_report.pdf");
+    doc.text("Inventory Transaction Report", 20, 10);
+    doc.autoTable({ html: "#ordersTable" });
+    doc.save("inventory_transaction_report.pdf");
   };
 
+  // Reset search and filter options.
   const resetFilters = () => {
     setSearchTerm("");
     setSelectedSortOption("");
-    setSelectedType("All");
+    setSelectedFilter("All");
   };
+
+  // Export the filtered data to an Excel file using XLSX.
   const exportToExcel = useCallback(() => {
-    if (!filteredSales.length) return alert("No data to export");
-    const worksheet = XLSX.utils.json_to_sheet(filteredSales);
+    if (!filteredOrders.length) return alert("No data to export");
+    const worksheet = XLSX.utils.json_to_sheet(filteredOrders);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Inventory");
-    XLSX.writeFile(workbook, "inventory_list.xlsx");
-  }, [filteredSales]);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Inventory Transactions");
+    XLSX.writeFile(workbook, "inventory_transactions.xlsx");
+  }, [filteredOrders]);
+
   return (
-    <div className="bg-grey-400  min-h-screen">
+    <div className="bg-grey-400 min-h-screen">
       <ToastContainer />
-      {/* Header */}
+      {/* Header Section */}
       <div className="flex justify-between space-x-2">
         <h1 className="text-2xl font-bold mb-4">Inventory Transaction</h1>
-
-        <div className="flex justify-between rounded-full mb-3">
-          <div className="flex justify-end items-center gap-1">
-            <button
-              onClick={generatePDF}
-              className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition  hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] hover:scale-[1.02]"
-            >
-              PDF
-            </button>
-            <button
-              onClick={exportToExcel}
-              className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition  hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
-            >
-              Export
-            </button>
-          </div>
+        <div className="flex justify-end items-center gap-1 mb-3">
+          <button
+            onClick={generatePDF}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700"
+          >
+            PDF
+          </button>
+          <button
+            onClick={exportToExcel}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700"
+          >
+            Export
+          </button>
         </div>
       </div>
-      {/* new */}
-      <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md shadow mb-2 space-y-3 md:space-y-0 md:space-x-4">
-        {/* Left group: Sort By, Filter By Status, Search */}
+
+      {/* Filter and Search Controls */}
+      <div className="flex flex-wrap items-center justify-between p-2 bg-white rounded-md shadow mb-2 space-y-3 md:space-y-0 md:space-x-4">
         <div className="flex items-center space-x-4">
-          {/* Sort By */}
+          {/* Sort Control */}
           <div className="relative">
             <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <select
-              defaultValue=""
-              value={selectedType}
-              onChange={handleTypeFilterChange}
+              value={selectedSortOption}
+              onChange={handleSortChange}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
             >
-              <option value="" disabled className="text-gray-500">
+              <option value="" disabled>
                 Sort By
               </option>
               <option value="saleNumber">Sort by Sale Number (Asc)</option>
@@ -129,22 +169,21 @@ const InventoryTransaction = () => {
             </select>
           </div>
 
-          {/* Filter By Status */}
+          {/* Filter by Order Type */}
           <div className="relative">
-            <FaFilter className=" text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <select
-              defaultValue="All"
+              value={selectedFilter}
+              onChange={handleFilterChange}
               className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-              value={selectedSortOption}
-              onChange={handleSortChange}
             >
-              <option value="All">Filter by Status</option>
-              <option value="Confirm">Confirm</option>
-              <option value="Draft">Draft</option>
+              <option value="All">All Orders</option>
+              <option value="purchase">Purchase Orders</option>
+              <option value="sales">Sales Orders</option>
             </select>
           </div>
 
-          {/* Search */}
+          {/* Search Input */}
           <div className="relative">
             <input
               type="text"
@@ -154,8 +193,6 @@ const InventoryTransaction = () => {
               className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <button
-              value={searchTerm}
-              onChange={handleSearchChange}
               type="button"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
             >
@@ -163,8 +200,6 @@ const InventoryTransaction = () => {
             </button>
           </div>
         </div>
-
-        {/* Right side: Reset Filter */}
         <button
           onClick={resetFilters}
           className="text-red-500 hover:text-red-600 font-medium"
@@ -172,103 +207,204 @@ const InventoryTransaction = () => {
           Reset Filter
         </button>
       </div>
+
+      {/* Table Display */}
       <div className="border border-green-500 rounded-lg bg-white p-3 overflow-hidden">
-        {" "}
-        <div className="  max-h-96 overflow-y-auto">
-          <table className="min-w-full border-collapse border border-gray-200">
+        <div className="max-h-96 overflow-y-auto">
+          <table
+            id="ordersTable"
+            className="min-w-full border-collapse border border-gray-200"
+          >
             <thead>
               <tr className="bg-gray-100">
                 <th className="px-4 py-2 border border-gray-300 text-left">
                   <input
                     type="checkbox"
                     onChange={toggleSelectAll}
-                    checked={selectedSales.length === filteredSales.length}
+                    checked={
+                      selectedOrders.length === filteredOrders.length &&
+                      filteredOrders.length > 0
+                    }
                   />
-                </th>{" "}
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                </th>
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   Date
                 </th>
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                  Item No
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
+                  Item Name
                 </th>
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                  Ref
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
+                  Ref Order
                 </th>
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   Ref No
+                </th>{" "}
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
+                  Status
+                </th>{" "}
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
+                  Order Quantity
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                {/* Purchase Order Columns */}
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   In Qty Confirm
                 </th>
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   In Qty Shipped
                 </th>
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   In Qty Received
                 </th>
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   In Qty Invoiced
                 </th>
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   In Qty Cancelled
-                </th>{" "}
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                  In Qty Confirmed
-                </th>{" "}
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                </th>
+                {/* Sales Order Columns */}
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
+                  Out Qty Confirmed
+                </th>
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   Out Qty Shipped
-                </th>{" "}
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                </th>
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   Out Qty Delivered
-                </th>{" "}
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                </th>  <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
+                  Out Qty Invoiced
+                </th>
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   Out Qty Cancelled
                 </th>
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                {/* Additional / Calculated Columns */}
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   Cum Net Qty
                 </th>
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                  In value
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
+                  In Value
                 </th>
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                  Out value
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
+                  Out Value
                 </th>
-                <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                  Cum net value
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
+                  Cum Net Value
                 </th>
               </tr>
             </thead>
             <tbody>
-              {filteredSales.map((sale) => (
-                <tr key={sale.id}>
+              {filteredOrders.map((order) => (
+                <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-4 py-2 border border-gray-300">
                     <input
                       type="checkbox"
-                      checked={selectedSales.includes(sale.id)}
-                      onChange={() => handleSaleSelection(sale.id)}
+                      checked={selectedOrders.includes(order.id)}
+                      onChange={() => handleOrderSelection(order.id)}
                     />
-                  </td>{" "}
-                  <td className="border px-4 py-2 text-center">{sale.date}</td>
-                  <td className="px-6 py-3 truncate">{sale.id}</td>
-                  <td className="px-6 py-3 truncate">{sale.item?.name}</td>
-                  <td className="px-6 py-3 truncate">
-                    {sale.InventoryOnHand?.name}
+                  </td>
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {new Date(order.createdAt).toLocaleString()}
                   </td>
                   <td className="px-6 py-3 border border-gray-300">
-                    {sale.inQtyConfirm}
+                    {order.item?.name || "-"}
                   </td>
-                  <td className="px-6 py-3 truncate">{sale.inQtyShipped}</td>
-                  <td className="px-6 py-3 truncate">{sale.inQtyReceived}</td>
-                  <td className="px-6 py-3 truncate">{sale.inQtyInvoiced}</td>
-                  <td className="px-6 py-3 truncate">
-                    {sale.inQtyCancelled || 0}
+                  <td className="px-6 py-3 border border-gray-300">
+                    {order.orderType || "-"}
+                  </td>
+                  <td className="px-6 py-3 border border-gray-300">
+                    {order.orderNum || "-"}
+                  </td>{" "}
+                  <td className="px-6 py-3 border border-gray-300">
+                    {order.status || "-"}
+                  </td>{" "}
+                  <td className="px-6 py-3 border border-gray-300">
+                    {order.quantity || "-"}
+                  </td>
+                  {/* Purchase Order Fields */}
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.orderType === "purchase" &&
+                    order.status === "Confirm"
+                      ? order.inQtyConfirm
+                      : "-"}
+                  </td>
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.orderType === "purchase" &&
+                    order.status === "Shipped"
+                      ? order.inQtyShipped
+                      : "-"}
+                  </td>
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.orderType === "purchase" &&
+                    order.status === "Received"
+                      ? order.inQtyReceived
+                      : "-"}
+                  </td>
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.orderType === "purchase" &&
+                    order.status === "Invoiced"
+                      ? order.inQtyInvoiced
+                      : order.orderType === "purchase" &&
+                        order.status === "Invoiced"
+                      ? order.quantity
+                      : "-"}
+                  </td>
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.orderType === "purchase" &&
+                    order.status === "Cancelled"
+                      ? order.inQtyCancelled
+                      : "-"}
+                  </td>
+                  {/* Sales Order Fields */}
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.orderType === "sale" &&
+                    order.status?.toLowerCase() === "confirm"
+                      ? order.outQtyConfirmed
+                      : "-"}
+                  </td>
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.orderType === "sale" &&
+                    order.status?.toLowerCase() === "shipped"
+                      ? order.outQtyShipped
+                      : "-"}
+                  </td>
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.orderType === "sale" &&
+                    order.status?.toLowerCase() === "delivered"
+                      ? order.outQtyDelivered
+                      : "-"}
+                  </td>  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.orderType === "sale" &&
+                    order.status === "Invoiced"
+                      ? order.inQtyInvoiced
+                      : order.orderType === "sales" &&
+                        order.status === "Invoiced"
+                      ? order.quantity
+                      : "-"}
+                  </td>
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.orderType === "sale" &&
+                    order.status?.toLowerCase() === "cancelled"
+                      ? order.outQtyCancelled
+                      : "-"}
+                  </td>
+                  {/* Additional / Calculated Fields */}
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.cumNetQty ?? "-"}
+                  </td>
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.inValue ?? "-"}
+                  </td>
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.outValue ?? "-"}
+                  </td>
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {order.cumNetValue ?? "-"}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </div>{" "}
+      </div>
     </div>
   );
 };

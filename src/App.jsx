@@ -3,7 +3,7 @@ import Dashboard from "../src/components/dashBoard/Dashbord";
 
 import { useState } from "react";
 
-// import Dashboard from "./components/dashBoard/Dash.jsx";
+// import Dashboard from "../src/test";
 
 function App() {
  

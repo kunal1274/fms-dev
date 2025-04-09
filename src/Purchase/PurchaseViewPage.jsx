@@ -3,7 +3,9 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
-
+const BASE_URL = "https://fms-qkmw.onrender.com/fms/api/v0/purchaseorders";
+const item = "https://fms-qkmw.onrender.com/fms/api/v0/items";
+const customer = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
 // const navigate = useNavigate();
 // ---------------------------
 // Payment Modal Component (Create Payment)
@@ -188,14 +190,13 @@ const PurchaseViewPage = ({ goBack, PurchaseId }) => {
   // Removed duplicate declaration and initialize with PurchaseId if provided  const navigate = useNavigate();
   const location = useLocation();
 
- 
-  const [purchasedata, setpurchasedata] = useState(null);
   const [items, setItems] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [remarks, setRemarks] = useState("");
   const [isEdited, setIsEdited] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDraft, setIsDraft] = useState(false);
+  const [purchasedata, setpurchasedata] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [discount, setDiscount] = useState(purchasedata?.discount || 0);
@@ -423,7 +424,9 @@ const PurchaseViewPage = ({ goBack, PurchaseId }) => {
     const taxAmount = (computedAmountBeforeTax * Number(tax)) / 100;
     const netAR =
       purchasedata?.netAmtAfterTax -
-      (purchasedata?.paidAmt ? purchasedata.paidAmt.reduce((a, b) => a + b, 0) : 0);
+      (purchasedata?.paidAmt
+        ? purchasedata.paidAmt.reduce((a, b) => a + b, 0)
+        : 0);
     const tcsAmount = (computedAmountBeforeTax * Number(tcs)) / 100;
     const computedTotalAmount = computedAmountBeforeTax + taxAmount + tcsAmount;
     setLineAmt(
@@ -442,7 +445,7 @@ const PurchaseViewPage = ({ goBack, PurchaseId }) => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(`${salesOrderUrl}/${id}`);
+      const response = await axios.get(`${BASE_URL}/${id}`);
       if (response.status === 200) {
         const data = response.data.data || {};
         setpurchasedata(data);
@@ -474,7 +477,9 @@ const PurchaseViewPage = ({ goBack, PurchaseId }) => {
     const computedTotalAmount = computedAmountBeforeTax + taxAmount + tcsAmount;
     const netAR =
       purchasedata?.netAmtAfterTax -
-      (purchasedata?.paidAmt ? purchasedata.paidAmt.reduce((a, b) => a + b, 0) : 0);
+      (purchasedata?.paidAmt
+        ? purchasedata.paidAmt.reduce((a, b) => a + b, 0)
+        : 0);
     setLineAmt(
       isNaN(computedTotalAmount) ? "0.00" : computedTotalAmount.toFixed(2)
     );
@@ -634,7 +639,7 @@ const PurchaseViewPage = ({ goBack, PurchaseId }) => {
     setState((prev) => ({ ...prev, loading: true, error: "" }));
     try {
       const response = await axios.get(
-        `https://befr8n.vercel.app/fms/api/v0/purchaseorders/${id}`
+        `https://fms-qkmw.onrender.com/fms/api/v0/purchaseorders/${id}`
       );
 
       if (response.status === 200) {
@@ -1062,7 +1067,9 @@ const PurchaseViewPage = ({ goBack, PurchaseId }) => {
                     <input
                       type="text"
                       className="border rounded p-1 text-center w-24"
-                      value={selectedItem?.unit || purchasedata?.item?.unit || ""}
+                      value={
+                        selectedItem?.unit || purchasedata?.item?.unit || ""
+                      }
                       onChange={(e) => setUnit(e.target.value)}
                       disabled={!isEditing}
                     />
@@ -1071,7 +1078,9 @@ const PurchaseViewPage = ({ goBack, PurchaseId }) => {
                     <input
                       type="text"
                       className="border rounded p-1 text-center w-24"
-                      value={selectedItem?.price || purchasedata?.item?.price || ""}
+                      value={
+                        selectedItem?.price || purchasedata?.item?.price || ""
+                      }
                       onChange={(e) => setPrice(Number(e.target.value) || 0)}
                       disabled={!isEditing}
                     />
@@ -1115,7 +1124,9 @@ const PurchaseViewPage = ({ goBack, PurchaseId }) => {
                         type="text"
                         className="border rounded p-1 text-center w-24"
                         value={
-                          isNaN(purchasedata.lineAmt) ? "0.00" : purchasedata.lineAmt
+                          isNaN(purchasedata.lineAmt)
+                            ? "0.00"
+                            : purchasedata.lineAmt
                         }
                         onChange={(e) => handleAmountChange(e.target.value)}
                       />

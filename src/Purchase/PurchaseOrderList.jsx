@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Select } from "flowbite-react";
+import { Button, Select } from "flowbite-react";
 import { ToastContainer } from "react-toastify";
 import axios from "axios";
 import { useParams } from "react-router-dom";
@@ -19,7 +19,8 @@ const PurchaseOrderList = ({ handleAddPurchaseOrder }) => {
   const [selectedVendors, setSelectedVendors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState("All");
-  const [selectedpurchaseForInvoice, setSelectedpurchaseForInvoice] = useState(null);
+  const [selectedpurchaseForInvoice, setSelectedpurchaseForInvoice] =
+    useState(null);
   const [viewingPurchaseId, setViewingPurchaseId] = useState(null);
 
   const handleSelectpurchaseForInvoice = (purchaseId) => {
@@ -462,8 +463,8 @@ const PurchaseOrderList = ({ handleAddPurchaseOrder }) => {
               <div className="max-h-96 overflow-y-auto">
                 <table className="min-w-full border-collapse border border-gray-200">
                   <thead>
-                  <tr className="bg-gray-100">
-                  <th className="px-4 py-2 border border-gray-300 text-left">
+                    <tr className="bg-gray-100">
+                      <th className="px-4 py-2 border border-gray-300 text-left">
                         <input
                           type="checkbox"
                           checked={
@@ -477,13 +478,16 @@ const PurchaseOrderList = ({ handleAddPurchaseOrder }) => {
                           }}
                         />
                       </th>
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                      <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
                         Purchase Order No.
                       </th>
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                      <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
+                        Date
+                      </th>
+                      <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
                         Vendor Name
                       </th>
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                      <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
                         Item Name
                       </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
@@ -501,15 +505,13 @@ const PurchaseOrderList = ({ handleAddPurchaseOrder }) => {
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
                         currency
                       </th>
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                      <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
                         Amount before tax
                       </th>
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                      <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
                         Line Amount
                       </th>
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                        Created At
-                      </th>
+
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
                         Status
                       </th>
@@ -531,31 +533,46 @@ const PurchaseOrderList = ({ handleAddPurchaseOrder }) => {
                           />
                         </th>
                         <td>
-                          <button onClick={() => handlepurchaseClick(purchase._id)}>
+                          <button
+                            className="text-blue-600 hover:underline ml-6 focus:outline-none"
+                            onClick={() => handlePurchaseClick(purchase._id)}
+                          >
                             {purchase.orderNum}
                           </button>
+                        </td>{" "}
+                        <td className="px-6 py-3 truncate">
+                          {new Date(purchase.createdAt).toLocaleString()}
                         </td>
-                        <td className="px-6 py-3 whitespace-normal truncate">
-                          {purchase.customer?.name}
+                        <td className="px-6 py-3 truncate">
+                          {purchase.vendor?.name}
                         </td>
                         <td className="px-6 py-3 whitespace-normal truncate">
                           {purchase.item?.name}
                         </td>
-                        <td className="px-6 py-3 truncate">{purchase.quantity}</td>
+                        <td className="px-6 py-3 truncate">
+                          {purchase.quantity}
+                        </td>
                         <td className="px-6 py-3 truncate">
                           {purchase.item?.price}
                         </td>
-                        <td className="px-6 py-3 truncate">{purchase.discount}</td>
-                        <td className="px-6 py-3 truncate">{purchase.advance}</td>
-                        <td className="px-6 py-3 truncate">{purchase.currency}</td>
-                        <td className="px-6 py-3 truncate">{purchase.netAR}</td>
-                        <td className="px-6 py-3 truncate">{purchase.lineAmt}</td>
-                        {/* <td className="px-6 py-3 truncate">{purchase.createdAt}</td> */}
-                        {/* <td className="px-6 py-3 truncate">{purchase.createdAt}</td> */}
-                        <td className="border p-2">
-                          {new Date(purchase.createdAt).toLocaleString()}
+                        <td className="px-6 py-3 truncate">
+                          {purchase.discount}
                         </td>
-                        <td className="px-6 py-3 truncate">{purchase.status}</td>
+                        <td className="px-6 py-3 truncate">
+                          {purchase.advance}
+                        </td>
+                        <td className="px-6 py-3 truncate">
+                          {purchase.currency}
+                        </td>
+                        <td className="px-6 py-3 truncate">{purchase.netAR}</td>
+                        <td className="px-6 py-3 truncate">
+                          {purchase.lineAmt}
+                        </td>
+                        {/* <td className="px-6 py-3 truncate">{purchase.createdAt}</td> */}
+                        {/* <td className="px-6 py-3 truncate">{purchase.createdAt}</td> */}
+                        <td className="px-6 py-3 truncate">
+                          {purchase.status}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

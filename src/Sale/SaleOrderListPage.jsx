@@ -470,13 +470,15 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                         />
                       </th>
 
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                      <th className="px-6 py-2 text-sm font-medium whitespace-nowrap text-left">
                         Sale Order No
+                      </th> <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
+                   Date
                       </th>
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                      <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
                         Customer Name
                       </th>
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                      <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
                         Item Name
                       </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
@@ -494,15 +496,13 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
                         currency
                       </th>
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                      <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
                         Amount before tax
                       </th>
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                      <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
                         Line Amount
                       </th>
-                      <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                        Created At
-                      </th>
+                     
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
                         Status
                       </th>
@@ -518,19 +518,22 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                           index % 2 === 0 ? "bg-gray-50" : "bg-white"
                         } transition-all duration-200`}
                       >
-                        <th className="px-4 py-2 border-white-300 text-left">
+                        <th className="px-4 py-2 border-white-300 ml-4 text-center">
                           <input
                             type="checkbox"
                             checked={selectedSales.includes(sale._id)}
                             onChange={() => handleCheckboxChange(sale._id)}
                           />
-                        </th>
+                        </th> 
                         <td>
-                          <button onClick={() => handleSaleClick(sale._id)}>
+                        <button className="text-blue-600 hover:underline ml-6 focus:outline-none"onClick={() => handleSaleClick(sale._id)}>
                             {sale.orderNum}
                           </button>
+                        </td> <td className="px-6 py-3 truncate">
+                          {new Date(sale.createdAt).toLocaleString()}
                         </td>
-                        <td className="px-6 py-3 whitespace-normal truncate">
+                        <td className="px-6 py-3 break-words max-w-[500px] truncate hover:whitespace-normal hover:text-sm hover:max-w-none">
+
                           {sale.customer?.name}
                         </td>
                         <td className="px-6 py-3 whitespace-normal truncate">
@@ -547,9 +550,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                         <td className="px-6 py-3 truncate">{sale.lineAmt}</td>
                         {/* <td className="px-6 py-3 truncate">{sale.createdAt}</td> */}
                         {/* <td className="px-6 py-3 truncate">{sale.createdAt}</td> */}
-                        <td className="border p-2">
-                          {new Date(sale.createdAt).toLocaleString()}
-                        </td>
+                      
                         <td className="px-6 py-3 truncate">{sale.status}</td>
                       </tr>
                     ))}

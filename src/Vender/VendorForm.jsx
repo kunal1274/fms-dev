@@ -35,8 +35,11 @@ const VendorForm = ({ handleCancel }) => {
 
   // Fetch vendors
   useEffect(() => {
-    toast.info("vendor form opened!");
-
+  
+    toast.info("vendor form opened!", {
+      autoClose: 800, // auto close after 800ms
+      style: { width: "250px" } // custom width for the toast
+    });
     async function loadVendors() {
       try {
         const response = await axios.get(mergedUrl, {
@@ -99,7 +102,7 @@ const VendorForm = ({ handleCancel }) => {
 
       toast.success("Vendor created successfully!", {
         position: "top-right", // Adjust position if necessary
-        autoClose: 1000,
+        autoClose: 800,
       });
       console.log("Vendor created successfully");
       setTimeout(() => {
@@ -233,7 +236,6 @@ const VendorForm = ({ handleCancel }) => {
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-lg p-1 bg-white focus:outline-none focus:ring focus:ring-blue-300"
                 >
-           
                   <option value="INR">INR</option>
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
@@ -310,21 +312,21 @@ const VendorForm = ({ handleCancel }) => {
               <button
                 type="button"
                 onClick={handleReset}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 text-sm"
               >
                 Reset
               </button>
               <div className="flex gap-3">
                 <button
                   type="submit"
-                  className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-700"
+                  className="bg-blue-500 text-white py-1 px-4 rounded-md text-sm hover:bg-blue-700"
                 >
                   Save
                 </button>
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="bg-red-500 text-white py-2 px-6 rounded-lg hover:bg-red-700"
+                  className="bg-red-500 text-white py-1 px-4 rounded-md text-sm hover:bg-blue-700"
                 >
                   Cancel
                 </button>
