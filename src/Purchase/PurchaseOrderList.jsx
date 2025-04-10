@@ -350,6 +350,7 @@ const PurchaseOrderList = ({ handleAddPurchaseOrder }) => {
                   <button
                     onClick={handleAddPurchaseOrder}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                    // className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     + Add
                   </button>
@@ -357,7 +358,7 @@ const PurchaseOrderList = ({ handleAddPurchaseOrder }) => {
                   <button
                     onClick={handleDeleteSelected}
                     disabled={selectedVendors.length === 0}
-                    className={`h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition ${
+                    className={`  className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]" ${
                       selectedVendors.length > 0
                         ? " hover:text-blue-700 hover:scale-[1.02]"
                         : "opacity-50 cursor-not-allowed"
@@ -367,17 +368,17 @@ const PurchaseOrderList = ({ handleAddPurchaseOrder }) => {
                   </button>
                   <button
                     onClick={generatePDF}
-                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition  hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     PDF
                   </button>
                   <button
                     onClick={exportToExcel}
-                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition  hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     Export
                   </button>
-                  <label className="h-8 px-3 flex items-center border border-green-500 bg-white text-sm rounded-md transition  hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] cursor-pointer">
+                  <label className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]">
                     <input
                       type="file"
                       accept=".xls,.xlsx"

@@ -41,7 +41,7 @@ const InventoryTransaction = () => {
         }));
         const formattedSalesOrders = salesOrders.map((order) => ({
           ...order,
-          orderType: "sales",
+          orderType: "sale",
         }));
 
         // Merge both orders into one combined array.
@@ -125,6 +125,93 @@ const InventoryTransaction = () => {
     XLSX.writeFile(workbook, "inventory_transactions.xlsx");
   }, [filteredOrders]);
 
+  // Define the order of statuses for purchase orders.
+  const purchaseStatusHierarchy = [
+    "Confirm",
+    "Shipped",
+    "Received",
+    "Invoiced",
+    "Cancelled",
+  ];
+
+  // Helper function to display purchase order quantity cumulatively.
+  const showQty = (order, cellStatus) => {
+    if (order.orderType !== "purchase") return "-";
+    const orderIndex = purchaseStatusHierarchy.indexOf(order.status);
+    const cellIndex = purchaseStatusHierarchy.indexOf(cellStatus);
+    if (orderIndex === -1 || orderIndex < cellIndex) return "-";
+  
+    switch (cellStatus) {
+      case "Confirm":
+        // If the order's status is exactly "Confirm", show "Yes"
+        return order.status === "Confirm" ? "Yes" : (order.inQtyConfirm ?? order.quantity);
+      case "Shipped":
+        return order.inQtyShipped ?? order.quantity;
+      case "Received":
+        return order.inQtyReceived ?? order.quantity;
+      case "Invoiced":
+        return order.inQtyInvoiced ?? order.quantity;
+      case "Cancelled":
+        return order.inQtyCancelled ?? order.quantity;
+      default:
+        return "-";
+    }
+  };
+  
+  // Define the order of statuses for sales orders.
+  const saleStatusHierarchy = [
+    "confirm",
+    "shipped",
+    "delivered",
+    "invoiced",
+    "cancelled",
+  ];
+  // const showQty = (order, cellStatus) => {
+  //   if (order.orderType !== "purchase") return "-";
+  //   const orderIndex = purchaseStatusHierarchy.indexOf(order.status);
+  //   const cellIndex = purchaseStatusHierarchy.indexOf(cellStatus);
+  //   if (orderIndex === -1 || orderIndex < cellIndex) return "-";
+  
+  //   switch (cellStatus) {
+  //     case "Confirm":
+  //       // If the order's status is exactly "Confirm", show "Yes"
+  //       return order.status === "Confirm" ? "Yes" : (order.inQtyConfirm ?? order.quantity);
+  //     case "Shipped":
+  //       return order.inQtyShipped ?? order.quantity;
+  //     case "Received":
+  //       return order.inQtyReceived ?? order.quantity;
+  //     case "Invoiced":
+  //       return order.inQtyInvoiced ?? order.quantity;
+  //     case "Cancelled":
+  //       return order.inQtyCancelled ?? order.quantity;
+  //     default:
+  //       return "-";
+  //   }
+  // };
+  // Helper function to display sales order quantity cumulatively.
+  const showSalesQty = (order, cellStatus) => {
+    if (order.orderType !== "sale") return "-";
+    const orderStatus = order.status?.toLowerCase() || "";
+    const orderIndex = saleStatusHierarchy.indexOf(orderStatus);
+    const cellIndex = saleStatusHierarchy.indexOf(cellStatus.toLowerCase());
+    if (orderIndex === -1 || orderIndex < cellIndex) return "-";
+
+    switch (cellStatus.toLowerCase()) {
+      case "confirm":
+        return order.outQtyConfirmed ?? order.quantity;
+      case "shipped":
+        return order.outQtyShipped ?? order.quantity;
+      case "delivered":
+        return order.outQtyDelivered ?? order.quantity;
+      case "invoiced":
+        return order.outQtyInvoiced ?? order.quantity;
+      case "cancelled":
+        return order.outQtyCancelled ?? order.quantity;
+      default:
+        return "-";
+    }
+  };
+
   return (
     <div className="bg-grey-400 min-h-screen">
       <ToastContainer />
@@ -179,7 +266,7 @@ const InventoryTransaction = () => {
             >
               <option value="All">All Orders</option>
               <option value="purchase">Purchase Orders</option>
-              <option value="sales">Sales Orders</option>
+              <option value="sale">Sales Orders</option>
             </select>
           </div>
 
@@ -238,10 +325,10 @@ const InventoryTransaction = () => {
                 </th>
                 <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   Ref No
-                </th>{" "}
+                </th>
                 <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   Status
-                </th>{" "}
+                </th>
                 <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   Order Quantity
                 </th>
@@ -270,7 +357,8 @@ const InventoryTransaction = () => {
                 </th>
                 <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   Out Qty Delivered
-                </th>  <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
+                </th>
+                <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
                   Out Qty Invoiced
                 </th>
                 <th className="px-6 py-3 border border-gray-300 text-left text-sm font-medium text-gray-700">
@@ -312,79 +400,44 @@ const InventoryTransaction = () => {
                   </td>
                   <td className="px-6 py-3 border border-gray-300">
                     {order.orderNum || "-"}
-                  </td>{" "}
+                  </td>
                   <td className="px-6 py-3 border border-gray-300">
                     {order.status || "-"}
-                  </td>{" "}
+                  </td>
                   <td className="px-6 py-3 border border-gray-300">
                     {order.quantity || "-"}
                   </td>
-                  {/* Purchase Order Fields */}
+                  {/* Purchase Order Fields using cumulative logic */}
                   <td className="px-6 py-3 border border-gray-300 text-center">
-                    {order.orderType === "purchase" &&
-                    order.status === "Confirm"
-                      ? order.inQtyConfirm
-                      : "-"}
+                    {showQty(order, "Confirm")}
                   </td>
                   <td className="px-6 py-3 border border-gray-300 text-center">
-                    {order.orderType === "purchase" &&
-                    order.status === "Shipped"
-                      ? order.inQtyShipped
-                      : "-"}
+                    {showQty(order, "Shipped")}
                   </td>
                   <td className="px-6 py-3 border border-gray-300 text-center">
-                    {order.orderType === "purchase" &&
-                    order.status === "Received"
-                      ? order.inQtyReceived
-                      : "-"}
+                    {showQty(order, "Received")}
                   </td>
                   <td className="px-6 py-3 border border-gray-300 text-center">
-                    {order.orderType === "purchase" &&
-                    order.status === "Invoiced"
-                      ? order.inQtyInvoiced
-                      : order.orderType === "purchase" &&
-                        order.status === "Invoiced"
-                      ? order.quantity
-                      : "-"}
+                    {showQty(order, "Invoiced")}
                   </td>
                   <td className="px-6 py-3 border border-gray-300 text-center">
-                    {order.orderType === "purchase" &&
-                    order.status === "Cancelled"
-                      ? order.inQtyCancelled
-                      : "-"}
+                    {showQty(order, "Cancelled")}
                   </td>
-                  {/* Sales Order Fields */}
+                  {/* Sales Order Fields using cumulative logic */}
                   <td className="px-6 py-3 border border-gray-300 text-center">
-                    {order.orderType === "sale" &&
-                    order.status?.toLowerCase() === "confirm"
-                      ? order.outQtyConfirmed
-                      : "-"}
+                    {showSalesQty(order, "confirm")}
                   </td>
                   <td className="px-6 py-3 border border-gray-300 text-center">
-                    {order.orderType === "sale" &&
-                    order.status?.toLowerCase() === "shipped"
-                      ? order.outQtyShipped
-                      : "-"}
+                    {showSalesQty(order, "shipped")}
                   </td>
                   <td className="px-6 py-3 border border-gray-300 text-center">
-                    {order.orderType === "sale" &&
-                    order.status?.toLowerCase() === "delivered"
-                      ? order.outQtyDelivered
-                      : "-"}
-                  </td>  <td className="px-6 py-3 border border-gray-300 text-center">
-                    {order.orderType === "sale" &&
-                    order.status === "Invoiced"
-                      ? order.inQtyInvoiced
-                      : order.orderType === "sales" &&
-                        order.status === "Invoiced"
-                      ? order.quantity
-                      : "-"}
+                    {showSalesQty(order, "delivered")}
                   </td>
                   <td className="px-6 py-3 border border-gray-300 text-center">
-                    {order.orderType === "sale" &&
-                    order.status?.toLowerCase() === "cancelled"
-                      ? order.outQtyCancelled
-                      : "-"}
+                    {showSalesQty(order, "invoiced")}
+                  </td>
+                  <td className="px-6 py-3 border border-gray-300 text-center">
+                    {showSalesQty(order, "cancelled")}
                   </td>
                   {/* Additional / Calculated Fields */}
                   <td className="px-6 py-3 border border-gray-300 text-center">

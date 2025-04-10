@@ -429,7 +429,7 @@ const CustomerList = ({ handleAddCustomer }) => {
           <>
             {/* Header */}
             <div className="flex justify-between space-x-2">
-              <h1 className="text-xl font-bold mb-2  ">Customer Lists</h1>
+              <h1 className="text-xl font-bold mb-2">Customer Lists</h1>
 
               <div className="flex justify-between rounded-full mb-3">
                 <div className="flex justify-end items-center gap-1">
