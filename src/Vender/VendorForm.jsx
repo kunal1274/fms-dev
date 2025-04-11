@@ -16,7 +16,7 @@ const VendorForm = ({ handleCancel }) => {
   const [formData, setFormData] = useState({
     name: "",
     contactNum: "",
-    currency: "",
+    currency: "INR",
     registrationNum: "",
     panNum: "",
     address: "", // Only 10 digits allowed

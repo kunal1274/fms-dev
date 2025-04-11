@@ -293,11 +293,11 @@ function ItemList({ handleAddItem }) {
                     <option value="Item Account no descending">
                       Sort By Item code Descending
                     </option>
-                    <option value="  By type  service ">
-                      Sort By Item Type Service
+                    <option value="  By type  Services ">
+                      Sort By Item Type Services
                     </option>{" "}
-                    <option value="By type Good ">
-                      Sort By Item Type Good
+                    <option value="By type Goods ">
+                      Sort By Item Type Goods
                     </option>
                   </select>
                 </div>

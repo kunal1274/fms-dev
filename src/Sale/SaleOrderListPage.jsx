@@ -340,17 +340,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
               <h1 className="text-xl font-bold mb-2">Sale Order List Page</h1>
               <div className="flex justify-between rounded-full mb-3">
                 <div className="flex justify-end gap-4">
-                  <button
-                    onClick={handleInvoice}
-                    disabled={selectedSales.length === 0}
-                    className={`h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:scale-[1.02] ${
-                      selectedSales.length > 0
-                        ? "hover:bg-blue-500 hover:text-blue-700"
-                        : "opacity-50 cursor-not-allowed"
-                    }`}
-                  >
-                    Invoice
-                  </button>{" "}
+                  {/* */} 
                   <button
                     onClick={handleAddSaleOrder}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
@@ -377,10 +367,9 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                   <button className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]">
                     Export
                   </button>
-                  <label className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]">
-                    <input type="file" accept=".xls,.xlsx" className="hidden" />
-                    Import
-                  </label>
+                  <button className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]">
+                    Import 
+                  </button>
                 </div>
               </div>
             </div>

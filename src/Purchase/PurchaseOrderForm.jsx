@@ -690,7 +690,17 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                           }}
                         />
                       </td>
-
+                      <td className="border p-1">
+                        <input
+                          type="number"
+                     className="border rounded p-1 text-center w-24"
+                          value={quantity}
+                          onChange={(e) => {
+                            console.log("Quantity rcv :", e.target.value);
+                            setQuantity(e.target.value);
+                          }}
+                        />
+                      </td>
                       {/* Unit (displayed from the selected item) */}
                       <td className="border p-1 text-center">
                         {selectedItem ? selectedItem.unit : ""}

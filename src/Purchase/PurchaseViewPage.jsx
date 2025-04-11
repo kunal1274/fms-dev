@@ -458,7 +458,7 @@ const PurchaseOrderViewPage = ({ PurchaseId }) => {
     { id: "Confirm", label: "Confirmed" },
     { id: "Cancel", label: "Cancelled" },
     { id: "Draft", label: "Draft" },
-    { id: "Ship", label: "Shipped" },
+    { id: "Ship", label: "Recived" },
     { id: "Deliver", label: "Delivered" },
     { id: "Invoice", label: "Invoiced" },
     { id: "Admin Mode", label: "AdminMode" },
@@ -467,8 +467,8 @@ const PurchaseOrderViewPage = ({ PurchaseId }) => {
 
   const enabledButtons = {
     Draft: ["Confirmed", "Cancelled", "AdminMode", "AnyMode"],
-    Confirmed: ["Shipped", "Cancelled", "AdminMode", "AnyMode"],
-    Shipped: ["Delivered", "Cancelled", "AdminMode", "AnyMode"],
+    Confirmed: ["Recived", "Cancelled", "AdminMode", "AnyMode"],
+    Recived: ["Delivered", "Cancelled", "AdminMode", "AnyMode"],
     Delivered: ["Invoiced", "AdminMode", "AnyMode"],
     Invoiced: ["AdminMode", "AnyMode"],
     Cancelled: ["AdminMode", "AnyMode"],
@@ -476,7 +476,7 @@ const PurchaseOrderViewPage = ({ PurchaseId }) => {
     AnyMode: [
       "Draft",
       "Confirmed",
-      "Shipped",
+      "Recived",
       "Delivered",
       "Invoiced",
       "Cancelled",

@@ -494,10 +494,10 @@ const CustomerList = ({ handleAddCustomer }) => {
                     </option>
                     <option value="Customer Name">Customer Name</option>
                     <option value="Customer Account no">
-                      Customer Account no
+                      Customer Account in Ascending 
                     </option>
                     <option value="Customer Account no descending">
-                      Descending Account no
+                    Customer Account in descending
                     </option>
                   </select>
                 </div>

@@ -428,17 +428,20 @@ const CustomerViewPage = ({
           </div>
 
           {/* Submit Button */}
-          <div className="mt-8 text-center">
+          <div className="mt-8 text-center space-x-3">
             <button
               onClick={handleEdit}
-              className="bg-zinc-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300"
+              className="bg-gray-600 text-white px-4 py-2 text-sm rounded-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300"
             >
               Edit
             </button>
             <button
               type="button"
-              onClick={goBack}
-              className="bg-red-400 text-white px-6 py-3  m-5 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300"
+              onClick={() => {
+                setIsEditing(false); // Reset editing state
+                goBack();
+              }}
+              className="bg-red-500 text-white px-4 py-2 text-sm rounded-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300"
             >
               Back
             </button>
@@ -446,10 +449,10 @@ const CustomerViewPage = ({
               type="button"
               onClick={handleUpdate}
               disabled={!isEdited}
-              className={`px-6 py-3 rounded-lg text-white focus:outline-none focus:ring focus:ring-blue-300 ${
+              className={`px-4 py-2 text-sm rounded-md text-white focus:outline-none focus:ring focus:ring-blue-300 ${
                 isEdited
-                  ? "bg-zinc-500 hover:bg-blue-600" // Normal active state
-                  : "bg-gray-300 cursor-not-allowed opacity-50" // Disabled state
+                  ? "bg-blue-400 hover:bg-blue-500"
+                  : "bg-blue-600 cursor-not-allowed opacity-50"
               }`}
             >
               Save
