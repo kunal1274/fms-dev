@@ -553,7 +553,7 @@ const PurchaseOrderList = ({ handleAddPurchaseOrder }) => {
                         </td>
                         <td className="px-6 py-3 truncate">{purchase.netAR}</td>
                         <td className="px-6 py-3 truncate">
-                          {purchase.lineAmt}
+                          {/* {purchase.lineAmt} */}
                         </td>
                         <td className="px-6 py-3 truncate">
                           {purchase.status}

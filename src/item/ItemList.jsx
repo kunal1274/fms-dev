@@ -70,6 +70,16 @@ function ItemList({ handleAddItem }) {
             return a.code.localeCompare(b.code);
           case "Item Account no descending":
             return b.code.localeCompare(a.code);
+          case "By type Services":
+            // Prioritize items with type "Services"
+            if (a.type === "Services" && b.type !== "Services") return -1;
+            if (a.type !== "Services" && b.type === "Services") return 1;
+            return a.name.localeCompare(b.name);
+          case "By type Goods":
+            // Prioritize items with type "Goods"
+            if (a.type === "Goods" && b.type !== "Goods") return -1;
+            if (a.type !== "Goods" && b.type === "Goods") return 1;
+            return a.name.localeCompare(b.name);
           case "By unit":
             return a.unit.localeCompare(b.unit);
           default:
@@ -217,7 +227,6 @@ function ItemList({ handleAddItem }) {
 
   return (
     <div className="bg-grey-400 p-4 min-h-screen">
-      {" "}
       <ToastContainer />
       <div className="rounded-full mb-5">
         {viewingItemId ? (
@@ -229,7 +238,7 @@ function ItemList({ handleAddItem }) {
         ) : (
           <>
             <div className="flex justify-between space-x-2">
-              <h1 className="text-xl font-bold mb-2  ">Item Lists</h1>
+              <h1 className="text-xl font-bold mb-2">Item Lists</h1>
               <div className="flex justify-between rounded-full mb-3">
                 <div className="flex justify-end items-center gap-1">
                   <button
@@ -288,17 +297,18 @@ function ItemList({ handleAddItem }) {
                     <option value="All">Sort By</option>
                     <option value="Item Name">Sort by Item Name</option>
                     <option value="Item Account no">
-                      Sort By Item code Ascending{" "}
+                      Sort By Item Code Ascending
                     </option>
                     <option value="Item Account no descending">
-                      Sort By Item code Descending
+                      Sort By Item Code Descending
                     </option>
-                    <option value="  By type  Services ">
+                    <option value="By type Services">
                       Sort By Item Type Services
-                    </option>{" "}
-                    <option value="By type Goods ">
+                    </option>
+                    <option value="By type Goods">
                       Sort By Item Type Goods
                     </option>
+                    {/* <option value="By unit">Sort By Unit </option> */}
                   </select>
                 </div>
                 {/* Filter By Status */}
@@ -310,8 +320,8 @@ function ItemList({ handleAddItem }) {
                     className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                   >
                     <option value="All">Filter By Status</option>
-                    <option value="yes">Active </option>
-                    <option value="no"> Unactive</option>
+                    <option value="yes">Active</option>
+                    <option value="no">Unactive</option>
                   </select>
                 </div>
                 {/* Search */}
@@ -357,7 +367,7 @@ function ItemList({ handleAddItem }) {
                       </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
                         Item Code.
-                      </th>{" "}
+                      </th>
                       <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
                         Item No.
                       </th>
@@ -393,12 +403,12 @@ function ItemList({ handleAddItem }) {
                         </td>
                         <td>
                           <button
-                            className="text-blue-600 hover:underline  ml-6 focus:outline-none"
+                            className="text-blue-600 hover:underline ml-6 focus:outline-none"
                             onClick={() => handleItemClick(item._id)}
                           >
                             {item.code}
                           </button>
-                        </td>{" "}
+                        </td>
                         <td className="px-6 py-3 truncate">{item.itemNum}</td>
                         <td className="px-6 py-3 truncate">{item.name}</td>
                         <td className="px-6 py-3 truncate">{item.type}</td>
