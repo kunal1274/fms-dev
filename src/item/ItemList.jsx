@@ -44,11 +44,17 @@ function ItemList({ handleAddItem }) {
   const applyFilters = useCallback(() => {
     let updatedItems = [...items];
 
-    // Filter by status
-    if (selectedStatusFilter === "yes") {
-      updatedItems = updatedItems.filter((item) => item.active);
-    } else if (selectedStatusFilter === "no") {
-      updatedItems = updatedItems.filter((item) => !item.active);
+    // Filter by selected status/type if not "All"
+    if (selectedStatusFilter !== "All") {
+      if (selectedStatusFilter === "yes") {
+        updatedItems = updatedItems.filter((item) => item.active);
+      } else if (selectedStatusFilter === "no") {
+        updatedItems = updatedItems.filter((item) => !item.active);
+      } else if (selectedStatusFilter === "Goods") {
+        updatedItems = updatedItems.filter((item) => item.type === "Goods");
+      } else if (selectedStatusFilter === "Services") {
+        updatedItems = updatedItems.filter((item) => item.type === "Services");
+      }
     }
 
     // Filter by search term
@@ -210,6 +216,7 @@ function ItemList({ handleAddItem }) {
     setSearchTerm("");
     setSelectedStatusFilter("All");
     setSelectedSortOption("All");
+    // Reset filteredItems to the full list of items
     setFilteredItems([...items]);
     console.log("Filters reset to default.");
   };
@@ -302,16 +309,16 @@ function ItemList({ handleAddItem }) {
                     <option value="Item Account no descending">
                       Sort By Item Code Descending
                     </option>
-                    <option value="By type Services">
+                    {/* <option value="By type Services">
                       Sort By Item Type Services
-                    </option>
-                    <option value="By type Goods">
+                    </option> */}
+                    {/* <option value="By type Goods">
                       Sort By Item Type Goods
-                    </option>
+                    </option> */}
                     {/* <option value="By unit">Sort By Unit </option> */}
                   </select>
                 </div>
-                {/* Filter By Status */}
+                {/* Filter By Status/Type */}
                 <div className="relative">
                   <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <select
@@ -319,9 +326,11 @@ function ItemList({ handleAddItem }) {
                     onChange={handleStatusFilterChange}
                     className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                   >
-                    <option value="All">Filter By Status</option>
+                    <option value="All">Filter By Status/Type</option>
                     <option value="yes">Active</option>
-                    <option value="no">Unactive</option>
+                    <option value="no">Inactive</option>
+                    <option value="Goods">Goods</option>
+                    <option value="Services">Services</option>
                   </select>
                 </div>
                 {/* Search */}
