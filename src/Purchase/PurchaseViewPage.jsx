@@ -458,7 +458,7 @@ const PurchaseOrderViewPage = ({ PurchaseId }) => {
     { id: "Confirm", label: "Confirmed" },
     { id: "Cancel", label: "Cancelled" },
     { id: "Draft", label: "Draft" },
-    { id: "Ship", label: "Recived" },
+    { id: "Recived", label: "Recived" },
     { id: "Deliver", label: "Delivered" },
     { id: "Invoice", label: "Invoiced" },
     { id: "Admin Mode", label: "AdminMode" },
