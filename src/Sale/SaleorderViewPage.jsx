@@ -15,7 +15,7 @@ const PaymentModal = ({ onClose, onSubmit, loading }) => {
   const [transactionId, setTransactionId] = useState("");
   const [paymentMode, setPaymentMode] = useState("Cash");
   // New state for payment date with default value formatted for input "datetime-local"
-  const [paymentDate, setPaymentDate] = useState( 
+  const [paymentDate, setPaymentDate] = useState(
     new Date().toISOString().slice(0, 16)
   );
 
@@ -955,7 +955,8 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
                       <th className="border p-1 text-center">S.N</th>
                       <th className="border p-1 text-center">Item Code</th>
                       <th className="border p-1 w-60 text-center">Item Name</th>
-                      <th className="border p-1 text-center">Qty</th>
+                      <th className="border p-1 text-center">Qty</th>{" "}
+                      <th className="border p-1 text-center">QQty</th>
                       <th className="border p-1 text-center">Unit</th>{" "}
                       <th className="border p-1 text-center">Price</th>
                       <th className="border p-1 text-center">Type</th>{" "}
@@ -997,6 +998,17 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
                           ))}
                         </select>
                       </td>
+                      <td className="border p-1">
+                        <input
+                          type="text"
+                          className="border rounded p-1 text-center w-24"
+                          value={quantity}
+                          onChange={(e) =>
+                            setQuantity(Number(e.target.value) || 0)
+                          }
+                          disabled={!isEditing}
+                        />
+                      </td>{" "}
                       <td className="border p-1">
                         <input
                           type="text"
@@ -1064,7 +1076,6 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
                           disabled={!isEditing}
                         />
                       </td>
-
                       <td className="border p-1">
                         {!isEditing ? (
                           <input
@@ -1083,7 +1094,6 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
                           parseFloat(amountBeforeTax).toFixed(2)
                         )}
                       </td>
-
                       {/* <td className="border p-1">
                         {" "}
                         {saleData.lineAmt || lineAmt}

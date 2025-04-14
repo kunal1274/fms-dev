@@ -941,6 +941,7 @@ const PurchaseOrderViewPage = ({ PurchaseId }) => {
                       <th className="border p-1 text-center">Item Code</th>
                       <th className="border p-1 w-60 text-center">Item Name</th>
                       <th className="border p-1 text-center">Qty</th>
+                      <th className="border p-1 text-center">QQty</th>
                       <th className="border p-1 text-center">Unit</th>
                       <th className="border p-1 text-center">Price</th>
                       <th className="border p-1 text-center">Type</th>
@@ -996,6 +997,17 @@ const PurchaseOrderViewPage = ({ PurchaseId }) => {
                             console.log("Quantity changed to:", e.target.value);
                             setQuantity(Number(e.target.value) || 0);
                           }}
+                          disabled={!isEditing}
+                        />
+                      </td> <td className="border p-1">
+                        <input
+                          type="text"
+                          className="border rounded p-1 text-center w-24"
+                          value={quantity}
+                          // onChange={(e) => {
+                          //   console.log("Quantity changed to:", e.target.value);
+                          //   setQuantity(Number(e.target.value) || 0);
+                          // }}
                           disabled={!isEditing}
                         />
                       </td>
