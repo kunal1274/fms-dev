@@ -184,10 +184,10 @@ export default function CompanyForm({ handleCancel }) {
     if (name === "swift" && !/^[A-Z0-9]{0,16}$/.test(val)) return;
     if (name === "qrDetails" && (!/^[A-Z0-9.@]*$/.test(val) || val.length > 25))
       return;
-    if (name === "tanNumber" && !/^[A-Z0-9]{0,10}$/.test(val)) return;
+
     if (name === "tanNumber" && !/^[A-Z0-9]{0,10}$/.test(val)) return;
     if (name === "panNumber" && !/^[A-Z0-9]{0,10}$/.test(val)) return;
-    if (name === "gstNumber" && !/^[A-Z0-9]{0,15}$/.test(val)) return;
+ 
 
     const numeric10DigitFields = [
       "contactNumber",
@@ -223,15 +223,16 @@ export default function CompanyForm({ handleCancel }) {
         .toUpperCase()
         .replace(/[^A-Z0-9]/g, "")
         .slice(0, 10);
-      if (!/^[A-Z0-9]{0,12}$/.test(val)) return;
+      if (!/^[A-Z0-9]{0,10}$/.test(val)) return;
     }
 
     // Registration Number – uppercase, alphanumeric, max 15
-    if (name === "registrationNum") {
+    if (name === "gstNumber") {
       val = val
         .toUpperCase()
         .replace(/[^A-Z0-9]/g, "")
         .slice(0, 15);
+      // final length/character check
       if (!/^[A-Z0-9]{0,15}$/.test(val)) return;
     }
 
@@ -809,7 +810,7 @@ export default function CompanyForm({ handleCancel }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                gstNumber
+                Registration No
               </label>
               <input
                 name="gstNumber"

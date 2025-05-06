@@ -291,7 +291,7 @@ const CustomerViewPagee = ({
       ifsc: /^[A-Z0-9]{0,12}$/,
       swift: /^[A-Z0-9]{0,10}$/,
       qrDetails: /^[A-Z0-9.@]{0,25}$/,
-      Tannumber: /^[A-Z0-9]{0,12}$/,
+      Tannumber: /^[A-Z0-9]{0,10}$/,
       panNum: /^[A-Z0-9]{0,10}$/,
       registrationNum: /^[A-Z0-9]{0,15}$/,
     };

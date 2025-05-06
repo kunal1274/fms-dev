@@ -1246,7 +1246,7 @@ const CompanyViewPage = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Gst No
+              Registration No
               </label>
               <input
                 type="text"

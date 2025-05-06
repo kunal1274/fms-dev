@@ -221,7 +221,7 @@ export default function CustomerForm({ handleCancel }) {
     if (name === "swift" && !/^[A-Z0-9]{0,10}$/.test(val)) return;
     if (name === "qrDetails" && (!/^[A-Z0-9.@]*$/.test(val) || val.length > 25))
       return;
-    if (name === "Tannumber" && !/^[A-Z0-9]{0,12}$/.test(val)) return;
+    if (name === "Tannumber" && !/^[A-Z0-9]{0,10}$/.test(val)) return;
     if (name === "panNum" && !/^[A-Z0-9]{0,10}$/.test(val)) return;
     if (name === "registrationNum" && !/^[A-Z0-9]{0,15}$/.test(val)) return;
 
