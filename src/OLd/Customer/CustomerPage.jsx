@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import CustomerForm from "./CustomerForm";
 import CustomerList from "./CustomerList";
 import CustomerViewPage from "./CustomerViewPage";
 import axios from "axios";
-
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -27,13 +26,37 @@ const CustomerPage = () => {
     address: "",
     active: true,
   });
-  // Fetch all customers on component mount
-
+  const handleFileUpload = async (file) => {
+    if (!file) {
+      toast.error("No file selected!");
+      return;
+    }
+    setLogoUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("logoImage", file);
+      const response = await axios.post(
+        "https://fms-qkmw.onrender.com/fms/api/v0/customers/upload-logo",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      toast.success("Logo uploaded successfully!");
+      console.log("Uploaded logo response:", response.data);
+      await fetchCustomers();
+    } catch (error) {
+      console.error(error);
+      toast.error("Error uploading logo!");
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+  
+  // Create a customer using POST request
   const createCustomer = async (e) => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        mergedUrl,
+        apiUrl, // Ensure this is set to your complete URL if needed
         { ...newCustomer },
         {
           headers: {
@@ -67,6 +90,7 @@ const CustomerPage = () => {
       }
     }
   };
+
   // Handle view toggle
   const handleToggleView = () => {
     setView((prevView) => {
@@ -114,10 +138,9 @@ const CustomerPage = () => {
     }
   };
 
-  // View customer details
+  // View customer details (using your routing logic)
   const handleViewCustomer = (customerId) => {
     console.log("View button clicked for customer ID:", customerId);
-    // Check if customers is an array and find the customer
     if (Array.isArray(customers)) {
       const customer = customers.find((c) => c.id === customerId);
       if (customer) {
@@ -130,21 +153,22 @@ const CustomerPage = () => {
     }
     setView("view");
     console.log("Navigating to view customer page with ID:", customerId);
-    // Example: passing the ID to a view page, replace this with your actual routing logic
-    navigate(`/customer/view/${customerId}`);
+    // Replace navigate with your actual routing logic
+    // navigate(`/customer/view/${customerId}`);
   };
 
-  // Add a new customer
+  // Switch to the add customer form
   const handleAddCustomer = () => {
     setSelectedCustomer(null);
     setView("form");
   };
 
-  // Cancel operation
+  // Cancel current operation
   const handleCancel = () => {
     setView("list");
-    console.log("cancel click ");
+    console.log("Cancel click");
   };
+
   const toggleView = (targetView) => {
     if (view !== targetView) {
       setView(targetView);
@@ -153,6 +177,7 @@ const CustomerPage = () => {
       console.log("Error in running function: View did not change");
     }
   };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -163,9 +188,11 @@ const CustomerPage = () => {
   }
 
   return (
-    <div className=" bg-zinc-50 min-h-screen">
-    
-      <div className=" rounded-lg">
+    <div className="min-h-screen bg-zinc-50">
+      {/* Responsive container added */}
+      <div className="container mx-auto px-4 py-6">
+        {/* Optionally, you can add a heading and responsive ToastContainer here */}
+        <ToastContainer />
         {view === "form" && (
           <CustomerForm
             handleCancel={handleCancel}
@@ -179,7 +206,7 @@ const CustomerPage = () => {
           <CustomerList
             customers={customers}
             handleAddCustomer={handleAddCustomer}
-            handleViewCustomer={handleViewCustomer} // Toggle to customer view page
+            handleViewCustomer={handleViewCustomer}
           />
         )}
 

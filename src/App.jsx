@@ -1,18 +1,12 @@
-import { BrowserRouter, useNavigate } from "react-router-dom";
-import Dashboard from "../src/components/dashBoard/Dashbord";
+import React from "react";
+import Dashbord from "./Component/Dashbord/Dashbord";
 
-import { useState } from "react";
-
-// import Dashboard from "../src/test";
-
-function App() {
- 
+const App = () => {
   return (
-    <BrowserRouter>
- 
-      <Dashboard />
-    </BrowserRouter>
+    <div>
+      <Dashbord />
+    </div>
   );
-}
+};
 
 export default App;

@@ -3,7 +3,7 @@ import axios from "axios";
 import Checkbox_with_words from "../components/layout/Checkbox_with_words/Checkbox_with_words";
 import { useParams } from "react-router-dom";
 import Label from "../components/common/Common/Label/Label";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
 const baseUrl = "https://fms-qkmw.onrender.com";
@@ -15,7 +15,7 @@ const CustomerViewPage = ({
   customerId,
   customer,
   goBack,
-  handleSaveCustomer,
+
   toggleView,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
