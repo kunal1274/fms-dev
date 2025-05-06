@@ -177,8 +177,8 @@ const PaymentHistoryModal = ({ onClose, payments }) => {
 };
 
 const SaleorderViewPage = ({ goBack, saleId }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  // const navigate = useNavigate();
+  // const location = useLocation();
 
   // Component states
   const [inputSaleId, setInputSaleId] = useState("");

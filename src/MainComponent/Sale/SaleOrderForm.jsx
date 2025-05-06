@@ -43,8 +43,8 @@ const SaleOrderForm = ({ handleCancel }) => {
   const [_id, set_id] = useState("");
 
   // Navigation and Location for Edit mode
-  const navigate = useNavigate();
-  const location = useLocation();
+  // const navigate = useNavigate();
+  // const location = useLocation();
 
   // If coming back in edit mode, pre-populate form fields accordingly
   useEffect(() => {

@@ -25,7 +25,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
   const [viewingSaleId, setViewingSaleId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState("All");
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [sortOption, setSortOption] = useState("");

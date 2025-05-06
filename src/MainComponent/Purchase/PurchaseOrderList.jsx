@@ -7,7 +7,7 @@ import "jspdf-autotable";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import PurchaseViewPage from "./PurchaseViewPage";
-import Invoice from "./Invoice/Icopy1"; // Make sure this path is correct
+// import Invoice from "./"; /  / Make sure this path is correct
 
 const BASE_URL = "https://fms-qkmw.onrender.com/fms/api/v0/purchaseorders";
 
