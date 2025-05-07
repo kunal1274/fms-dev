@@ -7,8 +7,8 @@ import itemList from "./Itemlist";
 
 const itemPage = () => {
   const [view, setView] = useState("list");
-  const [Items, setItems] = useState([]);
-  const [selectedItem, setSelectedItem] = useState(null);
+
+  const [selectedItem, setSelectedItem] = useState(null); const [items, setItems] = useState([]);
 
   /** Save or update a Item */
   const handleSaveItem = (item) => {
@@ -89,22 +89,22 @@ const itemPage = () => {
         {view === "list" && (
           <itemList
             items={items}
-            handleAdditem={handleAdditem}
-            onView={handleViewitem}
-            onDelete={handleDeleteitem}
+            handleAdditem={handleAddItem}
+            onView={handleViewItem}
+            onDelete={handleDeleteItem}
           />
         )}
 
         {view === "form" && (
           <itemForm
-            item={selecteditem}
-            handleAdditem={handleAdditem}
+            item={selectedItem}
+            handleAdditem={handleAddItem}
             handleCancel={handleCancel}
           />
         )}
-        {view === "details" && selecteditem && (
+        {view === "details" && selectedItem && (
           <itemViewPage
-            item={selecteditem}
+            item={selectedItem}
             onEdit={() => setView("form")}
             onBack={handleCancel}
           />

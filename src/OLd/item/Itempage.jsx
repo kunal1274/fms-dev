@@ -133,7 +133,7 @@ const Page = () => {
 
 {view === "list" && (
           <ItemList
-            // items={items}
+            items={items}
             handleAddItem={handleAddItem}
             handleViewItem={handleViewItem}
           />

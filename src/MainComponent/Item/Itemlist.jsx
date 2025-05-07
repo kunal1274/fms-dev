@@ -100,13 +100,9 @@ export default function ItemList({ handleAddItem, onView }) {
     if (value === "All") {
       setFilteredItems(filtered);
     } else if (value === "yes") {
-      setFilteredItems(
-        filtered.filter((item) => item.active === true)
-      );
+      setFilteredItems(filtered.filter((item) => item.active === true));
     } else if (value === "no") {
-      setFilteredItems(
-        filtered.filter((item) => item.active === false)
-      );
+      setFilteredItems(filtered.filter((item) => item.active === false));
     } else if (value === "item Name") {
       filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
       setFilteredItems(filtered);
@@ -128,7 +124,7 @@ export default function ItemList({ handleAddItem, onView }) {
           params: { from: fromDate, to: toDate },
         });
         const list = resp.data || resp;
-        setItemList(list);
+        setitemList(list);
 
         +setFilteredItems(list); // ← Add this line to update the visible Items immediately
 
@@ -226,9 +222,7 @@ export default function ItemList({ handleAddItem, onView }) {
   const onTabClick = (tab) => setActiveTab(tab);
 
   const toggleSelectAll = (e) => {
-    setSelectedItems(
-      e.target.checked ? filteredItems.map((c) => c._id) : []
-    );
+    setSelectedItems(e.target.checked ? filteredItems.map((c) => c._id) : []);
   };
 
   const handleCheckboxChange = (id) => {
@@ -417,11 +411,11 @@ export default function ItemList({ handleAddItem, onView }) {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Items", ItemSummary.count],
-                    ["Credit Limit", ItemSummary.creditLimit],
-                    ["Paid Items", ItemSummary.paidItems],
-                    ["Active Items", ItemSummary.activeItems],
-                    ["On‑Hold Items", ItemSummary.onHoldItems],
+                    ["Total Items", itemSummary.count],
+                    ["Credit Limit", itemSummary.creditLimit],
+                    ["Paid Items", itemSummary.paidItems],
+                    ["Active Items", itemSummary.activeItems],
+                    ["On‑Hold Items", itemSummary.onHoldItems],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -529,8 +523,7 @@ export default function ItemList({ handleAddItem, onView }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedItems.length ===
-                              filteredItems.length &&
+                            selectedItems.length === filteredItems.length &&
                             filteredItems.length > 0
                           }
                           className="form-checkbox"
