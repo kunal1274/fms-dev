@@ -5,6 +5,7 @@ import CompanyPage from "../../MainComponent/Company/CompanyPage";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
 import SaleOrderPage from "../../MainComponent/Sale/SaleOrderPage";
 import PurchaseOrderPage from "../../MainComponent/Purchase/PurchaseOrderPage";
+import ItemPage from "../../MainComponent/Item/ItemPage";
 
 export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
   return (
@@ -26,7 +27,7 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
         </div>
       )}
       {selectedMenu === "Item" && (
-        <div className="text-gray-700">Item section coming soon…</div>
+        <div className="text-gray-700">   <ItemPage onAddNew={onAddNew} onView={onView} /></div>
       )}
       {selectedMenu === "Sale" && (
         <div className="text-gray-700">

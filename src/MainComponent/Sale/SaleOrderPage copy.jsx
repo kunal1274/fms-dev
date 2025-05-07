@@ -132,11 +132,13 @@ const SaleOrderPage = () => {
       </div>
     );
   }
-
+  
   return (
-    <div className="w-full bg-white rounded-lg ">
+    <div className="">
       <ToastContainer />
       <div className=" rounded-lg ">
+    
+
         {view === "form" && (
           <SaleOrderForm
             selectedSaleOrder={selectedSaleOrder}
