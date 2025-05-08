@@ -24,7 +24,7 @@ export default function ItemList({ handleAddItem, onView }) {
   // States
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  const [itemList, setitemList] = useState([]);
+  const [itemList, setItemList] = useState([]);
   const [selectedOption, setSelectedOption] = useState("All");
   const [filteredItems, setFilteredItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -39,8 +39,8 @@ export default function ItemList({ handleAddItem, onView }) {
   const [itemSummary, setItemSummary] = useState({
     count: 0,
     creditLimit: 0,
-    paidItems: 0,
-    activeItems: 0,
+    paiditems: 0,
+    activeitems: 0,
     onHoldItems: 0,
   });
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
@@ -100,10 +100,14 @@ export default function ItemList({ handleAddItem, onView }) {
     if (value === "All") {
       setFilteredItems(filtered);
     } else if (value === "yes") {
-      setFilteredItems(filtered.filter((item) => item.active === true));
+      setFilteredItems(
+        filtered.filter((item) => item.active === true)
+      );
     } else if (value === "no") {
-      setFilteredItems(filtered.filter((item) => item.active === false));
-    } else if (value === "item Name") {
+      setFilteredItems(
+        filtered.filter((item) => item.active === false)
+      );
+    } else if (value === "Item Name") {
       filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
       setFilteredItems(filtered);
     } else if (value === "Item Account no") {
@@ -124,7 +128,7 @@ export default function ItemList({ handleAddItem, onView }) {
           params: { from: fromDate, to: toDate },
         });
         const list = resp.data || resp;
-        setitemList(list);
+        setItemList(list);
 
         +setFilteredItems(list); // ← Add this line to update the visible Items immediately
 
@@ -174,7 +178,7 @@ export default function ItemList({ handleAddItem, onView }) {
 
   // Filtering, Search, Sorting
   useEffect(() => {
-    let list = [...ItemList];
+    let list = [...itemList];
 
     switch (activeTab) {
       case tabNames[1]:
@@ -213,7 +217,7 @@ export default function ItemList({ handleAddItem, onView }) {
       list.sort((a, b) => b.code.localeCompare(a.code));
 
     setFilteredItems(list);
-  }, [ItemList, activeTab, statusFilter, searchTerm, sortOption]);
+  }, [itemList, activeTab, statusFilter, searchTerm, sortOption]);
 
   // Handlers
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
@@ -222,7 +226,9 @@ export default function ItemList({ handleAddItem, onView }) {
   const onTabClick = (tab) => setActiveTab(tab);
 
   const toggleSelectAll = (e) => {
-    setSelectedItems(e.target.checked ? filteredItems.map((c) => c._id) : []);
+    setSelectedItems(
+      e.target.checked ? filteredItems.map((c) => c._id) : []
+    );
   };
 
   const handleCheckboxChange = (id) => {
@@ -260,14 +266,14 @@ export default function ItemList({ handleAddItem, onView }) {
   };
 
   const exportToExcel = () => {
-    if (!ItemList.length) {
+    if (!itemList.length) {
       toast.info("No data to export.");
       return;
     }
-    const ws = XLSX.utils.json_to_sheet(ItemList);
+    const ws = XLSX.utils.json_to_sheet(itemList);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Items");
-    XLSX.writeFile(wb, "Item_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "items");
+    XLSX.writeFile(wb, "item_list.xlsx");
   };
 
   const generatePDF = () => {
@@ -286,8 +292,8 @@ export default function ItemList({ handleAddItem, onView }) {
     doc.save("Item_list.pdf");
   };
 
-  const handleItemClick = (ItemId) => {
-    setViewingItemId(ItemId);
+  const handleItemClick = (itemId) => {
+    setViewingItemId(itemId);
   };
 
   const resetFilters = () => {
@@ -304,7 +310,7 @@ export default function ItemList({ handleAddItem, onView }) {
   if (viewingItemId) {
     return (
       <div className="p-4">
-        <ItemViewPage ItemId={viewingItemId} goBack={goBack} />
+        <ItemViewPage itemId={viewingItemId} goBack={goBack} />
       </div>
     );
   }
@@ -318,7 +324,7 @@ export default function ItemList({ handleAddItem, onView }) {
           {viewingItemId ? (
             <ItemViewPage
               toggleView={toggleView}
-              ItemId={viewingItemId}
+              itemId={viewingItemId}
               goBack={goBack}
             />
           ) : (
@@ -413,8 +419,9 @@ export default function ItemList({ handleAddItem, onView }) {
                   {[
                     ["Total Items", itemSummary.count],
                     ["Credit Limit", itemSummary.creditLimit],
-                    ["Paid Items", itemSummary.paidItems],
-                    ["Active Items", itemSummary.activeItems],
+                    ["Paid items", itemSummary.paiditems],
+
+                    ["Active Items", itemSummary.activeitems],
                     ["On‑Hold Items", itemSummary.onHoldItems],
                   ].map(([label, value]) => (
                     <div
@@ -523,13 +530,14 @@ export default function ItemList({ handleAddItem, onView }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedItems.length === filteredItems.length &&
+                            selectedItems.length ===
+                              filteredItems.length &&
                             filteredItems.length > 0
                           }
                           className="form-checkbox"
                         />
                       </th>
-                      {["Code", "Name", "Address", "Contact", "Status"].map(
+                      {["Code", "Item Name", " Description", "Unit", "Price"].map(
                         (h) => (
                           <th
                             key={h}

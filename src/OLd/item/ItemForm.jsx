@@ -52,7 +52,7 @@ function ItemForm({ handleCancel }) {
       try {
         const response = await axios.get(mergedUrl, {
           headers: {
-            // Authorization: `Bearer ${tokenCookie}`, // Uncomment if token is required
+        
           },
           withCredentials: false,
         });

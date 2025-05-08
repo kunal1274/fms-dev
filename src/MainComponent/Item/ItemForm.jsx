@@ -28,37 +28,14 @@ const paymentTerms = [
 const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", " UPI"];
 export default function ItemForm({ handleCancel }) {
   const [form, setForm] = useState({
-    code: "",
     name: "",
-    businessType: "",
-    address: "",
-    contactNum: "",
-    email: "",
-    Tannumber: "",
-    group: "",
-    remarks: "",
-    employeeName: "",
-    contactPersonName: "",
-    employeePhone: "",
-    paymentTerms: "",
-    contactPersonPhone: "",
-    employeeEmail: "",
-    creditLimit: "",
-    bankType: "",
-    accountHolderName: "",
-    bankAccNum: "",
-    bankName: "",
-    ifsc: "",
-    contactPersonEmail: "",
-    swift: "",
-    upi: "",
-    currency: "",
-    panNum: "",
-    registrationNum: "",
-    globalPartyId: "",
-    active: true,
-    qrDetails: "",
+    type: "",
+    description: "",
+    unit: "",
+    price: "",
+    active: false,
   });
+
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/items";
 
   // ─── Data ────────────────────────────────────────────────
@@ -102,7 +79,6 @@ export default function ItemForm({ handleCancel }) {
       console.error(error);
       toast.error("Error uploading logo!");
     } finally {
-      // Delay a little to let user feel "100% uploaded"
       setTimeout(() => {
         setLogoUploading(false); // 👈 this will hide the circle after success
         setUploadProgress({});
@@ -113,13 +89,13 @@ export default function ItemForm({ handleCancel }) {
   // ─── Helpers ─────────────────────────────────────────────
   const generateAccountNo = useCallback((list) => {
     const last = list
-      .map((c) => parseInt(c.itemAccountNo?.split("_")[1], 10))
+      .map((c) => parseInt(c.ItemAccountNo?.split("_")[1], 10))
       .filter((n) => !isNaN(n))
       .reduce((m, n) => Math.max(m, n), 0);
     return `CUST_${String(last + 1).padStart(3, "0")}`;
   }, []);
 
-  // ─── Load existing items once ────────────────────────
+  // ─── Load existing Items once ────────────────────────
   useEffect(() => {
     (async () => {
       try {
@@ -140,6 +116,39 @@ export default function ItemForm({ handleCancel }) {
     const { name, value, type, checked } = e.target;
     let val = value;
 
+    // Capitalize specific name fields (first letter only)
+    if (
+      [
+        "name",
+        "employeeName",
+        "accountHolderName",
+        "contactPersonName",
+      ].includes(name) &&
+      val
+    ) {
+      val = val.charAt(0).toUpperCase() + val.slice(1);
+    }
+
+    // Validators
+    const validators = {
+      bankAccNum: /^[A-Z0-9]{0,15}$/,
+      bankName: /^[A-Z0-9\s]{0,50}$/, // ✅ Now allows spaces and longer names
+      panNum: /^[A-Z0-9]{0,10}$/,
+      registrationNum: /^[A-Z0-9]{0,15}$/,
+      ifsc: /^[A-Z0-9]{0,12}$/,
+      swift: /^[A-Z0-9]{0,10}$/,
+      Tannumber: /^[A-Z0-9]{0,10}$/,
+      qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
+      name: /^[A-Za-z\s]*$/,
+      employeeName: /^[A-Za-z\s]*$/,
+      email: /^.{0,100}$/,
+      employeeEmail: /^.{0,100}$/,
+      contactNum: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
+      contactPersonPhone: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
+      creditLimit: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
+    };
+
+    // Handle checkbox separately
     if (type === "checkbox") {
       setForm((prev) => ({ ...prev, [name]: checked }));
       return;
@@ -163,70 +172,31 @@ export default function ItemForm({ handleCancel }) {
       return;
     }
 
-    // Limit digits for phone fields
-    if (
-      ["contactNum", "contactPersonPhone"].includes(name) &&
-      !/^\d{0,10}$/.test(val)
-    ) {
-      return;
-    }
-
-    // Ensure numeric only for bankAccNum and creditLimit
-    if (["bankAccNum", "creditLimit"].includes(name) && !/^\d*$/.test(val)) {
-      return;
-    }
-
-    // Convert to uppercase where required
+    // Uppercase specific fields
     if (
       [
+        "bankAccNum",
         "bankName",
         "panNum",
         "registrationNum",
         "ifsc",
         "swift",
-        "upi",
-        "qrDetails",
         "Tannumber",
       ].includes(name)
     ) {
       val = val.toUpperCase();
     }
 
-    // Bank account number length limit (optional)
-    if (name === "bankAccNum" && val.length > 18) {
-      return;
-    }
+    // Validate input
+    if (validators[name] && !validators[name].test(val)) return;
 
-    // Email length limit
-    if (["email", "employeeEmail"].includes(name) && val.length > 100) {
-      return;
-    }
-
-    // Name fields – allow only letters and spaces
-    if (
-      ["name", "employeeName", "bankName", "group"].includes(name) &&
-      val &&
-      !/^[A-Za-z\s]*$/.test(val)
-    ) {
-      return;
-    }
-
-    // Capitalize first letter
-    if (["name", "employeeName", "bankAccNum"].includes(name) && val) {
-      val = val.charAt(0).toUpperCase() + val.slice(1);
-    }
-
-    // Specific pattern constraints
-    if (name === "ifsc" && !/^[A-Z0-9]{0,12}$/.test(val)) return;
-    if (name === "swift" && !/^[A-Z0-9]{0,10}$/.test(val)) return;
-    if (name === "qrDetails" && (!/^[A-Z0-9.@]*$/.test(val) || val.length > 25))
-      return;
-    if (name === "Tannumber" && !/^[A-Z0-9]{0,10}$/.test(val)) return;
-    if (name === "panNum" && !/^[A-Z0-9]{0,10}$/.test(val)) return;
-    if (name === "registrationNum" && !/^[A-Z0-9]{0,15}$/.test(val)) return;
-
+    // Set form state
     setForm((prev) => ({ ...prev, [name]: val }));
   };
+  // if you want to force uppercase, uncomment next line:
+  // value = value.toUpperCase();
+
+  // Limit digits for phone fields
 
   // ─── Save ────────────────────────────────────────────────
 
@@ -274,65 +244,20 @@ export default function ItemForm({ handleCancel }) {
   };
 
   // ─── Reset / Cancel ──────────────────────────────────────
-  const resetForm = (nextAccNo) =>
-    setForm({
-      ...form,
-      itemAccountNo: nextAccNo ?? generateAccountNo(items),
-      name: "",
-      businessType: "",
-      address: "",
-      contactNum: "",
-      email: "",
-      group: "",
-      remarks: "",
-      employeeName: "",
-      employeePhone: "",
-      employeeEmail: "",
-      bankType: "",
-      bankName: "",
-      bankAccNum: "",
-      bankHolder: "",
-      ifsc: "",
-      swift: "",
-      upi: "",
-      panNum: "",
-      registrationNum: "",
-      active: true,
-    });
-  const initialForm = {
-    code: "",
-    name: "",
-    businessType: "",
-    address: "",
-    contactNum: "",
-    email: "",
-    group: "",
-    remarks: "",
-    employeeName: "",
-    contactPersonName: "",
-    employeePhone: "",
-    paymentTerms: "",
-    contactPersonPhone: "",
-    employeeEmail: "",
-    creditLimit: "",
-    bankType: "",
-    bankName: "",
-    bankAccNum: "",
-    bankHolder: "",
-    ifsc: "",
-    contactPersonEmail: "",
-    swift: "",
-    upi: "",
-    currency: "INR",
-    panNum: "",
-    registrationNum: "",
 
-    active: true,
+  const initialForm = {
+    name: "",
+    Name: "",
+    type: "",
+    description: "",
+    unit: "",
+    price: "",
+    active: false,
   };
 
   const handleReset = () => {
-    const newItemCode = generateAccountNo(items);
-    setForm({ ...initialForm, itemAccountNo: newItemCode });
+    const newItemCode = generateAccountNo(Items);
+    setForm({ ...initialForm, ItemAccountNo: newItemCode });
   };
   const handleEdit = () => {
     navigate("/itemview", { state: { item: formData } });
@@ -378,21 +303,9 @@ export default function ItemForm({ handleCancel }) {
         {/* Business Details */}
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Business Details
+            Items Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Item Code
-              </label>
-              <input
-                name="itemcode"
-                value={form.code}
-                readOnly
-                placeholder="Auto-generated"
-                className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Item Name
@@ -400,48 +313,51 @@ export default function ItemForm({ handleCancel }) {
               <input
                 name="name"
                 value={form.name}
-                onChange={handleChange}
-                placeholder="e.g. XYZ Enterprises Pvt. Ltd."
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                readOnly
+                placeholder="Auto-generated"
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Global Party id
+                Item Number
               </label>
               <input
-                name="globalPartyId"
-                value={form.globalPartyId}
-                onChange={handleChange}
-                placeholder="Auto-generated"
-                readOnly
-                className="mt-1 cursor-not-allowed  w-full p-2 curser-notallow border rounded focus:ring-2 focus:ring-blue-200"
+                type="text"
+                name="itemNum"
+                placeholder="eg-Item Number"
+                value={form.itemNum}
+                onChange={
+                  (e) =>
+                    setFormData({
+                      ...formData,
+                      itemNum: e.target.value.toUpperCase(),
+                    }) // Update itemNum
+                }
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Business Type
+                Type
               </label>
               <select
-                name="businessType"
-                value={form.businessType}
+                name="type"
+                value={form.type}
                 onChange={handleChange}
-                options={businessTypes}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
               >
                 <option value="">Select type</option>
-                {businessTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
+                <option value="Goods">Goods</option>
+                <option value="Services">Services</option>
               </select>
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Contact No
+                Price
               </label>
               <input
                 name="contactNum"
@@ -454,21 +370,30 @@ export default function ItemForm({ handleCancel }) {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Email ID
+                Unit
               </label>
-              <input
-                name="email"
-                type="email"
-                value={form.email}
+              <select
+                name="unit"
+                value={form.unit}
                 onChange={handleChange}
-                placeholder="e.g. info@xyzenterprises.com"
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
+                className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
+              >
+                <option value="">Select unit</option>
+
+                <option value="kgs">KG - Kilogram</option>
+
+                <option value="mt">Metric tonnes</option>
+                <option value="ea">Ea - Each</option>
+                <option value="lbs"> lbs - pounds</option>
+
+                <option value="hr">Hour</option>
+                <option value="min">Minutes</option>
+                <option value="qty">Quantity</option>
+              </select>
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Address
+                Description
               </label>
               <textarea
                 name="address"
@@ -480,32 +405,6 @@ export default function ItemForm({ handleCancel }) {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Remarks
-              </label>
-              <textarea
-                name="remarks"
-                value={form.remarks}
-                onChange={handleChange}
-                placeholder="e.g. Any additional notes…"
-                rows={4}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Group
-              </label>
-              <input
-                name="group"
-                value={form.group}
-                onChange={handleChange}
-                placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
             <div className="flex items-center gap-2 ml-1">
               <label className="text-blue-600 font-medium">Active</label>
               <input
@@ -524,7 +423,7 @@ export default function ItemForm({ handleCancel }) {
             <div className="space-y-4"></div>{" "}
           </div>
         </section>
-        <section className="p-6">
+        {/* <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Contact Person
           </h2>
@@ -569,10 +468,10 @@ export default function ItemForm({ handleCancel }) {
               />
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Payment & Financial */}
-        <section className="p-6">
+        {/* <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Payment & Financial Information
           </h2>
@@ -630,9 +529,9 @@ export default function ItemForm({ handleCancel }) {
               </select>
             </div>
           </div>
-        </section>
+        </section> */}
         {/* Bank Details */}
-        <section className="p-6">
+        {/* <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Bank Details
           </h2>
@@ -749,11 +648,11 @@ export default function ItemForm({ handleCancel }) {
               />
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Tax Information */}
 
-        <section className="p-6">
+        {/* <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Tax Information
           </h2>
@@ -799,7 +698,7 @@ export default function ItemForm({ handleCancel }) {
               />
             </div>
           </div>
-        </section>
+        </section> */}
         {/* Action Buttons */}
         <div className="py-6 flex items-center justify-between">
           {/* Left side - Reset Button */}

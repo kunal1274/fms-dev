@@ -1,33 +1,33 @@
 import React, { useState } from "react";
 
-import itemViewPage from "./ItemViewPage";
+import ItemViewPage from "./ItemViewPage";
 import { Button } from "../../Component/Button/Button";
-import itemForm from "./ItemForm";
-import itemList from "./Itemlist";
+import ItemList from "./ItemList";
+import ItemForm from "./ItemForm";
 
-const itemPage = () => {
+const ItemPage = () => {
   const [view, setView] = useState("list");
-
-  const [selectedItem, setSelectedItem] = useState(null); const [items, setItems] = useState([]);
+  const [items, setItems] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null)
 
   /** Save or update a Item */
   const handleSaveItem = (item) => {
     setItems((prev) => {
       const idx = prev.findIndex(
-        (c) => c.ItemAccountNo === Item.ItemAccountNo
+        (c) => c.itemAccountNo === item.itemAccountNo
       );
 
       if (idx !== -1) {
         const updated = [...prev];
-        updated[idx] = Item;
+        updated[idx] = item;
         return updated;
       }
-      return [...prev, Item];
+      return [...prev, item];
     });
     setView("list");
   };
 
-  /** Open the "Add Item" form */
+  /** Open the "Add item" form */
   const handleAddItem = () => {
     setSelectedItem(null);
     setView("form");
@@ -36,13 +36,13 @@ const itemPage = () => {
   /** Show Item details */
   const handleViewItem = (itemAccountNo) => {
     const cust = items.find(
-      (c) => c.itemAccountNo === itemAccountNo
+      (c) => c.customerAccountNo === customerAccountNo
     );
-    setSelectedItem(cust);
+    setSelectedCustomer(cust);
     setView("details");
   };
 
-  /** Delete selected Items */
+  /** Delete selected items */
   const handleDeleteItem = (toDeleteAccounts) => {
     setItems((prev) =>
       prev.filter((c) => !toDeleteAccounts.includes(c.itemAccountNo))
@@ -58,16 +58,16 @@ const itemPage = () => {
     let action = null;
 
     if (view === "list") {
-      action = <Button onClick={handleAdditem}>Add item</Button>;
+      action = <Button onClick={handleAdditem}>Add Item</Button>;
     } else if (view === "form") {
-      title = selecteditem ? "Edit item" : "New item";
+      title = selectedItem ? "Edit Item" : "New Item";
       action = (
         <Button variant="secondary" onClick={handleCancel}>
           Cancel
         </Button>
       );
     } else if (view === "details") {
-      title = "item Details";
+      title = "Item Details";
       action = (
         <Button variant="secondary" onClick={handleCancel}>
           Back to List
@@ -87,24 +87,24 @@ const itemPage = () => {
     <div className="w-full bg-white rounded-lg ">
       <div>
         {view === "list" && (
-          <itemList
+          <ItemList
             items={items}
-            handleAdditem={handleAddItem}
+            handleAddItem={handleAddItem}
             onView={handleViewItem}
             onDelete={handleDeleteItem}
           />
         )}
 
         {view === "form" && (
-          <itemForm
+          <ItemForm
             item={selectedItem}
-            handleAdditem={handleAddItem}
+            handleAddItem={handleAddItem}
             handleCancel={handleCancel}
           />
         )}
         {view === "details" && selectedItem && (
-          <itemViewPage
-            item={selectedItem}
+          <ItemViewPage
+            item={selectedItemz}
             onEdit={() => setView("form")}
             onBack={handleCancel}
           />
@@ -114,4 +114,4 @@ const itemPage = () => {
   );
 };
 
-export default itemPage;
+export default ItemPage;
