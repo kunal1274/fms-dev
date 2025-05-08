@@ -1212,24 +1212,6 @@ const CompanyViewPage = ({
             Tax Infromation
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-600">
-                PAN No
-              </label>
-              <input
-                type="text"
-                name="panNumber"
-                value={formData.taxInfo?.panNumber || ""}
-                onChange={(e) => {
-                  const value = e.target.value.toUpperCase();
-                  if (value.length <= 16) {
-                    setFormData({ ...formData, registrationNum: value });
-                  }
-                }}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                disabled={!isEditing}
-              />
-            </div> */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 PAN No
@@ -1246,7 +1228,7 @@ const CompanyViewPage = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-              Registration No
+                Registration No
               </label>
               <input
                 type="text"

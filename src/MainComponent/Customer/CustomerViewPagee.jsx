@@ -128,6 +128,12 @@ const CustomerViewPagee = ({
     let v = raw;
     switch (field) {
       case "bankAccNum":
+        // Keep only letters and digits, uppercase letters, max length 20
+        return v
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, "")
+          .slice(0, 20);
+      case "Tannumber":
         return v
           .toUpperCase()
           .replace(/[^0-9]/g, "")
@@ -154,7 +160,7 @@ const CustomerViewPagee = ({
           .replace(/[^A-Z0-9]/g, "")
           .slice(0, 20);
 
-      case "qrDetails":
+      case "qrDetaZZils":
         // uppercase, allow letters/numbers/@ . _
         return v
           .toUpperCase()
@@ -234,7 +240,7 @@ const CustomerViewPagee = ({
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    let val = typeof value === "string" ? value.trim() : value;
+    let val = value.replace(/^\s+/, " ");
 
     // Handle checkbox input
     if (type === "checkbox") {
@@ -270,7 +276,13 @@ const CustomerViewPagee = ({
     if (["name", "employeeName"].includes(name) && val) {
       val = val.charAt(0).toUpperCase() + val.slice(1);
     }
-
+    if (
+      ["name", "contactPersonName", "accountHolderName"].includes(name) &&
+      val
+    ) {
+      // Capitalize first letter, leave the rest as-is
+      val = val.charAt(0).toUpperCase() + val.slice(1);
+    }
     // Always uppercase for these fields
     const toUpper = [
       "bankName",
@@ -280,7 +292,7 @@ const CustomerViewPagee = ({
       "swift",
       "upi",
       "qrDetails",
-      "Tannumber",
+      "tanNumber",
     ];
     if (toUpper.includes(name)) {
       val = val.toUpperCase();
@@ -290,7 +302,7 @@ const CustomerViewPagee = ({
     const patternValidators = {
       ifsc: /^[A-Z0-9]{0,12}$/,
       swift: /^[A-Z0-9]{0,10}$/,
-      qrDetails: /^[A-Z0-9.@]{0,25}$/,
+
       Tannumber: /^[A-Z0-9]{0,10}$/,
       panNum: /^[A-Z0-9]{0,10}$/,
       registrationNum: /^[A-Z0-9]{0,15}$/,
@@ -844,11 +856,15 @@ const CustomerViewPagee = ({
                     <input
                       name="bankAccNum"
                       value={b.bankAccNum || ""}
-                      // value={b.accountHolderName || ""}
-                      maxLength={30}
-                      onChange={(e) =>
-                        handleBankDetailChange(i, "bankAccNum", e.target.value)
-                      }
+                      maxLength={20}
+                      onChange={(e) => {
+                        const rawValue = e.target.value;
+                        const sanitizedValue = rawValue
+                          .toUpperCase()
+                          .replace(/[^A-Z0-9]/g, "") // Remove all non-alphanumeric characters except uppercase letters and digits
+                          .slice(0, 20); // Ensure max 20 chars even after sanitize
+                        handleBankDetailChange(i, "bankAccNum", sanitizedValue);
+                      }}
                       placeholder="e.g. SBIN0001234"
                       disabled={disableBankFields || !isEditing}
                       className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
@@ -1014,11 +1030,12 @@ const CustomerViewPagee = ({
                 value={formData.registrationNum || ""}
                 maxLength={16}
                 onChange={(e) => {
-                  const value = e.target.value.toUpperCase(); // Convert to uppercase
-                  if (value.length <= 16) {
-                    // Correctly update the formData state
-                    setFormData({ ...formData, registrationNum: value }); // Ensure the correct key is being updated
-                  }
+                  // Uppercase + strip non-alphanumerics + enforce max 16 chars
+                  const clean = e.target.value
+                    .toUpperCase()
+                    .replace(/[^A-Z0-9]/g, "")
+                    .slice(0, 16);
+                  setFormData((prev) => ({ ...prev, registrationNum: clean }));
                 }}
                 disabled={!isEditing}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
