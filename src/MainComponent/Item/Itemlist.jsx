@@ -576,7 +576,7 @@ export default function ItemList({ handleAddItem, onView }) {
                             </button>
                           </td>
                           <td className="px-6 py-4">{c.name}</td>
-                          <td className="px-6 py-4">{c.address}</td>{" "}
+                          <td className="px-6 py-4">{c.description}</td>{" "}
                           <td className="px-6 py-3 truncate">
                             {new Date(c.createdAt).toLocaleString()}
                           </td>

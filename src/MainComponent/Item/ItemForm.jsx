@@ -3,264 +3,106 @@ import axios from "axios";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 
-const businessTypes = [
-  "Individual",
-  "Manufacturing",
-  "ServiceProvider",
-  "Trading",
-  "Distributor",
-  "Retailer",
-  "Wholesaler",
-  "Others",
-];
-const currency = ["INR", "USD", "EUR", "GBP"];
-const paymentTerms = [
-  "COD",
-  "Net30D",
-  "Net7D",
-  "Net15D",
-  "Net45D",
-  "Net60D",
-  "Net90D",
-  "Advance",
-];
-
-const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", " UPI"];
 export default function ItemForm({ handleCancel }) {
   const [form, setForm] = useState({
+    itemNum: "",
     name: "",
     type: "",
-    description: "",
-    unit: "",
     price: "",
+    unit: "",
+    description: "",
     active: false,
   });
-
+  const [items, setItems] = useState([]);
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/items";
 
-  // ─── Data ────────────────────────────────────────────────
-  const [items, setItems] = useState([]);
-  const disableBankFields =
-    form.bankType === "Cash" ||
-    form.bankType === "Barter" ||
-    form.bankType === "qrDetails" ||
-    form.bankType === "Crypto";
-  const [logoUploading, setLogoUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({});
-  const handleFileUpload = async (file) => {
-    if (!file) {
-      toast.error("No file selected!");
-      return;
-    }
-    setLogoUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("logoImage", file);
-
-      await axios.post(
-        "https://fms-qkmw.onrender.com/fms/api/v0/items/upload-logo",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            setUploadProgress({ [file.name]: percentCompleted });
-          },
-        }
-      );
-
-      toast.success("File uploaded successfully! ✅");
-      handleCancel();
-      await fetchItems(); // If you want to refresh after upload
-    } catch (error) {
-      console.error(error);
-      toast.error("Error uploading logo!");
-    } finally {
-      setTimeout(() => {
-        setLogoUploading(false); // 👈 this will hide the circle after success
-        setUploadProgress({});
-      }, 500); // 0.5 second delay
-    }
-  };
-
-  // ─── Helpers ─────────────────────────────────────────────
+  // Generate a new account number based on existing items
   const generateAccountNo = useCallback((list) => {
-    const last = list
-      .map((c) => parseInt(c.ItemAccountNo?.split("_")[1], 10))
+    const lastIndex = list
+      .map((c) => parseInt(c.itemNum?.split("_")[1], 10))
       .filter((n) => !isNaN(n))
-      .reduce((m, n) => Math.max(m, n), 0);
-    return `CUST_${String(last + 1).padStart(3, "0")}`;
+      .reduce((max, n) => Math.max(max, n), 0);
+    return `ITEM_${String(lastIndex + 1).padStart(3, "0")}`;
   }, []);
 
-  // ─── Load existing Items once ────────────────────────
+  // Load existing items and set initial account number
   useEffect(() => {
-    (async () => {
+    async function load() {
       try {
         const { data } = await axios.get(apiBase);
-        setItems(data.data);
+        const existing = data.data || [];
+        setItems(existing);
         setForm((prev) => ({
           ...prev,
-          itemAccountNo: generateAccountNo(data.data),
+          itemNum: generateAccountNo(existing),
         }));
-        // toast.info("item form ready", { autoClose: 800 });
-      } catch {
+      } catch (error) {
+        console.error(error);
         toast.error("Couldn’t fetch items");
       }
-    })();
+    }
+    load();
   }, [apiBase, generateAccountNo]);
 
+  // Generic change handler
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    let val = value;
+    let val = type === "checkbox" ? checked : value;
 
-    // Capitalize specific name fields (first letter only)
-    if (
-      [
-        "name",
-        "employeeName",
-        "accountHolderName",
-        "contactPersonName",
-      ].includes(name) &&
-      val
-    ) {
-      val = val.charAt(0).toUpperCase() + val.slice(1);
+    if (name === "name") {
+      // Capitalize first letter
+      val = val ? val.charAt(0).toUpperCase() + val.slice(1) : "";
     }
 
-    // Validators
-    const validators = {
-      bankAccNum: /^[A-Z0-9]{0,15}$/,
-      bankName: /^[A-Z0-9\s]{0,50}$/, // ✅ Now allows spaces and longer names
-      panNum: /^[A-Z0-9]{0,10}$/,
-      registrationNum: /^[A-Z0-9]{0,15}$/,
-      ifsc: /^[A-Z0-9]{0,12}$/,
-      swift: /^[A-Z0-9]{0,10}$/,
-      Tannumber: /^[A-Z0-9]{0,10}$/,
-      qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
-      name: /^[A-Za-z\s]*$/,
-      employeeName: /^[A-Za-z\s]*$/,
-      email: /^.{0,100}$/,
-      employeeEmail: /^.{0,100}$/,
-      contactNum: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
-      contactPersonPhone: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
-      creditLimit: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
-    };
-
-    // Handle checkbox separately
-    if (type === "checkbox") {
-      setForm((prev) => ({ ...prev, [name]: checked }));
-      return;
-    }
-
-    // Reset bank-related fields if bankType is Cash-like
-    if (
-      name === "bankType" &&
-      ["Cash", "Barter", "Crypto", "UPI"].includes(val.trim())
-    ) {
-      setForm((prev) => ({
-        ...prev,
-        bankName: "",
-        bankAccNum: "",
-        bankHolder: "",
-        ifsc: "",
-        swift: "",
-        upi: "",
-        [name]: val,
-      }));
-      return;
-    }
-
-    // Uppercase specific fields
-    if (
-      [
-        "bankAccNum",
-        "bankName",
-        "panNum",
-        "registrationNum",
-        "ifsc",
-        "swift",
-        "Tannumber",
-      ].includes(name)
-    ) {
+    if (name === "itemNum") {
+      // Force uppercase
       val = val.toUpperCase();
     }
 
-    // Validate input
-    if (validators[name] && !validators[name].test(val)) return;
+    if (name === "price") {
+      // Allow only numeric and decimal
+      if (!/^\d*\.?\d*$/.test(val)) return;
+    }
 
-    // Set form state
-    setForm((prev) => ({ ...prev, [name]: val }));
+    setForm((prev) => ({
+      ...prev,
+      [name]: val,
+    }));
   };
-  // if you want to force uppercase, uncomment next line:
-  // value = value.toUpperCase();
 
-  // Limit digits for phone fields
-
-  // ─── Save ────────────────────────────────────────────────
-
+  // Submit form
   const createItem = async (e) => {
     e.preventDefault();
-
-    const bankDetailsPayload = [
-      {
-        code: form.code, // your bank‐detail code
-        type: form.bankType, // e.g. "Bank", "UPI", etc.
-        bankAccNum: form.bankAccNum, // account number (≤18 digits)
-        bankName: form.bankName, // bank’s name
-        accountHolderName: form.accountHolderName, // name on the account
-        ifsc: form.ifsc, // 12‐char uppercase IFSC
-        swift: form.swift, // ≤16‐char uppercase SWIFT
-        active: true, // boolean flag
-        qrDetails: form.qrDetails, // whatever you store for UPI/QR
-      },
-    ];
-
-    const payload = {
-      ...form,
-      bankDetails: bankDetailsPayload,
-    };
-
     try {
-      const { data } = await axios.post(apiBase, payload, {
+      const { data } = await axios.post(apiBase, form, {
         headers: { "Content-Type": "application/json" },
       });
       const newItem = data.data;
-
       toast.success("Item saved", {
         autoClose: 1200,
-        onClose: () => handleCancel(),
+        onClose: handleCancel,
       });
-
       setItems((prev) => [...prev, newItem]);
-
       onSaved?.(newItem);
     } catch (err) {
-      console.error("Error creating Item:", err.response || err);
-      // const msg = err.response?.data?.message || "Couldn’t save Item"; // ← define msg properly
-      // toast.error(msg, { autoClose: 2000 });
+      console.error("Error creating item:", err.response || err);
+      const msg = err.response?.data?.message || "Couldn’t save item";
+      toast.error(msg, { autoClose: 2000 });
     }
   };
 
-  // ─── Reset / Cancel ──────────────────────────────────────
-
-  const initialForm = {
-    name: "",
-    Name: "",
-    type: "",
-    description: "",
-    unit: "",
-    price: "",
-    active: false,
-  };
-
+  // Reset form (keeping new account no)
   const handleReset = () => {
-    const newItemCode = generateAccountNo(Items);
-    setForm({ ...initialForm, ItemAccountNo: newItemCode });
-  };
-  const handleEdit = () => {
-    navigate("/itemview", { state: { item: formData } });
+    const newCode = generateAccountNo(items);
+    setForm({
+      itemNum: "",
+      name: "",
+      type: "",
+      price: "",
+      unit: "",
+      description: "",
+      active: false,
+    });
   };
 
   return (
@@ -306,18 +148,30 @@ export default function ItemForm({ handleCancel }) {
             Items Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+              <label className="block text-sm font-medium text-gray-600"> 
+              Item Code
+              </label>
+              <input
+                name="itemcode"
+                
+                readOnly
+                placeholder="Auto-generated"
+                className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Item Name
               </label>
               <input
+                type="text"
                 name="name"
                 value={form.name}
-                readOnly
-                placeholder="Auto-generated"
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                onChange={handleChange}
+                placeholder="eg-Item Name"
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
             <div>
@@ -325,17 +179,11 @@ export default function ItemForm({ handleCancel }) {
                 Item Number
               </label>
               <input
-                type="text"
                 name="itemNum"
+                type="text"
                 placeholder="eg-Item Number"
                 value={form.itemNum}
-                onChange={
-                  (e) =>
-                    setFormData({
-                      ...formData,
-                      itemNum: e.target.value.toUpperCase(),
-                    }) // Update itemNum
-                }
+                onChange={handleChange}
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
@@ -348,7 +196,7 @@ export default function ItemForm({ handleCancel }) {
                 name="type"
                 value={form.type}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">Select type</option>
                 <option value="Goods">Goods</option>
@@ -363,7 +211,7 @@ export default function ItemForm({ handleCancel }) {
                 name="contactNum"
                 value={form.contactNum}
                 onChange={handleChange}
-                placeholder="e.g. +91 98765 43210"
+                placeholder="eg- 99 "
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
@@ -376,7 +224,7 @@ export default function ItemForm({ handleCancel }) {
                 name="unit"
                 value={form.unit}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">Select unit</option>
 
@@ -399,7 +247,7 @@ export default function ItemForm({ handleCancel }) {
                 name="address"
                 value={form.address}
                 onChange={handleChange}
-                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                placeholder="e.g. this is the item 560001"
                 rows={4}
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
@@ -416,289 +264,8 @@ export default function ItemForm({ handleCancel }) {
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div className="space-y-4"></div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div className="space-y-4"></div>{" "}
-          </div>
         </section>
-        {/* <section className="p-6">
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Contact Person
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Contatct Person Name
-              </label>
-              <input
-                name="contactPersonName"
-                value={form.contactPersonName}
-                onChange={handleChange}
-                placeholder="e.g. John Doe"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Phone No.
-              </label>
-              <input
-                name="contactPersonPhone"
-                value={form.contactPersonPhone}
-                onChange={handleChange}
-                placeholder="e.g. +91 91234 56789"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Email.id
-              </label>
-              <input
-                name="contactPersonEmail"
-                type="email"
-                value={form.contactPersonEmail}
-                onChange={handleChange}
-                placeholder="e.g. john.doe@example.com"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-          </div>
-        </section> */}
-
-        {/* Payment & Financial */}
-        {/* <section className="p-6">
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Payment & Financial Information
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Credit Limit
-              </label>
-              <input
-                name="creditLimit"
-                value={form.creditLimit}
-                onChange={handleChange}
-                placeholder="e.g. 1,00,000"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Terms of payment
-              </label>
-              <select
-                name="paymentTerms"
-                value={form.paymentTerms}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select type</option>
-                {paymentTerms.map((type) => (
-                  <option key={type.trim()} value={type.trim()}>
-                    {type.trim()}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Currency
-              </label>
-              <select
-                name="currency"
-                value={form.currency}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select type</option>
-                {currency.map((type) => (
-                  <option key={type.trim()} value={type.trim()}>
-                    {type.trim()}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </section> */}
-        {/* Bank Details */}
-        {/* <section className="p-6">
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Bank Details
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Bank Type
-              </label>
-              <select
-                name="bankType"
-                value={form.bankType}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select type</option>
-                {bankTypes.map((type) => (
-                  <option key={type.trim()} value={type.trim()}>
-                    {type.trim() === "BankAndUpi"
-                      ? "Bank And UPI"
-                      : type.trim()}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Bank Name
-              </label>
-              <input
-                name="bankName"
-                value={form.bankName}
-                onChange={handleChange}
-                placeholder="e.g. State Bank of India"
-                disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                  disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
-                }`}
-              />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Bank Account
-              </label>
-              <input
-                name="bankAccNum"
-                value={form.bankAccNum}
-                onChange={handleChange}
-                placeholder="e.g. 0123456789012345"
-                disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                  disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
-                }`}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Account Holder Name
-              </label>
-              <input
-                name="accountHolderName"
-                value={form.accountHolderName}
-                onChange={handleChange}
-                placeholder="e.g. ABC Company Pvt Ltd"
-                disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                  disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
-                }`}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                IFSC
-              </label>
-              <input
-                name="ifsc"
-                value={form.ifsc}
-                onChange={handleChange}
-                placeholder="e.g. SBIN0001234"
-                disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                  disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
-                }`}
-              />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Swift Code
-              </label>
-              <input
-                name="swift"
-                value={form.swift}
-                onChange={handleChange}
-                placeholder="e.g. SBININBBXXX"
-                disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                  disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
-                }`}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                UPI ID
-              </label>
-              <input
-                name="qrDetails"
-                value={form.qrDetails}
-                onChange={handleChange}
-                placeholder="e.g. abc@hdfcbank"
-                disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                  disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
-                }`}
-              />
-            </div>
-          </div>
-        </section> */}
-
-        {/* Tax Information */}
-
-        {/* <section className="p-6">
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Tax Information
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                PAN No
-              </label>
-              <input
-                name="panNum"
-                value={form.panNum}
-                onChange={handleChange}
-                placeholder="e.g. ABCDE1234F"
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Registration No
-              </label>
-              <input
-                label="Registration No."
-                name="registrationNum"
-                value={form.registrationNum}
-                onChange={handleChange}
-                placeholder="e.g.  REG123456789"
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Tan number
-              </label>
-              <input
-                name="Tannumber"
-                value={form.Tannumber}
-                onChange={handleChange}
-                placeholder="e.g. ABCDE1234F"
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-          </div>
-        </section> */}
         {/* Action Buttons */}
         <div className="py-6 flex items-center justify-between">
           {/* Left side - Reset Button */}
