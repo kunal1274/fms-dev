@@ -9,7 +9,7 @@ import { Tabs } from "flowbite-react";
 import "./c.css";
 import ItemViewPage from "./ItemViewPage";
 
-const List = () => {
+const List = ({handleAddItem }) => {
      const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const metricsUrl = `${baseUrl}/metrics`;
 
