@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import PurchaseOrderForm from "./PurchaseOrderForm";
-import PurchaseOrderList from "./PurchaseOrderList";
-import PurchaseViewPage from "./PurchaseViewPage";
+import PurchaseOrderList from "./PurchaseOrderList copy";
+import PurchaseViewPage from "./PurchaseViewPage copy";
 import { ToastContainer } from "react-toastify";
 
 const PurchaseOrderPage = () => {

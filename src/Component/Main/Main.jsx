@@ -4,7 +4,7 @@ import CompanyPage from "../../MainComponent/Company/CompanyPage";
 // import CompanyPage from "../Company/CompanyrPage";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
 import SaleOrderPage from "../../MainComponent/Sale/SaleOrderPage";
-import PurchaseOrderPage from "../../MainComponent/Purchase/PurchaseOrderPage";
+import PurchaseOrderPage from "../../MainComponent/Purchase/PurchaseOrderPage copy";
 import ItemPage from "../../MainComponent/Item/ItemPage";
 
 export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
