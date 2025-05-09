@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 import ItemViewPage from "./ItemViewPage";
 import { Button } from "../../Component/Button/Button";
 import ItemList from "./ItemList";
@@ -8,14 +7,12 @@ import ItemForm from "./ItemForm";
 const ItemPage = () => {
   const [view, setView] = useState("list");
   const [items, setItems] = useState([]);
-  const [selectedItem, setSelectedItem] = useState(null)
+  const [selectedItem, setSelectedItem] = useState(null);
 
   /** Save or update a Item */
   const handleSaveItem = (item) => {
     setItems((prev) => {
-      const idx = prev.findIndex(
-        (c) => c.itemAccountNo === item.itemAccountNo
-      );
+      const idx = prev.findIndex((c) => c.itemAccountNo === item.itemAccountNo);
 
       if (idx !== -1) {
         const updated = [...prev];
@@ -35,9 +32,7 @@ const ItemPage = () => {
 
   /** Show Item details */
   const handleViewItem = (itemAccountNo) => {
-    const cust = items.find(
-      (c) => c.customerAccountNo === customerAccountNo
-    );
+    const cust = items.find((c) => c.customerAccountNo === customerAccountNo);
     setSelectedCustomer(cust);
     setView("details");
   };
