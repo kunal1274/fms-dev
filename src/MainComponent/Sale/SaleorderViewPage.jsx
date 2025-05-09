@@ -1056,7 +1056,7 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
                       <td className="border p-1">
                         <input
                           type="number"
-                          className="border rounded p-1 text-center w-24"
+                          className="border rounded p-1 text-center w-22"
                           value={discount || saleData.discount}
                           onChange={(e) => {
                             let newDiscount = Number(e.target.value);

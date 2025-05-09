@@ -1,6 +1,6 @@
 // src/pages/CompanyPage.jsx
 import React, { useState } from "react";
-import CompanyForm from "./CompanyForm copy";
+import CompanyForm from "./CompanyForm";
 import CompanyList from "./CompanyList";
 import CompanyViewPage from "./CompanyViewPage";
 import { Button } from "../../Component/Button/Button";

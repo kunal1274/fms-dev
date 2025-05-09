@@ -103,6 +103,39 @@ export default function CompanyForm({ handleCancel }) {
     const { name, value, type, checked } = e.target;
     let val = value;
 
+    // Capitalize specific name fields (first letter only)
+    if (
+      [
+        "name",
+        "employeeName",
+        "accountHolderName",
+        "contactPersonName",
+      ].includes(name) &&
+      val
+    ) {
+      val = val.charAt(0).toUpperCase() + val.slice(1);
+    }
+
+    // Validators
+    const validators = {
+      bankAccNum: /^[A-Z0-9]{0,15}$/,
+      bankName: /^[A-Z0-9\s]{0,50}$/, // ✅ Now allows spaces and longer names
+      panNum: /^[A-Z0-9]{0,10}$/,
+      registrationNum: /^[A-Z0-9]{0,15}$/,
+      ifsc: /^[A-Z0-9]{0,12}$/,
+      swift: /^[A-Z0-9]{0,10}$/,
+      Tannumber: /^[A-Z0-9]{0,10}$/,
+      qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
+      name: /^[A-Za-z\s]*$/,
+      employeeName: /^[A-Za-z\s]*$/,
+      email: /^.{0,100}$/,
+      employeeEmail: /^.{0,100}$/,
+      contactNum: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
+      contactPersonPhone: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
+      creditLimit: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
+    };
+
+    // Handle checkbox separately
     if (type === "checkbox") {
       setForm((prev) => ({ ...prev, [name]: checked }));
       return;
@@ -126,200 +159,26 @@ export default function CompanyForm({ handleCancel }) {
       return;
     }
 
-    // Limit digits for phone fields
-    if (
-      ["contactNum", "contactPersonPhone"].includes(name) &&
-      !/^\d{0,10}$/.test(val)
-    ) {
-      return;
-    }
-
-    // Ensure numeric only for bankAccNum and creditLimit
-    if (["bankAccNum", "creditLimit"].includes(name) && !/^\d*$/.test(val)) {
-      return;
-    }
-
-    // Convert to uppercase where required
+    // Uppercase specific fields
     if (
       [
+        "bankAccNum",
         "bankName",
-        "panNumber",
-        "registrationNum",
-        "ifsc",
-        "swift",
-        "upi",
-        "qrDetails",
-        "tanNumber",
-      ].includes(name)
-    ) {
-      val = val.toUpperCase();
-    }
-     // GST Number – uppercase alphanumeric only, max length 15
-      if (name === "gstNumber") {
-        // force uppercase, strip out anything that’s not A–Z or 0–9, then cap at 15 chars
-       val = val.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15);
-       // if after cleanup it's somehow invalid, bail out
-        if (!/^[A-Z0-9]{0,15}$/.test(val)) return;
-      }
-    // Bank account number length limit (optional)
-    if (name === "bankAccNum" && val.length > 30) {
-      return;
-    }
-
-    // Email length limit
-    if (["email", "employeeEmail"].includes(name) && val.length > 100) {
-      return;
-    }
-
-    // Name fields – allow only letters and spaces
-    if (
-      ["name", "employeeName", "bankName", "group"].includes(name) &&
-      val &&
-      !/^[A-Za-z\s]*$/.test(val)
-    ) {
-      return;
-    }
-
-    // Capitalize first letter
-    if (["name", "employeeName", "bankAccNum"].includes(name) && val) {
-      val = val.charAt(0).toUpperCase() + val.slice(1);
-    }
-
-    // Specific pattern constraints
-    if (name === "ifsc" && !/^[A-Z0-9]{0,12}$/.test(val)) return;
-    if (name === "swift" && !/^[A-Z0-9]{0,16}$/.test(val)) return;
-    if (name === "qrDetails" && (!/^[a-z0-9.@]*$/.test(val) || val.length > 25))
-      return;
-
-    if (name === "tanNumber" && !/^[A-Z0-9]{0,10}$/.test(val)) return;
-    if (name === "panNumber" && !/^[A-Z0-9]{0,10}$/.test(val)) return;
-
-    const numeric10DigitFields = [
-      "contactNumber",
-      "contactNum",
-      "contactPersonPhone",
-      "companyContactNo",
-      "phoneNo",
-      "phoneNumber",
-    ];
-    if (numeric10DigitFields.includes(name) && !/^\d{0,10}$/.test(val)) return;
-
-    // Checkbox field
-    if (type === "checkbox") {
-      setForm((prev) => ({ ...prev, [name]: checked }));
-      return;
-    }
-
-    // Bank Account – digits only, max 18
-    if (name === "bankAccNum" && !/^\d{0,30}$/.test(val)) return;
-
-    // PAN – uppercase, alphanumeric, max 10
-    if (name === "panNum") {
-      val = val
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, "")
-        .slice(0, 10);
-      if (!/^[A-Z0-9]{0,10}$/.test(val)) return;
-    }
-
-    // TAN – uppercase, alphanumeric, max 25
-    if (name === "tanNumber") {
-      val = val
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, "")
-        .slice(0, 10);
-      if (!/^[A-Z0-9]{0,10}$/.test(val)) return;
-    }
-
-    // Registration Number – uppercase, alphanumeric, max 15
-    if ((name === "gstNumber", name === "companyCode")) {
-      val = val
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, "")
-        .slice(0, 15);
-      // final length/character check
-      if (!/^[A-Z0-9]{0,15}$/.test(val)) return;
-    }
-
-    // IFSC – uppercase, alphanumeric, max 12
-    if (name === "ifsc") {
-      val = val.toUpperCase();
-      if (!/^[A-Z0-9]{0,12}$/.test(val)) return;
-    }
-
-    // SWIFT – uppercase, alphanumeric, max 16
-    if (name === "swift") {
-      val = val.toUpperCase();
-      if (!/^[A-Z0-9]{0,10}$/.test(val)) return;
-    }
-
-    // UPI – uppercase, alphanumeric + . and @, max 25
-    if (name === "upi") {
-      val = val.toUpperCase();
-      if (!/^[A-Z0-9.@]*$/.test(val) || val.length > 25) return;
-    }
-
-    // Email – max 100 characters
-    if (["email", "employeeEmail"].includes(name) && val.length > 100) return;
-
-    // Capitalize first letter for these fields
-    if (
-      ["companyName", "name", "employeeName", "bankHolder"].includes(name) &&
-      val
-    ) {
-      val = val.charAt(0).toUpperCase() + val.slice(1);
-    }
-
-    // Only letters and spaces allowed
-    if (
-      ["name", "employeeName", "bankName", "group"].includes(name) &&
-      val &&
-      !/^[A-Za-z\s]*$/.test(val)
-    )
-      return;
-
-    // Always uppercase for these fields
-    if (
-      [
         "panNum",
         "registrationNum",
         "ifsc",
         "swift",
-        "upi",
-        "bankName",
+        "Tannumber",
       ].includes(name)
     ) {
       val = val.toUpperCase();
     }
 
-    // bankType – special values trigger reset of bank fields
-    if (name === "bankType") {
-      const specialTypes = ["Cash", "Barter", "Crypto", "UPI"];
-      if (specialTypes.includes(val)) {
-        setForm((prev) => ({
-          ...prev,
-          bankType: val,
-          bankName: "",
-          bankAccount: "",
-          bankHolder: "",
-          ifsc: "",
-          swift: "",
-          upi: "",
-        }));
-        return;
-      }
-    }
+    // Validate input
+    if (validators[name] && !validators[name].test(val)) return;
 
-    // No-op placeholder (address, remarks)
-    if (["address", "remarks"].includes(name) && !/^[\s\S]*$/.test(val)) {
-      return;
-    }
-
-    // Default update
-    setForm((prev) => ({
-      ...prev,
-      [name]: val,
-    }));
+    // Set form state
+    setForm((prev) => ({ ...prev, [name]: val }));
   };
 
   // ─── Save ────────────────────────────────────────────────
@@ -666,12 +525,9 @@ export default function CompanyForm({ handleCancel }) {
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div className="space-y-4"></div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div className="space-y-4"></div>{" "}
-          </div>
+       
+   
+      
         </section>
 
         <section className="p-6">

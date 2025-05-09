@@ -26,43 +26,42 @@ const paymentTerms = [
 ];
 
 const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", " UPI"];
-export default function CustomerForm({ handleCancel }) {
+export default function CompanyForm({ handleCancel }) {
   const [form, setForm] = useState({
-    code: "",
-    name: "",
+    companyCode: "",
+    companyName: "",
     businessType: "",
-    address: "",
+    primaryGSTAddress: "",
+    secondaryOfficeAddress: "",
+    tertiaryShippingAddress: "",
     contactNum: "",
     email: "",
-    Tannumber: "",
-    group: "",
+    website: "",
+    panNumber: "",
+    currency: "INR",
+
     remarks: "",
-    employeeName: "",
-    contactPersonName: "",
-    employeePhone: "",
-    paymentTerms: "",
-    contactPersonPhone: "",
-    employeeEmail: "",
-    creditLimit: "",
+    active: true,
     bankType: "",
-    accountHolderName: "",
-    bankAccNum: "",
     bankName: "",
+    tanNumber: "",
+    bankAccount: "",
+    bankHolder: "",
     ifsc: "",
-    contactPersonEmail: "",
     swift: "",
     upi: "",
-    currency: "",
-    panNum: "",
-    registrationNum: "",
+
     globalPartyId: "",
-    active: true,
-    qrDetails: "",
+    taxInfo: {
+      gstNumber: "",
+      tanNumber: "",
+      panNumber: "",
+    },
   });
-  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
+  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
 
   // ─── Data ────────────────────────────────────────────────
-  const [customers, setCustomers] = useState([]);
+  const [companys, setCompanys] = useState([]);
   const disableBankFields =
     form.bankType === "Cash" ||
     form.bankType === "Barter" ||
@@ -82,7 +81,7 @@ export default function CustomerForm({ handleCancel }) {
       formData.append("logoImage", file);
 
       await axios.post(
-        "https://fms-qkmw.onrender.com/fms/api/v0/customers/upload-logo",
+        "https://fms-qkmw.onrender.com/fms/api/v0/companies/upload-logo",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -97,7 +96,7 @@ export default function CustomerForm({ handleCancel }) {
 
       toast.success("File uploaded successfully! ✅");
       handleCancel();
-      await fetchCustomers(); // If you want to refresh after upload
+      await fetchcompanys(); // If you want to refresh after upload
     } catch (error) {
       console.error(error);
       toast.error("Error uploading logo!");
@@ -110,32 +109,6 @@ export default function CustomerForm({ handleCancel }) {
     }
   };
 
-  // ─── Helpers ─────────────────────────────────────────────
-  const generateAccountNo = useCallback((list) => {
-    const last = list
-      .map((c) => parseInt(c.customerAccountNo?.split("_")[1], 10))
-      .filter((n) => !isNaN(n))
-      .reduce((m, n) => Math.max(m, n), 0);
-    return `CUST_${String(last + 1).padStart(3, "0")}`;
-  }, []);
-
-  // ─── Load existing customers once ────────────────────────
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await axios.get(apiBase);
-        setCustomers(data.data);
-        setForm((prev) => ({
-          ...prev,
-          customerAccountNo: generateAccountNo(data.data),
-        }));
-        // toast.info("Customer form ready", { autoClose: 800 });
-      } catch {
-        toast.error("Couldn’t fetch customers");
-      }
-    })();
-  }, [apiBase, generateAccountNo]);
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let val = value;
@@ -146,7 +119,8 @@ export default function CustomerForm({ handleCancel }) {
         "name",
         "employeeName",
         "accountHolderName",
-        "contactPersonName",
+        "companyCode",
+        "companyName",
       ].includes(name) &&
       val
     ) {
@@ -157,11 +131,12 @@ export default function CustomerForm({ handleCancel }) {
     const validators = {
       bankAccNum: /^[A-Z0-9]{0,15}$/,
       bankName: /^[A-Z0-9\s]{0,50}$/, // ✅ Now allows spaces and longer names
-      panNum: /^[A-Z0-9]{0,10}$/,
-      registrationNum: /^[A-Z0-9]{0,15}$/,
+      companyCode: /^[A-Z0-9]{0,15}$/,
+      gstNumber: /^[A-Z0-9]{0,15}$/,
+      panNumber: /^[A-Z0-9]{0,10}$/,
       ifsc: /^[A-Z0-9]{0,12}$/,
       swift: /^[A-Z0-9]{0,10}$/,
-      Tannumber: /^[A-Z0-9]{0,10}$/,
+      tanNumber: /^[A-Z0-9]{0,10}$/,
       qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
       name: /^[A-Za-z\s]*$/,
       employeeName: /^[A-Za-z\s]*$/,
@@ -201,11 +176,11 @@ export default function CustomerForm({ handleCancel }) {
       [
         "bankAccNum",
         "bankName",
-        "panNum",
-        "registrationNum",
+        "panNumber",
+        "gstNumber",
         "ifsc",
         "swift",
-        "Tannumber",
+        "tanNumber",
       ].includes(name)
     ) {
       val = val.toUpperCase();
@@ -217,8 +192,8 @@ export default function CustomerForm({ handleCancel }) {
     // Set form state
     setForm((prev) => ({ ...prev, [name]: val }));
   };
- 
-  const createCustomer = async (e) => {
+
+  const createCompany = async (e) => {
     e.preventDefault();
 
     const bankDetailsPayload = [
@@ -244,49 +219,51 @@ export default function CustomerForm({ handleCancel }) {
       const { data } = await axios.post(apiBase, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      const newCustomer = data.data;
+      const newCompany = data.data;
 
-      toast.success("Customer saved", {
+      toast.success("Company saved", {
         autoClose: 1200,
         onClose: () => handleCancel(),
       });
 
-      setCustomers((prev) => [...prev, newCustomer]);
+      setCompanys((prev) => [...prev, newCompany]);
 
-      onSaved?.(newCustomer);
+      onSaved?.(newCompany);
     } catch (err) {
-      console.error("Error creating customer:", err.response || err);
-      // const msg = err.response?.data?.message || "Couldn’t save customer"; // ← define msg properly
+      console.error("Error creating Company:", err.response || err);
+      // const msg = err.response?.data?.message || "Couldn’t save Company"; // ← define msg properly
       // toast.error(msg, { autoClose: 2000 });
     }
   };
 
   // ─── Reset / Cancel ──────────────────────────────────────
-  const resetForm = (nextAccNo) =>
+  const resetForm = () => {
+    // const nextCode = generateCompanyCode(companies);
     setForm({
-      ...form,
-      customerAccountNo: nextAccNo ?? generateAccountNo(customers),
-      name: "",
+      companyCode: nextCode,
+      companyName: "",
       businessType: "",
-      address: "",
-      contactNum: "",
+      primaryGSTAddress: "",
+      secondaryOfficeAddress: "",
+      tertiaryShippingAddress: "",
+      contactNumber: "",
       email: "",
-      group: "",
+      website: "",
+      currency: "INR",
       remarks: "",
-      employeeName: "",
-      employeePhone: "",
-      employeeEmail: "",
+      active: true,
       bankType: "",
       bankName: "",
-      bankAccNum: "",
+      bankAccount: "",
       bankHolder: "",
       ifsc: "",
       swift: "",
       upi: "",
       panNum: "",
-      registrationNum: "",
-      active: true,
+      gstNumber: "",
+      globalPartyId: "",
     });
+  };
   const initialForm = {
     code: "",
     name: "",
@@ -311,19 +288,20 @@ export default function CustomerForm({ handleCancel }) {
     contactPersonEmail: "",
     swift: "",
     upi: "",
+    gstNumber: "",
     currency: "INR",
-    panNum: "",
+    panNumber: "",
     registrationNum: "",
 
     active: true,
   };
 
   const handleReset = () => {
-    const newCustomerCode = generateAccountNo(customers);
-    setForm({ ...initialForm, customerAccountNo: newCustomerCode });
+    const newCompanyCode = generateAccountNo(companys);
+    setForm({ ...initialForm, companyAccountNo: newCompanyCode });
   };
   const handleEdit = () => {
-    navigate("/customerview", { state: { customer: formData } });
+    navigate("/companyview", { state: { company: formData } });
   };
 
   return (
@@ -355,39 +333,40 @@ export default function CustomerForm({ handleCancel }) {
               </svg>{" "}
             </button>
           </div>
-          <h3 className="text-xl font-semibold">Customer Form</h3>
+          <h3 className="text-xl font-semibold">Company Form</h3>
         </div>
       </div>
 
       <form
-        onSubmit={createCustomer}
+        onSubmit={createCompany}
         className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
       >
         {/* Business Details */}
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Business Details
+            Company Information
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Customer Code
+                Company Code
               </label>
               <input
-                name="customercode"
-                value={form.code}
-                readOnly
-                placeholder="Auto-generated"
-                className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                name="companyCode"
+                value={form.companyCode}
+                onChange={handleChange}
+                required
+                placeholder="e.g. HYDN83683"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Customer Name
+                Company Name
               </label>
               <input
-                name="name"
-                value={form.name}
+                name="companyName"
+                value={form.companyName}
                 onChange={handleChange}
                 placeholder="e.g. XYZ Enterprises Pvt. Ltd."
                 required
@@ -429,7 +408,7 @@ export default function CustomerForm({ handleCancel }) {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Contact No
+                Company Contact No
               </label>
               <input
                 name="contactNum"
@@ -442,7 +421,7 @@ export default function CustomerForm({ handleCancel }) {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Email ID
+                Company Email ID
               </label>
               <input
                 name="email"
@@ -456,11 +435,43 @@ export default function CustomerForm({ handleCancel }) {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
+                Company Website
+              </label>
+              <input
+                name="website"
+                type="website"
+                value={form.website}
+                onChange={handleChange}
+                placeholder="e.g. contact@abccompany.com"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Currency
+              </label>
+              <select
+                name="currency"
+                value={form.currency}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select type</option>
+                {currency.map((type) => (
+                  <option key={type.trim()} value={type.trim()}>
+                    {type.trim()}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
                 Address
               </label>
               <textarea
-                name="address"
-                value={form.address}
+                name="primaryGSTAddress"
+                value={form.primaryGSTAddress}
                 onChange={handleChange}
                 placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
                 rows={4}
@@ -483,17 +494,32 @@ export default function CustomerForm({ handleCancel }) {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Group
+                Secondary Office Address
               </label>
-              <input
-                name="group"
-                value={form.group}
+              <textarea
+                name="secondaryOfficeAddress"
+                value={form.secondaryOfficeAddress}
                 onChange={handleChange}
-                placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
+                placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
+                rows={4}
+                required
+                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Tertiary Shipping Address
+              </label>
+              <textarea
+                name="tertiaryShippingAddress"
+                value={form.tertiaryShippingAddress}
+                onChange={handleChange}
+                placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
+                rows={4}
+                required
+                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
             <div className="flex items-center gap-2 ml-1">
               <label className="text-blue-600 font-medium">Active</label>
               <input
@@ -505,120 +531,10 @@ export default function CustomerForm({ handleCancel }) {
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div className="space-y-4"></div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div className="space-y-4"></div>{" "}
-          </div>
-        </section>
-        <section className="p-6">
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Contact Person
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Contatct Person Name
-              </label>
-              <input
-                name="contactPersonName"
-                value={form.contactPersonName}
-                onChange={handleChange}
-                placeholder="e.g. John Doe"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Phone No.
-              </label>
-              <input
-                name="contactPersonPhone"
-                value={form.contactPersonPhone}
-                onChange={handleChange}
-                placeholder="e.g. +91 91234 56789"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Email.id
-              </label>
-              <input
-                name="contactPersonEmail"
-                type="email"
-                value={form.contactPersonEmail}
-                onChange={handleChange}
-                placeholder="e.g. john.doe@example.com"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-          </div>
         </section>
 
         {/* Payment & Financial */}
-        <section className="p-6">
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Payment & Financial Information
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Credit Limit
-              </label>
-              <input
-                name="creditLimit"
-                value={form.creditLimit}
-                onChange={handleChange}
-                placeholder="e.g. 1,00,000"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Terms of payment
-              </label>
-              <select
-                name="paymentTerms"
-                value={form.paymentTerms}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select type</option>
-                {paymentTerms.map((type) => (
-                  <option key={type.trim()} value={type.trim()}>
-                    {type.trim()}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Currency
-              </label>
-              <select
-                name="currency"
-                value={form.currency}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select type</option>
-                {currency.map((type) => (
-                  <option key={type.trim()} value={type.trim()}>
-                    {type.trim()}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </section>
         {/* Bank Details */}
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
@@ -751,8 +667,8 @@ export default function CustomerForm({ handleCancel }) {
                 PAN No
               </label>
               <input
-                name="panNum"
-                value={form.panNum}
+                name="panNumber"
+                value={form.panNumber}
                 onChange={handleChange}
                 placeholder="e.g. ABCDE1234F"
                 required
@@ -764,9 +680,9 @@ export default function CustomerForm({ handleCancel }) {
                 Registration No
               </label>
               <input
-                label="Registration No."
-                name="registrationNum"
-                value={form.registrationNum}
+                label="gstNumber"
+                name="gstNumber"
+                value={form.gstNumber}
                 onChange={handleChange}
                 placeholder="e.g.  REG123456789"
                 required
@@ -778,8 +694,8 @@ export default function CustomerForm({ handleCancel }) {
                 Tan number
               </label>
               <input
-                name="Tannumber"
-                value={form.Tannumber}
+                name="tanNumber"
+                value={form.tanNumber}
                 onChange={handleChange}
                 placeholder="e.g. ABCDE1234F"
                 required

@@ -261,10 +261,11 @@ const ItemviewPage = ({ item, itemId, goBack, handleSaveItem, toggleView }) => {
               <label className="block text-sm font-medium text-gray-600">
                 Item Name
               </label>
+              {" "}
               <input
                 type="text"
-                name="itemName"
-                value={formData?.name}
+                name="name"
+                value={formData?.name || ""}
                 onChange={handleChange}
                 disabled={!isEditing}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
@@ -279,6 +280,7 @@ const ItemviewPage = ({ item, itemId, goBack, handleSaveItem, toggleView }) => {
                 name="itemNum"
                 placeholder="eg-ITEM001"
                 value={formData.itemNum || ""}
+                max={10}
                 onChange={handleChange} // ← add this
                 disabled={!isEditing}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"

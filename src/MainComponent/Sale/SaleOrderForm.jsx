@@ -10,8 +10,17 @@ import SaleorderViewPage from "./SaleorderViewPage";
 const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
 const customersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
 const salesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
-
-const SaleorderForm = ({ handleCancel }) => {
+const paymentTerms = [
+  "COD",
+  "Net30D",
+  "Net7D",
+  "Net15D",
+  "Net45D",
+  "Net60D",
+  "Net90D",
+  "Advance",
+];
+const SaleOrderForm = ({ handleCancel }) => {
   // -------------------------
   // Global States & Form Fields
   // -------------------------
@@ -631,6 +640,20 @@ const SaleorderForm = ({ handleCancel }) => {
                     />{" "}
                   </div>
                 </div>
+                <div className="flex flex-col">
+                      <label className="font-semibold text-gray-700">
+                     Customer email
+                      </label>{" "}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <input
+                          type="text"
+                          value={selectedCustomerDetails.email}
+                          placeholder="Contact Number"
+                          className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300  bg-gray-100 cursor-not-allowed"
+                          readOnly
+                        />
+                      </div>{" "}
+                </div>
                 {/* Order Status */}
                 <div className="flex flex-col">
                   <label className="font-semibold text-gray-700">
@@ -646,6 +669,24 @@ const SaleorderForm = ({ handleCancel }) => {
                       readOnly
                     />
                   </div>
+                </div>{" "}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Terms of payment
+                  </label>
+                  <select
+                    name="paymentTerms"
+                    value={paymentTerms}
+                    required
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  >
+                    <option value="">Select type</option>
+                    {paymentTerms.map((type) => (
+                      <option key={type.trim()} value={type.trim()}>
+                        {type.trim()}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 {/* Customer Address */}
                 {selectedCustomerDetails && (
@@ -693,7 +734,6 @@ const SaleorderForm = ({ handleCancel }) => {
             {/* -------------------------
                  Line Items Table
                  ------------------------- */}
-        
           </div>
         </section>
 
@@ -883,4 +923,4 @@ const SaleorderForm = ({ handleCancel }) => {
     </div>
   );
 };
-export default SaleorderForm;
+export default SaleOrderForm;

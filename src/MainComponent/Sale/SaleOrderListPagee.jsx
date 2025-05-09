@@ -442,120 +442,127 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                   Reset Filter
                 </button>
               </div>
-
-              <div className="border border-green-500 rounded-lg bg-white p-4 overflow-hidden">
-                <div className="max-h-96 overflow-y-auto">
-                  <table className="min-w-full border-collapse border border-gray-200">
-                    {/* Table Header */}
-                    <thead>
-                      <tr className="bg-gray-100">
-                        <th className="px-4 py-2 border border-gray-300 text-left">
-                          <input
-                            type="checkbox"
-                            onChange={toggleSelectAll}
-                            // The checkbox is checked if all filtered sales are selected
-                            checked={
-                              filteredSales.length > 0 &&
-                              selectedSales.length === filteredSales.length
-                            }
-                          />
-                        </th>
-                        <th className="px-6 py-2 text-sm font-medium whitespace-nowrap text-left">
-                          Sale Order No
-                        </th>{" "}
-                        <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
-                          Date
-                        </th>
-                        <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
-                          Customer Name
-                        </th>
-                        <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
-                          Item Name
-                        </th>
-                        <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                          Qty
-                        </th>
-                        <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                          Price
-                        </th>
-                        <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                          Discount
-                        </th>
-                        <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                          Advance
-                        </th>
-                        <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                          currency
-                        </th>
-                        <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
-                          Amount before tax
-                        </th>
-                        <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
-                          Line Amount
-                        </th>
-                        <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
-                          Status
-                        </th>
-                      </tr>
-                    </thead>
-
-                    {/* Table Body */}
-                    <tbody>
-                      {filteredSales.map((sale, index) => (
-                        <tr
-                          key={sale._id}
-                          className={`hover:bg-gray-100 ${
-                            index % 2 === 0 ? "bg-gray-50" : "bg-white"
-                          } transition-all duration-200`}
-                        >
-                          <th className="px-4 py-2 border-white-300 ml-4 text-center">
+              <section className="p-6">
+                <div className="border border-green-500 rounded-lg bg-white p-4 overflow-hidden">
+                  <div className="max-h-96 overflow-y-auto">
+                    <table className="min-w-full border-collapse border border-gray-200">
+                      {/* Table Header */}
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="px-4 py-2 border border-gray-300 text-left">
                             <input
                               type="checkbox"
-                              checked={selectedSales.includes(sale._id)}
-                              onChange={() => handleCheckboxChange(sale._id)}
+                              onChange={toggleSelectAll}
+                              // The checkbox is checked if all filtered sales are selected
+                              checked={
+                                filteredSales.length > 0 &&
+                                selectedSales.length === filteredSales.length
+                              }
                             />
                           </th>
-                          <td>
-                            <button
-                              className="text-blue-600 hover:underline ml-6 focus:outline-none"
-                              onClick={() => handleSaleClick(sale._id)}
-                            >
-                              {sale.orderNum}
-                            </button>
-                          </td>{" "}
-                          <td className="px-6 py-3 truncate">
-                            {new Date(sale.createdAt).toLocaleString()}
-                          </td>
-                          <td className="px-6 py-3 break-words max-w-[500px] truncate hover:whitespace-normal hover:text-sm hover:max-w-none">
-                            {sale.customer?.name}
-                          </td>
-                          <td className="px-6 py-3 whitespace-normal truncate">
-                            {sale.item?.name}
-                          </td>
-                          <td className="px-6 py-3 truncate">
-                            {sale.quantity}
-                          </td>
-                          <td className="px-6 py-3 truncate">
-                            {sale.item?.price}
-                          </td>
-                          <td className="px-6 py-3 truncate">
-                            {sale.discount}
-                          </td>
-                          <td className="px-6 py-3 truncate">{sale.advance}</td>
-                          <td className="px-6 py-3 truncate">
-                            {sale.currency}
-                          </td>
-                          <td className="px-6 py-3 truncate">{sale.netAR}</td>
-                          <td className="px-6 py-3 truncate">{sale.lineAmt}</td>
-                          {/* <td className="px-6 py-3 truncate">{sale.createdAt}</td> */}
-                          {/* <td className="px-6 py-3 truncate">{sale.createdAt}</td> */}
-                          <td className="px-6 py-3 truncate">{sale.status}</td>
+                          <th className="px-6 py-2 text-sm font-medium whitespace-nowrap text-left">
+                            Sale Order No
+                          </th>{" "}
+                          <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
+                            Date
+                          </th>
+                          <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
+                            Customer Name
+                          </th>
+                          <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
+                            Item Name
+                          </th>
+                          <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                            Qty
+                          </th>
+                          <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                            Price
+                          </th>
+                          <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                            Discount
+                          </th>
+                          <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                            Advance
+                          </th>
+                          <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                            currency
+                          </th>
+                          <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
+                            Amount before tax
+                          </th>
+                          <th className="px-6 py-2 text-sm font-medium whitespace-nowrap">
+                            Line Amount
+                          </th>
+                          <th className="px-6 py-3 bg-gray-100 text-left text-sm font-medium text-gray-700">
+                            Status
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+
+                      {/* Table Body */}
+                      <tbody>
+                        {filteredSales.map((sale, index) => (
+                          <tr
+                            key={sale._id}
+                            className={`hover:bg-gray-100 ${
+                              index % 2 === 0 ? "bg-gray-50" : "bg-white"
+                            } transition-all duration-200`}
+                          >
+                            <th className="px-4 py-2 border-white-300 ml-4 text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedSales.includes(sale._id)}
+                                onChange={() => handleCheckboxChange(sale._id)}
+                              />
+                            </th>
+                            <td>
+                              <button
+                                className="text-blue-600 hover:underline ml-6 focus:outline-none"
+                                onClick={() => handleSaleClick(sale._id)}
+                              >
+                                {sale.orderNum}
+                              </button>
+                            </td>{" "}
+                            <td className="px-6 py-3 truncate">
+                              {new Date(sale.createdAt).toLocaleString()}
+                            </td>
+                            <td className="px-6 py-3 break-words max-w-[500px] truncate hover:whitespace-normal hover:text-sm hover:max-w-none">
+                              {sale.customer?.name}
+                            </td>
+                            <td className="px-6 py-3 whitespace-normal truncate">
+                              {sale.item?.name}
+                            </td>
+                            <td className="px-6 py-3 truncate">
+                              {sale.quantity}
+                            </td>
+                            <td className="px-6 py-3 truncate">
+                              {sale.item?.price}
+                            </td>
+                            <td className="px-6 py-3 truncate">
+                              {sale.discount}
+                            </td>
+                            <td className="px-6 py-3 truncate">
+                              {sale.advance}
+                            </td>
+                            <td className="px-6 py-3 truncate">
+                              {sale.currency}
+                            </td>
+                            <td className="px-6 py-3 truncate">{sale.netAR}</td>
+                            <td className="px-6 py-3 truncate">
+                              {sale.lineAmt}
+                            </td>
+                            {/* <td className="px-6 py-3 truncate">{sale.createdAt}</td> */}
+                            {/* <td className="px-6 py-3 truncate">{sale.createdAt}</td> */}
+                            <td className="px-6 py-3 truncate">
+                              {sale.status}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              </section>
             </>
           )}
         </div>
