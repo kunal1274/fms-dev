@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import SaleOrderForm from "./SaleorderForm";
+import SaleOrderForm from "./SaleOrderForm1";
 import SaleOrderList from "./SaleOrderListPage";
 
 import { toast, ToastContainer } from "react-toastify";

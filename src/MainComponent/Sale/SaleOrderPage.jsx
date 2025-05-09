@@ -5,7 +5,7 @@ import axios from "axios";
 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import SaleOrderForm from "./SaleorderForm";
+import SaleOrderForm from "./SaleOrderForm1";
 import SaleOrderListPage from "./SaleOrderListPage";
 
 

@@ -20,7 +20,7 @@ const paymentTerms = [
   "Net90D",
   "Advance",
 ];
-const SaleOrderForm = ({ handleCancel }) => {
+const SaleOrderForm1 = ({ handleCancel }) => {
   // -------------------------
   // Global States & Form Fields
   // -------------------------
@@ -956,4 +956,4 @@ const SaleOrderForm = ({ handleCancel }) => {
     </div>
   );
 };
-export default SaleOrderForm;
+export default SaleOrderForm1;
