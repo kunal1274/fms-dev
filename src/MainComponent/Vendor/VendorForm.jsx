@@ -783,6 +783,7 @@ export default function VendorForm({ handleCancel }) {
               <input
                 name="Tannumber"
                 value={form.Tannumber}
+                maxLength={10}
                 onChange={handleChange}
                 placeholder="e.g. ABCDE1234F"
                 required

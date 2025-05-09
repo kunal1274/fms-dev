@@ -861,7 +861,7 @@ const CustomerViewPagee = ({
                         const rawValue = e.target.value;
                         const sanitizedValue = rawValue
                           .toUpperCase()
-                          .replace(/[^A-Z0-9]/g, "") // Remove all non-alphanumeric characters except uppercase letters and digits
+                          .replace(/[^0-9]/g, "") // Remove all non-alphanumeric characters except uppercase letters and digits
                           .slice(0, 20); // Ensure max 20 chars even after sanitize
                         handleBankDetailChange(i, "bankAccNum", sanitizedValue);
                       }}

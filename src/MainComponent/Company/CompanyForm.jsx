@@ -14,19 +14,10 @@ const businessTypes = [
   "Others",
 ];
 const currency = ["INR", "USD", "EUR", "GBP"];
-const paymentTerms = [
-  "COD",
-  "Net30D",
-  "Net7D",
-  "Net15D",
-  "Net45D",
-  "Net60D",
-  "Net90D",
-  "Advance",
-];
 
 const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", " UPI"];
 export default function CompanyForm({ handleCancel }) {
+  const [company, setCompany] = useState([]);
   const [form, setForm] = useState({
     companyCode: "",
     companyName: "",
@@ -39,13 +30,12 @@ export default function CompanyForm({ handleCancel }) {
     website: "",
     panNumber: "",
     currency: "INR",
-
     remarks: "",
     active: true,
     bankType: "",
     bankName: "",
     tanNumber: "",
-    bankAccount: "",
+    bankAccNum: "",
     bankHolder: "",
     ifsc: "",
     swift: "",
@@ -61,11 +51,11 @@ export default function CompanyForm({ handleCancel }) {
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
 
   // ─── Data ────────────────────────────────────────────────
-  const [companys, setCompanys] = useState([]);
+
   const disableBankFields =
     form.bankType === "Cash" ||
     form.bankType === "Barter" ||
-    form.bankType === "qrDetails" ||
+    form.bankType === " UPI" ||
     form.bankType === "Crypto";
   const [logoUploading, setLogoUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({});
@@ -81,7 +71,7 @@ export default function CompanyForm({ handleCancel }) {
       formData.append("logoImage", file);
 
       await axios.post(
-        "https://fms-qkmw.onrender.com/fms/api/v0/companies/upload-logo",
+        "https://fms-qkmw.onrender.com/fms/api/v0/Companies/upload-logo",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -95,8 +85,7 @@ export default function CompanyForm({ handleCancel }) {
       );
 
       toast.success("File uploaded successfully! ✅");
-      handleCancel();
-      await fetchcompanys(); // If you want to refresh after upload
+      await fetchCompany(); // If you want to refresh after upload
     } catch (error) {
       console.error(error);
       toast.error("Error uploading logo!");
@@ -116,11 +105,10 @@ export default function CompanyForm({ handleCancel }) {
     // Capitalize specific name fields (first letter only)
     if (
       [
-        "name",
+        "companyName",
         "employeeName",
         "accountHolderName",
-        "companyCode",
-        "companyName",
+        "contactPersonName",
       ].includes(name) &&
       val
     ) {
@@ -129,16 +117,17 @@ export default function CompanyForm({ handleCancel }) {
 
     // Validators
     const validators = {
-      bankAccNum: /^[A-Z0-9]{0,15}$/,
+      bankAccNum: /^[0-9]{0,15}$/,
       bankName: /^[A-Z0-9\s]{0,50}$/, // ✅ Now allows spaces and longer names
-      companyCode: /^[A-Z0-9]{0,15}$/,
-      gstNumber: /^[A-Z0-9]{0,15}$/,
       panNumber: /^[A-Z0-9]{0,10}$/,
+      gstNumber: /^[A-Z0-9]{0,15}$/,
+      companyCode: /^[A-Z0-9\s]{0,50}$/,
+      tanNumber: /^[A-Z0-9]{0,10}$/,
       ifsc: /^[A-Z0-9]{0,12}$/,
       swift: /^[A-Z0-9]{0,10}$/,
-      tanNumber: /^[A-Z0-9]{0,10}$/,
+      TanNumber: /^[A-Z0-9]{0,10}$/,
       qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
-      name: /^[A-Za-z\s]*$/,
+      companyName: /^[A-Za-z\s]*$/,
       employeeName: /^[A-Za-z\s]*$/,
       email: /^.{0,100}$/,
       employeeEmail: /^.{0,100}$/,
@@ -174,13 +163,14 @@ export default function CompanyForm({ handleCancel }) {
     // Uppercase specific fields
     if (
       [
-        "bankAccNum",
-        "bankName",
         "panNumber",
         "gstNumber",
+        "tanNumber",
+        "bankAccNum",
+        "bankName",
+        "companyCode",
         "ifsc",
         "swift",
-        "tanNumber",
       ].includes(name)
     ) {
       val = val.toUpperCase();
@@ -192,6 +182,8 @@ export default function CompanyForm({ handleCancel }) {
     // Set form state
     setForm((prev) => ({ ...prev, [name]: val }));
   };
+
+  // ─── Save ────────────────────────────────────────────────
 
   const createCompany = async (e) => {
     e.preventDefault();
@@ -209,10 +201,15 @@ export default function CompanyForm({ handleCancel }) {
         qrDetails: form.qrDetails, // whatever you store for UPI/QR
       },
     ];
-
+    const taxInfo = {
+      gstNumber: form.gstNumber,
+      tanNumber: form.tanNumber,
+      panNumber: form.panNumber,
+    };
     const payload = {
       ...form,
       bankDetails: bankDetailsPayload,
+      taxInfo,
     };
 
     try {
@@ -226,7 +223,7 @@ export default function CompanyForm({ handleCancel }) {
         onClose: () => handleCancel(),
       });
 
-      setCompanys((prev) => [...prev, newCompany]);
+      setCompany((prev) => [...prev, newCompany]);
 
       onSaved?.(newCompany);
     } catch (err) {
@@ -240,7 +237,7 @@ export default function CompanyForm({ handleCancel }) {
   const resetForm = () => {
     // const nextCode = generateCompanyCode(companies);
     setForm({
-      companyCode: nextCode,
+      companyCode: "",
       companyName: "",
       businessType: "",
       primaryGSTAddress: "",
@@ -254,19 +251,19 @@ export default function CompanyForm({ handleCancel }) {
       active: true,
       bankType: "",
       bankName: "",
-      bankAccount: "",
+      bankAccNum: "",
       bankHolder: "",
       ifsc: "",
       swift: "",
       upi: "",
       panNum: "",
-      gstNumber: "",
+      registrationNum: "",
       globalPartyId: "",
     });
   };
   const initialForm = {
     code: "",
-    name: "",
+    companyName: "",
     businessType: "",
     address: "",
     contactNum: "",
@@ -368,11 +365,11 @@ export default function CompanyForm({ handleCancel }) {
                 name="companyName"
                 value={form.companyName}
                 onChange={handleChange}
-                placeholder="e.g. XYZ Enterprises Pvt. Ltd."
+                placeholder="e.g. ABC Company Pvt. Ltd."
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
+            </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Global Party id
@@ -408,14 +405,13 @@ export default function CompanyForm({ handleCancel }) {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Company Contact No
+                Contact No
               </label>
               <input
                 name="contactNum"
                 value={form.contactNum}
                 onChange={handleChange}
-                placeholder="e.g. +91 98765 43210"
-                required
+                placeholder="e.g. +91-9876543210"
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
@@ -428,8 +424,7 @@ export default function CompanyForm({ handleCancel }) {
                 type="email"
                 value={form.email}
                 onChange={handleChange}
-                placeholder="e.g. info@xyzenterprises.com"
-                required
+                placeholder="e.g. contact@abccompany.com"
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
@@ -473,10 +468,10 @@ export default function CompanyForm({ handleCancel }) {
                 name="primaryGSTAddress"
                 value={form.primaryGSTAddress}
                 onChange={handleChange}
-                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
                 rows={4}
                 required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
             <div>
@@ -487,9 +482,10 @@ export default function CompanyForm({ handleCancel }) {
                 name="remarks"
                 value={form.remarks}
                 onChange={handleChange}
-                placeholder="e.g. Any additional notes…"
+                placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
                 rows={4}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                required
+                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
             <div>
@@ -533,9 +529,6 @@ export default function CompanyForm({ handleCancel }) {
           </div>
         </section>
 
-        {/* Payment & Financial */}
-
-        {/* Bank Details */}
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Bank Details
@@ -680,7 +673,6 @@ export default function CompanyForm({ handleCancel }) {
                 Registration No
               </label>
               <input
-                label="gstNumber"
                 name="gstNumber"
                 value={form.gstNumber}
                 onChange={handleChange}

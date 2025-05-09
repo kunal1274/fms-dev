@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import PurchaseOrderForm from "./PurchaseOrderForm copy";
+import PurchaseOrderForm from "./PurchaseOrderForm";
 import PurchaseOrderList from "./PurchaseOrderList";
 import PurchaseViewPage from "./PurchaseViewPage";
 import { ToastContainer } from "react-toastify";
@@ -22,7 +22,9 @@ const PurchaseOrderPage = () => {
     active: true,
   };
 
-  const [newPurchaseOrder, setNewPurchaseOrder] = useState(defaultNewPurchaseOrder);
+  const [newPurchaseOrder, setNewPurchaseOrder] = useState(
+    defaultNewPurchaseOrder
+  );
 
   // Fetch PurchaseOrders from the API
   useEffect(() => {
@@ -44,9 +46,13 @@ const PurchaseOrderPage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post("/api/PurchaseOrders", newPurchaseOrder, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await axios.post(
+        "/api/PurchaseOrders",
+        newPurchaseOrder,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       setMessage("PurchaseOrder created successfully!");
       setPurchaseOrders((prev) => [...prev, response.data]);
       setNewPurchaseOrder(defaultNewPurchaseOrder);
@@ -62,18 +68,27 @@ const PurchaseOrderPage = () => {
     try {
       if (PurchaseOrder.id) {
         // Update existing PurchaseOrder
-        const response = await axios.put(`/api/purchaseOrders/${purchaseOrder.id}`, purchaseOrder);
+        const response = await axios.put(
+          `/api/purchaseOrders/${purchaseOrder.id}`,
+          purchaseOrder
+        );
         setPurchaseOrders((prev) =>
           prev.map((existingPurchaseOrder) =>
-            existingPurchaseOrder.id === purchaseOrder.id ? response.data : existingPurchaseOrder
+            existingPurchaseOrder.id === purchaseOrder.id
+              ? response.data
+              : existingPurchaseOrder
           )
         );
         setMessage("PurchaseOrder updated successfully!");
       } else {
         // Create new PurchaseOrder
-        const response = await axios.post("/api/PurchaseOrders", purchaseOrder, {
-          headers: { "Content-Type": "application/json" },
-        });
+        const response = await axios.post(
+          "/api/PurchaseOrders",
+          purchaseOrder,
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
         setPurchaseOrders((prev) => [...prev, response.data]);
         setMessage("PurchaseOrder saved successfully!");
       }
@@ -86,7 +101,9 @@ const PurchaseOrderPage = () => {
   };
 
   const handleViewPurchaseOrder = (purchaseOrderId) => {
-    const purchaseOrder = purchaseOrders.find((purchaseOrder) => purchaseOrder.id === purchaseOrderId);
+    const purchaseOrder = purchaseOrders.find(
+      (purchaseOrder) => purchaseOrder.id === purchaseOrderId
+    );
     if (purchaseOrder) {
       setSelectedPurchaseOrder(purchaseOrder);
       setView("view");
@@ -119,16 +136,16 @@ const PurchaseOrderPage = () => {
     }
   };
   if (loading) {
-    return<div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-    <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
-    <p className="mt-4 text-blue-500 text-lg font-medium">Loading...</p>
-  </div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
+        <p className="mt-4 text-blue-500 text-lg font-medium">Loading...</p>
+      </div>
+    );
   }
   return (
-      <div className="bg-grey-400  min-h-screen">
-      
+    <div className="bg-grey-400  min-h-screen">
       <div className="bg-slate-50 rounded-lg p-4">
-       
         {view === "form" && (
           <PurchaseOrderForm
             selectedPurchaseOrder={selectedPurchaseOrder}
@@ -136,21 +153,20 @@ const PurchaseOrderPage = () => {
             setNewPurchaseOrder={setNewPurchaseOrder}
             createPurchaseOrder={createPurchaseOrder}
             handleSavePurchaseOrder={handleSavePurchaseOrder}
-            handleCancel= {handleCancel}
+            handleCancel={handleCancel}
           />
         )}
 
         {view === "list" && (
           <PurchaseOrderList
-          
             handleAddPurchaseOrder={handleAddPurchaseOrder}
             handleViewPurchaseOrder={handleViewPurchaseOrder}
           />
         )}
 
-{view === "view" && (
+        {view === "view" && (
           <PurchaseViewPage
-          Sale={selectedSale}
+            Sale={selectedSale}
             handleCancel={handleCancel}
             handleAddSale={handleAddSale}
           />

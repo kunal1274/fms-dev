@@ -155,7 +155,7 @@ export default function CustomerForm({ handleCancel }) {
 
     // Validators
     const validators = {
-      bankAccNum: /^[A-Z0-9]{0,15}$/,
+      bankAccNum: /^[0-9]{0,15}$/,
       bankName: /^[A-Z0-9\s]{0,50}$/, // ✅ Now allows spaces and longer names
       panNum: /^[A-Z0-9]{0,10}$/,
       registrationNum: /^[A-Z0-9]{0,15}$/,
@@ -217,7 +217,7 @@ export default function CustomerForm({ handleCancel }) {
     // Set form state
     setForm((prev) => ({ ...prev, [name]: val }));
   };
- 
+
   const createCustomer = async (e) => {
     e.preventDefault();
 

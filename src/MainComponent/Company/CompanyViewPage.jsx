@@ -102,15 +102,15 @@ const CompanyViewPage = ({
     bankType: "",
     bankName: "",
     qrDetails: "",
-    bankAccount: "",
+    bankAccNum: "",
     bankHolder: "",
     ifsc: "",
     swift: "",
     upi: "",
     bankDetails: {
       type: "",
-      bankNum: "",
-      name: "",
+      bankAccNum: "",
+      bankName: "",
       ifsc: "",
       swift: "",
       active: "",
@@ -134,26 +134,55 @@ const CompanyViewPage = ({
   const [companyDetail, setCompanyDetail] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const { id } = useParams(); // Use id from URL if needed
+  const { id } = useParams();
+  // Use id from URL if needed
+
+  const handleBankDetailChange = (i, field, rawValue) => {
+    let val = rawValue;
+    // numeric only
+    if (field === "bankAccNum" && !/^\d{0,15}$/.test(val)) return;
+    // uppercase codes
+    if (["bankName", "ifsc", "swift"].includes(field)) {
+      val = val.toUpperCase();
+      // optional: field-specific regex
+      const partialRx = {
+        bankName: /^[A-Z0-9\s]{0,50}$/,
+        ifsc: /^[A-Z0-9]{0,11}$/, // allow 0 to 11 chars
+        swift: /^[A-Z0-9]{0,11}$/, // allow 0 to 11 chars
+      }[field];
+      if (partialRx && !partialRx.test(val)) return;
+    }
+    setFormData((prev) => {
+      const updated = [...(prev.bankDetails || [])];
+      updated[i] = { ...updated[i], [field]: val };
+      return { ...prev, bankDetails: updated };
+    });
+  };
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let val = type === "checkbox" ? checked : value;
 
-    // ✅ TaxInfo fields
-    const taxFields = ["panNumber", "gstNumber", "tanNumber"];
-    if (taxFields.includes(name)) {
+    //
+    // 1) Tax fields → uppercase, validate, then update nested taxInfo
+    //
+    const taxValidators = {
+      panNumber: /^[A-Z0-9]{0,10}$/,
+      gstNumber: /^[A-Z0-9]{0,15}$/,
+      tanNumber: /^[A-Z0-9]{0,10}$/,
+    };
+    if (taxValidators[name]) {
       val = val.toUpperCase();
+      if (!taxValidators[name].test(val)) return;
       setFormData((prev) => ({
         ...prev,
-        taxInfo: {
-          ...prev.taxInfo,
-          [name]: val,
-        },
+        taxInfo: { ...prev.taxInfo, [name]: val },
       }));
       return;
     }
 
-    // ✅ Phone number: 10 digits only
+    //
+    // 2) Phone numbers → 0–10 digits only
+    //
     if (
       ["contactNum", "contactPersonPhone", "contactNumber"].includes(name) &&
       !/^\d{0,10}$/.test(val)
@@ -161,43 +190,39 @@ const CompanyViewPage = ({
       return;
     }
 
-    // ✅ Email fields – allow valid email format and max 100 chars
+    //
+    // 3) Email → basic format + max 100 chars
+    //
     if (["email", "employeeEmail"].includes(name)) {
       if (val.length > 100) return;
-      if (val.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
-        return; // basic email format validation
-      }
+      if (val && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) return;
     }
 
-    // ✅ Uppercase certain fields
-    if (["panNum", "registrationNum", "ifsc", "swift", "upi"].includes(name)) {
+    //
+    // 4) Always uppercase these codes
+    //
+    if (["ifsc", "swift", "upi"].includes(name)) {
       val = val.toUpperCase();
     }
 
-    // ✅ Name fields — only letters and spaces
-    if (
-      ["name", "employeeName", "bankName", "bankHolder"].includes(name) &&
-      val &&
-      !/^[A-Za-z\s]*$/.test(val)
-    ) {
-      return;
+    //
+    // 5) Name‐style fields → letters & spaces only, capitalize first letter
+    //
+    if (["name", "employeeName", "bankName", "bankHolder"].includes(name)) {
+      if (val && !/^[A-Za-z\s]*$/.test(val)) return;
+      if (val) val = val.charAt(0).toUpperCase() + val.slice(1);
     }
 
-    // ✅ Capitalize first letter for these
-    if (["name", "employeeName", "bankHolder"].includes(name) && val) {
-      val = val.charAt(0).toUpperCase() + val.slice(1);
-    }
-
-    // ✅ Group validation
+    //
+    // 6) Group → letters & spaces only
+    //
     if (name === "group" && val && !/^[A-Za-z\s]*$/.test(val)) {
       return;
     }
-    if (name === "Tannumber" && !/^[A-Z0-9]{0,10}$/.test(val)) return;
-    // ✅ PAN and registration length restriction
-    if (name === "panNum" && !/^[A-Z0-9]{0,10}$/.test(val)) return;
-    if (name === "registrationNum" && !/^[A-Z0-9]{0,15}$/.test(val)) return;
 
-    // ✅ Free-text fields — directly allowed:
+    //
+    // 7) Free‐text areas → bypass all other checks
+    //
     const freeTextFields = [
       "website",
       "primaryGSTAddress",
@@ -206,34 +231,38 @@ const CompanyViewPage = ({
       "remarks",
     ];
     if (freeTextFields.includes(name)) {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: val,
-      }));
+      setFormData((prev) => ({ ...prev, [name]: val }));
       return;
     }
 
-    // ✅ Default case
+    //
+    // 9) Bank field validators → enforce your specific patterns
+    //
+    const bankValidators = {
+      bankAccNum: /^[0-9]{0,15}$/,
+      bankName: /^[A-Z0-9\s]{0,50}$/,
+      ifsc: /^[A-Z0-9]{0,12}$/,
+      swift: /^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{10}$/,
+    };
+    if (bankValidators[name]) {
+      // uppercase everything for consistency
+      val = val.toUpperCase();
+      // if it doesn’t match, ignore
+      if (!bankValidators[name].test(val)) return;
+      // commit to top‐level if you’re storing these at root
+      setFormData((prev) => ({ ...prev, [name]: val }));
+      return;
+    }
+
+    //
+    // 8) Default case → catch‐all
+    //
     setFormData((prev) => ({
       ...prev,
       [name]: val,
     }));
   };
-  const handleBankDetailChange = (index, field, value) => {
-    setFormData((prevData) => {
-      const updatedBankDetails = [...(prevData.bankDetails || [])];
-      if (updatedBankDetails[index]) {
-        updatedBankDetails[index] = {
-          ...updatedBankDetails[index],
-          [field]: value,
-        };
-      }
-      return {
-        ...prevData,
-        bankDetails: updatedBankDetails,
-      };
-    });
-  };
+
   const handleUpdate = async () => {
     if (window.confirm("Are you sure you want to update this company?")) {
       setLoading(true);
@@ -365,466 +394,6 @@ const CompanyViewPage = ({
     setIsEditing(true);
   };
 
-  if (loading) {
-    return (
-      <div className="">
-        <ToastContainer />
-        {/* Header Buttons */}
-        <div className="flex justify-between ">
-          <div className="flex items-center space-x-2">
-            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-              {" "}
-              <button
-                type="button"
-                className="text-blue-600 mt-2 text-sm hover:underline"
-              >
-                Upload Photo
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-gray-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
-                  />
-                </svg>{" "}
-              </button>
-            </div>
-            <h3 className="text-xl font-semibold">Company View Page</h3>
-          </div>
-        </div>
-
-        <form className="bg-white shadow-none rounded-lg divide-y divide-gray-200">
-          {/* Business Details */}
-          <section className="p-6">
-            <h2 className="text-lg font-medium text-gray-700 mb-4">
-              Business Details
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Company Code
-                </label>
-                <input
-                  name="Companycode"
-                  value={formData.companyCode}
-                  readOnly
-                  placeholder="Auto-generated"
-                  className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Company Name
-                </label>
-                <input
-                  type="text"
-                  name="companyName "
-                  value={formData.companyName || ""}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Global Party id
-                </label>
-                <input
-                  name="globalPartyId"
-                  value={
-                    (formData.globalPartyId && formData.globalPartyId.code) ||
-                    "Not Available"
-                  }
-                  onChange={handleChange}
-                  placeholder="Auto-generated"
-                  readOnly
-                  className="mt-1 cursor-not-allowed w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>{" "}
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Business Type
-                </label>
-                <select
-                  name="businessType"
-                  value={formData.businessType || ""} // ✅ Correct binding
-                  onChange={handleChange}
-                  required
-                  disabled={!isEditing}
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                >
-                  {businessTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>{" "}
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Company Website
-                </label>
-                <input
-                  name="website"
-                  type="email"
-                  value={formData.website || ""}
-                  onChange={handleChange}
-                  placeholder="e.g. Retail, Wholesale"
-                  disabled
-                  className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>{" "}
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Company Contact No
-                </label>
-                <input
-                  type="text"
-                  name="contactNumber"
-                  value={formData.contactNumber || ""}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>{" "}
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Company Email ID
-                </label>
-                <input
-                  name="email"
-                  type="email"
-                  value={formData.email || ""}
-                  onChange={handleChange}
-                  placeholder="e.g. info@xyzenterprises.com"
-                  required
-                  disabled={!isEditing}
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>{" "}
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Currency
-                </label>
-                <select
-                  name="currency"
-                  value={formData.currency}
-                  disabled={!isEditing}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                >
-                  <option value="">Select type</option>
-                  {currency.map((type) => (
-                    <option key={type.trim()} value={type.trim()}>
-                      {type.trim()}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>{" "}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Address
-                </label>
-                <textarea
-                  name="primaryGSTAddress"
-                  value={formData.primaryGSTAddress || ""}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  rows="4"
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>{" "}
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Remarks
-                </label>
-                <textarea
-                  name="remarks"
-                  value={formData.remarks}
-                  onChange={handleChange}
-                  placeholder="Any additional notes…"
-                  rows={4}
-                  disabled={!isEditing}
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              <div className="space-y-4">
-                <div className="flex gap-3 ml-1">
-                  <label className="block h-5  mt-1  font-large text-blue-600">
-                    Active
-                  </label>
-                  <input
-                    name="active"
-                    checked={formData.active}
-                    disabled={!isEditing}
-                    onChange={handleChange}
-                    type="checkbox"
-                    className=" w-4 h-4 mt-2 gap-2"
-                  />
-                </div>
-              </div>{" "}
-            </div>
-          </section>
-
-          {/* Bank Details */}
-          <section className="p-6">
-            <h2 className="text-lg font-medium text-gray-700 mb-4">
-              Bank Details
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-              {formData.bankDetails?.length > 0 &&
-                formData.bankDetails.map((b, i) => (
-                  <div key={i}>
-                    {/* … other fields … */}
-
-                    {/* Account Holder Name */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600">
-                        Bank Type
-                      </label>
-                      <select
-                        name="bankType"
-                        value={formData.bankType || ""}
-                        onChange={handleChange}
-                        disabled={!isEditing}
-                        required
-                        className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                      >
-                        {bankTypes.map((type) => (
-                          <option key={type.trim()} value={type.trim()}>
-                            {type.trim() === "BankAndUpi"
-                              ? "Bank And UPI"
-                              : type.trim()}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                ))}
-              {formData.bankDetails?.length > 0 &&
-                formData.bankDetails.map((b, i) => (
-                  <div key={i}>
-                    {/* … other fields … */}
-
-                    {/* Account Holder Name */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600">
-                        Bank Name
-                      </label>
-                      <input
-                        name="name"
-                        value={b.name || ""}
-                        onChange={(e) =>
-                          handleBankDetailChange(i, "name", e.target.value)
-                        }
-                        disabled={!isEditing}
-                        placeholder="e.g. 1234567890"
-                        className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                      />
-                    </div>
-                  </div>
-                ))}
-              {formData.bankDetails?.length > 0 &&
-                formData.bankDetails.map((b, i) => (
-                  <div>
-                    {/* … other inputs … */}
-
-                    {/* IFSC */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600">
-                        Bank Account
-                      </label>
-                      <input
-                        name="bankNum"
-                        value={b.bankNum || ""}
-                        onChange={(e) =>
-                          handleBankDetailChange(i, "bankNum", e.target.value)
-                        }
-                        placeholder="e.g. SBIN0001234"
-                        disabled={!isEditing}
-                        className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                      />
-                    </div>
-                  </div>
-                ))}
-              {formData.bankDetails?.length > 0 &&
-                formData.bankDetails.map((b, i) => (
-                  <div>
-                    {/* … other inputs … */}
-
-                    {/* IFSC */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600">
-                        Account Holder Name
-                      </label>
-                      <input
-                        name="name "
-                        onChange={(e) =>
-                          handleBankDetailChange(i, "name", e.target.value)
-                        }
-                        placeholder="e.g. SBIN0001234"
-                        disabled={!isEditing}
-                        className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                      />
-                    </div>
-                  </div>
-                ))}
-              {formData.bankDetails?.length > 0 &&
-                formData.bankDetails.map((b, i) => (
-                  <div>
-                    {/* … other inputs … */}
-
-                    {/* IFSC */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600">
-                        IFSC
-                      </label>
-                      <input
-                        name="ifsc"
-                        value={b.ifsc || ""}
-                        onChange={(e) =>
-                          handleBankDetailChange(i, "ifsc", e.target.value)
-                        }
-                        placeholder="e.g. SBIN0001234"
-                        disabled={!isEditing}
-                        className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                      />
-                    </div>
-                  </div>
-                ))}
-              {formData.bankDetails?.length > 0 &&
-                formData.bankDetails.map((b, i) => (
-                  <div>
-                    {/* … other inputs … */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600">
-                        Swift
-                      </label>
-                      <input
-                        name="swift"
-                        value={b.swift || ""}
-                        onChange={(e) =>
-                          handleBankDetailChange(i, "swift", e.target.value)
-                        }
-                        placeholder="e.g. SBININBBXXX"
-                        disabled={!isEditing}
-                        className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                      />
-                    </div>
-                  </div>
-                ))}
-              {formData.bankDetails?.length > 0 &&
-                formData.bankDetails.map((b, i) => (
-                  <div>
-                    {/* … other fields … */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600">
-                        UPI ID
-                      </label>
-                      <input
-                        name="upi"
-                        value={
-                          b.qrDetails && b.qrDetails.trim() !== ""
-                            ? b.qrDetails
-                            : " "
-                        }
-                        onChange={(e) =>
-                          handleBankDetailChange(i, "upi", e.target.value)
-                        }
-                        disabled={!isEditing}
-                        placeholder="e.g. abc@hdfcbank"
-                        className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                      />
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </section>
-
-          {/* Tax Information */}
-
-          <section className="p-6">
-            <h2 className="text-lg font-medium text-gray-700 mb-4">
-              {/* Tax Infromation */}
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  PAN No
-                </label>
-                <input
-                  type="text"
-                  name="panNum"
-                  value={formData.panNum || ""}
-                  onChange={handleChange}
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                  disabled={!isEditing}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Registration No
-                </label>
-                <input
-                  type="text"
-                  name="registrationNum"
-                  value={formData.registrationNum || ""}
-                  onChange={(e) => {
-                    const value = e.target.value.toUpperCase(); // Convert to uppercase
-                    if (value.length <= 16) {
-                      // Correctly update the formData state
-                      setFormData({ ...formData, registrationNum: value }); // Ensure the correct key is being updated
-                    }
-                  }}
-                  disabled={!isEditing}
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>
-            </div>
-
-            {/*  */}
-          </section>
-          {/* Action Buttons */}
-          <div className="py-6 flex justify-end gap-4">
-            {" "}
-            <button
-              type="button"
-              onClick={handleEdit}
-              className="px-6 py-2 bg-green-200 rounded hover:bg-gray-300 transition"
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              onClick={goBack}
-              className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
-            >
-              Go Back
-            </button>
-            <button
-              onClick={handleUpdate}
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-            >
-              Update
-            </button>
-          </div>
-        </form>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6 ">
       <ToastContainer />
@@ -883,7 +452,7 @@ const CompanyViewPage = ({
               </label>
               <input
                 type="text"
-                name="companyName "
+                name="companyName"
                 value={formData.companyName || ""}
                 onChange={handleChange}
                 disabled={!isEditing}
@@ -1190,7 +759,7 @@ const CompanyViewPage = ({
                       UPI ID
                     </label>
                     <input
-                      name="upi"
+                      name="qrDetails"
                       value={b.qrDetails || ""}
                       onChange={(e) =>
                         handleBankDetailChange(i, "qrDetails", e.target.value)

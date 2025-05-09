@@ -944,6 +944,7 @@ const VendorViewPage = ({
                 type="text"
                 name="tanNumber"
                 value={formData.tanNumber || ""}
+                maxLength={10}
                 onChange={handleChange}
                 disabled={!isEditing}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"

@@ -531,6 +531,17 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                         className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300  bg-gray-100 cursor-not-allowed"
                         readOnly
                       />
+                    </div>    <div className="flex flex-col">
+                      <label className="font-semibold text-gray-700">
+                        Contact Email
+                      </label>
+                      <input
+                        type="text"
+                        value={selectedVendorDetails.email}
+                        placeholder="Contact Number"
+                        className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300  bg-gray-100 cursor-not-allowed"
+                        readOnly
+                      />
                     </div>
                   </>
                 )}
