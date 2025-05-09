@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 
 import ItemviewPage from "./ItemViewPage";
 import List from "./List";
+import ItemForm from "./ItemForm";
 
 const Inventry = () => {
       const [view, setView] = useState("list");
