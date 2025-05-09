@@ -1,4 +1,6 @@
-import React from 'react'
+import React, { useState, useEffect, useCallback } from "react";
+import ItemList from "./ItemList";
+import ItemviewPage from "./ItemViewPage";
 
 const Inventry = () => {
       const [view, setView] = useState("list");
@@ -95,7 +97,7 @@ const Inventry = () => {
           />
         )}
         {view === "details" && selectedItem && (
-          <ItemViewPage
+          <ItemviewPage
             item={selectedItemz}
             onEdit={() => setView("form")}
             onBack={handleCancel}
