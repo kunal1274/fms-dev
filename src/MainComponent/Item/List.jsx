@@ -9,8 +9,8 @@ import { Tabs } from "flowbite-react";
 import "./c.css";
 import ItemViewPage from "./ItemViewPage";
 
-export default function ItemList({ handleAddItem, onView }) {
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
+const List = () => {
+     const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const metricsUrl = `${baseUrl}/metrics`;
 
   const tabNames = [
@@ -317,7 +317,7 @@ export default function ItemList({ handleAddItem, onView }) {
   // ─── Render ─────────────────────────────────────────────────────
 
   return (
-    <div>
+      <div>
       <ToastContainer />
       <div>
         <div>
@@ -612,5 +612,7 @@ export default function ItemList({ handleAddItem, onView }) {
         </div>
       </div>
     </div>
-  );
+  )
 }
+
+export default List

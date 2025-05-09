@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
-import ItemList from "./ItemList";
+
 import ItemviewPage from "./ItemViewPage";
+import List from "./List";
 
 const Inventry = () => {
       const [view, setView] = useState("list");
@@ -81,7 +82,7 @@ const Inventry = () => {
      <div className="w-full bg-white rounded-lg ">
       <div>
         {view === "list" && (
-          <ItemList
+          <List
             items={items}
             handleAddItem={handleAddItem}
             onView={handleViewItem}
