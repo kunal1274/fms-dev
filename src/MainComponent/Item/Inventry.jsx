@@ -1,11 +1,7 @@
-import React, { useState } from "react";
-import ItemViewPage from "./ItemViewPage";
-import { Button } from "../../Component/Button/Button";
-import ItemList from "./ItemList";
-import ItemForm from "./ItemForm";
+import React from 'react'
 
-const ItemPage = () => {
-  const [view, setView] = useState("list");
+const Inventry = () => {
+      const [view, setView] = useState("list");
   const [items, setItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -80,7 +76,7 @@ const ItemPage = () => {
   };
 
   return (
-    <div className="w-full bg-white rounded-lg ">
+     <div className="w-full bg-white rounded-lg ">
       <div>
         {view === "list" && (
           <ItemList
@@ -107,7 +103,7 @@ const ItemPage = () => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ItemPage;
+export default Inventry
