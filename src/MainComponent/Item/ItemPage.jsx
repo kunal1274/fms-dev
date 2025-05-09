@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ItemViewPage from "./ItemViewPage";
 import { Button } from "../../Component/Button/Button";
-import ItemList from "./ItemList";
+import ItemList1 from "./ItemList";
 import ItemForm from "./ItemForm";
 
 const ItemPage = () => {
@@ -82,7 +82,7 @@ const ItemPage = () => {
     <div className="w-full bg-white rounded-lg ">
       <div>
         {view === "list" && (
-          <ItemList
+          <ItemList1
             items={items}
             handleAddItem={handleAddItem}
             onView={handleViewItem}

@@ -9,7 +9,7 @@ import { Tabs } from "flowbite-react";
 import "./c.css";
 import ItemViewPage from "./ItemViewPage";
 
-export default function ItemList({ handleAddItem, onView }) {
+export default function ItemList1({ handleAddItem, onView }) {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const metricsUrl = `${baseUrl}/metrics`;
 
