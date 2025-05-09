@@ -25,13 +25,13 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
           {" "}
           <VendorPage onAddNew={onAddNew} onView={onView} />
         </div>
-      )}{" "}
+      )}
       {selectedMenu === "SalePage" && (
         <div className="text-gray-700">
-          {" "}
+          
           <SalePage onAddNew={onAddNew} onView={onView} />
         </div>
-      )}{" "}
+      )}
       {selectedMenu === "PurchasePage" && (
         <div className="text-gray-700">
           {" "}
