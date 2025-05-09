@@ -3,8 +3,7 @@ import CustomerList from "../../MainComponent/Customer/CustomerPage";
 import CompanyPage from "../../MainComponent/Company/CompanyPage";
 // import CompanyPage from "../Company/CompanyrPage";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
-import SaleOrderPage from "../../MainComponent/Sale/SaleOrderPage";
-import PurchaseOrderPage from "../../MainComponent/Purchase/PurchaseOrderPage copy";
+
 import ItemPage from "../../MainComponent/Item/Inventry";
 
 export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
@@ -32,14 +31,8 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
           <ItemPage onAddNew={onAddNew} onView={onView} />
         </div>
       )}
-      {selectedMenu === "Sale" && (
-        <div className="text-gray-700">
-          <SaleOrderPage onAddNew={onAddNew} onView={onView} />
-        </div>
-      )}
-      {selectedMenu === "Purchase" && (
-        <PurchaseOrderPage onAddNew={onAddNew} onView={onView} />
-      )}
+    
+   
     </main>
   );
 }
