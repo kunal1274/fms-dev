@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import SaleOrderForm from "./SaleorderForm";
-import SaleOrderList from "./SaleOrderListPagee";
+
+
 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import SaleOrderForm from "./SaleorderForm";
+import SaleOrderListPage from "./SaleOrderListPage";
+
 
 const SaleOrderPage = () => {
   const [view, setView] = useState("list");
@@ -149,7 +152,7 @@ const SaleOrderPage = () => {
         )}
 
         {view === "list" && (
-          <SaleOrderList
+          <SaleOrderListPage
             handleAddSaleOrder={handleAddSaleOrder}
             handleViewSaleOrder={handleViewSaleOrder}
           />

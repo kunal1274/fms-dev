@@ -224,10 +224,10 @@ const PaymentHistoryModal = ({ onClose, payments }) => {
   );
 };
 
-const SaleorderViewPage = ({ goBack, saleId }) => {
+const SaleOrderViewPage = ({ goBack, saleId }) => {
   // const navigate = useNavigate();
   // const location = useLocation();
- const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   const [statusToChange, setStatusToChange] = useState("");
 
   // helpers to open/close the modal
@@ -611,16 +611,18 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
       "AdminMode",
     ],
   };
- {showStatusModal && (
-        <StatusChangeModal
-          saleData={saleData}
-          selectedItem={selectedItem}
-          quantity={quantity}
-          status={statusToChange}
-          onClose={closeStatusModal}
-          onConfirm={confirmStatusChange}
-        />
-      )}
+  {
+    showStatusModal && (
+      <StatusChangeModal
+        saleData={saleData}
+        selectedItem={selectedItem}
+        quantity={quantity}
+        status={statusToChange}
+        onClose={closeStatusModal}
+        onConfirm={confirmStatusChange}
+      />
+    );
+  }
   const isButtonEnabled = (button) => {
     return enabledButtons[saleData?.status]?.includes(button) ?? false;
   };
@@ -1287,4 +1289,4 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
   );
 };
 
-export default SaleorderViewPage;
+export default SaleOrderViewPage;

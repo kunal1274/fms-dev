@@ -4,7 +4,7 @@ import Invoice from "./Invoice/Icopy";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate, useLocation } from "react-router-dom";
-import SaleorderViewPage from "./SaleorderViewPage";
+import SaleorderViewPage from "./SaleOrderViewPage";
 
 // API endpoints
 const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
