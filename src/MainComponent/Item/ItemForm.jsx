@@ -398,7 +398,7 @@ export default function ItemForm({ handleCancel, onSaved }) {
           </section>
         )}
 
-        {/* Product Tab */}
+        {/* Product yTab */}
         {activeTab === "Product" && (
           <section className="p-6">
             <h2 className="text-lg font-medium text-gray-700 mb-4">
