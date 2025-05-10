@@ -4,7 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function ItemForm({ handleCancel, onSaved }) {
-  const tabNames = ["General", "Dimension", "Product"];
+  const tabNames = ["General", "Dimension"];
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
   const [form, setForm] = useState({
@@ -329,108 +329,182 @@ export default function ItemForm({ handleCancel, onSaved }) {
 
         {/* Dimension Tab */}
         {activeTab === "Dimension" && (
-          <section className="p-6">
-            <h2 className="text-lg font-medium text-gray-700 mb-4">
-              Dimension Details
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Size
-                </label>
-                <input
-                  name="size"
-                  value={form.size}
-                  onChange={handleChange}
-                  placeholder="e.g. 100x200"
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
+          <div>
+            <section className="p-6">
+              <h2 className="text-lg font-medium text-gray-700 mb-4">
+                Storage Dimension
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Size
+                  </label>
+                  <input
+                    name="size"
+                    value={form.size}
+                    onChange={handleChange}
+                    placeholder="e.g. 100x200"
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Warehouse
+                  </label>
+                  <input
+                    name="site"
+                    value={form.site}
+                    onChange={handleChange}
+                    placeholder="e.g. New Delhi"
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Site
-                </label>
-                <input
-                  name="site"
-                  value={form.site}
-                  onChange={handleChange}
-                  placeholder="e.g. New Delhi"
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
+            </section>
+            <section className="p-6">
+              <h2 className="text-lg font-medium text-gray-700 mb-4">
+                Product Dimension
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Configuration
+                  </label>
+                  <input
+                    name="configuration"
+                    value={form.configuration}
+                    onChange={handleChange}
+                    placeholder="e.g. Model X"
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>{" "}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Version
+                  </label>
+                  <input
+                    name="colour"
+                    value={form.colour}
+                    onChange={handleChange}
+                    placeholder="e.g. Red"
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Size
+                  </label>
+                  <input
+                    name="colour"
+                    value={form.colour}
+                    onChange={handleChange}
+                    placeholder="e.g. Red"
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>{" "}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Colour
+                  </label>
+                  <input
+                    name="colour"
+                    value={form.colour}
+                    onChange={handleChange}
+                    placeholder="e.g. Red"
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Batch
-                </label>
-                <input
-                  name="batch"
-                  value={form.batch}
-                  onChange={handleChange}
-                  placeholder="e.g. BATCH123"
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
+            </section>
+            <section className="p-6">
+              <h2 className="text-lg font-medium text-gray-700 mb-4">
+                Tracking Dimension
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Batch
+                  </label>
+                  <input
+                    name="configuration"
+                    value={form.configuration}
+                    onChange={handleChange}
+                    placeholder="e.g. Model X"
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>{" "}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Serial
+                  </label>
+                  <input
+                    name="colour"
+                    value={form.colour}
+                    onChange={handleChange}
+                    placeholder="e.g. Red"
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>{" "}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Manufacturing
+                  </label>
+                  <input
+                    name="expiryDate"
+                    type="date"
+                    value={form.expiryDate}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>{" "}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Expiry Date
+                  </label>
+                  <input
+                    name="expiryDate"
+                    type="date"
+                    value={form.expiryDate}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>{" "}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    value={form.expiryDate}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Cart
+                  </label>
+                  <input
+                    type="text"
+                    value={form.expiryDate}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Bin
+                  </label>
+                  <input
+                    type="text"
+                    value={form.expiryDate}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Serial
-                </label>
-                <input
-                  name="serial"
-                  value={form.serial}
-                  onChange={handleChange}
-                  placeholder="e.g. SN-0001"
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Expiry Date
-                </label>
-                <input
-                  name="expiryDate"
-                  type="date"
-                  value={form.expiryDate}
-                  onChange={handleChange}
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Product yTab */}
-        {activeTab === "Product" && (
-          <section className="p-6">
-            <h2 className="text-lg font-medium text-gray-700 mb-4">
-              Product Details
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Configuration
-                </label>
-                <input
-                  name="configuration"
-                  value={form.configuration}
-                  onChange={handleChange}
-                  placeholder="e.g. Model X"
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Colour
-                </label>
-                <input
-                  name="colour"
-                  value={form.colour}
-                  onChange={handleChange}
-                  placeholder="e.g. Red"
-                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>
-            </div>
-          </section>
+            </section>
+          </div>
         )}
 
         {/* Action Buttons */}
