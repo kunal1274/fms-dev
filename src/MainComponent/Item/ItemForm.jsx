@@ -289,7 +289,7 @@ export default function ItemForm({ handleCancel, onSaved }) {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600">
-                  Hierarchical Category
+                  Item Hierarchical Category
                 </label>
                 <input
                   type="text"
@@ -297,6 +297,20 @@ export default function ItemForm({ handleCancel, onSaved }) {
                   value={form.hierarchicalCategory}
                   onChange={handleChange}
                   placeholder="e.g. Category Name"
+                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                />
+              </div>{" "}
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  External Code
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="e.g. Item Name"
+                  required
                   className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                 />
               </div>
@@ -337,7 +351,7 @@ export default function ItemForm({ handleCancel, onSaved }) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Size
+                    Site
                   </label>
                   <input
                     name="size"
@@ -366,21 +380,10 @@ export default function ItemForm({ handleCancel, onSaved }) {
                 Product Dimension
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {" "}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Configuration
-                  </label>
-                  <input
-                    name="configuration"
-                    value={form.configuration}
-                    onChange={handleChange}
-                    placeholder="e.g. Model X"
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>{" "}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Version
+                    Colour
                   </label>
                   <input
                     name="colour"
@@ -389,7 +392,7 @@ export default function ItemForm({ handleCancel, onSaved }) {
                     placeholder="e.g. Red"
                     className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                   />
-                </div>
+                </div>{" "}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Size
@@ -404,7 +407,19 @@ export default function ItemForm({ handleCancel, onSaved }) {
                 </div>{" "}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Colour
+                    Configuration
+                  </label>
+                  <input
+                    name="configuration"
+                    value={form.configuration}
+                    onChange={handleChange}
+                    placeholder="e.g. Model X"
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>{" "}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Version/Style
                   </label>
                   <input
                     name="colour"
@@ -447,7 +462,7 @@ export default function ItemForm({ handleCancel, onSaved }) {
                 </div>{" "}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Manufacturing
+                    Manufacturing Date
                   </label>
                   <input
                     name="expiryDate"
@@ -475,29 +490,46 @@ export default function ItemForm({ handleCancel, onSaved }) {
                   </label>
                   <input
                     type="text"
-                    value={form.expiryDate}
                     onChange={handleChange}
                     className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Cart
+                    Rack / Aisle
                   </label>
                   <input
                     type="text"
-                    value={form.expiryDate}
                     onChange={handleChange}
                     className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                   />
-                </div>
+                </div>{" "}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Shelf
+                  </label>
+                  <input
+                    type="text"
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>{" "}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Bin
                   </label>
                   <input
                     type="text"
-                    value={form.expiryDate}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>{" "}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Cart/Pallet
+                  </label>
+                  <input
+                    type="text"
                     onChange={handleChange}
                     className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                   />
