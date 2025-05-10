@@ -234,7 +234,7 @@ const ItemviewPage = ({ item, itemId, goBack, handleSaveItem, toggleView }) => {
               </svg>{" "}
             </button>
           </div>
-          <h3 className="text-xl font-semibold">Customer View Page</h3>
+          <h3 className="text-xl font-semibold">Items View Page</h3>
         </div>
       </div>
 
@@ -260,8 +260,7 @@ const ItemviewPage = ({ item, itemId, goBack, handleSaveItem, toggleView }) => {
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Item Name
-              </label>
-              {" "}
+              </label>{" "}
               <input
                 type="text"
                 name="name"
