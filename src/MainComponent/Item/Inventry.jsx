@@ -2,10 +2,10 @@ import React, { useState, useEffect, useCallback } from "react";
 
 import ItemviewPage from "./ItemViewPage";
 import List from "./List";
-import ItemForm from "./ItemForm";
+import ItemForm from "./ItemFor";
 
 const Inventry = () => {
-      const [view, setView] = useState("list");
+  const [view, setView] = useState("list");
   const [items, setItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -19,7 +19,7 @@ const Inventry = () => {
         updated[idx] = item;
         return updated;
       }
-      
+
       return [...prev, item];
     });
     setView("list");
@@ -80,7 +80,7 @@ const Inventry = () => {
   };
 
   return (
-     <div className="w-full bg-white rounded-lg ">
+    <div className="w-full bg-white rounded-lg ">
       <div>
         {view === "list" && (
           <List
@@ -107,7 +107,7 @@ const Inventry = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Inventry
+export default Inventry;

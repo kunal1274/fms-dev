@@ -1,218 +1,157 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
-import { useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 
-const baseUrl = "https://fms-qkmw.onrender.com";
-const secondUrl = "/fms/api/v0";
-const thirdUrl = "/items";
-const mergedUrl = `${baseUrl}${secondUrl}${thirdUrl}`;
+const currency = ["INR", "USD", "EUR", "GBP"];
 
-const ItemviewPage = ({ item, itemId, goBack, handleSaveItem, toggleView }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isEdited, setIsEdited] = useState(false);
-  const [formData, setFormData] = useState({});
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(true);
+const initialForm = {
+  itemCode: "",
+  name: "",
+  globalPartyId: "",
+  type: "",
+  price: "",
+  unit: "",
+  financialGroup: "",
+  hierarchicalCategory: "",
+  externalCode: "",
+  description: "",
+  active: true,
+  // Storage Dimension
+  site: "",
+  warehouse: "",
+  zone: "",
+  location: "",
+  rackAisle: "",
+  rack: "",
+  shelf: "",
+  bin: "",
+  pallet: "",
+  // Product Dimension
+  colour: "",
+  size: "",
+  configuration: "",
+  style: "",
+  version: "",
+  // Tracking Dimension
+  batch: "",
+  serial: "",
+  manufacturingDate: "",
+  expiryDate: "",
+};
 
-  // --- validation rules ---
-  const rules = {
-    name: {
-      regex: /^[A-Z][A-Za-z0-9 ]*$/,
-      message:
-        "Must start with uppercase letter; may contain letters, numbers, spaces.",
-    },
-    itemNum: {
-      regex: /^[A-Z0-9]+$/,
-      message: "Only uppercase letters and digits are allowed.",
-    },
-    price: {
-      regex: /^\d+(\.\d{1,2})?$/,
-      message: "Must be a number (optionally with up to two decimals).",
-    },
-  };
+export default function ItemForm({ handleCancel, onSaved }) {
+  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/items";
 
-  const validateField = (field, value) => {
-    const rule = rules[field];
-    if (!rule) return null;
-    if (!rule.regex.test(value ?? "")) return rule.message;
-    return null;
-  };
+  const [items, setItems] = useState([]);
+  const [form, setForm] = useState(initialForm);
 
-  const [error, setError] = useState(null);
-  const [itemDetail, setItemDetail] = useState(null);
-
-  const [view, setView] = useState("list");
-  const { id } = useParams(); // Use id from URL if needed
-  const [file, setFile] = useState(null);
-
-  const [isUploaded, setIsUploaded] = useState(false);
-  const [files, setFiles] = useState([]);
-  const [uploadProgress, setUploadProgress] = useState({});
-  const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [completedFiles, setCompletedFiles] = useState([]);
-
+  // Fetch existing items and set next item code
   useEffect(() => {
-    async function fetchitemDetail() {
+    const fetchItems = async () => {
       try {
-        const response = await axios.get(
-          `https://fms-qkmw.onrender.com/fms/api/v0/items/${itemId}`
-        );
-        if (response.status === 200) {
-          console.log("itemview page line 39", response.data.data);
-          setItemDetail(response.data.data);
-          // console.log("line 41",itemDetail)
-          setFormData(response.data.data); // Sync form data
-          // console.log("line 43",formData)
-        } else {
-          setError(`Unexpected response status: ${response.status}`);
-        }
-      } catch (error) {
-        console.error("Error fetching item details", error);
-        const errorMessage =
-          error.response?.data?.message ||
-          "An unexpected error occurred. Please try again.";
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchitemDetail();
-  }, [itemId, id]);
-
-  const handleUpdate = async () => {
-    if (window.confirm("Are you sure you want to update this item?")) {
-      setLoading(true);
-      toast.success("item updated successfully!");
-      console.log("item update");
-      try {
-        const response = await axios.put(`${mergedUrl}/${itemId}`, formData, {
-          withCredentials: false,
-        });
-
-        setItemDetail(response.data); // Update item details with response
-        setIsEditing(false); // Exit edit mode
+        const res = await axios.get(apiBase);
+        const list = res.data.data || [];
+        setItems(list);
+        const next = generateItemCode(list);
+        setForm((prev) => ({ ...prev, itemCode: next }));
       } catch (err) {
-        const errorMessage =
-          err.response?.data?.message || "An unexpected error occurred.";
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching items:", err);
       }
-    }
+    };
+    fetchItems();
+  }, []);
 
-    toggleView();
+  const generateItemCode = (list) => {
+    if (!list.length) return "ITEM_0001";
+    const nums = list
+      .map((i) => {
+        const parts = i.itemCode?.split("_");
+        return parts.length > 1 ? parseInt(parts[1], 10) : NaN;
+      })
+      .filter((n) => !isNaN(n));
+    const max = nums.length ? Math.max(...nums) : 0;
+    return `ITEM_${String(max + 1).padStart(4, "0")}`;
   };
 
-  const handleEdit = () => {
-    setIsEdited(true);
-    setIsEditing(true);
-  };
   const handleChange = (e) => {
-    let { name, value, type, checked } = e.target;
-    let val = type === "checkbox" ? checked : value;
-
-    // Format the value based on field name
-    if (name === "name") {
-      val = val.length > 0 ? val.charAt(0).toUpperCase() + val.slice(1) : val;
-    }
-
-    if (name === "itemNum") {
-      val = val.toUpperCase().replace(/[^A-Z0-9]/g, "");
-    }
-
-    // Update form data
-    setFormData((prev) => ({ ...prev, [name]: val }));
-
-    // Validate the updated field
-    const errorMsg = validateField(name, val);
-    setErrors((prev) => ({ ...prev, [name]: errorMsg }));
-  };
-  const handleSave = () => {
-    handleSaveItem(formData); // Save item data
-    setIsEditing(false); // Exit edit mode
-
-    // Save logic here
-    console.log("Data saved!");
-    setIsEdited(false); // Reset state after saving
-  };
-  const back = () => {
-    if (toggleView) {
-      console.log("toggle function working");
-      toggleView(); // Execute the toggleView function
-      setView("form");
-    } else {
-      console.log("error in running function");
-    }
-  };
-  const handleFileChange = (event) => {
-    const selectedFile = event.target.files[0];
-    if (selectedFile) {
-      setFiles((prev) => [...prev, selectedFile]);
-      setUploadProgress((prev) => ({ ...prev, [selectedFile.name]: 0 }));
-    }
+    const { name, value, type, checked } = e.target;
+    const val = type === "checkbox" ? checked : value;
+    setForm((prev) => ({ ...prev, [name]: val }));
   };
 
-  const handleUpload = () => {
-    if (files.length === 0) return;
+  const handleReset = () => {
+    const next = generateItemCode(items);
+    setForm({ ...initialForm, itemCode: next });
+  };
 
-    const fileToUpload = files.find(
-      (file) =>
-        !(uploadedFiles.includes(file) || completedFiles.includes(file.name))
-    );
+  const createItem = async (e) => {
+    e.preventDefault();
 
-    if (fileToUpload) {
-      // Simulate file upload progress
-      const interval = setInterval(() => {
-        setUploadProgress((prev) => {
-          const progress = prev[fileToUpload.name] || 0;
-          if (progress >= 100) {
-            clearInterval(interval);
-            setUploadedFiles((prevUploaded) => [...prevUploaded, fileToUpload]);
+    const payload = {
+      itemCode: form.itemCode,
+      name: form.name,
+      globalPartyId: form.globalPartyId,
+      type: form.type,
+      price: form.price,
+      unit: form.unit,
+      financialGroup: form.financialGroup,
+      hierarchicalCategory: form.hierarchicalCategory,
+      externalCode: form.externalCode,
+      description: form.description,
+      active: form.active,
+      storageDimension: {
+        site: form.site,
+        warehouse: form.warehouse,
+        zone: form.zone,
+        location: form.location,
+        rackAisle: form.rackAisle,
+        rack: form.rack,
+        shelf: form.shelf,
+        bin: form.bin,
+        pallet: form.pallet,
+      },
+      productDimension: {
+        colour: form.colour,
+        size: form.size,
+        configuration: form.configuration,
+        style: form.style,
+        version: form.version,
+      },
+      trackingDimension: {
+        batch: form.batch,
+        serial: form.serial,
+        manufacturingDate: form.manufacturingDate,
+        expiryDate: form.expiryDate,
+      },
+    };
 
-            // Hide loader after 3 seconds
-            setTimeout(() => {
-              setCompletedFiles((prev) => [...prev, fileToUpload.name]);
-            }, 3000);
-
-            return { ...prev, [fileToUpload.name]: 100 };
-          }
-          return { ...prev, [fileToUpload.name]: progress + 10 };
-        });
-      }, 200); // Simulate progress increment every 200ms
+    try {
+      const res = await axios.post(apiBase, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
+      const newItem = res.data.data;
+      toast.success("Item saved", {
+        autoClose: 1200,
+        onClose: () => handleCancel(),
+      });
+      setItems((prev) => [...prev, newItem]);
+      onSaved?.(newItem);
+    } catch (err) {
+      console.error("Error creating item:", err.response || err);
+      toast.error(err.response?.data?.message || "Couldn’t save item", {
+        autoClose: 2000,
+      });
     }
   };
 
-  const handleDelete = (fileName) => {
-    setFiles((prev) => prev.filter((file) => file.name !== fileName));
-    setUploadProgress((prev) => {
-      const { [fileName]: _, ...remaining } = prev;
-      return remaining;
-    });
-    setUploadedFiles((prev) => prev.filter((file) => file.name !== fileName));
-    setCompletedFiles((prev) => prev.filter((name) => name !== fileName));
-  };
-
-  console.log("line 155", formData);
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <div className="w-16 h-16 border-4 border-black-500 border-t-transparent border-solid rounded-full animate-spin"></div>
-        <p className="mt-4 text-zinc-500 text-lg font-medium">Item View Page</p>
-      </div>
-    );
-  }
   return (
-    <div className="">
+    <div>
       <ToastContainer />
-      {/* Header Buttons */}
-      <div className="flex justify-between ">
+      <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-            {" "}
             <button
               type="button"
               className="text-blue-600 mt-2 text-sm hover:underline"
@@ -231,15 +170,14 @@ const ItemviewPage = ({ item, itemId, goBack, handleSaveItem, toggleView }) => {
                   strokeWidth={2}
                   d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
                 />
-              </svg>{" "}
+              </svg>
             </button>
           </div>
-          <h3 className="text-xl font-semibold">Items View Page</h3>
+          <h3 className="text-xl font-semibold">Item Form</h3>
         </div>
       </div>
-
-      <form className="bg-white shadow-none rounded-lg divide-y divide-gray-200">
-        {/* Business Details */}
+      <form onSubmit={createItem} className="space-y-6">
+        {/* Item Details */}
         <section className="p-6 bg-white rounded Item">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Item Details
@@ -624,33 +562,32 @@ const ItemviewPage = ({ item, itemId, goBack, handleSaveItem, toggleView }) => {
           </div>
         </section>
 
-        {/* Action Buttons */}
-        <div className="py-6 flex justify-end gap-4">
-          {" "}
+        {/* Actions */}
+        <div className="flex justify-between items-center py-6">
           <button
             type="button"
-            onClick={handleEdit}
-            className="px-6 py-2 bg-green-200 rounded hover:bg-gray-300 transition"
+            onClick={handleReset}
+            className="text-sm text-gray-500 hover:text-gray-700"
           >
-            Edit
+            Reset
           </button>
-          <button
-            type="button"
-            onClick={goBack}
-            className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
-          >
-            Go Back
-          </button>
-          <button
-            onClick={handleUpdate}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          >
-            Update
-          </button>
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Go Back
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Create
+            </button>
+          </div>
         </div>
       </form>
     </div>
   );
-};
-
-export default ItemviewPage;
+}
