@@ -26,37 +26,6 @@ const SalePage = () => {
   const [newSaleOrder, setNewSaleOrder] = useState(defaultNewSaleOrder);
 
   // Fetch SaleOrders from the API
-  useEffect(() => {
-    const fetchSaleOrders = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get("/api/SaleOrders");
-        setSaleOrders(response.data);
-      } catch (err) {
-        handleError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSaleOrders();
-  }, []);
-
-  const createSaleOrder = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const response = await axios.post("/api/saleOrders", newSaleOrder, {
-        headers: { "Content-Type": "application/json" },
-      });
-      setMessage("SaleOrder created successfully!");
-      setSaleOrders((prev) => [...prev, response.data]);
-      setNewSaleOrder(defaultNewSaleOrder);
-    } catch (err) {
-      handleError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSaveSaleOrder = async (saleOrder) => {
     setLoading(true);
@@ -137,6 +106,7 @@ const SalePage = () => {
       <div>
         {view === "list" && (
           <SaleOrderListPage
+            saleOrders={saleOrders}
             handleAddSaleOrder={handleAddSaleOrder}
             handleViewSaleOrder={handleViewSaleOrder}
           />
@@ -144,16 +114,14 @@ const SalePage = () => {
 
         {view === "form" && (
           <SaleOrderForm
-            selectedSaleOrder={selectedSaleOrder}
-            newSaleOrder={newSaleOrder}
-            setNewSaleOrder={setNewSaleOrder}
-            createSaleOrder={createSaleOrder}
-            handleSaveSaleOrder={handleSaveSaleOrder}
-            handleCancel={handleCancel}
+            saleOrder={selectedSaleOrder}
+            onSave={handleSaveSaleOrder}
+            onCancel={handleCancel}
           />
         )}
       </div>
     </div>
+    // <div>uehdjhdbejhj</div>
   );
 };
 

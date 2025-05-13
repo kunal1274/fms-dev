@@ -13,7 +13,10 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 // import Invoice from "./Invoice/Icopy";
 import SaleorderViewPage from "./SaleOrderViewPage";
+
 const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
+  const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
+  const customersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
   const [saleList, setSaleList] = useState([]);
   const [startDate, setStartDate] = useState(
@@ -26,13 +29,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
   const [selectedOption, setSelectedOption] = useState("All");
   const [viewingSaleId, setViewingSaleId] = useState(null); // States
 
-  const tabNames = [
-    "Sale List",
-    "Paid Customer",
-    "Active Customer",
-    "Hold Customer",
-    "Outstanding Customer",
-  ];
+  const tabNames = ["Sale List"];
   const [activeTab, setActiveTab] = useState(tabNames[0]);
   const [loading, setLoading] = useState(true);
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
@@ -140,7 +137,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
 
     // Filter the data for selected sales
     const selectedData = filteredSales.filter((sale) =>
-      selectedSales.includes(sale._id)
+      selectedSales.includes(sale.id)
     );
 
     const tableRows = selectedData.map((sale, index) => [
@@ -214,34 +211,6 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
 
     console.log("Filters reset to default.");
   };
-  const handleDeleteSelected = async () => {
-    if (selectedSales.length === 0) {
-      alert("No sale order selected to delete.");
-      return;
-    }
-
-    try {
-      // Perform deletion API calls
-      await Promise.all(
-        selectedSales.map((itemId) => axios.delete(`${baseUrl}/${itemId}`))
-      );
-
-      // Update the state to remove deleted sales
-      setFilteredSales((prev) =>
-        prev.filter((sale) => !selectedSales.includes(sale._id))
-      );
-      setSales((prev) =>
-        prev.filter((sale) => !selectedSales.includes(sale._id))
-      );
-
-      setSelectedSales([]); // Clear selected items after deletion
-      alert("Selected items deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting items:", error);
-      alert("Failed to delete selected items.");
-    }
-  };
-
   const goBack = () => {
     setViewingSaleId(null);
     window.location.reload();
@@ -344,7 +313,33 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
       setSelectedSales(filteredSales.map((sale) => sale._id));
     }
   };
+  const handleDeleteSelected = async () => {
+    if (selectedSales.length === 0) {
+      alert("No sale order selected to delete.");
+      return;
+    }
 
+    try {
+      // Perform deletion API calls
+      await Promise.all(
+        selectedSales.map((itemId) => axios.delete(`${baseUrl}/${itemId}`))
+      );
+
+      // Update the state to remove deleted sales
+      setFilteredSales((prev) =>
+        prev.filter((sale) => !selectedSales.includes(sale._id))
+      );
+      setSales((prev) =>
+        prev.filter((sale) => !selectedSales.includes(sale._id))
+      );
+
+      setSelectedSales([]); // Clear selected items after deletion
+      alert("Selected items deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting items:", error);
+      alert("Failed to delete selected items.");
+    }
+  };
   return (
     <div>
       <ToastContainer />
@@ -549,8 +544,8 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                 </ul>
               </div>
               {/* Data Table */}
-              <div className="table-scroll-container h-[400px] overflow-auto bg-white rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
+              <div className="mx-auto w-[80vw] max-w-full h-[400px] mb-9 overflow-auto bg-white rounded-lg">
+                <table className="w-full min-w-[300px] divide-y divide-gray-200 border border-green-500">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="sticky top-0 z-10 px-4 py-2 bg-gray-50">
@@ -597,7 +592,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                             <input
                               type="checkbox"
                               checked={selectedSales.includes(sale._id)}
-                              onChange={() => handleCheckboxChange(c._id)}
+                              onChange={() => handleCheckboxChange(sale._id)}
                               className="form-checkbox"
                             />
                           </td>
@@ -621,17 +616,6 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                           <td className="px-6 py-4">{sale.netAR}</td>{" "}
                           <td className="px-6 py-4"> {sale.lineAmt}</td>
                           <td className="px-6 py-4">{sale.status}</td>
-                          <td className="px-6 py-4">
-                            <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                sale.active
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {sale.active ? "Active" : "Inactive"}
-                            </span>
-                          </td>
                         </tr>
                       ))
                     ) : (

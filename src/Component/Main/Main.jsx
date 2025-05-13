@@ -26,7 +26,7 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
           <VendorPage onAddNew={onAddNew} onView={onView} />
         </div>
       )}
-      {selectedMenu === "SalePage" && (
+      {selectedMenu === "Sale" && (
         <div className="text-gray-700">
           <SalePage onAddNew={onAddNew} onView={onView} />
         </div>
@@ -38,6 +38,11 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
         </div>
       )}
       {selectedMenu === "Item" && (
+        <div className="text-gray-700">
+          {" "}
+          <ItemPage onAddNew={onAddNew} onView={onView} />
+        </div>
+      )}{selectedMenu === "Item" && (
         <div className="text-gray-700">
           {" "}
           <ItemPage onAddNew={onAddNew} onView={onView} />

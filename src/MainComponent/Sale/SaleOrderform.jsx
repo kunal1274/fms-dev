@@ -500,6 +500,47 @@ const SaleOrderform = ({ handleCancel }) => {
       >
         {/* Business Details */}
         <section className="p-6">
+          <div className="flex flex-wrap w-full gap-2">
+            {/* Maintain Section */}
+            <div className="p-2 h-17 bg-white">
+              <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-6">
+                <div className="flex flex-nowrap gap-2">
+                  {saleOrderNum ? (
+                    <>
+                      <button
+                        type="button"
+                        disabled
+                        className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-gray-200 cursor-not-allowed"
+                      >
+                        Create
+                      </button>
+                      <button
+                        onClick={handleEdit}
+                        type="button"
+                        className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
+                      >
+                        Edit
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={handleCreate}
+                      type="submit"
+                      className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
+                    >
+                      Create
+                    </button>
+                  )}
+                  <button
+                    onClick={handleCancel}
+                    className="px-3 py-2 w-36 text-xs font-medium text-red-600 bg-white border border-red-400 rounded-md hover:bg-red-50"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Sale Details
           </h2>
@@ -627,7 +668,7 @@ const SaleOrderform = ({ handleCancel }) => {
                       value={advance}
                       name="advance"
                       placeholder="Advance"
-                      className="w-full border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring focus:ring-blue-300"
+                      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                       onChange={(e) => {
                         const value =
                           Number(e.target.value.replace(/\D/g, "")) || 0;
