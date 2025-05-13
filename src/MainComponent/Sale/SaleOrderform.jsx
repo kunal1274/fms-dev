@@ -603,6 +603,34 @@ const SaleOrderform = ({ handleCancel }) => {
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
+                </div>{" "}
+                {selectedCustomerDetails && (
+                  <div className="flex flex-col">
+                    <label className="block text-sm font-medium text-gray-600">
+                      Customer Address
+                    </label>
+                    <textarea
+                      name="address"
+                      rows="4"
+                      value={selectedCustomerDetails.address}
+                      disabled={!isEdited}
+                      placeholder="Customer Address / Buyer Address / Billing Address"
+                      className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                      readOnly
+                    />
+                  </div>
+                )}{" "}
+                <div className="flex flex-col">
+                  <label className="block text-sm font-medium text-gray-600">
+                    Sale Address
+                  </label>
+                  <textarea
+                    name="address"
+                    rows="4"
+                    onChange={(e) => setSalesAddress(e.target.value)}
+                    placeholder="Customer Address / Buyer Address / Billing Address"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                  />
                 </div>
                 <div className="flex flex-col">
                   <label className="block text-sm font-medium text-gray-600">
@@ -611,19 +639,6 @@ const SaleOrderform = ({ handleCancel }) => {
                   <input
                     type="text"
                     value={selectedCustomerDetails.contactNum}
-                    placeholder="Contact Number"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Contact Email
-                  </label>
-
-                  <input
-                    type="text"
-                    value={selectedCustomerDetails.email}
                     placeholder="Contact Number"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
@@ -677,7 +692,7 @@ const SaleOrderform = ({ handleCancel }) => {
                     />{" "}
                   </div>
                 </div>
-                {selectedCustomerDetails && (
+                {/* {selectedCustomerDetails && (
                   <div className="flex flex-col">
                     <label className="block text-sm font-medium text-gray-600">
                       Customer Address
@@ -692,10 +707,10 @@ const SaleOrderform = ({ handleCancel }) => {
                       readOnly
                     />
                   </div>
-                )}
+                )} */}
               </>
             )}{" "}
-            <div className="flex flex-col">
+            {/* <div className="flex flex-col">
               <label className="block text-sm font-medium text-gray-600">
                 Sale Address
               </label>
@@ -706,7 +721,7 @@ const SaleOrderform = ({ handleCancel }) => {
                 placeholder="Customer Address / Buyer Address / Billing Address"
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
-            </div>
+            </div> */}
             {/* Remarks */}
             <div className="flex flex-col ">
               <label className="block text-sm font-medium text-gray-600">
