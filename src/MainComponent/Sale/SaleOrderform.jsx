@@ -367,8 +367,8 @@ const SaleOrderform = ({ handleCancel }) => {
     contactNum: "",
     currency: "",
     address: "",
+    email: "",
   });
-
   useEffect(() => {
     if (selectedCustomer) {
       const customer = customers.find((c) => c._id === selectedCustomer);
@@ -377,6 +377,7 @@ const SaleOrderform = ({ handleCancel }) => {
           contactNum: customer.contactNum || "",
           currency: customer.currency || "",
           address: customer.address || "",
+          email: customer.email || "", // ← correct!
         });
       }
     } else {
@@ -384,6 +385,7 @@ const SaleOrderform = ({ handleCancel }) => {
         contactNum: "",
         currency: "",
         address: "",
+        email: "",
       });
     }
   }, [selectedCustomer, customers]);
@@ -643,10 +645,10 @@ const SaleOrderform = ({ handleCancel }) => {
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
-                </div>
+                </div>{" "}
                 <div className="flex flex-col">
                   <label className="block text-sm font-medium text-gray-600">
-                    Customer email
+                    Contact email
                   </label>{" "}
                   <input
                     type="text"
@@ -655,7 +657,7 @@ const SaleOrderform = ({ handleCancel }) => {
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
-                </div>{" "}
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Terms of payment
@@ -692,36 +694,8 @@ const SaleOrderform = ({ handleCancel }) => {
                     />{" "}
                   </div>
                 </div>
-                {/* {selectedCustomerDetails && (
-                  <div className="flex flex-col">
-                    <label className="block text-sm font-medium text-gray-600">
-                      Customer Address
-                    </label>
-                    <textarea
-                      name="address"
-                      rows="4"
-                      value={selectedCustomerDetails.address}
-                      disabled={!isEdited}
-                      placeholder="Customer Address / Buyer Address / Billing Address"
-                      className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                      readOnly
-                    />
-                  </div>
-                )} */}
               </>
             )}{" "}
-            {/* <div className="flex flex-col">
-              <label className="block text-sm font-medium text-gray-600">
-                Sale Address
-              </label>
-              <textarea
-                name="address"
-                rows="4"
-                onChange={(e) => setSalesAddress(e.target.value)}
-                placeholder="Customer Address / Buyer Address / Billing Address"
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-            </div> */}
             {/* Remarks */}
             <div className="flex flex-col ">
               <label className="block text-sm font-medium text-gray-600">
