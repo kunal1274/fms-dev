@@ -3,7 +3,7 @@ import axios from "axios";
 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import PurchaseOrderForm from "./PurchaseOrderform";
+import PurchaseOrderForm from "./PurchaseOrderForm";
 import PurchaseOrderListPage from "./PurchaseOrderList";
 
 const PurchasePage = () => {
