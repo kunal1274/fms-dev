@@ -84,7 +84,7 @@ export default function SitePage() {
   };
 
   return (
-    <div className="w-full p-6 bg-white rounded-lg shadow">
+    <div className="w-full p-6 bg-white rounded-lg ">
       {renderHeader()}
 
       {view === "list" && (

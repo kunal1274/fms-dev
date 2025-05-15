@@ -96,12 +96,12 @@ export default function SiteList({ onAddSite }) {
       <ToastContainer />
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-semibold">Site List</h3>
-        <button
+        {/* <button
           onClick={onAddSite}
           className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-green-100"
         >
           + Add Site
-        </button>
+        </button> */}
       </div>
 
       {/* Filters */}
