@@ -4,8 +4,9 @@ import CompanyPage from "../../MainComponent/Company/CompanyPage";
 import SalePage from "../../MainComponent/Sale/SalePage";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
 
-import ItemPage from "../../MainComponent/Item/Inventry";
+import Inventry from "../../MainComponent/Item/Inventry";
 import PurchasePage from "../../MainComponent/Purchase/PurchasePage";
+// import CustomerPage from "../../MainComponent/Items/CustomerPage";
 
 export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
   return (
@@ -38,16 +39,8 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
         </div>
       )}
       {selectedMenu === "Item" && (
-        <div className="text-gray-700">
-          {" "}
-          <ItemPage onAddNew={onAddNew} onView={onView} />
-        </div>
-      )}{selectedMenu === "Item" && (
-        <div className="text-gray-700">
-          {" "}
-          <ItemPage onAddNew={onAddNew} onView={onView} />
-        </div>
-      )}
+        <Inventry onAddNew={onAddNew} onView={onView} />
+      )}{" "}
     </main>
   );
 }

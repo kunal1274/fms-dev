@@ -7,28 +7,28 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react";
 import "./c.css";
-import ItemViewPage from "./ItemViewPage";
+import CustomerViewPage from "./CustomerViewPagee";
 
-const List = ({handleAddItem }) => {
-     const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
+export default function CustomerList({ handleAddCustomer, onView }) {
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
   const metricsUrl = `${baseUrl}/metrics`;
 
   const tabNames = [
-    "Item List",
-    "Paid Item",
-    "Active Item",
-    "Hold Item",
-    "Outstanding Item",
+    "Customer List",
+    "Paid Customer",
+    "Active Customer",
+    "Hold Customer",
+    "Outstanding Customer",
   ];
 
   // States
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  const [itemList, setItemList] = useState([]);
+  const [customerList, setCustomerList] = useState([]);
   const [selectedOption, setSelectedOption] = useState("All");
-  const [filteredItems, setFilteredItems] = useState([]);
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [viewingItemId, setViewingItemId] = useState(null);
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [selectedCustomers, setSelectedCustomers] = useState([]);
+  const [viewingCustomerId, setViewingCustomerId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState(
     new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -36,12 +36,12 @@ const List = ({handleAddItem }) => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortOption, setSortOption] = useState("");
 
-  const [itemSummary, setItemSummary] = useState({
+  const [customerSummary, setCustomerSummary] = useState({
     count: 0,
     creditLimit: 0,
-    paiditems: 0,
-    activeitems: 0,
-    onHoldItems: 0,
+    paidCustomers: 0,
+    activeCustomers: 0,
+    onHoldCustomers: 0,
   });
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState(false);
@@ -77,7 +77,7 @@ const List = ({handleAddItem }) => {
 
       toast.success("Logo uploaded successfully ✅");
       // Refresh list
-      fetchItems();
+      fetchCustomers();
     } catch (error) {
       console.error(error);
       toast.error("Error uploading logo!");
@@ -95,31 +95,31 @@ const List = ({handleAddItem }) => {
     const value = e.target.value;
     setSelectedOption(value);
 
-    let filtered = [...itemList];
+    let filtered = [...customerList];
 
     if (value === "All") {
-      setFilteredItems(filtered);
+      setFilteredCustomers(filtered);
     } else if (value === "yes") {
-      setFilteredItems(
-        filtered.filter((item) => item.active === true)
+      setFilteredCustomers(
+        filtered.filter((customer) => customer.active === true)
       );
     } else if (value === "no") {
-      setFilteredItems(
-        filtered.filter((item) => item.active === false)
+      setFilteredCustomers(
+        filtered.filter((customer) => customer.active === false)
       );
-    } else if (value === "Item Name") {
+    } else if (value === "Customer Name") {
       filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
-      setFilteredItems(filtered);
-    } else if (value === "Item Account no") {
+      setFilteredCustomers(filtered);
+    } else if (value === "Customer Account no") {
       filtered = filtered.sort((a, b) => a.code.localeCompare(b.code));
-      setFilteredItems(filtered);
-    } else if (value === "Item Account no descending") {
+      setFilteredCustomers(filtered);
+    } else if (value === "Customer Account no descending") {
       filtered = filtered.sort((a, b) => b.code.localeCompare(a.code));
-      setFilteredItems(filtered);
+      setFilteredCustomers(filtered);
     }
   };
-  // Fetch Items
-  const fetchItems = useCallback(
+  // Fetch Customers
+  const fetchCustomers = useCallback(
     async (fromDate = startDate, toDate = endDate) => {
       setLoading(true);
       setError(null);
@@ -128,20 +128,20 @@ const List = ({handleAddItem }) => {
           params: { from: fromDate, to: toDate },
         });
         const list = resp.data || resp;
-        setItemList(list);
+        setCustomerList(list);
 
-        +setFilteredItems(list); // ← Add this line to update the visible Items immediately
+        +setFilteredCustomers(list); // ← Add this line to update the visible customers immediately
 
-        setItemSummary({
+        setCustomerSummary({
           count: list.length,
           creditLimit: list.reduce((s, c) => s + (c.creditLimit || 0), 0),
-          paidItems: list.filter((c) => c.status === "Paid").length,
-          activeItems: list.filter((c) => c.active).length,
-          onHoldItems: list.filter((c) => c.onHold).length,
+          paidCustomers: list.filter((c) => c.status === "Paid").length,
+          activeCustomers: list.filter((c) => c.active).length,
+          onHoldCustomers: list.filter((c) => c.onHold).length,
         });
       } catch (err) {
         console.error(err);
-        setError("Unable to load Item data.");
+        setError("Unable to load customer data.");
       } finally {
         setLoading(false);
       }
@@ -158,13 +158,13 @@ const List = ({handleAddItem }) => {
       });
 
       const m = (resp.metrics && resp.metrics[0]) || {};
-      setItemSummary((prev) => ({
+      setCustomerSummary((prev) => ({
         ...prev,
-        count: m.totalItems ?? prev.count,
+        count: m.totalCustomers ?? prev.count,
         creditLimit: m.creditLimit ?? prev.creditLimit,
-        paidItems: m.paidItems ?? prev.paidItems,
-        activeItems: m.activeItems ?? prev.activeItems,
-        onHoldItems: m.onHoldItems ?? prev.onHoldItems,
+        paidCustomers: m.paidCustomers ?? prev.paidCustomers,
+        activeCustomers: m.activeCustomers ?? prev.activeCustomers,
+        onHoldCustomers: m.onHoldCustomers ?? prev.onHoldCustomers,
       }));
     } catch (err) {
       console.error(err);
@@ -172,13 +172,13 @@ const List = ({handleAddItem }) => {
   }, [startDate, endDate]);
 
   useEffect(() => {
-    fetchItems();
+    fetchCustomers();
     fetchMetrics();
-  }, [fetchItems, fetchMetrics]);
+  }, [fetchCustomers, fetchMetrics]);
 
   // Filtering, Search, Sorting
   useEffect(() => {
-    let list = [...itemList];
+    let list = [...customerList];
 
     switch (activeTab) {
       case tabNames[1]:
@@ -216,8 +216,8 @@ const List = ({handleAddItem }) => {
     else if (sortOption === "code-desc")
       list.sort((a, b) => b.code.localeCompare(a.code));
 
-    setFilteredItems(list);
-  }, [itemList, activeTab, statusFilter, searchTerm, sortOption]);
+    setFilteredCustomers(list);
+  }, [customerList, activeTab, statusFilter, searchTerm, sortOption]);
 
   // Handlers
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
@@ -226,28 +226,28 @@ const List = ({handleAddItem }) => {
   const onTabClick = (tab) => setActiveTab(tab);
 
   const toggleSelectAll = (e) => {
-    setSelectedItems(
-      e.target.checked ? filteredItems.map((c) => c._id) : []
+    setSelectedCustomers(
+      e.target.checked ? filteredCustomers.map((c) => c._id) : []
     );
   };
 
   const handleCheckboxChange = (id) => {
-    setSelectedItems((prev) =>
+    setSelectedCustomers((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     );
   };
 
   const handleDeleteSelected = async () => {
-    if (!selectedItems.length) {
-      toast.info("No Items selected to delete");
+    if (!selectedCustomers.length) {
+      toast.info("No customers selected to delete");
       return;
     }
 
-    if (!window.confirm("Delete selected Items?")) return;
+    if (!window.confirm("Delete selected customers?")) return;
 
     try {
       const results = await Promise.allSettled(
-        selectedItems.map((id) => axios.delete(`${baseUrl}/${id}`))
+        selectedCustomers.map((id) => axios.delete(`${baseUrl}/${id}`))
       );
 
       const succeeded = results.filter((r) => r.status === "fulfilled").length;
@@ -255,8 +255,8 @@ const List = ({handleAddItem }) => {
 
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
-        await fetchItems();
-        setSelectedItems([]);
+        await fetchCustomers();
+        setSelectedCustomers([]);
       }
       if (failed) toast.error(`${failed} failed — check console`);
     } catch (err) {
@@ -266,21 +266,21 @@ const List = ({handleAddItem }) => {
   };
 
   const exportToExcel = () => {
-    if (!itemList.length) {
+    if (!customerList.length) {
       toast.info("No data to export.");
       return;
     }
-    const ws = XLSX.utils.json_to_sheet(itemList);
+    const ws = XLSX.utils.json_to_sheet(customerList);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "items");
-    XLSX.writeFile(wb, "item_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Customers");
+    XLSX.writeFile(wb, "customer_list.xlsx");
   };
 
   const generatePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [["#", "Code", "Name", "Contact", "Address", "Status"]],
-      body: filteredItems.map((c, i) => [
+      body: filteredCustomers.map((c, i) => [
         i + 1,
         c.code,
         c.name,
@@ -289,11 +289,11 @@ const List = ({handleAddItem }) => {
         c.active ? "Active" : "Inactive",
       ]),
     });
-    doc.save("Item_list.pdf");
+    doc.save("customer_list.pdf");
   };
 
-  const handleItemClick = (itemId) => {
-    setViewingItemId(itemId);
+  const handleCustomerClick = (customerId) => {
+    setViewingCustomerId(customerId);
   };
 
   const resetFilters = () => {
@@ -302,22 +302,29 @@ const List = ({handleAddItem }) => {
     setSortOption("");
   };
 
-  const goBack = () => setViewingItemId(null);
+  const goBack = () => setViewingCustomerId(null);
 
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
+  if (viewingCustomerId) {
+    return (
+      <div className="p-4">
+        <CustomerViewPage customerId={viewingCustomerId} goBack={goBack} />
+      </div>
+    );
+  }
   // ─── Render ─────────────────────────────────────────────────────
 
   return (
-      <div>
+    <div>
       <ToastContainer />
       <div>
         <div>
-          {viewingItemId ? (
-            <ItemViewPage
+          {viewingCustomerId ? (
+            <CustomerViewPage
               toggleView={toggleView}
-              itemId={viewingItemId}
+              customerId={viewingCustomerId}
               goBack={goBack}
             />
           ) : (
@@ -351,18 +358,18 @@ const List = ({handleAddItem }) => {
                   </div>
 
                   {/* </div> */}
-                  <h3 className="text-xl font-semibold">Item List</h3>
+                  <h3 className="text-xl font-semibold">Customer List</h3>
                 </div>
                 <div className="flex items-center gap-3 ">
                   <button
-                    onClick={handleAddItem}
+                    onClick={handleAddCustomer}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     + Add
                   </button>
                   <button
                     onClick={handleDeleteSelected}
-                    disabled={!selectedItems.length}
+                    disabled={!selectedCustomers.length}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     Delete
@@ -401,7 +408,7 @@ const List = ({handleAddItem }) => {
                   <button
                     onClick={() => {
                       fetchMetrics();
-                      fetchItems(startDate, endDate);
+                      fetchCustomers(startDate, endDate);
                     }}
                     className="px-3 py-1 border rounded"
                   >
@@ -410,12 +417,11 @@ const List = ({handleAddItem }) => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Items", itemSummary.count],
-                    ["Credit Limit", itemSummary.creditLimit],
-                    ["Paid items", itemSummary.paiditems],
-
-                    ["Active Items", itemSummary.activeitems],
-                    ["On‑Hold Items", itemSummary.onHoldItems],
+                    ["Total Customers", customerSummary.count],
+                    ["Credit Limit", customerSummary.creditLimit],
+                    ["Paid Customers", customerSummary.paidCustomers],
+                    ["Active Customers", customerSummary.activeCustomers],
+                    ["On‑Hold Customers", customerSummary.onHoldCustomers],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -442,12 +448,12 @@ const List = ({handleAddItem }) => {
                       className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="Item Name">Item Name</option>
-                      <option value="Item Account no">
-                        Item Account in Ascending
+                      <option value="Customer Name">Customer Name</option>
+                      <option value="Customer Account no">
+                        Customer Account in Ascending
                       </option>
-                      <option value="Item Account no descending">
-                        Item Account in descending
+                      <option value="Customer Account no descending">
+                        Customer Account in descending
                       </option>
                     </select>
                   </div>
@@ -523,14 +529,14 @@ const List = ({handleAddItem }) => {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedItems.length ===
-                              filteredItems.length &&
-                            filteredItems.length > 0
+                            selectedCustomers.length ===
+                              filteredCustomers.length &&
+                            filteredCustomers.length > 0
                           }
                           className="form-checkbox"
                         />
                       </th>
-                      {["Code", "Item Name", " Description", "Unit", "Price"].map(
+                      {["Code", "Name", "Address", "Contact", "Status"].map(
                         (h) => (
                           <th
                             key={h}
@@ -543,8 +549,8 @@ const List = ({handleAddItem }) => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredItems.length ? (
-                      filteredItems.map((c) => (
+                    {filteredCustomers.length ? (
+                      filteredCustomers.map((c) => (
                         <tr
                           key={c.code}
                           className="hover:bg-gray-100 transition-colors"
@@ -552,24 +558,24 @@ const List = ({handleAddItem }) => {
                           <td className="px-4 py-2">
                             <input
                               type="checkbox"
-                              checked={selectedItems.includes(c._id)}
+                              checked={selectedCustomers.includes(c._id)}
                               onChange={() => handleCheckboxChange(c._id)}
                               className="form-checkbox"
                             />
                           </td>
                           <td
-                          // onClick={() => handleItemClick(Item._id)}
+                          // onClick={() => handleCustomerClick(customer._id)}
                           // className="px-6 py-4 cursor-pointer text-blue-600 hover:underline"
                           >
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleItemClick(c._id)}
+                              onClick={() => handleCustomerClick(c._id)}
                             >
                               {c.code}
                             </button>
                           </td>
                           <td className="px-6 py-4">{c.name}</td>
-                          <td className="px-6 py-4">{c.description}</td>{" "}
+                          <td className="px-6 py-4">{c.address}</td>{" "}
                           <td className="px-6 py-3 truncate">
                             {new Date(c.createdAt).toLocaleString()}
                           </td>
@@ -605,7 +611,5 @@ const List = ({handleAddItem }) => {
         </div>
       </div>
     </div>
-  )
+  );
 }
-
-export default List

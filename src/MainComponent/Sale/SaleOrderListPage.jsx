@@ -544,8 +544,8 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                 </ul>
               </div>
               {/* Data Table */}
-              <div className="mx-auto w-[80vw] max-w-full h-[400px] mb-9 overflow-auto bg-white rounded-lg">
-                <table className="w-full min-w-[300px] divide-y divide-gray-200 border border-green-500">
+              <div className="mx-auto w-[85vw] max-w-full h-[400px]  bg-white rounded-lg">
+                <table className="w-full min-w-[400px] divide-y divide-gray-200 border-green-500">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="sticky top-0 z-10 px-4 py-2 bg-gray-50">

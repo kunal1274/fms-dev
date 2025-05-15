@@ -2,38 +2,38 @@ import React, { useState } from "react";
 
 import ItemViewPage from "./ItemViewPage";
 import { Button } from "../../Component/Button/Button";
-import ItemForm from "./ItemFor";
-import ItemList from "./List";
+import ItemForm from "./Form";
+import ItemList from "./";
 
 const ItemPage = () => {
   const [view, setView] = useState("list");
-  const [items, setItems] = useState([]);
+  const [Items, setItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
 
   /** Save or update a Item */
-  const handleSaveItem = (item) => {
+  const handleSaveItem = (Item) => {
     setItems((prev) => {
-      const idx = prev.findIndex((c) => c.itemAccountNo === item.itemAccountNo);
+      const idx = prev.findIndex((c) => c.ItemAccountNo === Item.ItemAccountNo);
 
       if (idx !== -1) {
         const updated = [...prev];
-        updated[idx] = item;
+        updated[idx] = Item;
         return updated;
       }
-      return [...prev, item];
+      return [...prev, Item];
     });
     setView("list");
   };
 
-  /** Open the "Add item" form */
+  /** Open the "Add Item" form */
   const handleAddItem = () => {
     setSelectedItem(null);
     setView("form");
   };
 
   /** Show Item details */
-  const handleViewItem = (itemAccountNo) => {
-    const cust = items.find((c) => c.itemAccountNo === itemAccountNo);
+  const handleViewItem = (ItemAccountNo) => {
+    const cust = Items.find((c) => c.ItemAccountNo === ItemAccountNo);
     setSelectedItem(cust);
     setView("details");
   };
@@ -41,7 +41,7 @@ const ItemPage = () => {
   /** Delete selected Items */
   const handleDeleteItem = (toDeleteAccounts) => {
     setItems((prev) =>
-      prev.filter((c) => !toDeleteAccounts.includes(c.itemAccountNo))
+      prev.filter((c) => !toDeleteAccounts.includes(c.ItemAccountNo))
     );
   };
 
@@ -50,7 +50,7 @@ const ItemPage = () => {
 
   /** Render header with title and actions */
   const renderHeader = () => {
-    let title = "items";
+    let title = "Items";
     let action = null;
 
     if (view === "list") {
@@ -84,7 +84,7 @@ const ItemPage = () => {
       <div>
         {view === "list" && (
           <ItemList
-            Items={items}
+            Items={Items}
             handleAddItem={handleAddItem}
             onView={handleViewItem}
             onDelete={handleDeleteItem}
@@ -93,14 +93,14 @@ const ItemPage = () => {
 
         {view === "form" && (
           <ItemForm
-            item={selectedItem}
+            Item={selectedItem}
             handleAddItem={handleAddItem}
             handleCancel={handleCancel}
           />
         )}
         {view === "details" && selectedItem && (
           <ItemViewPage
-            item={selectedItem}
+            Item={selectedItem}
             onEdit={() => setView("form")}
             onBack={handleCancel}
           />
