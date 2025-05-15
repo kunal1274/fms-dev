@@ -71,12 +71,9 @@ const ItemPage = () => {
       );
     }
 
-    return (
-      <div className="flex justify-between ">
-        <h1 className="text-2xl font-semibold text-gray-800">{title}</h1>
-        {action}
-      </div>
-    );
+  
+  
+  
   };
 
   return (

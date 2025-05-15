@@ -40,6 +40,8 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
       )}
       {selectedMenu === "Item" && (
         <Inventry onAddNew={onAddNew} onView={onView} />
+      )}{" "}  {selectedMenu === "Item" && (
+        <Inventry onAddNew={onAddNew} onView={onView} />
       )}{" "}
     </main>
   );

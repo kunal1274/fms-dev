@@ -197,14 +197,7 @@ const ItemviewPage = ({ item, itemId, goBack, handleSaveItem, toggleView }) => {
   };
 
   console.log("line 155", formData);
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <div className="w-16 h-16 border-4 border-black-500 border-t-transparent border-solid rounded-full animate-spin"></div>
-        <p className="mt-4 text-zinc-500 text-lg font-medium">Item View Page</p>
-      </div>
-    );
-  }
+  
   return (
     <div className="">
       <ToastContainer />

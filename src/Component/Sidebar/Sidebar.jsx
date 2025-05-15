@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   FaUser,
   FaTruck,
@@ -6,19 +6,50 @@ import {
   FaShoppingCart,
   FaCartPlus,
   FaCog,
+  FaWarehouse,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 
 const navItems = [
   { label: "Customer", icon: FaUser },
   { label: "Company", icon: FaTruck },
   { label: "Vendor", icon: FaTruck },
-  { label: "Item", icon: FaBoxOpen },
+  {
+    label: "Inventory",
+    icon: FaBoxOpen,
+    subItems: [
+      { label: "Warehouse", icon: FaWarehouse },
+      { label: "Site", icon: FaMapMarkerAlt },
+      { label: "Item", icon: FaBoxOpen },
+    ],
+  },
   { label: "Sale", icon: FaShoppingCart },
   { label: "Purchase", icon: FaCartPlus },
   { label: "User", icon: FaUser },
 ];
 
-export default function Sidebar({ isOpen, selectedMenu, onSelectMenu }) {
+export default function Sidebar({
+  isOpen,
+  selectedMenu,
+  onSelectMenu, // now gets called with both top & sub labels
+}) {
+  const [expanded, setExpanded] = useState(null); // which parent is open
+
+  const handleClick = (item) => {
+    if (item.subItems) {
+      // toggle Inventory open/closed
+      setExpanded(expanded === item.label ? null : item.label);
+    } else {
+      // regular top-level
+      onSelectMenu(item.label);
+      setExpanded(null);
+    }
+  };
+
+  const handleSubClick = (sub) => {
+    onSelectMenu(sub.label);
+  };
+
   return (
     <aside
       className={`
@@ -36,40 +67,74 @@ export default function Sidebar({ isOpen, selectedMenu, onSelectMenu }) {
         <nav className="space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = selectedMenu === item.label;
+            const activeTop = selectedMenu === item.label;
+            const isExpanded = expanded === item.label;
 
             return (
-              <button
-                key={item.label}
-                onClick={() => onSelectMenu(item.label)}
-                title={item.label}
-                className={`
-        group flex items-center p-2 rounded-lg transition-all duration-200
-        ${active ? "bg-gray-700" : "hover:bg-gray-700"}
-        ${isOpen ? "justify-start" : "justify-center"}
-      `}
-              >
-                <Icon
+              <div key={item.label}>
+                <button
+                  onClick={() => handleClick(item)}
+                  title={item.label}
                   className={`
-          text-xl flex-shrink-0 transition-transform duration-200
-          ${isOpen ? "mr-[2px]" : ""}
-          ${active ? "text-yellow-400" : "text-gray-400"}
-          group-hover:scale-110
-        `}
-                />
-                {isOpen && (
-                  <span className="ml-3 text-base font-medium text-white group-hover:text-amber-300">
-                    {item.label}
-                  </span>
+                    group flex items-center p-2 rounded-lg transition-all duration-200
+                    ${activeTop ? "bg-gray-700" : "hover:bg-gray-700"}
+                    ${isOpen ? "justify-start" : "justify-center"}
+                  `}
+                >
+                  <Icon
+                    className={`
+                      text-xl flex-shrink-0 transition-transform duration-200
+                      ${isOpen ? "mr-[2px]" : ""}
+                      ${activeTop ? "text-yellow-400" : "text-gray-400"}
+                      group-hover:scale-110
+                    `}
+                  />
+                  {isOpen && (
+                    <span className="ml-3 text-base font-medium text-white group-hover:text-amber-300">
+                      {item.label}
+                    </span>
+                  )}
+                </button>
+
+                {/* render sub-menu if Inventory is expanded */}
+                {isOpen && item.subItems && isExpanded && (
+                  <div className="ml-6 mt-1 space-y-1">
+                    {item.subItems.map((sub) => {
+                      const SubIcon = sub.icon;
+                      const activeSub = selectedMenu === sub.label;
+                      return (
+                        <button
+                          key={sub.label}
+                          onClick={() => handleSubClick(sub)}
+                          title={sub.label}
+                          className={`
+                            flex items-center p-2 rounded-lg transition-all duration-200
+                            ${activeSub ? "bg-gray-700" : "hover:bg-gray-700"}
+                          `}
+                        >
+                          <SubIcon
+                            className={`
+                              text-lg flex-shrink-0 transition-transform duration-200
+                              ${activeSub ? "text-yellow-400" : "text-gray-400"}
+                              group-hover:scale-110
+                            `}
+                          />
+                          <span className="ml-2 text-sm font-normal text-white group-hover:text-amber-300">
+                            {sub.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
-              </button>
+              </div>
             );
           })}
         </nav>
       </div>
-      <div className="">
+      <div>
         <button
-          className="w-full flex items-center justify-center  rounded-lg bg-gray-700 hover:bg-gray-600 transition-all duration-200 shadow-inner"
+          className="w-full flex items-center justify-center rounded-lg bg-gray-700 hover:bg-gray-600 transition-all duration-200 shadow-inner"
           onClick={() => console.log("Toggle theme")}
         >
           <FaCog className="text-xl transition-transform duration-300 group-hover:rotate-90" />
