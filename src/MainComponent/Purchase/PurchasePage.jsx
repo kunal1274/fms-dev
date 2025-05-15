@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import PurchaseOrderForm from "./PurchaseOrderForm";
-import PurchaseOrderList from "./PurchaseOrderList";
-import PurchaseViewPage from "./PurchaseOrderViewPage";
-import { ToastContainer } from "react-toastify";
-// API endpoints
-const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-const vendorsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/vendors";
-const purchasesOrderUrl =
-  "https://fms-qkmw.onrender.com/fms/api/v0/purchaseorders";
-// mergedUrl is the same as purchasesOrderUrl for update and payment requests
+
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import PurchaseOrderForm from "./PurchaseOrderform";
+import PurchaseOrderListPage from "./PurchaseOrderList";
+
 const PurchasePage = () => {
   const [view, setView] = useState("list");
   const [purchaseOrders, setPurchaseOrders] = useState([]);
@@ -75,10 +71,10 @@ const PurchasePage = () => {
       (purchaseOrder) => purchaseOrder.id === purchaseOrderId
     );
     if (purchaseOrder) {
-      setSelectedPuarchseOrder(puarchseOrder);
+      setSelectedPurchaseOrder(purchaseOrder);
       setView("view");
     } else {
-      setError("PurchaseOrder not found.");
+      setError("purchaseOrder not found.");
     }
   };
 
@@ -115,8 +111,8 @@ const PurchasePage = () => {
     <div className="w-full bg-white rounded-lg ">
       <div>
         {view === "list" && (
-          <PurchaseViewPage
-            PurchaseOrders={PurchaseOrders}
+          <PurchaseOrderListPage
+            purchaseOrders={purchaseOrders}
             handleAddPurchaseOrder={handleAddPurchaseOrder}
             handleViewPurchaseOrder={handleViewPurchaseOrder}
           />

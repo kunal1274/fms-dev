@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 
 import ItemViewPage from "./ItemViewPage";
-import { Button } from "../../Component/Button/Button";
+import { Button } from "../../../Component/Button/Button";
 import ItemForm from "./Form";
-import ItemList from "./";
+import ItemList from "./List";
 
 const ItemPage = () => {
   const [view, setView] = useState("list");

@@ -5,7 +5,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 
-const PurchaseOrderForm = () => {
+const PurchaseOrderForm = ({}) => {
   // -------------------------
   // Global States & Form Fields
   // -------------------------

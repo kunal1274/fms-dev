@@ -18,8 +18,9 @@ const navItems = [
     label: "Inventory",
     icon: FaBoxOpen,
     subItems: [
-      { label: "Warehouse", icon: FaWarehouse },
       { label: "Site", icon: FaMapMarkerAlt },
+      { label: "Warehouse", icon: FaWarehouse },
+
       { label: "Item", icon: FaBoxOpen },
     ],
   },

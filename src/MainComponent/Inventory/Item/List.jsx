@@ -304,7 +304,7 @@ const List = ({handleAddItem }) => {
 
   const goBack = () => setViewingItemId(null);
 
-  if (loading) return <div>Loading…</div>;
+  // if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
   // ─── Render ─────────────────────────────────────────────────────

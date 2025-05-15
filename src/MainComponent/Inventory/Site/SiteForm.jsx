@@ -1,0 +1,185 @@
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+
+export default function SiteForm({ handleCancel, onSaved }) {
+  // ─── Form State ────────────────────────────────────────
+  const initialForm = {
+    SiteAccountNo: "",
+    name: "",
+    email: "",
+    description: "",
+  };
+  const [form, setForm] = useState(initialForm);
+
+  // ─── API Base ───────────────────────────────────────────
+  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
+
+  // ─── List of existing sites ─────────────────────────────
+  const [sites, setSites] = useState([]);
+
+  // ─── Generate unique account no ─────────────────────────
+  const generateAccountNo = useCallback((list) => {
+    const lastIndex = list
+      .map((c) => parseInt(c.SiteAccountNo?.split("_")[1], 10))
+      .filter((n) => !isNaN(n))
+      .reduce((max, n) => Math.max(max, n), 0);
+    return `CUST_${String(lastIndex + 1).padStart(3, "0")}`;
+  }, []);
+
+  // ─── Fetch existing sites on mount ──────────────────────
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await axios.get(apiBase);
+        setSites(data.data);
+        // initialize form with next account no
+        setForm((prev) => ({
+          ...prev,
+          SiteAccountNo: generateAccountNo(data.data),
+        }));
+      } catch (error) {
+        console.error("Error fetching sites:", error);
+        toast.error("Couldn’t fetch sites");
+      }
+    })();
+  }, [apiBase, generateAccountNo]);
+
+  // ─── Handle input changes ────────────────────────────────
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // ─── Submit new site ────────────────────────────────────
+  const createSite = async (e) => {
+    e.preventDefault();
+
+    try {
+      const { data } = await axios.post(apiBase, form, {
+        headers: { "Content-Type": "application/json" },
+      });
+      const newSite = data.data;
+
+      toast.success("Site saved", {
+        autoClose: 1200,
+        onClose: () => handleCancel(),
+      });
+
+      // update local list
+      setSites((prev) => [...prev, newSite]);
+      onSaved?.(newSite);
+    } catch (err) {
+      console.error("Error creating site:", err.response || err);
+      const message = err.response?.data?.message || "Couldn’t save site";
+      toast.error(message, { autoClose: 2000 });
+    }
+  };
+
+  // ─── Reset form for new entry ────────────────────────────
+  const handleReset = () => {
+    const nextAcc = generateAccountNo(sites);
+    setForm({ ...initialForm, SiteAccountNo: nextAcc });
+  };
+
+  return (
+    <div>
+      <ToastContainer />
+      <div className="flex items-center space-x-2 mb-4">
+        <h3 className="text-xl font-semibold">Site Form</h3>
+      </div>
+
+      <form
+        onSubmit={createSite}
+        className="bg-white rounded-lg divide-y divide-gray-200"
+      >
+        <section className="p-6">
+          <h2 className="text-lg font-medium text-gray-700 mb-4">
+            Business Details
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Site Code
+              </label>
+              <input
+                name="SiteAccountNo"
+                value={form.SiteAccountNo}
+                readOnly
+                placeholder="Auto-generated"
+                className="mt-1 w-full cursor-not-allowed p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Site Name
+              </label>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="e.g. XYZ Enterprises Pvt. Ltd."
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Email ID
+              </label>
+              <input
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="e.g. info@xyzenterprises.com"
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Site Description
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                rows={4}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+          </div>
+        </section>
+
+        <div className="py-6 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={handleReset}
+            className="text-gray-500 hover:text-gray-700 text-sm"
+          >
+            Reset
+          </button>
+
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
+            >
+              Go Back
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            >
+              Create
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
