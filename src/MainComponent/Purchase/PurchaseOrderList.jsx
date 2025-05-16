@@ -17,7 +17,7 @@ import PurchaseorderViewPage from "./PurchaseOrderViewPage";
 const PurchaseOrderListPage = ({ handleAddPurchaseOrder, invoice }) => {
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const customersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Purchasesorders";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/purchaseorders";
   const [PurchaseList, setPurchaseList] = useState([]);
   const [startDate, setStartDate] = useState(
     new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)

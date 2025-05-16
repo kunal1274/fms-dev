@@ -58,7 +58,7 @@ export default function SitePage() {
     let action = <Button onClick={handleAddSite}>Add Site</Button>;
 
     if (view === "form") {
-      title = selectedSite ? "Edit Site" : "New Site";
+    
       action = (
         <Button variant="secondary" onClick={handleCancel}>
           Cancel
