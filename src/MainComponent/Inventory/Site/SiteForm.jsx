@@ -12,7 +12,7 @@ export default function SiteForm({ handleCancel, onSaved }) {
   };
   const [form, setForm] = useState(initialForm);
 
-  // ─── API Base ───────────────────────────────────────────
+  // ─── API Base ───────────────────────────────────────────Fem
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
 
   // ─── List of existing sites ─────────────────────────────
@@ -123,20 +123,7 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Email ID
-              </label>
-              <input
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="e.g. info@xyzenterprises.com"
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Site Description
