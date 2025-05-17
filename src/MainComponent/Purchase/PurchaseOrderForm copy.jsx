@@ -21,8 +21,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
     "Advance",
   ];
   const [goForInvoice, setGoPurchaseInvoice] = useState(null);
-  const [advance, setAdvance] = useState(0);
-  const [vendor, setVendor] = useState([]);
+  const [advance, setAdvance] = useState(0);  const [vendor, setVendor] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [viewingPurchaseId, setViewingPurchaseId] = useState(null);
   const [selectedPurchaseOrderId, setSelectedPurchaseOrderId] = useState("");
@@ -513,7 +512,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
       <form
         onSubmit={handleCreate}
-        className="bg-white shadowshhshhshh-none rounded-lg divide-y divide-gray-200"
+        className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
       >
         {/* Business Details */}
         <section className="p-6">
@@ -727,58 +726,48 @@ const PurchaseOrderForm = ({ handleCancel }) => {
           </div>
         </section>
 
-        <section className="p-6 bg-gray-50 rounded-lg shadowshhshhshh">
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white rounded-lg overflow-hidden">
-              <thead className="bg-zinc-600">
-                <tr>
-                  {[
-                    "S.N",
-                    "Item Code",
-                    "Item Name",
-                    "Qty",
-                    "Unit",
-                    "Price",
-                    "Discount %",
-                    "Amount",
-                    "Tax %",
-                    "TCS/TDS %",
-                    "Total Amount",
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-2 text-xs font-semibold text-white uppercase text-center"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {lineItems.map((line, i) => (
-                  <tr
-                    key={line.id}
-                    className={`
-              ${i % 2 === 0 ? "bg-gray-50" : "bg-white"}
-              hover:bg-blue-50 transition
-            `}
-                  >
-                    <td className="px-4 py-2 text-center">{i + 1}</td>
-                    <td className="px-4 py-2 text-center">
-                      {selectedItem?.code || ""}
+        <section className="p-6">
+          <div className="max-h-96 overflow-y-auto mt-4">
+            <div className="space-y-6">
+              <table className="min-w-full border-collapse border border-gray-300 text-sm text-gray-700">
+                <thead className="bg-gray-100 text-gray-900 uppercase text-xs font-semibold">
+                  <tr>
+                    <th className="border p-1 text-center">S.N</th>
+                    <th className="border p-1 text-center">Item Code</th>
+                    <th className="border p-1 w-60 text-center">Item Name</th>
+                    <th className="border p-1 text-center">Qty</th>
+                    <th className="border p-1 text-center">Unit</th>
+                    <th className="border p-1 text-center">Price</th>
+                    <th className="border p-1 text-center">Discount %</th>
+                    <th className="border p-1 text-center">Amount</th>
+                    <th className="border p-1 text-center">Tax %</th>
+                    <th className="border p-1 text-center">TCS/TDS %</th>
+                    <th className="border p-1 text-center">Total Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  <tr key="purchases-order-row" className="hover:bg-gray-50">
+                    {/* Serianpml Number */}
+                    <td className="border text-center p-1">1</td>
+                    {/* Item Code (displayed from the selected item) */}
+                    <td className="border p-1">
+                      {selectedItem ? selectedItem.code : ""}
                     </td>
-                    <td className="px-4 py-2">
+                    {/* Item Name Dropdown */}
+                    <td className="border p-1">
                       <select
-                        value={selectedItem?._id || ""}
-                        disabled={!isEdited && !!purchaseOrderNum}
+                        value={selectedItem ? selectedItem._id : ""}
+                        disabled={!isEdited && purchaseOrderNum}
                         onChange={(e) => {
                           const sel = items.find(
-                            (it) => it._id === e.target.value
+                            (item) => item._id === e.target.value
                           );
                           setSelectedItem(sel);
-                          if (sel) setPrice(+sel.price || 0);
+                          if (sel) {
+                            setPrice(Number(sel.price) || 0);
+                          }
                         }}
-                        className="w-full p-2 border rounded focus:ring focus:ring-blue-200"
+                        className="border rounded p-1 text-left w-60"
                       >
                         <option value="">Select Item</option>
                         {items.map((itemOption) => (
@@ -788,90 +777,105 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                         ))}
                       </select>
                     </td>
-                    <td className="px-4 py-2 text-center">
+                    {/* Quantity Input */}
+                    <td className="border p-1">
                       <input
-                        type="number"
+                        type="text  "
+                        className="border rounded p-1 text-center w-24"
                         value={quantity}
-                        onChange={(e) => setQuantity(+e.target.value || 0)}
-                        className="w-16 p-1 border rounded text-center focus:ring focus:ring-blue-200"
+                        onChange={(e) =>
+                          setQuantity(Number(e.target.value) || 0)
+                        }
                       />
                     </td>
-                    <td className="px-4 py-2 text-center">
+                    {/* Unit (displayed from the selected item) */}
+                    <td className="border p-1">
                       <input
-                        readOnly
-                        value={selectedItem?.unit || ""}
-                        className="w-16 p-1 border rounded bg-gray-100 text-center"
+                        type="text"
+                        value={selectedItem ? selectedItem.unit : ""}
+                        readOnly // Ensures it's only for display, remove if editing is needed
+                        className="border rounded p-1 text-center w-24"
                       />
                     </td>
-                    <td className="px-4 py-2 text-center">
-                      <input
-                        type="number"
-                        value={price}
-                        onChange={(e) => setPrice(+e.target.value || 0)}
-                        className="w-20 p-1 border rounded text-center focus:ring focus:ring-blue-200"
-                      />
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      <input
-                        type="number"
-                        value={discount}
-                        onChange={(e) => setDiscount(+e.target.value || 0)}
-                        className="w-20 p-1 border rounded text-center focus:ring focus:ring-blue-200"
-                      />
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      {(isNaN(amountBeforeTax) ? 0 : amountBeforeTax).toFixed(
-                        2
-                      )}
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      <input
-                        type="number"
-                        value={tax}
-                        onChange={(e) => setTax(+e.target.value || 0)}
-                        className="w-20 p-1 border rounded text-center focus:ring focus:ring-blue-200"
-                      />
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      <input
-                        type="number"
-                        value={tcs}
-                        onChange={(e) => setTcs(+e.target.value || 0)}
-                        className="w-20 p-1 border rounded text-center focus:ring focus:ring-blue-200"
-                      />
-                    </td>
-                    <td className="px-4 py-2 text-center font-semibold">
-                      {lineAmt}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
 
-          {/* Summary Cards */}
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { label: "Advance", value: advance },
-              {
-                label: "Amt",
-                value: (isNaN(amountBeforeTax) ? 0 : amountBeforeTax).toFixed(
-                  2
-                ),
-              },
-              { label: "Discount", value: discount },
-              { label: "Line Amt", value: lineAmt },
-            ].map((card) => (
-              <div
-                key={card.label}
-                className="p-4 bg-white rounded-lg shadowshhshhshhshh flex flex-col"
-              >
-                <span className="text-sm text-gray-500">{card.label}</span>
-                <span className="mt-1 text-2xl font-bold text-gray-800">
-                  {card.value}
-                </span>
+                    {/* Price Input */}
+                    <td className="border p-1">
+                      <input
+                        type="text"
+                        value={price}
+                        className="border rounded p-1 text-center w-24"
+                        onChange={(e) => setPrice(Number(e.target.value) || 0)}
+                      />
+                    </td>
+                    {/* Discount % Input */}
+                    <td className="border p-1">
+                      <input
+                        type="text"
+                        className="border rounded p-1 text-center w-24"
+                        value={discount}
+                        onChange={(e) =>
+                          setDiscount(Number(e.target.value) || 0)
+                        }
+                      />
+                    </td>
+                    {/* Amount before Tax */}
+                    <td className="border p-1 text-center">
+                      {isNaN(amountBeforeTax)
+                        ? "0.00"
+                        : amountBeforeTax.toFixed(2)}
+                    </td>
+                    {/* Tax % Input */}
+                    <td className="border p-1">
+                      <input
+                        type="text"
+                        className="border rounded p-1 text-center w-24"
+                        value={tax}
+                        onChange={(e) => setTax(Number(e.target.value) || 0)}
+                      />
+                    </td>
+                    {/* TCS/TDS % Input */}
+                    <td className="border p-1">
+                      <input
+                        type="text"
+                        className="border rounded p-1 text-center w-24"
+                        value={tcs}
+                        onChange={(e) => setTcs(Number(e.target.value) || 0)}
+                      />
+                    </td>
+                    {/* Total Amount */}
+                    <td className="border p-1 text-center">{lineAmt}</td>
+                  </tr>
+                </tbody>
+              </table>{" "}
+              <div className="summary border p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 rounded shadow-sm">
+                <div className="flex flex-col">
+                  <span className="text-sm text-gray-600">Advance</span>
+                  <span className="text-lg font-semibold text-gray-800">
+                    {advance}
+                  </span>
+                </div>{" "}
+                <div className="flex flex-col">
+                  <span className="text-sm text-gray-600"> Amt</span>
+                  <span className="text-lg font-semibold text-gray-800">
+                    {isNaN(amountBeforeTax)
+                      ? "0.00"
+                      : amountBeforeTax.toFixed(2)}
+                  </span>
+                </div>{" "}
+                <div className="flex flex-col">
+                  <span className="text-sm text-gray-600"> Discount</span>
+                  <span className="text-lg font-semibold text-gray-800">
+                    {discount}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm text-gray-600">Line Amt</span>
+                  <span className="text-lg font-semibold text-gray-800">
+                    {lineAmt}
+                  </span>
+                </div>
               </div>
-            ))}
+            </div>{" "}
           </div>
         </section>
 
