@@ -17,7 +17,6 @@ const navItems = [
   {
     label: "Inventory Management",
     icon: FaBoxOpen,
-   
   },
   { label: "Sale", icon: FaShoppingCart },
   { label: "Purchase", icon: FaCartPlus },
