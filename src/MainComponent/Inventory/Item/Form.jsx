@@ -59,7 +59,7 @@ export default function CustomerForm({ handleCancel }) {
     active: true,
     qrDetails: "",
   });
-  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
+  const apiBase = "//fms-qkmw.onrender.com/fms/api/v0/items";
 
   // ─── Data ────────────────────────────────────────────────
   const [customers, setCustomers] = useState([]);
@@ -107,6 +107,65 @@ export default function CustomerForm({ handleCancel }) {
         setLogoUploading(false); // 👈 this will hide the circle after success
         setUploadProgress({});
       }, 500); // 0.5 second delay
+    }
+  };
+  const createItem = async (e) => {
+    e.preventDefault();
+
+    const payload = {
+      itemCode: form.itemCode,
+      name: form.name,
+      globalPartyId: form.globalPartyId,
+      type: form.type,
+      price: form.price,
+      unit: form.unit,
+      financialGroup: form.financialGroup,
+      hierarchicalCategory: form.hierarchicalCategory,
+      externalCode: form.externalCode,
+      description: form.description,
+      active: form.active,
+      storageDimension: {
+        site: form.site,
+        warehouse: form.warehouse,
+        zone: form.zone,
+        location: form.location,
+        rackAisle: form.rackAisle,
+        rack: form.rack,
+        shelf: form.shelf,
+        bin: form.bin,
+        pallet: form.pallet,
+      },
+      productDimension: {
+        colour: form.colour,
+        size: form.size,
+        configuration: form.configuration,
+        style: form.style,
+        version: form.version,
+      },
+      trackingDimension: {
+        batch: form.batch,
+        serial: form.serial,
+        manufacturingDate: form.manufacturingDate,
+        expiryDate: form.expiryDate,
+      },
+    };
+
+    try {
+      const res = await axios.post(apiBase, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
+      const newItem = res.data.data;
+      toast.success("Item saved", {
+        autoClose: 1200,
+        onClose: () => handleCancel(),
+      });
+      setItems((prev) => [...prev, newItem]);
+      onSaved?.(newItem);
+    } catch (err) {
+      console.error("Error creating item:", err.response || err);
+      toast.error(err.response?.data?.message || "Couldn’t save item", {
+        autoClose: 2000,
+      });
     }
   };
 
@@ -355,7 +414,7 @@ export default function CustomerForm({ handleCancel }) {
               </svg>{" "}
             </button>
           </div>
-          <h3 className="text-xl font-semibold">Customer Form</h3>
+          <h3 className="text-xl font-semibold">  Item  Form</h3>
         </div>
       </div>
 

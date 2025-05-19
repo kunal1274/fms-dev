@@ -93,7 +93,7 @@ export default function ViewTogglePage() {
           onClick={goBack}
           className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
         >
-          <FaArrowLeft className="mr-2" /> Back
+          <FaArrowLeft className="mr-2" /> go to Inventory Managment 
         </button>
         <ItemPage />
       </div>
