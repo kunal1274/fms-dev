@@ -1,6 +1,6 @@
 import React from "react";
 import Dashbord from "./Component/Dashbord/Dashbord";
-// import Dashbord from "./MainComponent/Sale/SalePage";
+// import Dashbord from "./InventoryManegment";
 
 const App = () => {
   return (

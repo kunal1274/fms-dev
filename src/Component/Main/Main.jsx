@@ -4,10 +4,11 @@ import CompanyPage from "../../MainComponent/Company/CompanyPage";
 import SalePage from "../../MainComponent/Sale/SalePage";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
 
-import Inventry from "../../MainComponent/Inventory/Item/ItemPage";
+import InventoryManegment from "../../InventoryManegment";
 import PurchasePage from "../../MainComponent/Purchase/PurchasePage";
 import SitePage from "../../MainComponent/Inventory/Site/SitePage";
 import WarehousePage from "../../MainComponent/Inventory/Warehouse/WarehousePage";
+import ItemPage from "../../MainComponent/Inventory/Item/ItemPage";
 
 export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
   return (
@@ -38,8 +39,11 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
           <PurchasePage onAddNew={onAddNew} onView={onView} />
         </div>
       )}
-      {selectedMenu === "Item" && (
-        <Inventry onAddNew={onAddNew} onView={onView} />
+      {selectedMenu === "Inventory Management" && (
+        <InventoryManegment onAddNew={onAddNew} onView={onView} />
+      )}
+      {selectedMenu === "itemPage" && (
+        <ItemPage onAddNew={onAddNew} onView={onView} />
       )}
       {selectedMenu === "Site" && (
         <SitePage onAddNew={onAddNew} onView={onView} />

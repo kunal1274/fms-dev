@@ -15,14 +15,9 @@ const navItems = [
   { label: "Company", icon: FaTruck },
   { label: "Vendor", icon: FaTruck },
   {
-    label: "Inventory",
+    label: "Inventory Management",
     icon: FaBoxOpen,
-    subItems: [
-      { label: "Site", icon: FaMapMarkerAlt },
-      { label: "Warehouse", icon: FaWarehouse },
-
-      { label: "Item", icon: FaBoxOpen },
-    ],
+   
   },
   { label: "Sale", icon: FaShoppingCart },
   { label: "Purchase", icon: FaCartPlus },
