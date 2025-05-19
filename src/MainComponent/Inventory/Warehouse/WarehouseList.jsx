@@ -440,16 +440,21 @@ export default function WarehouseList({ handleAddWarehouse }) {
                           }
                         />
                       </th>
-                      {["Code", "Name", "Discription","site", "Type", "Status"].map(
-                        (h) => (
-                          <th
-                            key={h}
-                            className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
-                          >
-                            {h}
-                          </th>
-                        )
-                      )}
+                      {[
+                        "Code",
+                        "Name",
+                        "Discription",
+                        "site",
+                        "Type",
+                        "Status",
+                      ].map((h) => (
+                        <th
+                          key={h}
+                          className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                        >
+                          {h}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -476,8 +481,7 @@ export default function WarehouseList({ handleAddWarehouse }) {
                           </td>
                           <td className="px-6 py-4">{w.name}</td>
                           <td className="px-6 py-4">{w.description}</td>{" "}
-                          <td className="px-6 py-4">{w.site.name}</td>
-                          {/* list type  site code and name both  */}
+                          <td className="px-6 py-4">{w.site?.name || "—"}</td>
                           <td className="px-6 py-4">
                             <span
                               className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

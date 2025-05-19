@@ -163,14 +163,17 @@ export default function WarehouseForm({ handleCancel }) {
               <label className="block text-sm font-medium text-gray-600">
                 Type
               </label>
-              <input
+              <select
                 name="type"
                 value={form.type}
                 onChange={handleChange}
-                placeholder="e.g. Cold Storage"
                 required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="">Select type</option>
+                <option value="Physical">Physical</option>
+                <option value="Virtual">Virtual</option>
+              </select>
             </div>
 
             {/* Description / Address */}

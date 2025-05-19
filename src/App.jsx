@@ -1,6 +1,6 @@
 import React from "react";
 import Dashbord from "./Component/Dashbord/Dashbord";
-// import Dashbord from "./InventoryManegment";
+// import Dashbord from "../src/MainComponent/Inventory/Warehouse/WarehouseP";
 
 const App = () => {
   return (
