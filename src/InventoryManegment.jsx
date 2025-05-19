@@ -16,15 +16,14 @@ import {
 // import your real pages:
 import ItemPage from "./MainComponent/Inventory/Item/ItemPage";
 import SitePage from "./MainComponent/Inventory/Site/SitePage";
-// import Zones from "";
 import WarehousePage from "./MainComponent/Inventory/Warehouse/WarehousePage";
-// import SitePage from "./MainComponent/Inventory/Site/SitePage";
-// import SitePage from "./MainComponent/Inventory/Site/SitePage";
-// import SitePage from "./MainComponent/Inventory/Site/SitePage";
-// import SitePage from "./MainComponent/Inventory/Site/SitePage";
-// import SitePage from "./MainComponent/Inventory/Site/SitePage";
-// import SitePage from "./MainComponent/Inventory/Site/SitePage";
-// import SitePage from "./MainComponent/Inventory/Site/SitePage";
+import AislesPage from "./MainComponent/Inventory/Aisles/AislesPage";
+import BinPage from "./MainComponent/Inventory/Bin/BinPage";
+import LocationPage from "./MainComponent/Inventory/Location/LocationPage";
+import RacksPage from "./MainComponent/Inventory/Racks/RacksPage";
+import ShelvesPage from "./MainComponent/Inventory/Shelves/ShelvesPage";
+import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
+
 const items = [
   {
     id: 1,
@@ -51,31 +50,31 @@ const items = [
     description: "Configure warehouse racks",
   },
   {
-    id: 9,
+    id: 5,
     title: "Racks",
     icon: <FaColumns />,
-    description: "Configure warehouse racks",
+    description: "Configure rack layouts",
   },
   {
-    id: 5,
+    id: 6,
     title: "Bins",
     icon: <FaArchive />,
     description: "Organize bins within racks",
   },
   {
-    id: 6,
+    id: 7,
     title: "Location",
     icon: <FaMapMarkerAlt />,
     description: "Pinpoint exact locations",
   },
   {
-    id: 7,
+    id: 8,
     title: "Shelves",
     icon: <FaLayerGroup />,
     description: "Set up shelf levels",
   },
   {
-    id: 8,
+    id: 9,
     title: "Aisles",
     icon: <FaMap />,
     description: "Manage aisle definitions",
@@ -84,38 +83,53 @@ const items = [
 
 const VIEW_MODES = { GRID: "GRID", ICON: "ICON", LIST: "LIST" };
 const PAGE = {
-  TOGGLE: "TOGGLE", // your dashboard of tiles
-  DETAILS: "DETAILS", // static placeholder detail
-  ITEMPAGE: "ITEMPAGE", // real ItemPage
-  SITESPAGE: "SITESPAGE", // real SitePage
-  WAREHOUSEPAGE: "WAREHOUSEPAGE",
+  TOGGLE: "TOGGLE",
+  ITEM: "ITEM",
+  SITE: "SITE",
+  WAREHOUSE: "WAREHOUSE",
+  RACK: "RACK",
+  BIN: "BIN",
+  LOCATION: "LOCATION",
+  SHELVES: "SHELVES",
+  ZONE: "ZONE",
+  AISLES: "AISLES",
+};
+
+// Map item titles to PAGE keys
+const pageMap = {
+  Items: PAGE.ITEM,
+  Sites: PAGE.SITE,
+  Warehouse: PAGE.WAREHOUSE,
+  Racks: PAGE.RACK,
+  Bins: PAGE.BIN,
+  Location: PAGE.LOCATION,
+  Shelves: PAGE.SHELVES,
+  Zones: PAGE.ZONE,
+  Aisles: PAGE.AISLES,
 };
 
 export default function ViewTogglePage() {
   const [page, setPage] = useState(PAGE.TOGGLE);
   const [viewMode, setViewMode] = useState(VIEW_MODES.GRID);
-  const [selectedItem, setSelectedItem] = useState(null);
 
-  const goBack = () => {
-    setPage(PAGE.TOGGLE);
-    setSelectedItem(null);
-  };
+  const goBack = () => setPage(PAGE.TOGGLE);
 
-  if (page === PAGE.ITEMPAGE) {
+  // Render individual pages
+  if (page === PAGE.ITEM) {
     return (
       <div className="p-6">
         <button
           onClick={goBack}
           className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
         >
-          <FaArrowLeft className="mr-2" /> go to Inventory Managment
+          <FaArrowLeft className="mr-2" /> Back to Dashboard
         </button>
-        <ItemPage /> <WarehousePage /> <SitePage />
+        <ItemPage />
       </div>
     );
   }
 
-  if (page === PAGE.SITESPAGE) {
+  if (page === PAGE.SITE) {
     return (
       <div className="p-6">
         <button
@@ -129,30 +143,105 @@ export default function ViewTogglePage() {
     );
   }
 
-  if (page === PAGE.DETAILS && selectedItem) {
+  if (page === PAGE.WAREHOUSE) {
     return (
       <div className="p-6">
         <button
           onClick={goBack}
-          className="flex items-center mb-6 text-gray-700 hover:text-gray-900"
+          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
         >
-          <FaArrowLeft className="mr-2" /> Back
+          <FaArrowLeft className="mr-2" /> Back to Dashboard
         </button>
-        <div className="bg-white rounded-lg shadow p-6 max-w-md mx-auto">
-          <div className="text-6xl text-gray-400 mb-4 flex justify-center">
-            {selectedItem.icon}
-          </div>
-          <h1 className="text-2xl font-semibold mb-2 text-center">
-            {selectedItem.title}
-          </h1>
-          <p className="text-gray-600 text-center">
-            {selectedItem.description}
-          </p>
-        </div>
+        <WarehousePage />
       </div>
     );
   }
 
+  if (page === PAGE.RACK) {
+    return (
+      <div className="p-6">
+        <button
+          onClick={goBack}
+          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
+        >
+          <FaArrowLeft className="mr-2" /> Back to Dashboard
+        </button>
+        <RacksPage />
+      </div>
+    );
+  }
+
+  if (page === PAGE.BIN) {
+    return (
+      <div className="p-6">
+        <button
+          onClick={goBack}
+          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
+        >
+          <FaArrowLeft className="mr-2" /> Back to Dashboard
+        </button>
+        <BinPage />
+      </div>
+    );
+  }
+
+  if (page === PAGE.LOCATION) {
+    return (
+      <div className="p-6">
+        <button
+          onClick={goBack}
+          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
+        >
+          <FaArrowLeft className="mr-2" /> Back to Dashboard
+        </button>
+        <LocationPage />
+      </div>
+    );
+  }
+
+  if (page === PAGE.SHELVES) {
+    return (
+      <div className="p-6">
+        <button
+          onClick={goBack}
+          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
+        >
+          <FaArrowLeft className="mr-2" /> Back to Dashboard
+        </button>
+        <ShelvesPage />
+      </div>
+    );
+  }
+
+  if (page === PAGE.ZONE) {
+    return (
+      <div className="p-6">
+        <button
+          onClick={goBack}
+          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
+        >
+          <FaArrowLeft className="mr-2" /> Back to Dashboard
+        </button>
+        <ZonePage />
+      </div>
+    );
+  }
+
+  if (page === PAGE.AISLES) {
+    return (
+      <div className="p-6">
+        <button
+          onClick={goBack}
+          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
+        >
+          <FaArrowLeft className="mr-2" /> Back to Dashboard
+        </button>
+        <AislesPage />
+      </div>
+    );
+  }
+
+  // Dashboard Toggle View
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -181,14 +270,7 @@ export default function ViewTogglePage() {
           {items.map((item) => (
             <div
               key={item.id}
-              onClick={() => {
-                if (item.title === "Items") setPage(PAGE.ITEMPAGE);
-                else if (item.title === "Sites") setPage(PAGE.SITESPAGE);
-                else {
-                  setSelectedItem(item);
-                  setPage(PAGE.DETAILS);
-                }
-              }}
+              onClick={() => setPage(pageMap[item.title])}
               className="cursor-pointer bg-white rounded-lg shadow hover:shadow-lg transform hover:scale-105 transition p-6 flex flex-col items-center"
             >
               <div className="text-4xl text-gray-600 mb-4">{item.icon}</div>
@@ -206,14 +288,7 @@ export default function ViewTogglePage() {
           {items.map((item) => (
             <div
               key={item.id}
-              onClick={() => {
-                if (item.title === "Items") setPage(PAGE.ITEMPAGE);
-                else if (item.title === "Sites") setPage(PAGE.SITESPAGE);
-                else {
-                  setSelectedItem(item);
-                  setPage(PAGE.DETAILS);
-                }
-              }}
+              onClick={() => setPage(pageMap[item.title])}
               className="cursor-pointer flex flex-col items-center p-4 bg-white rounded-lg shadow hover:bg-gray-50 transition"
             >
               <div className="text-3xl text-gray-600 mb-2">{item.icon}</div>
@@ -228,14 +303,7 @@ export default function ViewTogglePage() {
           {items.map((item) => (
             <div
               key={item.id}
-              onClick={() => {
-                if (item.title === "Items") setPage(PAGE.ITEMPAGE);
-                else if (item.title === "Sites") setPage(PAGE.SITESPAGE);
-                else {
-                  setSelectedItem(item);
-                  setPage(PAGE.DETAILS);
-                }
-              }}
+              onClick={() => setPage(pageMap[item.title])}
               className="cursor-pointer flex items-center p-4 hover:bg-gray-50 transition"
             >
               <div className="text-2xl text-gray-500 mr-4">{item.icon}</div>
