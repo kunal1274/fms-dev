@@ -16,7 +16,15 @@ import {
 // import your real pages:
 import ItemPage from "./MainComponent/Inventory/Item/ItemPage";
 import SitePage from "./MainComponent/Inventory/Site/SitePage";
-
+// import Zones from "";
+import WarehousePage from "./MainComponent/Inventory/Warehouse/WarehousePage";
+// import SitePage from "./MainComponent/Inventory/Site/SitePage";
+// import SitePage from "./MainComponent/Inventory/Site/SitePage";
+// import SitePage from "./MainComponent/Inventory/Site/SitePage";
+// import SitePage from "./MainComponent/Inventory/Site/SitePage";
+// import SitePage from "./MainComponent/Inventory/Site/SitePage";
+// import SitePage from "./MainComponent/Inventory/Site/SitePage";
+// import SitePage from "./MainComponent/Inventory/Site/SitePage";
 const items = [
   {
     id: 1,
@@ -38,6 +46,12 @@ const items = [
   },
   {
     id: 4,
+    title: "Warehouse",
+    icon: <FaColumns />,
+    description: "Configure warehouse racks",
+  },
+  {
+    id: 9,
     title: "Racks",
     icon: <FaColumns />,
     description: "Configure warehouse racks",
@@ -74,6 +88,7 @@ const PAGE = {
   DETAILS: "DETAILS", // static placeholder detail
   ITEMPAGE: "ITEMPAGE", // real ItemPage
   SITESPAGE: "SITESPAGE", // real SitePage
+  WAREHOUSEPAGE: "WAREHOUSEPAGE",
 };
 
 export default function ViewTogglePage() {
@@ -93,9 +108,9 @@ export default function ViewTogglePage() {
           onClick={goBack}
           className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
         >
-          <FaArrowLeft className="mr-2" /> go to Inventory Managment 
+          <FaArrowLeft className="mr-2" /> go to Inventory Managment
         </button>
-        <ItemPage />
+        <ItemPage /> <WarehousePage /> <SitePage />
       </div>
     );
   }
