@@ -103,8 +103,8 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 Site Code
               </label>
               <input
-                name="SiteAccountNo"
-                value={form.SiteAccountNo}
+                name="code"
+                value={form.code}
                 readOnly
                 placeholder="Auto-generated"
                 className="mt-1 w-full cursor-not-allowed p-2 border rounded focus:ring-2 focus:ring-blue-200"
@@ -123,7 +123,19 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-
+   <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Site Type
+              </label>
+              <input
+                name="name"
+                value={form.Type}
+                onChange={handleChange}
+                placeholder="e.g. XYZ Enterprises Pvt. Ltd."
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Site Description

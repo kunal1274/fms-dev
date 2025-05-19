@@ -157,8 +157,8 @@ const SiteViewPagee = ({ SiteId, goBack }) => {
                 Site Code
               </label>
               <input
-                name="SiteAccountNo"
-                value={form.SiteAccountNo}
+                name="code"
+                value={form.code}
                 readOnly
                 placeholder="Auto-generated"
                 className="mt-1 w-full cursor-not-allowed p-2 border rounded bg-gray-100"
@@ -183,11 +183,11 @@ const SiteViewPagee = ({ SiteId, goBack }) => {
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Email ID
+                type
               </label>
               <input
-                name="email"
-                type="email"
+                name="type"
+                type="type"
                 value={form.email}
                 onChange={handleChange}
                 disabled={!isEditing}

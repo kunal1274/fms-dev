@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const API_BASE = "https://fms-qkmw.onrender.com/fms/api/v0/Warehouses";
+const SITES_API = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
 
 export default function WarehouseViewPage({ warehouseId: propId, goBack }) {
-  // Use param ID if prop not provided
+  // Determine ID from prop or URL
   const { id: paramId } = useParams();
   const warehouseId = propId || paramId;
 
@@ -17,11 +18,12 @@ export default function WarehouseViewPage({ warehouseId: propId, goBack }) {
 
   const [warehouse, setWarehouse] = useState(null);
   const [formData, setFormData] = useState({});
+  const [sites, setSites] = useState([]);
 
   const [logoUploading, setLogoUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Fetch warehouse detail on mount or ID change
+  // Fetch warehouse detail
   useEffect(() => {
     async function fetchDetail() {
       setLoading(true);
@@ -40,16 +42,26 @@ export default function WarehouseViewPage({ warehouseId: propId, goBack }) {
     if (warehouseId) fetchDetail();
   }, [warehouseId]);
 
-  // Handle input change
+  // Fetch list of sites for dropdown
+  useEffect(() => {
+    async function fetchSites() {
+      try {
+        const resp = await axios.get(SITES_API);
+        setSites(resp.data.data || resp.data || []);
+      } catch (err) {
+        console.error("Failed to load sites:", err);
+      }
+    }
+    fetchSites();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Toggle edit mode
   const handleEdit = () => setIsEditing(true);
 
-  // Save update
   const handleUpdate = async () => {
     if (!window.confirm("Are you sure you want to update this warehouse?"))
       return;
@@ -57,8 +69,9 @@ export default function WarehouseViewPage({ warehouseId: propId, goBack }) {
     const toastId = toast.loading("Updating...");
     try {
       const resp = await axios.put(`${API_BASE}/${warehouseId}`, formData);
-      setWarehouse(resp.data.data || resp.data);
-      setFormData(resp.data.data || resp.data);
+      const updated = resp.data.data || resp.data;
+      setWarehouse(updated);
+      setFormData(updated);
       setIsEditing(false);
       toast.update(toastId, {
         render: "Updated successfully!",
@@ -79,7 +92,6 @@ export default function WarehouseViewPage({ warehouseId: propId, goBack }) {
     }
   };
 
-  // File upload
   const handleFileUpload = async (file) => {
     if (!file) return toast.error("No file selected");
     setLogoUploading(true);
@@ -92,9 +104,9 @@ export default function WarehouseViewPage({ warehouseId: propId, goBack }) {
           setUploadProgress(Math.round((e.loaded * 100) / e.total)),
       });
       toast.success("Logo uploaded");
-      // refresh details
-      setWarehouse(resp.data.data || resp.data);
-      setFormData(resp.data.data || resp.data);
+      const updated = resp.data.data || resp.data;
+      setWarehouse(updated);
+      setFormData(updated);
     } catch (err) {
       console.error(err);
       toast.error("Upload failed");
@@ -142,6 +154,7 @@ export default function WarehouseViewPage({ warehouseId: propId, goBack }) {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Code (always read-only) */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Code
@@ -153,6 +166,8 @@ export default function WarehouseViewPage({ warehouseId: propId, goBack }) {
             className="mt-1 block w-full bg-gray-100 p-2 rounded"
           />
         </div>
+
+        {/* Name (always read-only) */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Name
@@ -160,37 +175,64 @@ export default function WarehouseViewPage({ warehouseId: propId, goBack }) {
           <input
             name="name"
             value={formData.name || ""}
-            onChange={handleChange}
-            readOnly={!isEditing}
-            className="mt-1 block w-full p-2 border rounded focus:ring"
+            readOnly
+            className="mt-1 block w-full bg-gray-100 p-2 rounded"
           />
         </div>
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Address
-          </label>
-          <textarea
-            name="address"
-            value={formData.address || ""}
-            onChange={handleChange}
-            readOnly={!isEditing}
-            rows={3}
-            className="mt-1 block w-full p-2 border rounded focus:ring"
-          />
-        </div>
+
+        {/* Type (always read-only) */}
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Email
+            Type
           </label>
           <input
-            name="email"
-            type="email"
-            value={formData.email || ""}
-            onChange={handleChange}
-            readOnly={!isEditing}
-            className="mt-1 block w-full p-2 border rounded focus:ring"
+            name="type"
+            value={formData.type || ""}
+            readOnly
+            className="mt-1 block w-full bg-gray-100 p-2 rounded"
           />
         </div>
+
+        {/* Description (editable when editing) */}
+        <div className="sm:col-span-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Warehouse Description
+          </label>
+          <textarea
+            name="description"
+            value={formData.description || ""}
+            onChange={handleChange}
+            readOnly={!isEditing}
+            rows={4}
+            className={`mt-1 block w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+              !isEditing ? "bg-gray-100" : ""
+            }`}
+          />
+        </div>
+
+        {/* Site (select, editable when editing) */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Site
+          </label>
+          <select
+            name="siteId"
+            value={formData.siteId || ""}
+            onChange={handleChange}
+            disabled={!isEditing}
+            className={`mt-1 block w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+              !isEditing ? "bg-gray-100" : ""
+            }`}
+          >
+            <option value="">Select a site…</option>
+            {sites.map((s) => (
+              <option key={s._id} value={s._id}>
+                {s.SiteAccountNo} – {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Logo Upload */}
         <div className="md:col-span-2 flex items-center space-x-4">
           <input

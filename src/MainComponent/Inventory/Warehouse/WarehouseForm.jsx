@@ -3,13 +3,24 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 
 export default function WarehouseForm({ handleCancel }) {
-  const [form, setForm] = useState({});
-  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/Warehouses";
+  // ─── Form State ─────────────────────────────────────────
+  const [form, setForm] = useState({
+    WarehouseAccountNo: "",
+    name: "",
+    siteId: "", // <-- track selected site
+    type: "",
+    address: "",
+  });
 
-  // ─── Data ────────────────────────────────────────────────
+  // ─── API Bases ──────────────────────────────────────────
+  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
+  const apiSite = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
+
+  // ─── Data Lists ─────────────────────────────────────────
   const [warehouses, setWarehouses] = useState([]);
+  const [sites, setSites] = useState([]); // <-- new state for sites
 
-  // ─── Helpers ─────────────────────────────────────────────
+  // ─── Helpers ───────────────────────────────────────────
   const generateAccountNo = useCallback((list) => {
     const lastIndex = list
       .map((c) => parseInt(c.WarehouseAccountNo?.split("_")[1], 10))
@@ -18,23 +29,34 @@ export default function WarehouseForm({ handleCancel }) {
     return `WARE_${String(lastIndex + 1).padStart(3, "0")}`;
   }, []);
 
-  // ─── Load existing Warehouses once ────────────────────────
+  // ─── Load existing Warehouses & Sites once ───────────────
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await axios.get(apiBase);
-        setWarehouses(data.data);
+        // fetch both lists in parallel
+        const [whRes, siteRes] = await Promise.all([
+          axios.get(apiBase),
+          axios.get(apiSite),
+        ]);
+
+        const whList = whRes.data.data || [];
+        const siteList = siteRes.data.data || [];
+
+        setWarehouses(whList);
+        setSites(siteList);
+
         setForm((prev) => ({
           ...prev,
-          WarehouseAccountNo: generateAccountNo(data.data),
+          WarehouseAccountNo: generateAccountNo(whList),
         }));
-      } catch {
-        toast.error("Couldn’t fetch Warehouses");
+      } catch (err) {
+        console.error(err);
+        toast.error("Couldn’t load warehouses or sites");
       }
     })();
-  }, [apiBase, generateAccountNo]);
+  }, [apiBase, apiSite, generateAccountNo]);
 
-  // ─── Handlers ─────────────────────────────────────────────
+  // ─── Handlers ────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -42,7 +64,7 @@ export default function WarehouseForm({ handleCancel }) {
 
   const handleReset = () => {
     const newCode = generateAccountNo(warehouses);
-    setForm({ WarehouseAccountNo: newCode });
+    setForm({ ...form, WarehouseAccountNo: newCode });
   };
 
   const createWarehouse = async (e) => {
@@ -51,7 +73,8 @@ export default function WarehouseForm({ handleCancel }) {
       await axios.post(apiBase, form);
       toast.success("Warehouse created successfully");
       handleCancel();
-    } catch {
+    } catch (err) {
+      console.error(err);
       toast.error("Error creating Warehouse");
     }
   };
@@ -82,7 +105,7 @@ export default function WarehouseForm({ handleCancel }) {
         {/* Business Details */}
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Business Details
+            Warehouse Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Code */}
@@ -92,12 +115,13 @@ export default function WarehouseForm({ handleCancel }) {
               </label>
               <input
                 name="WarehouseAccountNo"
-                value={form.WarehouseAccountNo || ""}
+                value={form.WarehouseAccountNo}
                 readOnly
                 placeholder="Auto-generated"
                 className="mt-1 w-full cursor-not-allowed p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
+
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
@@ -105,36 +129,58 @@ export default function WarehouseForm({ handleCancel }) {
               </label>
               <input
                 name="name"
-                value={form.name || ""}
+                value={form.name}
                 onChange={handleChange}
-                placeholder="e.g. XYZ Enterprises Pvt. Ltd."
+                placeholder="e.g. Central Warehouse"
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-            {/* Email */}
+
+            {/* Site Select */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Warehouse Email
+                Site
+              </label>
+              <select
+                name="siteId"
+                value={form.siteId}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select a site…</option>
+                {sites.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.SiteAccountNo} – {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Type
               </label>
               <input
-                name="email"
-                type="email"
-                value={form.email || ""}
+                name="type"
+                value={form.type}
                 onChange={handleChange}
-                placeholder="e.g. info@xyzenterprises.com"
+                placeholder="e.g. Cold Storage"
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-            {/* Description */}
-            <div>
+
+            {/* Description / Address */}
+            <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-600">
                 Warehouse Description
               </label>
               <textarea
-                name="address"
-                value={form.address || ""}
+                name="description"
+                value={form.description}
                 onChange={handleChange}
                 placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
                 rows={4}

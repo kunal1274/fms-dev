@@ -77,8 +77,8 @@ export default function SitePage() {
 
     return (
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold text-gray-800">{title}</h1>
-        {action}
+        {/* <h1 className="text-2xl font-semibold text-gray-800">{title}</h1> */}
+        {/* {action} */}
       </div>
     );
   };
@@ -90,7 +90,7 @@ export default function SitePage() {
       {view === "list" && (
         <SiteList
           sites={sites}
-          onAdd={handleAddSite}
+        handleAddSite={handleAddSite}
           onView={handleViewSite}
           onDelete={handleDeleteSites}
         />

@@ -318,7 +318,7 @@ export default function CustomerList({ handleAddCustomer, onView }) {
 
   return (
     <div>
-      <ToastContainer />
+  
       <div>
         <div>
           {viewingCustomerId ? (
