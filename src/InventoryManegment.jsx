@@ -17,12 +17,12 @@ import {
 import ItemPage from "./MainComponent/Inventory/Item/ItemPage";
 import SitePage from "./MainComponent/Inventory/Site/SitePage";
 import WarehousePage from "./MainComponent/Inventory/Warehouse/WarehousePage";
-import AislesPage from "./MainComponent/Inventory/Aisles/AislesPage";
-import BinPage from "./MainComponent/Inventory/Bin/BinPage";
-import LocationPage from "./MainComponent/Inventory/Location/LocationPage";
-import RacksPage from "./MainComponent/Inventory/Racks/RacksPage";
-import ShelvesPage from "./MainComponent/Inventory/Shelves/ShelvesPage";
-import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
+// import AislesPage from "./MainComponent/Inventory/Aisles/AislesPage";
+// import BinPage from "./MainComponent/Inventory/Bin/BinPage";
+// import LocationPage from "./MainComponent/Inventory/Location/LocationPage";
+// import RacksPage from "./MainComponent/Inventory/Racks/RacksPage";
+// import ShelvesPage from "./MainComponent/Inventory/Shelves/ShelvesPage";
+// import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
 
 const items = [
   {

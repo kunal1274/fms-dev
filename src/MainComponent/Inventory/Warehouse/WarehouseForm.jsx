@@ -7,9 +7,9 @@ export default function WarehouseForm({ handleCancel }) {
   const [form, setForm] = useState({
     WarehouseAccountNo: "",
     name: "",
-    siteId: "", // <-- track selected site
+    siteId: "",
     type: "",
-    address: "",
+    description: "",
   });
 
   // ─── API Bases ──────────────────────────────────────────
@@ -18,7 +18,7 @@ export default function WarehouseForm({ handleCancel }) {
 
   // ─── Data Lists ─────────────────────────────────────────
   const [warehouses, setWarehouses] = useState([]);
-  const [sites, setSites] = useState([]); // <-- new state for sites
+  const [sites, setSites] = useState([]);
 
   // ─── Helpers ───────────────────────────────────────────
   const generateAccountNo = useCallback((list) => {
@@ -33,24 +33,27 @@ export default function WarehouseForm({ handleCancel }) {
   useEffect(() => {
     (async () => {
       try {
-        // fetch both lists in parallel
         const [whRes, siteRes] = await Promise.all([
           axios.get(apiBase),
           axios.get(apiSite),
         ]);
 
-        const whList = whRes.data.data || [];
-        const siteList = siteRes.data.data || [];
+        const whList = Array.isArray(whRes.data.data)
+          ? whRes.data.data
+          : whRes.data;
+        const rawSites = Array.isArray(siteRes.data.data)
+          ? siteRes.data.data
+          : siteRes.data;
 
         setWarehouses(whList);
-        setSites(siteList);
+        setSites(rawSites);
 
         setForm((prev) => ({
           ...prev,
           WarehouseAccountNo: generateAccountNo(whList),
         }));
       } catch (err) {
-        console.error(err);
+        console.error("Fetch error:", err);
         toast.error("Couldn’t load warehouses or sites");
       }
     })();
@@ -63,19 +66,30 @@ export default function WarehouseForm({ handleCancel }) {
   };
 
   const handleReset = () => {
-    const newCode = generateAccountNo(warehouses);
-    setForm({ ...form, WarehouseAccountNo: newCode });
+    setForm((prev) => ({
+      ...prev,
+      WarehouseAccountNo: generateAccountNo(warehouses),
+    }));
   };
 
   const createWarehouse = async (e) => {
     e.preventDefault();
+    // Map form.siteId to API expected "site" field
+    const payload = {
+      WarehouseAccountNo: form.WarehouseAccountNo,
+      name: form.name,
+      type: form.type,
+      site: form.siteId,
+      description: form.description,
+    };
     try {
-      await axios.post(apiBase, form);
+      await axios.post(apiBase, payload);
       toast.success("Warehouse created successfully");
       handleCancel();
     } catch (err) {
-      console.error(err);
-      toast.error("Error creating Warehouse");
+      console.error("Create error:", err.response || err);
+      const msg = err.response?.data?.message || "Error creating Warehouse";
+      toast.error(msg);
     }
   };
 
@@ -150,11 +164,15 @@ export default function WarehouseForm({ handleCancel }) {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">Select a site…</option>
-                {sites.map((s) => (
-                  <option key={s._id} value={s._id}>
-                    {s.SiteAccountNo} – {s.name}
-                  </option>
-                ))}
+                {sites.length ? (
+                  sites.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {(s.siteAccountNo || s.SiteAccountNo) + " – " + s.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading sites...</option>
+                )}
               </select>
             </div>
 
@@ -176,7 +194,7 @@ export default function WarehouseForm({ handleCancel }) {
               </select>
             </div>
 
-            {/* Description / Address */}
+            {/* Description */}
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-600">
                 Warehouse Description

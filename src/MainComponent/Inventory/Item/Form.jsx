@@ -3,115 +3,130 @@ import axios from "axios";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 
-const businessTypes = [
-  "Individual",
-  "Manufacturing",
-  "ServiceProvider",
-  "Trading",
-  "Distributor",
-  "Retailer",
-  "Wholesaler",
-  "Others",
-];
 const currency = ["INR", "USD", "EUR", "GBP"];
-const paymentTerms = [
-  "COD",
-  "Net30D",
-  "Net7D",
-  "Net15D",
-  "Net45D",
-  "Net60D",
-  "Net90D",
-  "Advance",
-];
 
-const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", " UPI"];
-export default function CustomerForm({ handleCancel }) {
-  const [form, setForm] = useState({
-    code: "",
-    name: "",
-    businessType: "",
-    address: "",
-    contactNum: "",
-    email: "",
-    Tannumber: "",
-    group: "",
-    remarks: "",
-    employeeName: "",
-    contactPersonName: "",
-    employeePhone: "",
-    paymentTerms: "",
-    contactPersonPhone: "",
-    employeeEmail: "",
-    creditLimit: "",
-    bankType: "",
-    accountHolderName: "",
-    bankAccNum: "",
-    bankName: "",
-    ifsc: "",
-    contactPersonEmail: "",
-    swift: "",
-    upi: "",
-    currency: "",
-    panNum: "",
-    registrationNum: "",
-    globalPartyId: "",
-    active: true,
-    qrDetails: "",
-  });
-  const apiBase = "//fms-qkmw.onrender.com/fms/api/v0/items";
+const initialForm = {
+  itemCode: "",
+  name: "",
+  description: "",
+  globalPartyId: "",
+  type: "",
+  price: "",
+  unit: "",
+  financialGroup: "",
+  hierarchicalCategory: "",
+  externalCode: "",
+  active: false,
+  // storage dimensions
+  site: "",
+  warehouse: "",
+  zone: "",
+  location: "",
+  aisle: "",
+  rack: "",
+  shelf: "",
+  bin: "",
+  pallet: "",
+  // product dimensions
+  colour: "",
+  size: "",
+  configuration: "",
+  style: "",
+  version: "",
+  // tracking dimensions
+  batch: "",
+  serial: "",
+  manufacturingDate: "",
+  expiryDate: "",
+};
 
-  // ─── Data ────────────────────────────────────────────────
-  const [customers, setCustomers] = useState([]);
-  const disableBankFields =
-    form.bankType === "Cash" ||
-    form.bankType === "Barter" ||
-    form.bankType === "qrDetails" ||
-    form.bankType === "Crypto";
-  const [logoUploading, setLogoUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({});
-  const handleFileUpload = async (file) => {
-    if (!file) {
-      toast.error("No file selected!");
-      return;
-    }
-    setLogoUploading(true);
+export default function ItemForm({ onSaved, handleCancel }) {
+  const [form, setForm] = useState(initialForm);
+  const [items, setItems] = useState([]);
 
+  // Dropdown data lists
+  const [sites, setSites] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [racks, setRacks] = useState([]);
+  const [shelves, setShelves] = useState([]);
+  const [zones, setZones] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
+  const [aisles, setAisles] = useState([]);
+  const [bins, setBins] = useState([]);
+
+  // API endpoints
+  const apiItemBase = "https://fms-qkmw.onrender.com/fms/api/v0/items";
+  const apiSiteBase = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
+  const apiLocationBase = "https://fms-qkmw.onrender.com/fms/api/v0/Location";
+  const apiRackBase = "https://fms-qkmw.onrender.com/fms/api/v0/Rack";
+  const apiShelvesBase = "https://fms-qkmw.onrender.com/fms/api/v0/Shelves";
+  const apiZoneBase = "https://fms-qkmw.onrender.com/fms/api/v0/Zone";
+  const apiWarehouseBase = "https://fms-qkmw.onrender.com/fms/api/v0/Warehouse";
+  const apiAislesBase = "https://fms-qkmw.onrender.com/fms/api/v0/Aisles";
+  const apiBinBase = "https://fms-qkmw.onrender.com/fms/api/v0/Bin";
+
+  // Helpers
+  const generateItemCode = useCallback((list) => {
+    const last = list
+      .map((i) => parseInt(i.itemCode?.split("_")[1], 10))
+      .filter((n) => !isNaN(n))
+      .reduce((m, n) => Math.max(m, n), 0);
+    return `ITEM_${String(last + 1).padStart(3, "0")}`;
+  }, []);
+
+  // Fetch functions
+  const fetchItems = async () => {
     try {
-      const formData = new FormData();
-      formData.append("logoImage", file);
-
-      await axios.post(
-        "https://fms-qkmw.onrender.com/fms/api/v0/customers/upload-logo",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            setUploadProgress({ [file.name]: percentCompleted });
-          },
-        }
-      );
-
-      toast.success("File uploaded successfully! ✅");
-      handleCancel();
-      await fetchCustomers(); // If you want to refresh after upload
-    } catch (error) {
-      console.error(error);
-      toast.error("Error uploading logo!");
-    } finally {
-      // Delay a little to let user feel "100% uploaded"
-      setTimeout(() => {
-        setLogoUploading(false); // 👈 this will hide the circle after success
-        setUploadProgress({});
-      }, 500); // 0.5 second delay
+      const { data } = await axios.get(apiItemBase);
+      setItems(data.data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn’t fetch items");
     }
   };
-  const createItem = async (e) => {
-    e.preventDefault();
 
+  const fetchList = async (url, setter, label) => {
+    try {
+      const { data } = await axios.get(url);
+      setter(data.data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error(`Couldn’t fetch ${label}`);
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    fetchItems();
+    fetchList(apiSiteBase, setSites, "sites");
+    fetchList(apiLocationBase, setLocations, "locations");
+    fetchList(apiRackBase, setRacks, "racks");
+    fetchList(apiShelvesBase, setShelves, "shelves");
+    fetchList(apiZoneBase, setZones, "zones");
+    fetchList(apiWarehouseBase, setWarehouses, "warehouses");
+    fetchList(apiAislesBase, setAisles, "aisles");
+    fetchList(apiBinBase, setBins, "bins");
+  }, []);
+
+  // Generate code when items loaded
+  useEffect(() => {
+    if (items.length) {
+      setForm((prev) => ({ ...prev, itemCode: generateItemCode(items) }));
+    }
+  }, [items, generateItemCode]);
+
+  // Handle change
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  // Submit
+  const createItem  = async (e) => {
+    e.preventDefault();
     const payload = {
       itemCode: form.itemCode,
       name: form.name,
@@ -129,7 +144,7 @@ export default function CustomerForm({ handleCancel }) {
         warehouse: form.warehouse,
         zone: form.zone,
         location: form.location,
-        rackAisle: form.rackAisle,
+        rackAisle: form.aisle,
         rack: form.rack,
         shelf: form.shelf,
         bin: form.bin,
@@ -151,238 +166,23 @@ export default function CustomerForm({ handleCancel }) {
     };
 
     try {
-      const res = await axios.post(apiBase, payload, {
+      const res = await axios.post(apiItemBase, payload, {
         headers: { "Content-Type": "application/json" },
       });
       const newItem = res.data.data;
-      toast.success("Item saved", {
-        autoClose: 1200,
-        onClose: () => handleCancel(),
-      });
+      toast.success("Item saved!", { autoClose: 1200, onClose: handleCancel });
       setItems((prev) => [...prev, newItem]);
       onSaved?.(newItem);
     } catch (err) {
-      console.error("Error creating item:", err.response || err);
-      toast.error(err.response?.data?.message || "Couldn’t save item", {
-        autoClose: 2000,
-      });
+      console.error(err);
+      toast.error(err.response?.data?.message || "Couldn’t save item");
     }
   };
 
-  // ─── Helpers ─────────────────────────────────────────────
-  const generateAccountNo = useCallback((list) => {
-    const last = list
-      .map((c) => parseInt(c.customerAccountNo?.split("_")[1], 10))
-      .filter((n) => !isNaN(n))
-      .reduce((m, n) => Math.max(m, n), 0);
-    return `CUST_${String(last + 1).padStart(3, "0")}`;
-  }, []);
-
-  // ─── Load existing customers once ────────────────────────
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await axios.get(apiBase);
-        setCustomers(data.data);
-        setForm((prev) => ({
-          ...prev,
-          customerAccountNo: generateAccountNo(data.data),
-        }));
-        // toast.info("Customer form ready", { autoClose: 800 });
-      } catch {
-        toast.error("Couldn’t fetch customers");
-      }
-    })();
-  }, [apiBase, generateAccountNo]);
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    let val = value;
-
-    // Capitalize specific name fields (first letter only)
-    if (
-      [
-        "name",
-        "employeeName",
-        "accountHolderName",
-        "contactPersonName",
-      ].includes(name) &&
-      val
-    ) {
-      val = val.charAt(0).toUpperCase() + val.slice(1);
-    }
-
-    // Validators
-    const validators = {
-      bankAccNum: /^[0-9]{0,15}$/,
-      bankName: /^[A-Z0-9\s]{0,50}$/, // ✅ Now allows spaces and longer names
-      panNum: /^[A-Z0-9]{0,10}$/,
-      registrationNum: /^[A-Z0-9]{0,15}$/,
-      ifsc: /^[A-Z0-9]{0,12}$/,
-      swift: /^[A-Z0-9]{0,10}$/,
-      Tannumber: /^[A-Z0-9]{0,10}$/,
-      qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
-      name: /^[A-Za-z\s]*$/,
-      employeeName: /^[A-Za-z\s]*$/,
-      email: /^.{0,100}$/,
-      employeeEmail: /^.{0,100}$/,
-      contactNum: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
-      contactPersonPhone: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
-      creditLimit: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
-    };
-
-    // Handle checkbox separately
-    if (type === "checkbox") {
-      setForm((prev) => ({ ...prev, [name]: checked }));
-      return;
-    }
-
-    // Reset bank-related fields if bankType is Cash-like
-    if (
-      name === "bankType" &&
-      ["Cash", "Barter", "Crypto", "UPI"].includes(val.trim())
-    ) {
-      setForm((prev) => ({
-        ...prev,
-        bankName: "",
-        bankAccNum: "",
-        bankHolder: "",
-        ifsc: "",
-        swift: "",
-        upi: "",
-        [name]: val,
-      }));
-      return;
-    }
-
-    // Uppercase specific fields
-    if (
-      [
-        "bankAccNum",
-        "bankName",
-        "panNum",
-        "registrationNum",
-        "ifsc",
-        "swift",
-        "Tannumber",
-      ].includes(name)
-    ) {
-      val = val.toUpperCase();
-    }
-
-    // Validate input
-    if (validators[name] && !validators[name].test(val)) return;
-
-    // Set form state
-    setForm((prev) => ({ ...prev, [name]: val }));
-  };
-
-  const createCustomer = async (e) => {
-    e.preventDefault();
-
-    const bankDetailsPayload = [
-      {
-        code: form.code, // your bank‐detail code
-        type: form.bankType, // e.g. "Bank", "UPI", etc.
-        bankAccNum: form.bankAccNum, // account number (≤18 digits)
-        bankName: form.bankName, // bank’s name
-        accountHolderName: form.accountHolderName, // name on the account
-        ifsc: form.ifsc, // 12‐char uppercase IFSC
-        swift: form.swift, // ≤16‐char uppercase SWIFT
-        active: true, // boolean flag
-        qrDetails: form.qrDetails, // whatever you store for UPI/QR
-      },
-    ];
-
-    const payload = {
-      ...form,
-      bankDetails: bankDetailsPayload,
-    };
-
-    try {
-      const { data } = await axios.post(apiBase, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
-      const newCustomer = data.data;
-
-      toast.success("Customer saved", {
-        autoClose: 1200,
-        onClose: () => handleCancel(),
-      });
-
-      setCustomers((prev) => [...prev, newCustomer]);
-
-      onSaved?.(newCustomer);
-    } catch (err) {
-      console.error("Error creating customer:", err.response || err);
-      // const msg = err.response?.data?.message || "Couldn’t save customer"; // ← define msg properly
-      // toast.error(msg, { autoClose: 2000 });
-    }
-  };
-
-  // ─── Reset / Cancel ──────────────────────────────────────
-  const resetForm = (nextAccNo) =>
-    setForm({
-      ...form,
-      customerAccountNo: nextAccNo ?? generateAccountNo(customers),
-      name: "",
-      businessType: "",
-      address: "",
-      contactNum: "",
-      email: "",
-      group: "",
-      remarks: "",
-      employeeName: "",
-      employeePhone: "",
-      employeeEmail: "",
-      bankType: "",
-      bankName: "",
-      bankAccNum: "",
-      bankHolder: "",
-      ifsc: "",
-      swift: "",
-      upi: "",
-      panNum: "",
-      registrationNum: "",
-      active: true,
-    });
-  const initialForm = {
-    code: "",
-    name: "",
-    businessType: "",
-    address: "",
-    contactNum: "",
-    email: "",
-    group: "",
-    remarks: "",
-    employeeName: "",
-    contactPersonName: "",
-    employeePhone: "",
-    paymentTerms: "",
-    contactPersonPhone: "",
-    employeeEmail: "",
-    creditLimit: "",
-    bankType: "",
-    bankName: "",
-    bankAccNum: "",
-    bankHolder: "",
-    ifsc: "",
-    contactPersonEmail: "",
-    swift: "",
-    upi: "",
-    currency: "INR",
-    panNum: "",
-    registrationNum: "",
-
-    active: true,
-  };
-
+  // Reset
   const handleReset = () => {
-    const newCustomerCode = generateAccountNo(customers);
-    setForm({ ...initialForm, customerAccountNo: newCustomerCode });
-  };
-  const handleEdit = () => {
-    navigate("/customerview", { state: { customer: formData } });
+    const next = generateItemCode(items);
+    setForm({ ...initialForm, itemCode: next });
   };
 
   return (
@@ -392,7 +192,6 @@ export default function CustomerForm({ handleCancel }) {
       <div className="flex justify-between ">
         <div className="flex items-center space-x-2">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-            {" "}
             <button
               type="button"
               className="text-blue-600 mt-2 text-sm hover:underline"
@@ -414,7 +213,7 @@ export default function CustomerForm({ handleCancel }) {
               </svg>{" "}
             </button>
           </div>
-          <h3 className="text-xl font-semibold">  Item  Form</h3>
+          <h3 className="text-xl font-semibold"> Item Form</h3>
         </div>
       </div>
 
@@ -571,141 +370,269 @@ export default function CustomerForm({ handleCancel }) {
         </section>
 
         {/* Storage Dimension */}
+    
         <section className="p-6 bg-white rounded Item">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Storage Dimension
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {/* Site */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Site
               </label>
-              <input
+              <select
                 name="site"
                 value={form.site}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
-              />
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select a site…</option>
+                {sites.length ? (
+                  sites.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {`${s.siteAccountNo || s.SiteAccountNo} – ${s.name}`}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading sites...</option>
+                )}
+              </select>
             </div>
+
+            {/* Warehouse */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Warehouse
               </label>
-              <input
+              <select
                 name="warehouse"
                 value={form.warehouse}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
-              />
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select a warehouse…</option>
+                {warehouses.length ? (
+                  warehouses.map((w) => (
+                    <option key={w._id} value={w._id}>
+                      {`${w.warehouseAccountNo || w.WarehouseAccountNo} – ${
+                        w.name
+                      }`}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading warehouses...</option>
+                )}
+              </select>
             </div>
+
+            {/* Zone */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Zone
               </label>
-              <input
+              <select
                 name="zone"
                 value={form.zone}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
-              />
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select a zone…</option>
+                {zones.length ? (
+                  zones.map((z) => (
+                    <option key={z._id} value={z._id}>
+                      {`${z.zoneAccountNo || z.ZoneAccountNo} – ${z.name}`}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading zones...</option>
+                )}
+              </select>
             </div>
+
+            {/* Location */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Location
               </label>
-              <input
+              <select
                 name="location"
                 value={form.location}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
-              />
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select a location…</option>
+                {locations.length ? (
+                  locations.map((l) => (
+                    <option key={l._id} value={l._id}>
+                      {`${l.locationAccountNo || l.LocationAccountNo} – ${
+                        l.name
+                      }`}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading locations...</option>
+                )}
+              </select>
             </div>
+
+            {/* Aisle */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Rack / Aisle
+                Aisle
               </label>
-              <input
-                name="rackAisle"
-                value={form.rackAisle}
+              <select
+                name="aisle"
+                value={form.aisle}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
-              />
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select an aisle…</option>
+                {aisles.length ? (
+                  aisles.map((a) => (
+                    <option key={a._id} value={a._id}>
+                      {`${a.aisleAccountNo || a.AisleAccountNo} – ${a.name}`}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading aisles...</option>
+                )}
+              </select>
             </div>
+
+            {/* Rack */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Rack
               </label>
-              <input
+              <select
                 name="rack"
                 value={form.rack}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
-              />
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select a rack…</option>
+                {racks.length ? (
+                  racks.map((r) => (
+                    <option key={r._id} value={r._id}>
+                      {`${r.rackAccountNo || r.RackAccountNo} – ${r.name}`}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading racks...</option>
+                )}
+              </select>
             </div>
+
+            {/* Shelf */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Shelf
               </label>
-              <input
+              <select
                 name="shelf"
                 value={form.shelf}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
-              />
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select a shelf…</option>
+                {shelves.length ? (
+                  shelves.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {`${s.shelfAccountNo || s.ShelfAccountNo} – ${s.name}`}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading shelves...</option>
+                )}
+              </select>
             </div>
+
+            {/* Bin */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Bin
               </label>
-              <input
+              <select
                 name="bin"
                 value={form.bin}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
-              />
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select a bin…</option>
+                {bins.length ? (
+                  bins.map((b) => (
+                    <option key={b._id} value={b._id}>
+                      {`${b.binAccountNo || b.BinAccountNo} – ${b.name}`}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading bins...</option>
+                )}
+              </select>
             </div>
+
+            {/* Pallet */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Pallet
               </label>
               <input
+                type="text"
                 name="pallet"
                 value={form.pallet}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
+                placeholder="Enter pallet code…"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
           </div>
         </section>
-
         {/* Product Dimension */}
         <section className="p-6 bg-white rounded Item">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Product Dimension
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {/* Colour */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Colour
               </label>
               <input
+                type="text"
                 name="colour"
                 value={form.colour}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
+                placeholder="e.g., Red, Blue..."
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
+
+            {/* Size */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Size
               </label>
               <input
+                type="text"
                 name="size"
                 value={form.size}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
+                placeholder="e.g., S, M, L, XL"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
+
+            {/* Configuration */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Configuration
@@ -714,7 +641,7 @@ export default function CustomerForm({ handleCancel }) {
                 name="configuration"
                 value={form.configuration}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">Select configuration</option>
                 {currency.map((c) => (
@@ -724,26 +651,34 @@ export default function CustomerForm({ handleCancel }) {
                 ))}
               </select>
             </div>
+
+            {/* Style */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Style
               </label>
               <input
+                type="text"
                 name="style"
                 value={form.style}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
+                placeholder="e.g., Casual, Formal..."
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
+
+            {/* Version */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Version
               </label>
               <input
+                type="text"
                 name="version"
                 value={form.version}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
+                placeholder="e.g., v1.0, v2.0..."
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
           </div>
@@ -759,23 +694,47 @@ export default function CustomerForm({ handleCancel }) {
               <label className="block text-sm font-medium text-gray-600">
                 Batch
               </label>
-              <input
-                name="batch"
-                value={form.batch}
+              <select
+                name="  Batch"
+                value={form.Batch}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
-              />
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select a site…</option>
+                {sites.length ? (
+                  sites.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {(s.siteAccountNo || s.SiteAccountNo) + " – " + s.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading sites...</option>
+                )}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Serial
               </label>
-              <input
-                name="serial"
-                value={form.serial}
+              <select
+                name=" Serial"
+                value={form.Serial}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
-              />
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select a site…</option>
+                {sites.length ? (
+                  sites.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {(s.siteAccountNo || s.SiteAccountNo) + " – " + s.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading sites...</option>
+                )}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
