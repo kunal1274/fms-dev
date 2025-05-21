@@ -11,15 +11,15 @@ import {
 } from "react-icons/fa";
 
 const navItems = [
-  { label: "Customer", icon: FaUser },
+  // { label: "Customer", icon: FaUser },
   { label: "Company", icon: FaTruck },
-  { label: "Vendor", icon: FaTruck },
+  // { label: "Vendor", icon: FaTruck },
   {
     label: "Inventory Management",
     icon: FaBoxOpen,
   },
-  { label: "Sale", icon: FaShoppingCart },
-  { label: "Purchase", icon: FaCartPlus },
+  { label: "Sale Mangement", icon: FaShoppingCart },
+  { label: "Purchase Mangement", icon: FaCartPlus },
   { label: "User", icon: FaUser },
 ];
 

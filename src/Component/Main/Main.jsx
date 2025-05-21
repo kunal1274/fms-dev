@@ -1,11 +1,10 @@
 import React from "react";
 import CustomerList from "../../MainComponent/Customer/CustomerPage";
 import CompanyPage from "../../MainComponent/Company/CompanyPage";
-import SalePage from "../../MainComponent/Sale/SalePage";
+import SalePage from "../../SaleToggle";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
-
 import InventoryManegment from "../../InventoryManegment";
-import PurchasePage from "../../MainComponent/Purchase/PurchasePage";
+import PurchasePage from "../../Purchase Toggle";
 import SitePage from "../../MainComponent/Inventory/Site/SitePage";
 import WarehousePage from "../../MainComponent/Inventory/Warehouse/WarehousePage";
 import ItemPage from "../../MainComponent/Inventory/Item/ItemPage";
@@ -29,12 +28,12 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
           <VendorPage onAddNew={onAddNew} onView={onView} />
         </div>
       )}
-      {selectedMenu === "Sale" && (
+      {selectedMenu === "Sale Mangement" && (
         <div className="text-gray-700">
           <SalePage onAddNew={onAddNew} onView={onView} />
         </div>
       )}
-      {selectedMenu === "Purchase" && (
+      {selectedMenu === "Purchase Mangement" && (
         <div className="text-gray-700">
           <PurchasePage onAddNew={onAddNew} onView={onView} />
         </div>
