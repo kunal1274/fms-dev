@@ -3,18 +3,18 @@ import axios from "axios";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 
-export default function LocationForm({ handleCancel }) {
+export default function BatchForm({ handleCancel }) {
   const [form, setForm] = useState({});
-  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/location";
+  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/Batch";
 
   // ─── Data ────────────────────────────────────────────────
-  const [locations, setLocations] = useState([]);
+  const [Batchs, setBatchs] = useState([]);
 
   // ─── Helpers ─────────────────────────────────────────────
 
-  // ─── Load existing Locations once ────────────────────────
+  // ─── Load existing Batchs once ────────────────────────
   const handleChange = () => {};
-  const createLocation = async (e) => {
+  const createBatch = async (e) => {
     e.preventDefault();
 
     const payload = {
@@ -26,19 +26,19 @@ export default function LocationForm({ handleCancel }) {
       const { data } = await axios.post(apiBase, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      const newLocation = data.data;
+      const newBatch = data.data;
 
-      toast.success("Location saved", {
+      toast.success("Batch saved", {
         autoClose: 1200,
         onClose: () => handleCancel(),
       });
 
-      setLocations((prev) => [...prev, newLocation]);
+      setBatchs((prev) => [...prev, newBatch]);
 
-      onSaved?.(newLocation);
+      onSaved?.(newBatch);
     } catch (err) {
-      console.error("Error creating Location:", err.response || err);
-      // const msg = err.response?.data?.message || "Couldn’t save Location"; // ← define msg properly
+      console.error("Error creating Batch:", err.response || err);
+      // const msg = err.response?.data?.message || "Couldn’t save Batch"; // ← define msg properly
       // toast.error(msg, { autoClose: 2000 });
     }
   };
@@ -50,11 +50,11 @@ export default function LocationForm({ handleCancel }) {
     });
 
   const handleReset = () => {
-    const newLocationCode = generateAccountNo(Locations);
-    setForm({ ...initialForm, locationAccountNo: newlocationCode });
+    const newBatchCode = generateAccountNo(Batchs);
+    setForm({ ...initialForm, BatchAccountNo: newBatchCode });
   };
   const handleEdit = () => {
-    navigate("/locationview", { state: { location: formData } });
+    navigate("/Batchview", { state: { Batch: formData } });
   };
 
   return (
@@ -86,26 +86,26 @@ export default function LocationForm({ handleCancel }) {
               </svg>{" "}
             </button>
           </div>
-          <h3 className="text-xl font-semibold">Location Form</h3>
+          <h3 className="text-xl font-semibold">Batch Value Form</h3>
         </div>
       </div>
 
       <form
-        onSubmit={createLocation}
+        onSubmit={createBatch}
         className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
       >
         {/* Business Details */}
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Location Details
+            Batch Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Location Code
+                Batch Code
               </label>
               <input
-                name="locationcode"
+                name="Batchcode"
                 value={form.code}
                 readOnly
                 placeholder="Auto-generated"
@@ -114,7 +114,7 @@ export default function LocationForm({ handleCancel }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Location Name
+                Batch Name
               </label>
               <input
                 name="name"
@@ -138,24 +138,24 @@ export default function LocationForm({ handleCancel }) {
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>{" "} 
-       
-            <div>
+            </div>{" "}  <div>
               <label className="block text-sm font-medium text-gray-600">
-                Remarks
+            remarks
               </label>
               <textarea
-                name="remarks"
-                value={form.remarks}
+                name="description"
+                value={form.description}
                 onChange={handleChange}
-                placeholder="e.g. Any additional notes…"
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
                 rows={4}
+                required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
+         
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                type
+             attributes
               </label>
               <input
                 name="type"
@@ -165,9 +165,22 @@ export default function LocationForm({ handleCancel }) {
                 disabled
                 className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>{" "}  <div>
+            </div>{" "}   <div>
               <label className="block text-sm font-medium text-gray-600">
-             Zone 
+               Status
+              </label>
+              <input
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                placeholder="e.g. Retail, Wholesale"
+                disabled
+                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}  
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+            serialNumber
               </label>
               <input
                 name="type"
@@ -178,9 +191,21 @@ export default function LocationForm({ handleCancel }) {
                 className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-            <div>
+            <div>   
               <label className="block text-sm font-medium text-gray-600">
-               Warehouse 
+          mfgDate
+              </label>
+              <input
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                placeholder="e.g. Retail, Wholesale"
+                disabled
+                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>  <div>   
+              <label className="block text-sm font-medium text-gray-600">
+          expDate
               </label>
               <input
                 name="type"
@@ -203,7 +228,7 @@ export default function LocationForm({ handleCancel }) {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                shelf
+              aisle
               </label>
               <input
                 name="contactPersonPhone"

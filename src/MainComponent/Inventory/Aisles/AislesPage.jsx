@@ -1,118 +1,117 @@
-// import React, { useState } from "react";
-// import AislesList from "./AislesList";
-// import AislesForm from "./AislesForm";
-// import AislesViewPage from "./AislesViewPagee";
-// import { Button } from "../../../Component/Button/Button";
+import React, { useState } from "react";
 
-// export default function AislesPage() {
-//   const [view, setView] = useState("list");
-//   const [Aisless, setAisless] = useState([]);
-//   const [selectedAisles, setSelectedAisles] = useState(null);
+import AislesViewPage from "./AislesViewpage";
+import { Button } from "../../../Component/Button/Button";
+import AislesForm from "./AislesForm";
+import AislesList from "./Aisleslist";
 
-//   // Save or update a Aisles in state
-//   const handleSaveAisles = (Aisles) => {
-//     setAisless((prev) => {
-//       const idx = prev.findIndex(
-//         (w) => w.AislesAccountNo === Aisles.AislesAccountNo
-//       );
+const AislesPage = () => {
+  const [view, setView] = useState("list");
+  const [aisles, setAisles] = useState([]);
+  const [selectedAisles, setSelectedAisles] = useState(null);
 
-//       if (idx !== -1) {
-//         const updated = [...prev];
-//         updated[idx] = Aisles;
-//         return updated;
-//       }
-//       return [...prev, Aisles];
-//     });
-//     setView("list");
-//   };
+  /** Save or update a aisles */
+  const handleSaveaisles = (aisles) => {
+    setaisles((prev) => {
+      const idx = prev.findIndex(
+        (c) => c.aislesAccountNo === aisles.aislesAccountNo
+      );
 
-//   // Open the "Add Aisles" form
-//   const handleAddAisles = () => {
-//     setSelectedAisles(null);
-//     setView("form");
-//   };
+      if (idx !== -1) {
+        const updated = [...prev];
+        updated[idx] = aisles;
+        return updated;
+      }
+      return [...prev, aisles];
+    });
+    setView("list");
+  };
 
-//   // Show Aisles details
-//   const handleViewAisles = (accountNo) => {
-//     const found = Aisless.find((w) => w.AislesAccountNo === accountNo);
-//     setSelectedAisles(found);
-//     setView("details");
-//   };
+  /** Open the "Add aisles" form */
+  const handleAddAisles = () => {
+    setSelectedAisles(null);
+    setView("form");
+  };
 
-//   // Delete selected Aisless
-//   const handleDeleteAisles = (toDeleteAccounts) => {
-//     setAisless((prev) =>
-//       prev.filter((w) => !toDeleteAccounts.includes(w.AislesAccountNo))
-//     );
-//   };
+  /** Show Aisles details */
+  const handleViewAisles = (aislesAccountNo) => {
+    const cust = aisles.find(
+      (c) => c.aislesAccountNo === aislesAccountNo
+    );
+    setSelectedAisles(cust);
+    setView("details");
+  };
 
-//   // Cancel form or detail view
-//   const handleCancel = () => {
-//     setView("list");
-//     setSelectedAisles(null);
-//   };
+  /** Delete selected Aisless */
+  const handleDeleteAisles = (toDeleteAccounts) => {
+    setAisless((prev) =>
+      prev.filter((c) => !toDeleteAccounts.includes(c.aislesAccountNo))
+    );
+  };
 
-//   // Render header with dynamic title and actions
-//   const renderHeader = () => {
-//     let title = "Aisless";
-//     let action = null;
+  /** Cancel form or detail view */
+  const handleCancel = () => setView("list");
 
-//     if (view === "list") {
-//       action = <Button onClick={handleAddAisles}>Add Aisles</Button>;
-//     } else if (view === "form") {
-//       title = selectedAisles ? "Edit Aisles" : "New Aisles";
-//       action = (
-//         <Button variant="secondary" onClick={handleCancel}>
-//           Cancel
-//         </Button>
-//       );
-//     } else if (view === "details") {
-//       title = "Aisles Details";
-//       action = (
-//         <Button variant="secondary" onClick={handleCancel}>
-//           Back to List
-//         </Button>
-//       );
-//     }
+  /** Render header with title and actions */
+  const renderHeader = () => {
+    let title = "aisless";
+    let action = null;
 
-//     return (
-//       <div className="flex justify-between items-center mb-4">
-//         {/* <h1 className="text-2xl font-semibold text-gray-800">{title}</h1> */}
-//         {/* {action} */}
-//       </div>
-//     );
-//   };
+    if (view === "list") {
+      action = <Button onClick={handleAddAisles}>Add Aisles</Button>;
+    } else if (view === "form") {
+      title = selectedAisles ? "Edit Aisles" : "New Aisles";
+      action = (
+        <Button variant="secondary" onClick={handleCancel}>
+          Cancel
+        </Button>
+      );
+    } else if (view === "details") {
+      title = "Aisles Details";
+      action = (
+        <Button variant="secondary" onClick={handleCancel}>
+          Back to List
+        </Button>
+      );
+    }
 
-//   return (
-//     <div className="w-full p-6 bg-white rounded-lg ">
-//       {renderHeader()}
+    return (
+      <div className="flex justify-between ">
+        <h1 className="text-2xl font-semibold text-gray-800">{title}</h1>
+        {action}
+      </div>
+    );
+  };
 
-//       {view === "list" && (
-//         <AislesList
-//           Aisless={Aisless}
-//         handleAddAisles={handleAddAisles}
-//           onView={handleViewAisles}
-//           onDelete={handleDeleteAisles}
-//         />
-//       )}
+  return (
+    <div className="w-full bg-white rounded-lg ">
+      <div>
+        {view === "list" && (
+          <AislesList
+            aisless={aisles}
+            handleAddAisles={handleAddAisles}
+            onView={handleViewAisles}
+            onDelete={handleDeleteAisles}
+          />
+        )}
 
-//       {view === "form" && (
-//         <AislesForm
-//           Aisles={selectedAisles}
-//           onSave={handleSaveAisles}
-//           onCancel={handleCancel}
-//         />
-//       )}
+        {view === "form" && (
+          <AislesForm
+            aisles={selectedAisles}
+            handleAddAisles={handleAddAisles}
+            handleCancel={handleCancel}
+          />
+        )}
+        {view === "details" && selectedAisles && (
+          <AislesViewPage
+            aisles={selectedAisles}
+            onEdit={() => setView("form")}
+            onBack={handleCancel}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
 
-//       {view === "details" && selectedAisles && (
-//         <AislesViewPage
-//           Aisles={selectedAisles
-            
-//           }
-//           onEdit={() => setView("form")}
-//           onBack={handleCancel}
-//         />
-//       )}
-//     </div>
-//   );
-// }
+export default AislesPage;

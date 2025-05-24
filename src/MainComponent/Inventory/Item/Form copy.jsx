@@ -125,11 +125,45 @@ export default function ItemForm({ onSaved, handleCancel }) {
   };
 
   // Submit
- 
-  
-
-
-  
+  const createItem  = async (e) => {
+    e.preventDefault();
+    const payload = {
+      itemCode: form.itemCode,
+      name: form.name,
+      globalPartyId: form.globalPartyId,
+      type: form.type,
+      price: form.price,
+      unit: form.unit,
+      financialGroup: form.financialGroup,
+      hierarchicalCategory: form.hierarchicalCategory,
+      externalCode: form.externalCode,
+      description: form.description,
+      active: form.active,
+      storageDimension: {
+        site: form.site,
+        warehouse: form.warehouse,
+        zone: form.zone,
+        location: form.location,
+        rackAisle: form.aisle,
+        rack: form.rack,
+        shelf: form.shelf,
+        bin: form.bin,
+        pallet: form.pallet,
+      },
+      productDimension: {
+        colour: form.colour,
+        size: form.size,
+        configuration: form.configuration,
+        style: form.style,
+        version: form.version,
+      },
+      trackingDimension: {
+        batch: form.batch,
+        serial: form.serial,
+        manufacturingDate: form.manufacturingDate,
+        expiryDate: form.expiryDate,
+      },
+    };
 
     try {
       const res = await axios.post(apiItemBase, payload, {
@@ -336,7 +370,7 @@ export default function ItemForm({ onSaved, handleCancel }) {
         </section>
 
         {/* Storage Dimension */}
-
+    
         <section className="p-6 bg-white rounded Item">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Storage Dimension

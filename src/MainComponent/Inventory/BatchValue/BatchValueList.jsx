@@ -7,25 +7,25 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
-// import RackViewPage from "./LocationsViewPagee";
+// import BatchViewPage from "./LocationsViewPagee";
 
-export default function RackList({ handleAddRack }) {
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Racks";
+export default function BatchList({ handleAddBatch }) {
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Batchs";
   const metricsUrl = `${baseUrl}/metrics`;
 
   // Tab names
 
   const tabNames = [
-    "All Racks",
-    "Paid Racks",
-    "Active Racks",
-    "On‑Hold Racks",
-    "Outstanding Racks",
+    "All Batchs",
+    "Paid Batchs",
+    "Active Batchs",
+    "On‑Hold Batchs",
+    "Outstanding Batchs",
   ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
-  const [Racks, setRacks] = useState([]);
-  const [filteredRacks, setFilteredRacks] = useState([]);
+  const [Batchs, setBatchs] = useState([]);
+  const [filteredBatchs, setFilteredBatchs] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -50,8 +50,8 @@ export default function RackList({ handleAddRack }) {
   const [error, setError] = useState(null);
   const [viewingId, setViewingId] = useState(null);
 
-  // Fetch Racks
-  const fetchRacks = useCallback(
+  // Fetch Batchs
+  const fetchBatchs = useCallback(
     async (from = startDate, to = endDate) => {
       setLoading(true);
       setError(null);
@@ -60,8 +60,8 @@ export default function RackList({ handleAddRack }) {
           params: { from, to },
         });
         const list = resp.data || resp;
-        setRacks(list);
-        setFilteredRacks(list);
+        setBatchs(list);
+        setFilteredBatchs(list);
         setSummary((prev) => ({
           ...prev,
           count: list.length,
@@ -72,7 +72,7 @@ export default function RackList({ handleAddRack }) {
         }));
       } catch (err) {
         console.error(err);
-        setError("Unable to load Rack data.");
+        setError("Unable to load Batch data.");
       } finally {
         setLoading(false);
       }
@@ -90,11 +90,11 @@ export default function RackList({ handleAddRack }) {
       const m = (resp.metrics && resp.metrics[0]) || {};
       setSummary((prev) => ({
         ...prev,
-        count: m.totalRacks ?? prev.count,
+        count: m.totalBatchs ?? prev.count,
         creditLimit: m.creditLimit ?? prev.creditLimit,
-        paid: m.paidRacks ?? prev.paid,
-        active: m.activeRacks ?? prev.active,
-        onHold: m.onHoldRacks ?? prev.onHold,
+        paid: m.paidBatchs ?? prev.paid,
+        active: m.activeBatchs ?? prev.active,
+        onHold: m.onHoldBatchs ?? prev.onHold,
       }));
     } catch (err) {
       console.error(err);
@@ -104,13 +104,13 @@ export default function RackList({ handleAddRack }) {
   }, [startDate, endDate]);
 
   useEffect(() => {
-    fetchRacks();
+    fetchBatchs();
     fetchMetrics();
-  }, [fetchRacks, fetchMetrics]);
+  }, [fetchBatchs, fetchMetrics]);
 
-  // ComRacked filtering, search, sort, tabs
+  // ComBatched filtering, search, sort, tabs
   useEffect(() => {
-    let list = [...Racks];
+    let list = [...Batchs];
 
     // Tab filtering
     switch (activeTab) {
@@ -156,8 +156,8 @@ export default function RackList({ handleAddRack }) {
       list.sort((a, b) => a.name.localeCompare(b.name));
     }
 
-    setFilteredRacks(list);
-  }, [Racks, activeTab, statusFilter, searchTerm, sortOption]);
+    setFilteredBatchs(list);
+  }, [Batchs, activeTab, statusFilter, searchTerm, sortOption]);
 
   // Handlers
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
@@ -165,15 +165,15 @@ export default function RackList({ handleAddRack }) {
   const handleSortChange = (e) => setSortOption(e.target.value);
   const onTabClick = (tab) => setActiveTab(tab);
   const toggleSelectAll = (e) =>
-    setSelectedIds(e.target.checked ? filteredRacks.map((w) => w._id) : []);
+    setSelectedIds(e.target.checked ? filteredBatchs.map((w) => w._id) : []);
   const handleCheckboxChange = (id) =>
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
 
   const handleDeleteSelected = async () => {
-    if (!selectedIds.length) return toast.info("No Racks selected");
-    if (!window.confirm("Delete selected Racks?")) return;
+    if (!selectedIds.length) return toast.info("No Batchs selected");
+    if (!window.confirm("Delete selected Batchs?")) return;
 
     try {
       const results = await Promise.allSettled(
@@ -183,7 +183,7 @@ export default function RackList({ handleAddRack }) {
       const failed = results.filter((r) => r.status === "rejected").length;
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
-        await fetchRacks();
+        await fetchBatchs();
         setSelectedIds([]);
       }
       if (failed) toast.error(`${failed} failed`);
@@ -194,18 +194,18 @@ export default function RackList({ handleAddRack }) {
   };
 
   const exportToExcel = () => {
-    if (!Racks.length) return toast.info("No data to export");
-    const ws = XLSX.utils.json_to_sheet(Racks);
+    if (!Batchs.length) return toast.info("No data to export");
+    const ws = XLSX.utils.json_to_sheet(Batchs);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Racks");
-    XLSX.writeFile(wb, "Racks.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Batchs");
+    XLSX.writeFile(wb, "Batchs.xlsx");
   };
 
   const generatePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [["#", "Code", "Name", "Contact", "Address", "Status"]],
-      body: filteredRacks.map((w, i) => [
+      body: filteredBatchs.map((w, i) => [
         i + 1,
         w.code,
         w.name,
@@ -214,7 +214,7 @@ export default function RackList({ handleAddRack }) {
         w.active ? "Active" : "Inactive",
       ]),
     });
-    doc.save("Racks.pdf");
+    doc.save("Batchs.pdf");
   };
 
   const handleRowClick = (id) => setViewingId(id);
@@ -230,7 +230,7 @@ export default function RackList({ handleAddRack }) {
   if (error) return <div className="text-red-600">{error}</div>;
 
   if (viewingId) {
-    return <RackViewPage RackId={viewingId} goBack={goBack} />;
+    return <BatchViewPage BatchId={viewingId} goBack={goBack} />;
   }
 
   return (
@@ -239,7 +239,7 @@ export default function RackList({ handleAddRack }) {
       <div>
         <div>
           {viewingId ? (
-            <RackViewPage
+            <BatchViewPage
               toggleView={toggleView}
               customerId={viewingCustomerId}
               goBack={goBack}
@@ -273,11 +273,11 @@ export default function RackList({ handleAddRack }) {
                       </svg>{" "}
                     </button>
                   </div>
-                  <h3 className="text-xl font-semibold">Rack</h3>
+                  <h3 className="text-xl font-semibold">Batch Value </h3>
                 </div>
                 <div className="flex items-center gap-3 ">
                   <button
-                    onClick={handleAddRack}
+                    onClick={handleAddBatch}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     + Add
@@ -331,11 +331,11 @@ export default function RackList({ handleAddRack }) {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Racks", summary.count],
+                    ["Total Batchs", summary.count],
                     ["Credit Limit", summary.creditLimit],
-                    ["Paid Racks", summary.paid],
-                    ["Active Racks", summary.active],
-                    ["On-Hold Racks", summary.onHold],
+                    ["Paid Batchs", summary.paid],
+                    ["Active Batchs", summary.active],
+                    ["On-Hold Batchs", summary.onHold],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -434,8 +434,8 @@ export default function RackList({ handleAddRack }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedIds.length === filteredRacks.length &&
-                            filteredRacks.length > 0
+                            selectedIds.length === filteredBatchs.length &&
+                            filteredBatchs.length > 0
                           }
                         />
                       </th>
@@ -457,8 +457,8 @@ export default function RackList({ handleAddRack }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredRacks.length ? (
-                      filteredRacks.map((w, i) => (
+                    {filteredBatchs.length ? (
+                      filteredBatchs.map((w, i) => (
                         <tr
                           key={w._id}
                           className="hover:bg-gray-100 transition-colors"
