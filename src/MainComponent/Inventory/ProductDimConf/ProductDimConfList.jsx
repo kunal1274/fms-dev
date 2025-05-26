@@ -7,14 +7,13 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
-import ProductViewPage from "./ProductViewPagee";
+// import ProductViewPage from "./ProductViewPagee";
 
 export default function ProductList({ handleAddProduct }) {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Products";
   const metricsUrl = `${baseUrl}/metrics`;
 
-  const tabNames = ["All Product
-    s", "Active", "Archived"];
+  const tabNames = ["All Products", "Active", "Archived"];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
   const [Products, setProducts] = useState([]);

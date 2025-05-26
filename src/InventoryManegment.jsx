@@ -27,8 +27,8 @@ import LocationPage from "./MainComponent/Inventory/Location/LocationPage";
 import RacksPage from "./MainComponent/Inventory/Racks/RacksPage";
 import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
 // placeholder imports (uncomment when available)
-import ConfigPage from "./MainComponent/Inventory/ProductDimConf/ProductDimPage.js";
-import ColorPage from "./MainComponent/Inventory/Color/ColorPage";
+import ConfigPage from "./MainComponent/Inventory/ProductDimConf/ProductDimConfPage.jsx";
+import ColorPage from "./MainComponent/Inventory/ProductDimColor/ProductDimColorPage.jsx";
 import SerialsPage from "./MainComponent/Inventory/Serials/SerialsPage.jsx";
 
 const PAGE = {
@@ -53,6 +53,8 @@ const PAGE = {
   CONFIG: "CONFIG",
   COLOR: "COLOR",
   SERIALS: "SERIALS",
+  productDimVersionForm:"productDimVersionForm",productDimSize:"productDimSize",ProductDimVersion:"ProductDimVersion",
+  productDimStyleForm:"productDimStyleForm"
 };
 
 const VIEW_MODES = { GRID: "GRID", ICON: "ICON", LIST: "LIST" };

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import ProductList from "./ProductList";
-import ProductForm from "./ProductForm";
-import ProductViewPage from "./ProductViewPagee";
+import ProductList from "./ProductDimConfList";
+import ProductForm from "./ProductDimConfForm";
+// import ProductViewPage from "./ProductViewPagee";
 
 export default function ProductPage() {
   const [view, setView] = useState("list"); // "list" | "form" | "details"

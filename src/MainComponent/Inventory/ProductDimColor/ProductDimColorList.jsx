@@ -7,7 +7,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
-import ProductColorViewPage from "./ProductColorViewPagee";
+// import ProductColorViewPage from "./ProductColorViewPagee";
 
 export default function ProductColorList({ handleAddProductColor }) {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/ProductColors";

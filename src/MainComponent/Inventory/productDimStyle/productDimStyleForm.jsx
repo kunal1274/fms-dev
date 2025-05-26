@@ -240,9 +240,7 @@ export default function ProductStyle({ handleCancel }) {
             </label>
             <input
               name="ProductStyleAddress"
-              value={form.ProductStyle
-                
-                Address}
+            
               onChange={handleChange}
               placeholder="Enter address"
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"

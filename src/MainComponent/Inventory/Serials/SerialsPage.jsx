@@ -4,15 +4,7 @@ import SerialsViewPage from "./SerialsViewpagee";
 import { Button } from "../../../Component/Button/Button";
 import SerialsForm from "./SerialsForm";
 
-import SerialsList from "./Serialslist
-
-
-
-
-
-
-
-";
+import SerialsList from "./Serialslist";
 
 const SerialsPage = () => {
   const [view, setView] = useState("list");
@@ -22,7 +14,9 @@ const SerialsPage = () => {
   /** Save or update a Serials */
   const handleSaveSerials = (Serials) => {
     setSerials((prev) => {
-      const idx = prev.findIndex((c) => c.SerialsAccountNo === Serials.SerialsAccountNo);
+      const idx = prev.findIndex(
+        (c) => c.SerialsAccountNo === Serials.SerialsAccountNo
+      );
 
       if (idx !== -1) {
         const updated = [...prev];

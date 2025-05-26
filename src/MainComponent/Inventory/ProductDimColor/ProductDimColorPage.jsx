@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import ProductColorList from "./ProductColorList";
-import ProductColorForm from "./ProductColorForm";
-import ProductColorViewPage from "./ProductColorViewPagee";
+import ProductColorList from "./ProductDimColorList";
+import ProductColorForm from "./ProductDimColorForm";
+// import ProductColorViewPage from "./ProductColorViewPagee";
 
 export default function ProductColorPage() {
   const [view, setView] = useState("list"); // "list" | "form" | "details"
