@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import RackList from "./RacksList";
-import RackForm from "./Racksform";
-import RackViewPage from "./RacksViewPagee";
+import RackList from "./RackList";
+import RackForm from "./Rackform";
+// import RackViewPage from "./RacksViewPagee";
 import { Button } from "../../../Component/Button/Button";
 
 export default function RackPage() {
