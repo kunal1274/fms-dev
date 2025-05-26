@@ -12,7 +12,7 @@ import {
 
 const navItems = [
   // { label: "Customer", icon: FaUser },
-  { label: "Company", icon: FaTruck },
+  { label: "Company Management", icon: FaTruck },
   // { label: "Vendor", icon: FaTruck },
   {
     label: "Inventory Management",
@@ -20,7 +20,7 @@ const navItems = [
   },
   { label: "Sale Mangement", icon: FaShoppingCart },
   { label: "Purchase Mangement", icon: FaCartPlus },
-  { label: "User", icon: FaUser },
+  { label: "User Management", icon: FaUser },
 ];
 
 export default function Sidebar({

@@ -19,7 +19,7 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
       {selectedMenu === "Customer" && (
         <CustomerList onAddNew={onAddNew} onView={onView} />
       )}{" "}
-      {selectedMenu === "Company" && (
+      {selectedMenu === "Company Management" && (
         <CompanyPage onAddNew={onAddNew} onView={onView} />
       )}
       {selectedMenu === "Vendor" && (
@@ -44,7 +44,7 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
       {selectedMenu === "itemPage" && (
         <ItemPage onAddNew={onAddNew} onView={onView} />
       )}
-      {selectedMenu === "Site" && (
+      {selectedMenu === "SitePage" && (
         <SitePage onAddNew={onAddNew} onView={onView} />
       )}{" "}
       {selectedMenu === "Warehouse" && (

@@ -6,106 +6,170 @@ import {
   FaArrowLeft,
   FaBoxOpen,
   FaWarehouse,
+  FaFilter,
+  FaSortAmountDown,
   FaMap,
   FaColumns,
   FaArchive,
   FaMapMarkerAlt,
-  FaLayerGroup,
 } from "react-icons/fa";
 
 // import your real pages:
-import ItemPage from "./MainComponent/Inventory/Item/ItemPage";
-import SitePage from "./MainComponent/Inventory/Site/SitePage";
+import ItemMasterPage from "./MainComponent/Inventory/Item/ItemPage";
 import WarehousePage from "./MainComponent/Inventory/Warehouse/WarehousePage";
-// import AislesPage from "./MainComponent/Inventory/Aisles/AislesPage";
-// import BinPage from "./MainComponent/Inventory/Bin/BinPage";
-// import LocationPage from "./MainComponent/Inventory/Location/LocationPage";
-// import RacksPage from "./MainComponent/Inventory/Racks/RacksPage";
-// import ShelvesPage from "./MainComponent/Inventory/Shelves/ShelvesPage";
-// import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
+import SitePage from "./MainComponent/Inventory/Site/SitePage";
+import ShelvesPage from "./MainComponent/Inventory/Shelves/ShelvesPage";
+import AislesPage from "./MainComponent/Inventory/Aisles/AislesPage";
+import BatchValuePage from "./MainComponent/Inventory/BatchValue/BatchValuePage";
+import BinPage from "./MainComponent/Inventory/Bin/BinPage";
+import LocationPage from "./MainComponent/Inventory/Location/LocationPage";
+import RacksPage from "./MainComponent/Inventory/Racks/RacksPage";
+import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
 
-const items = [
+// Page keys
+const PAGE = {
+  TOGGLE: "TOGGLE",
+  ITEM_MASTER: "ITEM_MASTER",
+  INVENTORY_JOURNALS: "INVENTORY_JOURNALS",
+  SITE: "SITE",
+  WAREHOUSE: "WAREHOUSE",
+  ZONE: "ZONE",
+  SHELVES: "SHELVES",
+  AISLES: "AISLES",
+  BATCHES: "BATCHES",
+  BIN: "BIN",
+  LOCATION: "LOCATION",
+  RACKS: "RACKS",
+  // other groups/pages (keep or remove as needed)
+  INVENTORY_TRANSACTIONS: "INVENTORY_TRANSACTIONS",
+  ON_HAND_STOCK: "ON_HAND_STOCK",
+  INVENTORY_DASHBOARD: "INVENTORY_DASHBOARD",
+  MONTHLY_REPORT: "MONTHLY_REPORT",
+  BULK_UPDATE: "BULK_UPDATE",
+  UNIT_CONVERSIONS: "UNIT_CONVERSIONS",
+};
+
+// View modes
+const VIEW_MODES = { GRID: "GRID", ICON: "ICON", LIST: "LIST" };
+
+// Grouped menu structure
+const groups = [
   {
-    id: 1,
-    title: "Items",
-    icon: <FaBoxOpen />,
-    description: "Manage all inventory items",
+    id: "master",
+    title: "Master List",
+    items: [
+      {
+        id: "itemMaster",
+        title: "Item Master",
+        icon: <FaBoxOpen />,
+        page: PAGE.ITEM_MASTER,
+      },
+    ],
   },
   {
-    id: 2,
-    title: "Sites",
-    icon: <FaWarehouse />,
-    description: "View and edit site locations",
+    id: "setups",
+    title: "Setups and Configurations",
+    items: [
+      {
+        id: "warehouse",
+        title: "Warehouse",
+        icon: <FaWarehouse />,
+        page: PAGE.WAREHOUSE,
+      },
+      { id: "site", title: "Site", icon: <FaMap />, page: PAGE.SITE },
+      { id: "zone", title: "Zone", icon: <FaMapMarkerAlt />, page: PAGE.ZONE },
+      { id: "shelves", title: "Shelves", icon: <FaTh />, page: PAGE.SHELVES },
+      { id: "aisles", title: "Aisles", icon: <FaColumns />, page: PAGE.AISLES },
+      { id: "racks", title: "Racks", icon: <FaThLarge />, page: PAGE.RACKS },
+      {
+        id: "batchValue",
+        title: "Batch Value",
+        icon: <FaBoxOpen />,
+        page: PAGE.BATCHES,
+      },
+      { id: "bin", title: "Bin", icon: <FaArchive />, page: PAGE.BIN },
+      {
+        id: "location",
+        title: "Location",
+        icon: <FaListUl />,
+        page: PAGE.LOCATION,
+      },
+      {
+        id: "zonePage",
+        title: "Zone",
+        icon: <FaMapMarkerAlt />,
+        page: PAGE.ZONE,
+      },
+    ],
   },
   {
-    id: 3,
-    title: "Zones",
-    icon: <FaMap />,
-    description: "Define storage zones",
+    id: "reports",
+    title: "Inquiries & Reports",
+    items: [
+      {
+        id: "invTransactions",
+        title: "Inventory Transactions",
+        icon: <FaThLarge />,
+        page: PAGE.INVENTORY_TRANSACTIONS,
+      },
+      {
+        id: "onHand",
+        title: "On Hand Stock",
+        icon: <FaTh />,
+        page: PAGE.ON_HAND_STOCK,
+      },
+    ],
   },
   {
-    id: 4,
-    title: "Warehouse",
-    icon: <FaColumns />,
-    description: "Configure warehouse racks",
+    id: "workspaces",
+    title: "User Workspaces",
+    items: [
+      {
+        id: "dashboard",
+        title: "Inventory Dashboard",
+        icon: <FaColumns />,
+        page: PAGE.INVENTORY_DASHBOARD,
+      },
+    ],
   },
   {
-    id: 5,
-    title: "Racks",
-    icon: <FaColumns />,
-    description: "Configure rack layouts",
-  },
-  {
-    id: 6,
-    title: "Bins",
-    icon: <FaArchive />,
-    description: "Organize bins within racks",
-  },
-  {
-    id: 7,
-    title: "Location",
-    icon: <FaMapMarkerAlt />,
-    description: "Pinpoint exact locations",
-  },
-  {
-    id: 8,
-    title: "Shelves",
-    icon: <FaLayerGroup />,
-    description: "Set up shelf levels",
-  },
-  {
-    id: 9,
-    title: "Aisles",
-    icon: <FaMap />,
-    description: "Manage aisle definitions",
+    id: "periodic",
+    title: "Periodic",
+    items: [
+      {
+        id: "monthly",
+        title: "Monthly On Hand In/Out",
+        icon: <FaFilter />,
+        page: PAGE.MONTHLY_REPORT,
+      },
+      {
+        id: "bulkUpdate",
+        title: "Bulk Item Master Update",
+        icon: <FaSortAmountDown />,
+        page: PAGE.BULK_UPDATE,
+      },
+    ],
   },
 ];
 
-const VIEW_MODES = { GRID: "GRID", ICON: "ICON", LIST: "LIST" };
-const PAGE = {
-  TOGGLE: "TOGGLE",
-  ITEM: "ITEM",
-  SITE: "SITE",
-  WAREHOUSE: "WAREHOUSE",
-  RACK: "RACK",
-  BIN: "BIN",
-  LOCATION: "LOCATION",
-  SHELVES: "SHELVES",
-  ZONE: "ZONE",
-  AISLES: "AISLES",
-};
-
-// Map item titles to PAGE keys
-const pageMap = {
-  Items: PAGE.ITEM,
-  Sites: PAGE.SITE,
-  Warehouse: PAGE.WAREHOUSE,
-  Racks: PAGE.RACK,
-  Bins: PAGE.BIN,
-  Location: PAGE.LOCATION,
-  Shelves: PAGE.SHELVES,
-  Zones: PAGE.ZONE,
-  Aisles: PAGE.AISLES,
+// Map pages to components
+const componentMap = {
+  [PAGE.ITEM_MASTER]: <ItemMasterPage />,
+  [PAGE.WAREHOUSE]: <WarehousePage />,
+  [PAGE.SITE]: <SitePage />,
+  [PAGE.ZONE]: <ZonePage />,
+  [PAGE.SHELVES]: <ShelvesPage />,
+  [PAGE.AISLES]: <AislesPage />,
+  [PAGE.BATCHES]: <BatchValuePage />,
+  [PAGE.BIN]: <BinPage />,
+  [PAGE.LOCATION]: <LocationPage />,
+  [PAGE.RACKS]: <RacksPage />,
+  [PAGE.INVENTORY_TRANSACTIONS]: null, // add your component here
+  [PAGE.ON_HAND_STOCK]: null, // add your component here
+  [PAGE.INVENTORY_DASHBOARD]: null, // add your component here
+  [PAGE.MONTHLY_REPORT]: null, // add your component here
+  [PAGE.BULK_UPDATE]: null, // add your component here
+  [PAGE.UNIT_CONVERSIONS]: null, // add your component here
 };
 
 export default function ViewTogglePage() {
@@ -114,8 +178,10 @@ export default function ViewTogglePage() {
 
   const goBack = () => setPage(PAGE.TOGGLE);
 
-  // Render individual pages
-  if (page === PAGE.ITEM) {
+  // flatten items
+  const flattenItems = (grp) => grp.items.map((item) => ({ ...item }));
+
+  if (page !== PAGE.TOGGLE) {
     return (
       <div className="p-6">
         <button
@@ -124,124 +190,11 @@ export default function ViewTogglePage() {
         >
           <FaArrowLeft className="mr-2" /> Back to Dashboard
         </button>
-        <ItemPage />
+        {componentMap[page] || null}
       </div>
     );
   }
 
-  if (page === PAGE.SITE) {
-    return (
-      <div className="p-6">
-        <button
-          onClick={goBack}
-          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
-        >
-          <FaArrowLeft className="mr-2" /> Back to Dashboard
-        </button>
-        <SitePage />
-      </div>
-    );
-  }
-
-  if (page === PAGE.WAREHOUSE) {
-    return (
-      <div className="p-6">
-        <button
-          onClick={goBack}
-          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
-        >
-          <FaArrowLeft className="mr-2" /> Back to Dashboard
-        </button>
-        <WarehousePage />
-      </div>
-    );
-  }
-
-  if (page === PAGE.RACK) {
-    return (
-      <div className="p-6">
-        <button
-          onClick={goBack}
-          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
-        >
-          <FaArrowLeft className="mr-2" /> Back to Dashboard
-        </button>
-        <RacksPage />
-      </div>
-    );
-  }
-
-  if (page === PAGE.BIN) {
-    return (
-      <div className="p-6">
-        <button
-          onClick={goBack}
-          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
-        >
-          <FaArrowLeft className="mr-2" /> Back to Dashboard
-        </button>
-        <BinPage />
-      </div>
-    );
-  }
-
-  if (page === PAGE.LOCATION) {
-    return (
-      <div className="p-6">
-        <button
-          onClick={goBack}
-          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
-        >
-          <FaArrowLeft className="mr-2" /> Back to Dashboard
-        </button>
-        <LocationPage />
-      </div>
-    );
-  }
-
-  if (page === PAGE.SHELVES) {
-    return (
-      <div className="p-6">
-        <button
-          onClick={goBack}
-          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
-        >
-          <FaArrowLeft className="mr-2" /> Back to Dashboard
-        </button>
-        <ShelvesPage />
-      </div>
-    );
-  }
-
-  if (page === PAGE.ZONE) {
-    return (
-      <div className="p-6">
-        <button
-          onClick={goBack}
-          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
-        >
-          <FaArrowLeft className="mr-2" /> Back to Dashboard
-        </button>
-        <ZonePage />
-      </div>
-    );
-  }
-
-  if (page === PAGE.AISLES) {
-    return (
-      <div className="p-6">
-        <button
-          onClick={goBack}
-          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
-        >
-          <FaArrowLeft className="mr-2" /> Back to Dashboard
-        </button>
-        <AislesPage />
-      </div>
-    );
-  }
-
-  // Dashboard Toggle View
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -265,56 +218,51 @@ export default function ViewTogglePage() {
         </div>
       </div>
 
-      {viewMode === VIEW_MODES.GRID && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => setPage(pageMap[item.title])}
-              className="cursor-pointer bg-white rounded-lg shadow hover:shadow-lg transform hover:scale-105 transition p-6 flex flex-col items-center"
-            >
-              <div className="text-4xl text-gray-600 mb-4">{item.icon}</div>
-              <h3 className="text-lg font-medium mb-2">{item.title}</h3>
-              <p className="text-gray-500 text-sm text-center">
-                {item.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {viewMode === VIEW_MODES.ICON && (
-        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-6">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => setPage(pageMap[item.title])}
-              className="cursor-pointer flex flex-col items-center p-4 bg-white rounded-lg shadow hover:bg-gray-50 transition"
-            >
-              <div className="text-3xl text-gray-600 mb-2">{item.icon}</div>
-              <span className="text-sm text-gray-800">{item.title}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {viewMode === VIEW_MODES.LIST && (
-        <div className="bg-white rounded-lg shadow divide-y">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => setPage(pageMap[item.title])}
-              className="cursor-pointer flex items-center p-4 hover:bg-gray-50 transition"
-            >
-              <div className="text-2xl text-gray-500 mr-4">{item.icon}</div>
-              <div>
-                <h3 className="text-md font-medium">{item.title}</h3>
-                <p className="text-gray-600 text-sm">{item.description}</p>
+      {groups.map((grp) => (
+        <div key={grp.id} className="mb-8">
+          <h2 className="text-lg font-semibold mb-4">{grp.title}</h2>
+          <div
+            className={`grid gap-6 ${
+              viewMode === VIEW_MODES.GRID
+                ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                : viewMode === VIEW_MODES.ICON
+                ? "grid-cols-4 sm:grid-cols-6 md:grid-cols-8"
+                : ""
+            }`}
+          >
+            {flattenItems(grp).map((item) => (
+              <div
+                key={item.id}
+                onClick={() => setPage(item.page)}
+                className={
+                  viewMode === VIEW_MODES.LIST
+                    ? "cursor-pointer flex items-center p-4 hover:bg-gray-50 transition"
+                    : "cursor-pointer bg-white rounded-lg shadow hover:shadow-lg transform hover:scale-105 transition p-6 flex flex-col items-center"
+                }
+              >
+                <div
+                  className={
+                    viewMode === VIEW_MODES.LIST
+                      ? "text-2xl text-gray-500 mr-4"
+                      : "text-4xl text-gray-600 mb-4"
+                  }
+                >
+                  {item.icon}
+                </div>
+                <span
+                  className={
+                    viewMode === VIEW_MODES.LIST
+                      ? "text-md font-medium"
+                      : "text-lg font-medium mb-2"
+                  }
+                >
+                  {item.title}
+                </span>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      )}
+      ))}
     </div>
   );
 }

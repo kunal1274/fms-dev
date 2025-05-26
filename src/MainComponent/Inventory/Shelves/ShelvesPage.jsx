@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import ShelvesList from "./RacksList";
-import ShelvesForm from "./RacksForm";
-import ShelvesViewPage from "./RacksViewPagee";
+import ShelvesList from "./ShelvesList";
+import ShelvesForm from "./ShelvesForm";
+import ShelvesViewPage from "./ShelvesViewPagee";
 import { Button } from "../../../Component/Button/Button";
 
 export default function ShelvesPage() {
