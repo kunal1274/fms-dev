@@ -197,13 +197,7 @@ export default function Product({ handleCancel }) {
           </div>
           {/* Company Select */}
           <div>
-            <label className="block text-sm font-medium text-gray-600">
-           
-           
-
-
-           
-            </label>
+            <label className="block text-sm font-medium text-gray-600"></label>
             <select
               name="company"
               value={form.company}
