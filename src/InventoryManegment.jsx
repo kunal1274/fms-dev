@@ -20,7 +20,7 @@ import ItemMasterPage from "./MainComponent/Inventory/Item/ItemPage";
 import WarehousePage from "./MainComponent/Inventory/Warehouse/WarehousePage";
 import SitePage from "./MainComponent/Inventory/Site/SitePage";
 import ShelvesPage from "./MainComponent/Inventory/Shelves/ShelvesPage";
-import AislesPage from "./MainComponent/Inventory/Aisles/AislesPage";
+import AislesPage from "./MainComponent/Inventory/Aisle/AislePage.jsx";
 import BatchValuePage from "./MainComponent/Inventory/BatchValue/BatchValuePage";
 import BinPage from "./MainComponent/Inventory/Bin/BinPage";
 import LocationPage from "./MainComponent/Inventory/Location/LocationPage";

@@ -4,7 +4,9 @@ import RackForm from "./Rackform";
 // import RackViewPage from "./RacksViewPagee";
 import { Button } from "../../../Component/Button/Button";
 
-export default function RackPage() {
+export default function 
+
+RackPage() {
   const [view, setView] = useState("list");
   const [Racks, setRacks] = useState([]);
   const [selectedRack, setSelectedRack] = useState(null);

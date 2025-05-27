@@ -9,8 +9,10 @@ import { Tabs } from "flowbite-react";
 import "./c.css";
 import AisleViewPage from "./AislesViewpage";
 
-export default function AislesList({ handleAddAisles, onView }) {
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
+import React from 'react'
+
+const AilseList = ({ handleAddAisles, onView }) => {
+     const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
   const metricsUrl = `${baseUrl}/metrics`;
 
   const tabNames = ["Aisles List"];
@@ -302,10 +304,8 @@ export default function AislesList({ handleAddAisles, onView }) {
       </div>
     );
   }
-  // ─── Render ─────────────────────────────────────────────────────
-
   return (
-    <div>
+   <div>
       <div>
         <div>
           {viewingAislesId ? (
@@ -597,5 +597,8 @@ export default function AislesList({ handleAddAisles, onView }) {
         </div>
       </div>
     </div>
-  );
+    
+  )
 }
+
+export default AilseList

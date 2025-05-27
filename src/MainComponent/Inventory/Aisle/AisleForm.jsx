@@ -3,8 +3,10 @@ import axios from "axios";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 
-export default function AislesForm({ handleCancel }) {
-  const [form, setForm] = useState({});
+const AisleForm = ({ handleCancel }
+    
+) => {
+     const [form, setForm] = useState({});
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
 
   // ─── Data ────────────────────────────────────────────────
@@ -60,7 +62,7 @@ const handleChange = () =>{
   };
 
   return (
-    <div className="">
+      <div className="">
       <ToastContainer />
       {/* Header Buttons */}
       <div className="flex justify-between ">
@@ -237,5 +239,7 @@ const handleChange = () =>{
         </div>
       </form>
     </div>
-  );
+  )
 }
+
+export default AisleForm
