@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import AislesViewPage from "./AislesViewpage";
+
 import { Button } from "../../../Component/Button/Button";
 import AislesForm from "./AislesForm";
 import AislesList from "./Aisleslist";
@@ -102,13 +102,13 @@ const AislePage = () => {
             handleCancel={handleCancel}
           />
         )}
-        {view === "details" && selectedAisles && (
+        {/* {view === "details" && selectedAisles && (
           <AislesViewPage
             aisles={selectedAisles}
             onEdit={() => setView("form")}
             onBack={handleCancel}
           />
-        )}
+        )} */}
       </div>
     </div>
   )
