@@ -3,11 +3,11 @@ import CustomerList from "../../MainComponent/Customer/CustomerPage";
 import CompanyPage from "../../MainComponent/Company/CompanyPage";
 import SalePage from "../../SaleToggle";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
-import InventoryManegment from "../../InventoryManegment";
+// import InventoryManegment from "../../InventoryManegment";
 import PurchasePage from "../../Purchase Toggle";
-import SitePage from "../../MainComponent/Inventory/Site/SitePage";
-import WarehousePage from "../../MainComponent/Inventory/Warehouse/WarehousePage";
-import ItemPage from "../../MainComponent/Inventory/Item/ItemPage";
+// import SitePage from "../../MainComponent/Inventory/Site/SitePage";
+// import WarehousePage from "../../MainComponent/Inventory/Warehouse/WarehousePage";
+// import ItemPage from "../../MainComponent/Inventory/Item/ItemPage";
 
 export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
   return (
