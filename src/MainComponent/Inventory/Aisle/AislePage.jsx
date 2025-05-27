@@ -2,8 +2,8 @@ import React, { useState } from "react";
 
 
 import { Button } from "../../../Component/Button/Button";
-import AislesForm from "./AislesForm";
-import AislesList from "./Aisleslist";
+import AisleForm from "./AisleForm";
+import AisleList from "./Aislelist";
 
 const AislePage = () => {
      const [view, setView] = useState("list");
@@ -12,7 +12,7 @@ const AislePage = () => {
     
       /** Save or update a aisles */
       const handleSaveaisles = (aisles) => {
-        setaisles((prev) => {
+        setAisles((prev) => {
           const idx = prev.findIndex(
             (c) => c.aislesAccountNo === aisles.aislesAccountNo
           );
@@ -87,7 +87,7 @@ const AislePage = () => {
        <div className="w-full bg-white rounded-lg ">
       <div>
         {view === "list" && (
-          <AislesList
+          <AisleList
             aisless={aisles}
             handleAddAisles={handleAddAisles}
             onView={handleViewAisles}
@@ -96,7 +96,7 @@ const AislePage = () => {
         )}
 
         {view === "form" && (
-          <AislesForm
+          <AisleForm
             aisles={selectedAisles}
             handleAddAisles={handleAddAisles}
             handleCancel={handleCancel}
