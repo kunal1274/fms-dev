@@ -24,13 +24,13 @@ import AislesPage from "./MainComponent/Inventory/Aisles/AislesPage";
 import BatchValuePage from "./MainComponent/Inventory/BatchValue/BatchValuePage";
 import BinPage from "./MainComponent/Inventory/Bin/BinPage";
 import LocationPage from "./MainComponent/Inventory/Location/LocationPage";
-import RacksPage from "./MainComponent/Inventory/Racks/RacksPage";
+// import RacksPage from "./MainComponent/Inventory/Racks/RacksPage";
 import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
 // placeholder imports (uncomment when available)
 import ConfigPage from "./MainComponent/Inventory/ProductDimConf/ProductDimConfPage.jsx";
 import ColorPage from "./MainComponent/Inventory/ProductDimColor/ProductDimColorPage.jsx";
 import SerialsPage from "./MainComponent/Inventory/Serials/SerialsPage.jsx";
-
+import RackPage from "./MainComponent/Inventory/Rack/RackPage.jsx";
 const PAGE = {
   TOGGLE: "TOGGLE",
   ITEM_MASTER: "ITEM_MASTER",
@@ -186,7 +186,7 @@ const componentMap = {
   [PAGE.BATCHES]: <BatchValuePage />,
   [PAGE.BIN]: <BinPage />,
   [PAGE.LOCATION]: <LocationPage />,
-  [PAGE.RACKS]: <RacksPage />,
+  [PAGE.RACKS]: <RackPage />,
   [PAGE.CONFIG]: <ConfigPage />,
   [PAGE.COLOR]: <ColorPage />,
   [PAGE.SERIALS]: <SerialsPage />,
