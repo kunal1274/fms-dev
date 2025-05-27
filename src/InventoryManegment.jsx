@@ -171,6 +171,16 @@ const setupSections = [
         title: "Serials",
         icon: <FaListUl />,
         page: PAGE.SERIALS,
+      },{
+        id: "Aisles",
+        title: "Aisles",
+        icon: <FaListUl />,
+        page: PAGE.SERIALS,
+      },{
+        id: "Bin",
+        title: "Bin",
+        icon: <FaListUl />,
+        page: PAGE.SERIALS,
       },
     ],
   },

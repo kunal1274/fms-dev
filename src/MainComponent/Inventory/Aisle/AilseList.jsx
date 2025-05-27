@@ -7,9 +7,9 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react";
 import "./c.css";
-import AisleViewPage from "./AislesViewpage";
+import AisleViewPage from "../Aisle/AliseViewPage";
 
-import React from 'react'
+
 
 const AilseList = ({ handleAddAisles, onView }) => {
      const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
