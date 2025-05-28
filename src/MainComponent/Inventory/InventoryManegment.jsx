@@ -20,7 +20,7 @@ import WarehousePage from "./Warehouse/WarehousePage.jsx";
 import ItemMasterPage from "./Item/ItemPage.jsx";
 import SitePage from "./Site/SitePage.jsx";
 import ShelvesPage from "./Shelves/ShelvesPage.jsx";
-import AislesPage from "./Aisle/AislesPage.jsx";
+
 import BatchValuePage from "./BatchValue/BatchValuePage.jsx";
 import BinPage from "./Bin/BinPage.jsx";
 import LocationPage from "./Location/LocationPage.jsx";
@@ -177,12 +177,12 @@ const setupSections = [
         icon: <FaListUl />,
         page: PAGE.SERIALS,
       },
-      {
-        id: "Aisles",
-        title: "Aisles",
-        icon: <FaListUl />,
-        page: PAGE.SERIALS,
-      },
+      // {
+      //   id: "Aisles",
+      //   title: "Aisles",
+      //   icon: <FaListUl />,
+      //   page: PAGE.SERIALS,
+      // },
       {
         id: "Bin",
         title: "Bin",
@@ -253,7 +253,7 @@ const componentMap = {
   [PAGE.SITE]: <SitePage />,
   [PAGE.ZONE]: <ZonePage />,
   [PAGE.SHELVES]: <ShelvesPage />,
-  [PAGE.AISLES]: <AislesPage />,
+  // [PAGE.AISLES]: <AislesPage />,
   [PAGE.BATCHES]: <BatchValuePage />,
   [PAGE.BIN]: <BinPage />,
   [PAGE.LOCATION]: <LocationPage />,
