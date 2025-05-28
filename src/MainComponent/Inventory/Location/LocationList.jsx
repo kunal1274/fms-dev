@@ -7,7 +7,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react";
 import "./c.css";
-import AisleViewPage from "./LocationViewPagee";
+import AisleViewPage from "./LocationViewPage";
 
 export default function LocationList({ handleAddLocation, onView }) {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Location";

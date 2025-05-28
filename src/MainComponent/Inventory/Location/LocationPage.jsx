@@ -1,10 +1,9 @@
-import React, { useState } from "react";
-
-import LocationViewPage from "./LocationViewPagee";
+import React from 'react'
 import { Button } from "../../../Component/Button/Button";
-import LocationForm from "./LocationForm";
+import LocationForm from './LocationForm';
+import LocationList from '../Location/LocationList';
+import LocationViewPage from '../Location/LocationViewPage';
 
-import LocationList from "./Locationlist";
 
 const LocationPage = () => {
   const [view, setView] = useState("list");
@@ -115,4 +114,5 @@ const LocationPage = () => {
   );
 };
 
-export default LocationPage;
+
+export default LocationPage

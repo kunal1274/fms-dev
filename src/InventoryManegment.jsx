@@ -23,7 +23,8 @@ import ItemMasterPage from "./MainComponent/Inventory/Item/ItemPage";
 // import AislesPage from "./MainComponent/Inventory/Aisle/AislePage.jsx";
 import BatchValuePage from "./MainComponent/Inventory/BatchValue/BatchValuePage";
 import BinPage from "./MainComponent/Inventory/Bin/BinPage";
-import LocationPage from "./MainComponent/Inventory/Location/LocationPage";
+import LocationPage from "./MainComponent/Inventory/Location/LocationPage.jsx";
+import ProductDimColorPage from "./MainComponent/Inventory/ProductDimColor/ProductDimColorPage";
 // import RacksPage from "./MainComponent/Inventory/Racks/RacksPage";
 // import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
 // placeholder imports (uncomment when available)
@@ -57,6 +58,7 @@ const PAGE = {
   productDimSize: "productDimSize",
   ProductDimVersion: "ProductDimVersion",
   productDimStyleForm: "productDimStyleForm",
+  PRODUCTPAGE: "PRODUCTPAGE",
 };
 
 const VIEW_MODES = { GRID: "GRID", ICON: "ICON", LIST: "LIST" };
@@ -192,6 +194,42 @@ const setupSections = [
         icon: <FaListUl />,
         page: PAGE.LOCATION,
       },
+      {
+        id: "ProductColor ",
+        title: "Product",
+        icon: <FaListUl />,
+        page: PAGE.PRODUCTPAGE,
+      },
+      {
+        id: "ProductDimConf ",
+        title: "Product",
+        icon: <FaListUl />,
+        page: PAGE.PRODUCTPAGE,
+      },
+      {
+        id: "productDimStyle",
+        title: "Product",
+        icon: <FaListUl />,
+        page: PAGE.PRODUCTPAGE,
+      },
+      {
+        id: "Serials",
+        title: "Product",
+        icon: <FaListUl />,
+        page: PAGE.PRODUCTPAGE,
+      },
+      {
+        id: "Shelves",
+        title: "Product",
+        icon: <FaListUl />,
+        page: PAGE.PRODUCTPAGE,
+      },
+      {
+        id: "Site",
+        title: "Product",
+        icon: <FaListUl />,
+        page: PAGE.PRODUCTPAGE,
+      },
     ],
   },
 ];
@@ -203,8 +241,8 @@ const componentMap = {
   // [PAGE.ZONE]: <ZonePage />,
   // [PAGE.SHELVES]: <ShelvesPage />,
   // [PAGE.AISLES]: <AislesPage />,
-  [PAGE.BATCHES]: <BatchValuePage />,
-  [PAGE.BIN]: <BinPage />,
+  // [PAGE.BATCHES]: <BatchValuePage />,
+  // [PAGE.BIN]: <BinPage />,
   [PAGE.LOCATION]: <LocationPage />,
   // [PAGE.RACKS]: <RackPage />,
   // [PAGE.CONFIG]: <ConfigPage />,
