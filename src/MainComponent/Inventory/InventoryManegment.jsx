@@ -19,7 +19,7 @@ import {
 import WarehousePage from "./Warehouse/WarehousePage.jsx";
 import ItemMasterPage from "./Item/ItemPage.jsx";
 import SitePage from "./Site/SitePage.jsx";
-import AislesPage from "./Aisles/AislesPage.js";
+import Aisles from "./Aisles/AislesPage.jsx"
 import ShelvesPage from "./Shelves/ShelvesPage.jsx";
 
 import BatchValuePage from "./BatchValue/BatchValuePage.jsx";
@@ -253,7 +253,7 @@ const componentMap = {
   [PAGE.SITE]: <SitePage />,
   [PAGE.ZONE]: <ZonePage />,
   [PAGE.SHELVES]: <ShelvesPage />,
-  [PAGE.AISLES]: <AislesPage />,
+  [PAGE.AISLES]: <Aisles />,
   [PAGE.BATCHES]: <BatchValuePage />,
   [PAGE.BIN]: <BinPage />,
   [PAGE.LOCATION]: <LocationPage />,
