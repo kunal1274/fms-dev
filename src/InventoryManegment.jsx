@@ -16,7 +16,6 @@ import {
 } from "react-icons/fa";
 
 // import your real pages:
-// import ItemMasterPage from "./MainComponent/Inventory/Item/ItemPage";
 // import WarehousePage from "./MainComponent/Inventory/Warehouse/WarehousePage";
 // import SitePage from "./MainComponent/Inventory/Site/SitePage";
 // import ShelvesPage from "./MainComponent/Inventory/Shelves/ShelvesPage";
@@ -191,7 +190,7 @@ const setupSections = [
 ];
 
 const componentMap = {
-  // [PAGE.ITEM_MASTER]: <ItemMasterPage />,
+  [PAGE.ITEM_MASTER]: <ItemMasterPage />,
   // [PAGE.WAREHOUSE]: <WarehousePage />,
   // [PAGE.SITE]: <SitePage />,
   // [PAGE.ZONE]: <ZonePage />,
