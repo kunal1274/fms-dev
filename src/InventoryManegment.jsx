@@ -20,18 +20,18 @@ import WarehousePage from "./MainComponent/Inventory/Warehouse/WarehousePage";
 import ItemMasterPage from "./MainComponent/Inventory/Item/ItemPage";
 import SitePage from "./MainComponent/Inventory/Site/SitePage";
 import ShelvesPage from "./MainComponent/Inventory/Shelves/ShelvesPage";
-// import AislesPage from "./MainComponent/Inventory/Aisle/AislePage.jsx";
+import AislesPage from "./MainComponent/Inventory/Aisle/AislesPage.jsx";
 import BatchValuePage from "./MainComponent/Inventory/BatchValue/BatchValuePage";
 import BinPage from "./MainComponent/Inventory/Bin/BinPage";
 import LocationPage from "./MainComponent/Inventory/Location/LocationPage.jsx";
-import ProductDimColorPage from "./MainComponent/Inventory/ProductDimColor/ProductDimColorPage";
+import ProductDimColorPage from "./MainComponent/Inventory/ProductDimColor/ProductDimColorPage.jsx";
 import RackPage from "./MainComponent/Inventory/Rack/RackPage.jsx";
-// import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
+import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
 // placeholder imports (uncomment when available)
-// import ConfigPage from "./MainComponent/Inventory/ProductDimConf/ProductDimConfPage.jsx";
-// import ColorPage from "./MainComponent/Inventory/ProductDimColor/ProductDimColorPage.jsx";
-// import SerialsPage from "./MainComponent/Inventory/Serials/SerialsPage.jsx";
-// import RackPage from "./MainComponent/Inventory/Rack/RackPage.jsx";
+import ConfigPage from "./MainComponent/Inventory/ProductDimConf/ProductDimConfPage.jsx";
+import ColorPage from "./MainComponent/Inventory/ProductDimColor/ProductDimColorPage.jsx";
+import SerialsPage from "./MainComponent/Inventory/Serials/SerialsPage.jsx";
+import RackPage from "./MainComponent/Inventory/Rack/RackPage.jsx";
 const PAGE = {
   TOGGLE: "TOGGLE",
   ITEM_MASTER: "ITEM_MASTER",
@@ -252,16 +252,16 @@ const componentMap = {
   [PAGE.ITEM_MASTER]: <ItemMasterPage />,
   [PAGE.WAREHOUSE]: <WarehousePage />,
   [PAGE.SITE]: <SitePage />,
-  // [PAGE.ZONE]: <ZonePage />,
+  [PAGE.ZONE]: <ZonePage />,
   [PAGE.SHELVES]: <ShelvesPage />,
-  // [PAGE.AISLES]: <AislesPage />,
-  // [PAGE.BATCHES]: <BatchValuePage />,
-  // [PAGE.BIN]: <BinPage />,
+  [PAGE.AISLES]: <AislesPage />,
+  [PAGE.BATCHES]: <BatchValuePage />,
+  [PAGE.BIN]: <BinPage />,
   [PAGE.LOCATION]: <LocationPage />,
-  [PAGE.RACKS]: <RackPage/>,
-  // [PAGE.CONFIG]: <ConfigPage />,
-  // [PAGE.COLOR]: <ColorPage />,
-  // [PAGE.SERIALS]: <SerialsPage />,
+  [PAGE.RACKS]: <RackPage />,
+  [PAGE.CONFIG]: <ConfigPage />,
+  [PAGE.COLOR]: <ColorPage />,
+  [PAGE.SERIALS]: <SerialsPage />,
 };
 
 export default function ViewTogglePage() {
