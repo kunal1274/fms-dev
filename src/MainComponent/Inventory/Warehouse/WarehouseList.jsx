@@ -1,136 +1,77 @@
-// import React, { useState } from "react";
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
+import { FaSearch, FaSortAmountDown, FaFilter } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { Tabs } from "flowbite-react";
+import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
-const Location = ({handleAddLocation}) => {
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Location";
+import WarehouseViewPage from "./WarehouseViewPagee";
+
+export default function WarehouseList({ handleAddWarehouse }) {
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
   const metricsUrl = `${baseUrl}/metrics`;
 
-  const tabNames = ["Location List"];
+  // Tab names
+  const tabNames = [
+    "All Warehouses",
+    "Paid Warehouses",
+    "Active Warehouses",
+    "On‑Hold Warehouses",
+    "Outstanding Warehouses",
+  ];
 
-  // States
   const [activeTab, setActiveTab] = useState(tabNames[0]);
+  const [warehouses, setWarehouses] = useState([]);
+  const [filteredWarehouses, setFilteredWarehouses] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
 
-  const [LocationList, setLocationList] = useState([]);
-  const [selectedOption, setSelectedOption] = useState("All");
-  const [filteredLocation, setFilteredLocation] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState([]);
-  const [viewingLocationId, setViewingLocationId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [startDate, setStartDate] = useState(
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-  );
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortOption, setSortOption] = useState("");
 
-  const [LocationSummary, setLocationSummary] = useState({
+  const [summary, setSummary] = useState({
     count: 0,
     creditLimit: 0,
-    paidLocations: 0,
-    activeLocations: 0,
-    onHoldLocations: 0,
+    paid: 0,
+    active: 0,
+    onHold: 0,
   });
+
+  const [startDate, setStartDate] = useState(
+    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  );
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+
   const [loading, setLoading] = useState(false);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
+  const [viewingId, setViewingId] = useState(null);
 
-  // Upload Logo
-  const fileInputRef = useRef(null);
-
-  const [logoUploading, setLogoUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({});
-  const [currentUploadFile, setCurrentUploadFile] = useState("");
-
-  const handleFileUpload = async (file) => {
-    if (!file) {
-      toast.error("No file selected!");
-      return;
-    }
-    setCurrentUploadFile(file.name);
-    setLogoUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("logoImage", file);
-
-      await axios.post(`${baseUrl}/upload-logo`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        onUploadProgress: (evt) => {
-          const percent = Math.round((evt.loaded * 100) / evt.total);
-          setUploadProgress({ [file.name]: percent });
-        },
-      });
-
-      toast.success("Logo uploaded successfully ✅");
-      // Refresh list
-      fetchLocation();
-    } catch (error) {
-      console.error(error);
-      toast.error("Error uploading logo!");
-    } finally {
-      // Hide spinner & progress a bit after success/failure
-      setTimeout(() => {
-        setLogoUploading(false);
-        setUploadProgress({});
-        setCurrentUploadFile("");
-      }, 1500);
-    }
-  };
-
-  const handleFilterChange = (e) => {
-    const value = e.target.value;
-    setSelectedOption(value);
-
-    let filtered = [...LocationList];
-
-    if (value === "All") {
-      setFilteredLocation(filtered);
-    } else if (value === "yes") {
-      setFilteredLocation(filtered.filter((aisle) => aisle.active === true));
-    } else if (value === "no") {
-      setFilteredLocation(filtered.filter((aisle) => aisle.active === false));
-    } else if (value === "Aisle Name") {
-      filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
-      setFilteredLocation(filtered);
-    } else if (value === "Aisle Account no") {
-      filtered = filtered.sort((a, b) => a.code.localeCompare(b.code));
-      setFilteredLocation(filtered);
-    } else if (value === "Aisle Account no descending") {
-      filtered = filtered.sort((a, b) => b.code.localeCompare(a.code));
-      setFilteredLocation(filtered);
-    }
-  };
-  // Fetch Location
-  const fetchLocation = useCallback(
-    async (fromDate = startDate, toDate = endDate) => {
+  // Fetch warehouses
+  const fetchWarehouses = useCallback(
+    async (from = startDate, to = endDate) => {
       setLoading(true);
       setError(null);
       try {
         const { data: resp } = await axios.get(baseUrl, {
-          params: { from: fromDate, to: toDate },
+          params: { from, to },
         });
         const list = resp.data || resp;
-        setLocationList(list);
-
-        +setFilteredLocation(list); // ← Add this line to update the visible Location immediately
-
-        setLocationSummary({
+        setWarehouses(list);
+        setFilteredWarehouses(list);
+        setSummary((prev) => ({
+          ...prev,
           count: list.length,
-          creditLimit: list.reduce((s, c) => s + (c.creditLimit || 0), 0),
-          paidLocation: list.filter((c) => c.status === "Paid").length,
-          activeLocation: list.filter((c) => c.active).length,
-          onHoldLocation: list.filter((c) => c.onHold).length,
-        });
+          creditLimit: list.reduce((sum, w) => sum + (w.creditLimit || 0), 0),
+          paid: list.filter((w) => w.status === "Paid").length,
+          active: list.filter((w) => w.active).length,
+          onHold: list.filter((w) => w.onHold).length,
+        }));
       } catch (err) {
         console.error(err);
-        setError("Unable to load Aisle data.");
+        setError("Unable to load warehouse data.");
       } finally {
         setLoading(false);
       }
@@ -138,181 +79,170 @@ const Location = ({handleAddLocation}) => {
     [startDate, endDate]
   );
 
-  // Fetch Metrics
-
+  // Fetch metrics
   const fetchMetrics = useCallback(async () => {
+    setLoadingMetrics(true);
     try {
       const { data: resp } = await axios.get(metricsUrl, {
         params: { from: startDate, to: endDate },
       });
-
       const m = (resp.metrics && resp.metrics[0]) || {};
-      setLocationSummary((prev) => ({
+      setSummary((prev) => ({
         ...prev,
-        count: m.totalLocation ?? prev.count,
+        count: m.totalWarehouses ?? prev.count,
         creditLimit: m.creditLimit ?? prev.creditLimit,
-        paidLocation: m.paidLocation ?? prev.paidLocation,
-        activeLocation: m.activeLocation ?? prev.activeLocation,
-        onHoldLocation: m.onHoldLocation ?? prev.onHoldLocation,
+        paid: m.paidWarehouses ?? prev.paid,
+        active: m.activeWarehouses ?? prev.active,
+        onHold: m.onHoldWarehouses ?? prev.onHold,
       }));
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoadingMetrics(false);
     }
   }, [startDate, endDate]);
 
   useEffect(() => {
-    fetchLocation();
+    fetchWarehouses();
     fetchMetrics();
-  }, [fetchLocation, fetchMetrics]);
+  }, [fetchWarehouses, fetchMetrics]);
 
-  // Filtering, Search, Sorting
+  // Combined filtering, search, sort, tabs
   useEffect(() => {
-    let list = [...LocationList];
+    let list = [...warehouses];
 
+    // Tab filtering
     switch (activeTab) {
       case tabNames[1]:
-        list = list.filter((c) => c.status === "Paid");
+        list = list.filter((w) => w.status === "Paid");
         break;
       case tabNames[2]:
-        list = list.filter((c) => c.active);
+        list = list.filter((w) => w.active);
         break;
       case tabNames[3]:
-        list = list.filter((c) => c.onHold);
+        list = list.filter((w) => w.onHold);
         break;
       case tabNames[4]:
-        list = list.filter((c) => c.outstandingBalance > 0);
+        list = list.filter((w) => w.outstandingBalance > 0);
         break;
       default:
         break;
     }
 
-    if (statusFilter === "Active") list = list.filter((c) => c.active);
-    else if (statusFilter === "Inactive") list = list.filter((c) => !c.active);
+    // Status filter
+    if (statusFilter === "Active") {
+      list = list.filter((w) => w.active);
+    } else if (statusFilter === "Inactive") {
+      list = list.filter((w) => !w.active);
+    }
 
+    // Search
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       list = list.filter(
-        (c) =>
-          c.name.toLowerCase().includes(term) ||
-          c.code.toLowerCase().includes(term)
+        (w) =>
+          w.name.toLowerCase().includes(term) ||
+          w.code.toLowerCase().includes(term)
       );
     }
 
-    if (sortOption === "name-asc")
-      list.sort((a, b) => a.name.localeCompare(b.name));
-    else if (sortOption === "code-asc")
+    // Sort
+    if (sortOption === "code-asc") {
       list.sort((a, b) => a.code.localeCompare(b.code));
-    else if (sortOption === "code-desc")
+    } else if (sortOption === "code-desc") {
       list.sort((a, b) => b.code.localeCompare(a.code));
+    } else if (sortOption === "name-asc") {
+      list.sort((a, b) => a.name.localeCompare(b.name));
+    }
 
-    setFilteredLocation(list);
-  }, [LocationList, activeTab, statusFilter, searchTerm, sortOption]);
+    setFilteredWarehouses(list);
+  }, [warehouses, activeTab, statusFilter, searchTerm, sortOption]);
 
   // Handlers
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
   const handleStatusChange = (e) => setStatusFilter(e.target.value);
   const handleSortChange = (e) => setSortOption(e.target.value);
   const onTabClick = (tab) => setActiveTab(tab);
-
-  const toggleSelectAll = (e) => {
-    setSelectedLocation(
-      e.target.checked ? filteredLocation.map((c) => c._id) : []
+  const toggleSelectAll = (e) =>
+    setSelectedIds(
+      e.target.checked ? filteredWarehouses.map((w) => w._id) : []
     );
-  };
-
-  const handleCheckboxChange = (id) => {
-    setSelectedLocation((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+  const handleCheckboxChange = (id) =>
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  };
 
   const handleDeleteSelected = async () => {
-    if (!selectedLocation.length) {
-      toast.info("No Location selected to delete");
-      return;
-    }
-
-    if (!window.confirm("Delete selected Location?")) return;
+    if (!selectedIds.length) return toast.info("No warehouses selected");
+    if (!window.confirm("Delete selected warehouses?")) return;
 
     try {
       const results = await Promise.allSettled(
-        selectedLocation.map((id) => axios.delete(`${baseUrl}/${id}`))
+        selectedIds.map((id) => axios.delete(`${baseUrl}/${id}`))
       );
-
       const succeeded = results.filter((r) => r.status === "fulfilled").length;
       const failed = results.filter((r) => r.status === "rejected").length;
-
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
-        await fetchLocation();
-        setSelectedLocation([]);
+        await fetchWarehouses();
+        setSelectedIds([]);
       }
-      if (failed) toast.error(`${failed} failed — check console`);
+      if (failed) toast.error(`${failed} failed`);
     } catch (err) {
       console.error(err);
-      toast.error("Unexpected error while deleting");
+      toast.error("Unexpected error");
     }
   };
 
   const exportToExcel = () => {
-    if (!LocationList.length) {
-      toast.info("No data to export.");
-      return;
-    }
-    const ws = XLSX.utils.json_to_sheet(aisleList);
+    if (!warehouses.length) return toast.info("No data to export");
+    const ws = XLSX.utils.json_to_sheet(warehouses);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Location");
-    XLSX.writeFile(wb, "aisle_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Warehouses");
+    XLSX.writeFile(wb, "warehouses.xlsx");
   };
 
   const generatePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [["#", "Code", "Name", "Contact", "Address", "Status"]],
-      body: filteredLocation.map((c, i) => [
+      body: filteredWarehouses.map((w, i) => [
         i + 1,
-        c.code,
-        c.name,
-        c.contactNum,
-        c.address,
-        c.active ? "Active" : "Inactive",
+        w.code,
+        w.name,
+        w.contactNum,
+        w.address,
+        w.active ? "Active" : "Inactive",
       ]),
     });
-    doc.save("Aisle_list.pdf");
+    doc.save("warehouses.pdf");
   };
 
-  const handleLocationClick = (LocationId) => {
-    setViewingLocationId(LocationId);
-  };
-
+  const handleRowClick = (id) => setViewingId(id);
   const resetFilters = () => {
     setSearchTerm("");
     setStatusFilter("All");
     setSortOption("");
+    setActiveTab(tabNames[0]);
   };
-
-  const goBack = () => setViewingLocationId(null);
+  const goBack = () => setViewingId(null);
 
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingLocationId) {
-    return (
-      <div className="p-4">
-        <AisleViewPage aisleId={viewingLocationId} goBack={goBack} />
-      </div>
-    );
+  if (viewingId) {
+    return <WarehouseViewPage warehouseId={viewingId} goBack={goBack} />;
   }
-  // ─── Render ─────────────────────────────────────────────────────
 
   return (
     <div>
+      <ToastContainer />
       <div>
         <div>
-          {viewingLocationId ? (
-            <AisleViewPage
+          {viewingId ? (
+            <WarehouseViewPage
               toggleView={toggleView}
-              aisleId={viewingAisleId}
+              customerId={viewingCustomerId}
               goBack={goBack}
             />
           ) : (
@@ -344,21 +274,19 @@ const Location = ({handleAddLocation}) => {
                       </svg>{" "}
                     </button>
                   </div>
-
-                  {/* </div> */}
-                  <h3 className="text-xl font-semibold">Aisle List</h3>
+                  <h3 className="text-xl font-semibold">Warehouse</h3>
                 </div>
                 <div className="flex items-center gap-3 ">
                   <button
-                    onClick={handleAddLocation}
+                    onClick={handleAddWarehouse}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     + Add
                   </button>
                   <button
                     onClick={handleDeleteSelected}
-                    disabled={!selectedLocation.length}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                    disabled={!selectedIds.length}
                   >
                     Delete
                   </button>
@@ -370,7 +298,6 @@ const Location = ({handleAddLocation}) => {
                   </button>
                   <button
                     onClick={exportToExcel}
-                    c
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     Export
@@ -396,7 +323,7 @@ const Location = ({handleAddLocation}) => {
                   <button
                     onClick={() => {
                       fetchMetrics();
-                      fetchLocation(startDate, endDate);
+                      fetchCustomers(startDate, endDate);
                     }}
                     className="px-3 py-1 border rounded"
                   >
@@ -405,11 +332,11 @@ const Location = ({handleAddLocation}) => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Location", LocationSummary.count],
-                    ["Credit Limit", LocationSummary.creditLimit],
-                    ["Paid Location", LocationSummary.paidLocation],
-                    ["Active Location", LocationSummary.activeLocation],
-                    ["On‑Hold Location", LocationSummary.onHoldLocation],
+                    ["Total Warehouses", summary.count],
+                    ["Credit Limit", summary.creditLimit],
+                    ["Paid Warehouses", summary.paid],
+                    ["Active Warehouses", summary.active],
+                    ["On-Hold Warehouses", summary.onHold],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -422,42 +349,35 @@ const Location = ({handleAddLocation}) => {
                 </div>
               </div>
 
-              {/* Filters & Search */}
+              {/* Controls */}
               <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md  mb-2 space-y-3 md:space-y-0 md:space-x-4">
-                {/* Left group: Sort By, Filter By Status, Search */}
                 <div className="flex items-center space-x-4">
-                  {/* Sort By */}
+                  {/* Sort */}
                   <div className="relative">
                     <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <select
-                      defaultValue=""
-                      value={selectedOption}
-                      onChange={handleFilterChange}
+                      value={sortOption}
+                      onChange={handleSortChange}
                       className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="Aisle Name">Aisle Name</option>
-                      <option value="Aisle Account no">
-                        Aisle Account in Ascending
-                      </option>
-                      <option value="Aisle Account no descending">
-                        Aisle Account in descending
-                      </option>
+                      <option value="code-asc">Code Asc</option>
+                      <option value="code-desc">Code Desc</option>
+                      <option value="name-asc">Name Asc</option>
                     </select>
                   </div>
 
-                  {/* Filter By Status */}
+                  {/* Status Filter */}
                   <div className="relative">
                     <FaFilter className=" text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <select
-                      defaultValue="All"
+                      value={statusFilter}
+                      onChange={handleStatusChange}
                       className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                      value={selectedOption}
-                      onChange={handleFilterChange}
                     >
-                      <option value="All">Filter By Status</option>
-                      <option value="yes">Active</option>
-                      <option value="no">Inactive</option>
+                      <option value="All">All Status</option>
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
                     </select>
                   </div>
 
@@ -468,29 +388,27 @@ const Location = ({handleAddLocation}) => {
                       placeholder="Search..."
                       value={searchTerm}
                       onChange={handleSearchChange}
-                      className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                    />{" "}
                     <button
                       value={searchTerm}
                       onChange={handleSearchChange}
                       type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
                     >
-                      <FaSearch className="w-5 h-5" />
+                      <FaSearch className="w-5 h-5" />{" "}
                     </button>
                   </div>
                 </div>
-
-                {/* Right side: Reset Filter */}
                 <button
                   onClick={resetFilters}
                   className="text-red-500 hover:text-red-600 font-medium"
                 >
-                  Reset Filter
+                  Reset
                 </button>
               </div>
+              {/* Data Table */}
               <div className="flex">
-                {" "}
                 <ul className="flex space-x-6 list-none p-0 m-0">
                   {tabNames.map((tab) => (
                     <li
@@ -507,7 +425,7 @@ const Location = ({handleAddLocation}) => {
                   ))}
                 </ul>
               </div>
-              {/* Data Table */}
+              {/* Table */}
               <div className="table-scroll-container h-[400px] overflow-auto bg-white rounded-lg">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -517,66 +435,62 @@ const Location = ({handleAddLocation}) => {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedLocation.length ===
-                              filteredLocation.length &&
-                            filteredLocation.length > 0
+                            selectedIds.length === filteredWarehouses.length &&
+                            filteredWarehouses.length > 0
                           }
-                          className="form-checkbox"
                         />
                       </th>
-                      {["Code", "Name", "Address", "Contact", "Status"].map(
-                        (h) => (
-                          <th
-                            key={h}
-                            className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tLocationing-wider bg-gray-50"
-                          >
-                            {h}
-                          </th>
-                        )
-                      )}
+                      {[
+                        "Code",
+                        "Name",
+                        "Discription",
+                        "site",
+                        "Type",
+                        "Status",
+                      ].map((h) => (
+                        <th
+                          key={h}
+                          className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                        >
+                          {h}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredLocation.length ? (
-                      filteredLocation.map((c) => (
+                    {filteredWarehouses.length ? (
+                      filteredWarehouses.map((w, i) => (
                         <tr
-                          key={c.code}
+                          key={w._id}
                           className="hover:bg-gray-100 transition-colors"
                         >
                           <td className="px-4 py-2">
                             <input
                               type="checkbox"
-                              checked={selectedLocation.includes(c._id)}
-                              onChange={() => handleCheckboxChange(c._id)}
-                              className="form-checkbox"
+                              checked={selectedIds.includes(w._id)}
+                              onChange={() => handleCheckboxChange(w._id)}
                             />
                           </td>
-                          <td
-                          // onClick={() => handleAisleClick(Aisle._id)}
-                          // className="px-6 py-4 cursor-pointer text-blue-600 hover:underline"
-                          >
+                          <td>
                             <button
-                              className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleAisleClick(c._id)}
+                              className="text-blue-600 hover:underline"
+                              onClick={() => handleRowClick(w._id)}
                             >
-                              {c.code}
+                              {w.code}
                             </button>
                           </td>
-                          <td className="px-6 py-4">{c.name}</td>
-                          <td className="px-6 py-4">{c.address}</td>{" "}
-                          <td className="px-6 py-3 truncate">
-                            {new Date(c.createdAt).toLocaleString()}
-                          </td>
-                          <td className="px-6 py-4">{c.contactNum}</td>
+                          <td className="px-6 py-4">{w.name}</td>
+                          <td className="px-6 py-4">{w.description}</td>{" "}
+                          <td className="px-6 py-4">{w.site?.name || "—"}</td>
                           <td className="px-6 py-4">
                             <span
                               className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                c.active
+                                w.active
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
                               }`}
                             >
-                              {c.active ? "Active" : "Inactive"}
+                              {w.active ? "Active" : "Inactive"}
                             </span>
                           </td>
                         </tr>
@@ -600,6 +514,4 @@ const Location = ({handleAddLocation}) => {
       </div>
     </div>
   );
-};
-
-export default Location;
+}
