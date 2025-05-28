@@ -58,7 +58,7 @@ const PAGE = {
   productDimSize: "productDimSize",
   ProductDimVersion: "ProductDimVersion",
   productDimStyleForm: "productDimStyleForm",
-  PRODUCTPAGE: "PRODUCTPAGE",
+  PRODUCTPAGE: "PRODUCTPAGE",  LOCATIONPAGE: "PRODUCTPAGE",
 };
 
 const VIEW_MODES = { GRID: "GRID", ICON: "ICON", LIST: "LIST" };
@@ -217,6 +217,12 @@ const setupSections = [
         title: "Product",
         icon: <FaListUl />,
         page: PAGE.PRODUCTPAGE,
+      },
+      {
+        id: "Location",
+        title: "Location",
+        icon: <FaListUl />,
+        page: PAGE.LOCATION,
       },
       {
         id: "Shelves",

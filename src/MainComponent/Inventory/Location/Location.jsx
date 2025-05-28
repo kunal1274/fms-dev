@@ -1,5 +1,13 @@
-import React from "react";
-
+// import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import axios from "axios";
+import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
+import { toast, ToastContainer } from "react-toastify";
+import * as XLSX from "xlsx";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Tabs } from "flowbite-react";
+import "./c.css";
 const Location = () => {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Location";
   const metricsUrl = `${baseUrl}/metrics`;
