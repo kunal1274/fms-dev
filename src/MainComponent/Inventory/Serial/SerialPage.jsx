@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import SerialList from "./Seriallist";
-import SerialForm from "./SerialForm";
+
 
 // import { Button } from "../../../../src/Component/Button/Button";
 const SerialsPage = () => {
