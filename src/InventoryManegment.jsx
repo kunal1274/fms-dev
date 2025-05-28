@@ -22,7 +22,7 @@ import {
 // import ShelvesPage from "./MainComponent/Inventory/Shelves/ShelvesPage";
 // import AislesPage from "./MainComponent/Inventory/Aisle/AislePage.jsx";
 import BatchValuePage from "./MainComponent/Inventory/BatchValue/BatchValuePage";
-// import BinPage from "./MainComponent/Inventory/Bin/BinPage";
+import BinPage from "./MainComponent/Inventory/Bin/BinPage";
 // import LocationPage from "./MainComponent/Inventory/Location/LocationPage";
 // import RacksPage from "./MainComponent/Inventory/Racks/RacksPage";
 // import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
@@ -194,7 +194,7 @@ const componentMap = {
   // [PAGE.SHELVES]: <ShelvesPage />,
   // [PAGE.AISLES]: <AislesPage />,
   [PAGE.BATCHES]: <BatchValuePage />,
-  // [PAGE.BIN]: <BinPage />,
+  [PAGE.BIN]: <BinPage />,
   // [PAGE.LOCATION]: <LocationPage />,
   // [PAGE.RACKS]: <RackPage />,
   // [PAGE.CONFIG]: <ConfigPage />,
