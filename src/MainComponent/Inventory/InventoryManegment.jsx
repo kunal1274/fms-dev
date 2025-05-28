@@ -21,7 +21,7 @@ import ItemMasterPage from "./Item/ItemPage.jsx";
 import SitePage from "./Site/SitePage.jsx";
 import Aisles from "./Aisles/AislesPage.jsx"
 import ShelvesPage from "./Shelves/ShelvesPage.jsx";
-import Serials from "./Serials/SerialsPage.jsx";
+import Serial from "./Serial/SerialPage.jsx";
 
 import BatchValuePage from "./BatchValue/BatchValuePage.jsx";
 import BinPage from "./Bin/BinPage.jsx";
@@ -261,7 +261,7 @@ const componentMap = {
   // [PAGE.RACKS]: <RackPage />,
   [PAGE.CONFIG]: <ConfigPage />,
   [PAGE.COLOR]: <ColorPage />,
-  [PAGE.SERIALS]: <Serials />,
+  [PAGE.SERIALS]: <Serial />,
 };
 
 export default function ViewTogglePage() {
