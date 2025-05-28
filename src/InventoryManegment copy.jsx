@@ -25,6 +25,7 @@ import BinPage from "./MainComponent/Inventory/Bin/BinPage";
 import LocationPage from "./MainComponent/Inventory/Location/LocationPage";
 import RacksPage from "./MainComponent/Inventory/Racks/RacksPage";
 import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
+import RackPage from "./MainComponent/Inventory/Rack/RackPage";
 
 // Page keys
 const PAGE = {
@@ -163,7 +164,7 @@ const componentMap = {
   [PAGE.BATCHES]: <BatchValuePage />,
   [PAGE.BIN]: <BinPage />,
   [PAGE.LOCATION]: <LocationPage />,
-  [PAGE.RACKS]: <RacksPage />,
+  [PAGE.RACKS]: <RackPage />,
   [PAGE.INVENTORY_TRANSACTIONS]: null, // add your component here
   [PAGE.ON_HAND_STOCK]: null, // add your component here
   [PAGE.INVENTORY_DASHBOARD]: null, // add your component here
