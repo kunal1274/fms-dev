@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button } from "../../../Component/Button/Button";
 import LocationForm from './LocationForm';
-import LocationList from '../Location/LocationList';
+import Location from './Location.jsx';
 import LocationViewPage from '../Location/LocationViewPage';
 
 
@@ -87,7 +87,7 @@ const LocationPage = () => {
     <div className="w-full bg-white rounded-lg ">
       <div>
         {view === "list" && (
-          <LocationList
+          <Location
             locations={location}
             handleAddLocation={handleAddLocation}
             onView={handleViewLocation}

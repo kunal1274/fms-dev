@@ -1,14 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import axios from "axios";
-import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
-import { toast, ToastContainer } from "react-toastify";
-import * as XLSX from "xlsx";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import { Tabs } from "flowbite-react";
-import "./c.css";
+import React from "react";
 
-const LocationList = ({ handleAddLocation, onView }) => {
+const Location = () => {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Location";
   const metricsUrl = `${baseUrl}/metrics`;
 
@@ -299,7 +291,7 @@ const LocationList = ({ handleAddLocation, onView }) => {
   if (viewingLocationId) {
     return (
       <div className="p-4">
-        <LocationViewPage aisleId={viewingLocationId} goBack={goBack} />
+        <AisleViewPage aisleId={viewingLocationId} goBack={goBack} />
       </div>
     );
   }
@@ -310,7 +302,7 @@ const LocationList = ({ handleAddLocation, onView }) => {
       <div>
         <div>
           {viewingLocationId ? (
-            <LocationViewPage
+            <AisleViewPage
               toggleView={toggleView}
               aisleId={viewingAisleId}
               goBack={goBack}
@@ -602,4 +594,4 @@ const LocationList = ({ handleAddLocation, onView }) => {
   );
 };
 
-export default LocationList;
+export default Location;
