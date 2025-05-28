@@ -24,7 +24,7 @@ import AislesPage from "./MainComponent/Inventory/Aisle/AislesPage.jsx";
 import BatchValuePage from "./MainComponent/Inventory/BatchValue/BatchValuePage";
 import BinPage from "./MainComponent/Inventory/Bin/BinPage";
 import LocationPage from "./MainComponent/Inventory/Location/LocationPage.jsx";
-import ProductDimColorPage from "./MainComponent/Inventory/ProductDimColor/ProductDimColorPage.jsx";
+// import ProductDimColorPage from "./MainComponent/Inventory/ProductDimColor/ProductDimColorPage.jsx";
 
 import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
 // placeholder imports (uncomment when available)
@@ -258,7 +258,7 @@ const componentMap = {
   [PAGE.BATCHES]: <BatchValuePage />,
   [PAGE.BIN]: <BinPage />,
   [PAGE.LOCATION]: <LocationPage />,
-  [PAGE.RACKS]: <RackPage />,
+  // [PAGE.RACKS]: <RackPage />,
   [PAGE.CONFIG]: <ConfigPage />,
   [PAGE.COLOR]: <ColorPage />,
   [PAGE.SERIALS]: <SerialsPage />,
