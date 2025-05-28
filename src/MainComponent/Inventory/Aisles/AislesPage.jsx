@@ -1,12 +1,6 @@
 import React from 'react'
 
-const 
-
-
-
-
-
-AislesPage = () => {
+const AislesPage = () => {
   return (
     <div>AislesPage</div>
   )
