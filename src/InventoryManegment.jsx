@@ -17,12 +17,13 @@ import {
 
 // import your real pages:
 // import WarehousePage from "./MainComponent/Inventory/Warehouse/WarehousePage";
+import ItemMasterPage from "./MainComponent/Inventory/Item/ItemPage";
 // import SitePage from "./MainComponent/Inventory/Site/SitePage";
 // import ShelvesPage from "./MainComponent/Inventory/Shelves/ShelvesPage";
 // import AislesPage from "./MainComponent/Inventory/Aisle/AislePage.jsx";
 import BatchValuePage from "./MainComponent/Inventory/BatchValue/BatchValuePage";
 import BinPage from "./MainComponent/Inventory/Bin/BinPage";
-// import LocationPage from "./MainComponent/Inventory/Location/LocationPage";
+import LocationPage from "./MainComponent/Inventory/Location/LocationPage";
 // import RacksPage from "./MainComponent/Inventory/Racks/RacksPage";
 // import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
 // placeholder imports (uncomment when available)
@@ -185,6 +186,12 @@ const setupSections = [
         icon: <FaListUl />,
         page: PAGE.BIN,
       },
+      {
+        id: "Location",
+        title: "Location",
+        icon: <FaListUl />,
+        page: PAGE.LOCATION,
+      },
     ],
   },
 ];
@@ -198,7 +205,7 @@ const componentMap = {
   // [PAGE.AISLES]: <AislesPage />,
   [PAGE.BATCHES]: <BatchValuePage />,
   [PAGE.BIN]: <BinPage />,
-  // [PAGE.LOCATION]: <LocationPage />,
+  [PAGE.LOCATION]: <LocationPage />,
   // [PAGE.RACKS]: <RackPage />,
   // [PAGE.CONFIG]: <ConfigPage />,
   // [PAGE.COLOR]: <ColorPage />,
