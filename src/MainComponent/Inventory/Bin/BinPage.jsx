@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import BinViewPage from "./BinViewpagee";
+import BinViewPage from "./BinViewPage";
 import { Button } from "../../../Component/Button/Button";
 import BinForm from "./BinForm";
 

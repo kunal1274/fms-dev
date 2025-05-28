@@ -53,8 +53,10 @@ const PAGE = {
   CONFIG: "CONFIG",
   COLOR: "COLOR",
   SERIALS: "SERIALS",
-  productDimVersionForm:"productDimVersionForm",productDimSize:"productDimSize",ProductDimVersion:"ProductDimVersion",
-  productDimStyleForm:"productDimStyleForm"
+  productDimVersionForm: "productDimVersionForm",
+  productDimSize: "productDimSize",
+  ProductDimVersion: "ProductDimVersion",
+  productDimStyleForm: "productDimStyleForm",
 };
 
 const VIEW_MODES = { GRID: "GRID", ICON: "ICON", LIST: "LIST" };
@@ -171,16 +173,18 @@ const setupSections = [
         title: "Serials",
         icon: <FaListUl />,
         page: PAGE.SERIALS,
-      },{
+      },
+      {
         id: "Aisles",
         title: "Aisles",
         icon: <FaListUl />,
         page: PAGE.SERIALS,
-      },{
+      },
+      {
         id: "Bin",
         title: "Bin",
         icon: <FaListUl />,
-        page: PAGE.SERIALS,
+        page: PAGE.BIN,
       },
     ],
   },

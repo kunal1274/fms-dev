@@ -7,7 +7,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react";
 import "./c.css";
-import AisleViewPage from "./BinViewpagee";
+import BinViewPage from "./BinViewPage";
 
 export default function BinList({ handleAddBin, onView }) {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/bin";
@@ -94,16 +94,16 @@ export default function BinList({ handleAddBin, onView }) {
     if (value === "All") {
       setFilteredBin(filtered);
     } else if (value === "yes") {
-      setFilteredBin(filtered.filter((aisle) => aisle.active === true));
+      setFilteredBin(filtered.filter((Bin) => Bin.active === true));
     } else if (value === "no") {
-      setFilteredBin(filtered.filter((aisle) => aisle.active === false));
-    } else if (value === "Aisle Name") {
+      setFilteredBin(filtered.filter((Bin) => Bin.active === false));
+    } else if (value === "Bin Name") {
       filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
       setFilteredBin(filtered);
-    } else if (value === "Aisle Account no") {
+    } else if (value === "Bin Account no") {
       filtered = filtered.sort((a, b) => a.code.localeCompare(b.code));
       setFilteredBin(filtered);
-    } else if (value === "Aisle Account no descending") {
+    } else if (value === "Bin Account no descending") {
       filtered = filtered.sort((a, b) => b.code.localeCompare(a.code));
       setFilteredBin(filtered);
     }
@@ -131,7 +131,7 @@ export default function BinList({ handleAddBin, onView }) {
         });
       } catch (err) {
         console.error(err);
-        setError("Unable to load Aisle data.");
+        setError("Unable to load Bin data.");
       } finally {
         setLoading(false);
       }
@@ -258,10 +258,10 @@ export default function BinList({ handleAddBin, onView }) {
       toast.info("No data to export.");
       return;
     }
-    const ws = XLSX.utils.json_to_sheet(aisleList);
+    const ws = XLSX.utils.json_to_sheet(BinList);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "bin");
-    XLSX.writeFile(wb, "aisle_list.xlsx");
+    XLSX.writeFile(wb, "Bin_list.xlsx");
   };
 
   const generatePDF = () => {
@@ -277,7 +277,7 @@ export default function BinList({ handleAddBin, onView }) {
         c.active ? "Active" : "Inactive",
       ]),
     });
-    doc.save("Aisle_list.pdf");
+    doc.save("Bin_list.pdf");
   };
 
   const handleBinClick = (BinId) => {
@@ -298,7 +298,7 @@ export default function BinList({ handleAddBin, onView }) {
   if (viewingBinId) {
     return (
       <div className="p-4">
-        <AisleViewPage aisleId={viewingBinId} goBack={goBack} />
+        <BinViewPage BinId={viewingBinId} goBack={goBack} />
       </div>
     );
   }
@@ -309,9 +309,9 @@ export default function BinList({ handleAddBin, onView }) {
       <div>
         <div>
           {viewingBinId ? (
-            <AisleViewPage
+            <BinViewPage
               toggleView={toggleView}
-              aisleId={viewingAisleId}
+              BinId={viewingBinId}
               goBack={goBack}
             />
           ) : (
@@ -345,7 +345,7 @@ export default function BinList({ handleAddBin, onView }) {
                   </div>
 
                   {/* </div> */}
-                  <h3 className="text-xl font-semibold">Aisle List</h3>
+                  <h3 className="text-xl font-semibold">Bin List</h3>
                 </div>
                 <div className="flex items-center gap-3 ">
                   <button
@@ -435,12 +435,12 @@ export default function BinList({ handleAddBin, onView }) {
                       className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="Aisle Name">Aisle Name</option>
-                      <option value="Aisle Account no">
-                        Aisle Account in Ascending
+                      <option value="Bin Name">Bin Name</option>
+                      <option value="Bin Account no">
+                        Bin Account in Ascending
                       </option>
-                      <option value="Aisle Account no descending">
-                        Aisle Account in descending
+                      <option value="Bin Account no descending">
+                        Bin Account in descending
                       </option>
                     </select>
                   </div>
@@ -550,12 +550,12 @@ export default function BinList({ handleAddBin, onView }) {
                             />
                           </td>
                           <td
-                          // onClick={() => handleAisleClick(Aisle._id)}
+                          // onClick={() => handleBinClick(Bin._id)}
                           // className="px-6 py-4 cursor-pointer text-blue-600 hover:underline"
                           >
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleAisleClick(c._id)}
+                              onClick={() => handleBinClick(c._id)}
                             >
                               {c.code}
                             </button>

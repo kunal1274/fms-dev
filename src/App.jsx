@@ -1,6 +1,6 @@
 import React from "react";
 import Dashbord from "./Component/Dashbord/Dashbord";
-// import Dashbord from "../src/MainComponent/Inventory/BatchValue/BatchValuePage";
+// import Dashbord from "../src/MainComponent/Inventory/Bin/BinPage";
 
 const App = () => {
   return (
