@@ -1,11 +1,9 @@
 import React from 'react'
 
-const LocationViewPagee = () => {
+const LocationViewPage = () => {
   return (
-    <div>LocationViewPagee</div>
+    <div>LocationViewPage</div>
   )
 }
 
-export default LocationViewPagee
-
-
+export default LocationViewPage
