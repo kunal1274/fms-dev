@@ -1,13 +1,7 @@
-import React from 'react'
+import React from "react";
 
-const 
+const SerialsPage = () => {
+  return <div>SerialsPage</div>;
+};
 
-
-
-SerialsPage = () => {
-  return (
-    <div>SerialsPage</div>
-  )
-}
-
-export default SerialsPage
+export default SerialsPage;
