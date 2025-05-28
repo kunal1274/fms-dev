@@ -25,7 +25,7 @@ import BatchValuePage from "./MainComponent/Inventory/BatchValue/BatchValuePage"
 import BinPage from "./MainComponent/Inventory/Bin/BinPage";
 import LocationPage from "./MainComponent/Inventory/Location/LocationPage.jsx";
 import ProductDimColorPage from "./MainComponent/Inventory/ProductDimColor/ProductDimColorPage.jsx";
-import RackPage from "./MainComponent/Inventory/Rack/RackPage.jsx";
+
 import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
 // placeholder imports (uncomment when available)
 import ConfigPage from "./MainComponent/Inventory/ProductDimConf/ProductDimConfPage.jsx";
@@ -44,7 +44,7 @@ const PAGE = {
   BATCHES: "BATCHES",
   BIN: "BIN",
   LOCATION: "LOCATION",
-  RACKS: "RACKS",
+  // RACKS: "RACKS",
   INVENTORY_JOURNALS: "INVENTORY_JOURNALS",
   INVENTORY_TRANSACTIONS: "INVENTORY_TRANSACTIONS",
   ON_HAND_STOCK: "ON_HAND_STOCK",
