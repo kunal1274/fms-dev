@@ -16,22 +16,21 @@ import {
 } from "react-icons/fa";
 
 // import your real pages:
-import WarehousePage from "./MainComponent/Inventory/Warehouse/WarehousePage";
-import ItemMasterPage from "./MainComponent/Inventory/Item/ItemPage";
-import SitePage from "./MainComponent/Inventory/Site/SitePage";
-import ShelvesPage from "./MainComponent/Inventory/Shelves/ShelvesPage";
-import AislesPage from "./MainComponent/Inventory/Aisle/AislesPage.jsx";
-import BatchValuePage from "./MainComponent/Inventory/BatchValue/BatchValuePage";
-import BinPage from "./MainComponent/Inventory/Bin/BinPage";
-import LocationPage from "./MainComponent/Inventory/Location/LocationPage.jsx";
-// import ProductDimColorPage from "./MainComponent/Inventory/ProductDimColor/ProductDimColorPage.jsx";
+import WarehousePage from "./Warehouse/WarehousePage.jsx";
+import ItemMasterPage from "./Item/ItemPage.jsx";
+import SitePage from "./Site/SitePage.jsx";
+import ShelvesPage from "./Shelves/ShelvesPage.jsx";
+import AislesPage from "./Aisle/AislesPage.jsx";
+import BatchValuePage from "./BatchValue/BatchValuePage.jsx";
+import BinPage from "./Bin/BinPage.jsx";
+import LocationPage from "./Location/LocationPage.jsx";
 
-import ZonePage from "./MainComponent/Inventory/Zone/ZonePage";
+import ZonePage from "./Zone/ZonePage.jsx";
 // placeholder imports (uncomment when available)
-import ConfigPage from "./MainComponent/Inventory/ProductDimConf/ProductDimConfPage.jsx";
-import ColorPage from "./MainComponent/Inventory/ProductDimColor/ProductDimColorPage.jsx";
-import SerialsPage from "./MainComponent/Inventory/Serials/SerialsPage.jsx";
-import RackPage from "./MainComponent/Inventory/Rack/RackPage.jsx";
+import ConfigPage from "./ProductDimConf/ProductDimConfPage.jsx";
+import ColorPage from "./ProductDimColor/ProductDimColorPage.jsx";
+import SerialsPage from "./Serials/SerialsPage.jsx";
+
 const PAGE = {
   TOGGLE: "TOGGLE",
   ITEM_MASTER: "ITEM_MASTER",

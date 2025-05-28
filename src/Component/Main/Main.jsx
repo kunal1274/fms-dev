@@ -3,7 +3,7 @@ import CustomerList from "../../MainComponent/Customer/CustomerPage";
 import CompanyPage from "../../MainComponent/Company/CompanyPage";
 import SalePage from "../../SaleToggle";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
-import InventoryManegment from "../../InventoryManegment";
+import InventoryManegment from "../../MainComponent/Inventory/InventoryManegment";
 import PurchasePage from "../../Purchase Toggle";
 // import SitePage from "../../MainComponent/Inventory/Site/SitePage";
 // import WarehousePage from "../../MainComponent/Inventory/Warehouse/WarehousePage";
