@@ -29,7 +29,7 @@ import ZonePage from "./Zone/ZonePage.jsx";
 // placeholder imports (uncomment when available)
 import ConfigPage from "./ProductDimConf/ProductDimConfPage.jsx";
 import ColorPage from "./ProductDimColor/ProductDimColorPage.jsx";
-import SerialsPage from "./Serials/SerialsPage.jsx";
+
 
 const PAGE = {
   TOGGLE: "TOGGLE",
@@ -213,12 +213,12 @@ const setupSections = [
         icon: <FaListUl />,
         page: PAGE.PRODUCTPAGE,
       },
-      {
-        id: "Serials",
-        title: "Product",
-        icon: <FaListUl />,
-        page: PAGE.PRODUCTPAGE,
-      },
+      // {
+      //   id: "Serials",
+      //   title: "Product",
+      //   icon: <FaListUl />,
+      //   page: PAGE.PRODUCTPAGE,
+      // },
       {
         id: "Location",
         title: "Location",
@@ -260,7 +260,7 @@ const componentMap = {
   // [PAGE.RACKS]: <RackPage />,
   [PAGE.CONFIG]: <ConfigPage />,
   [PAGE.COLOR]: <ColorPage />,
-  [PAGE.SERIALS]: <SerialsPage />,
+  // [PAGE.SERIALS]: <SerialsPage />,
 };
 
 export default function ViewTogglePage() {
