@@ -19,14 +19,13 @@ import {
 import WarehousePage from "./Warehouse/WarehousePage.jsx";
 import ItemMasterPage from "./Item/ItemPage.jsx";
 import SitePage from "./Site/SitePage.jsx";
-import Aisles from "./Aisles/AislesPage.jsx"
+import Aisles from "./Aisles/AislesPage.jsx";
 import ShelvesPage from "./Shelves/ShelvesPage.jsx";
 import Serial from "./Serial/SerialPage.jsx";
-
 import BatchValuePage from "./BatchValue/BatchValuePage.jsx";
 import BinPage from "./Bin/BinPage.jsx";
+import RackPage from "./Rack/RackPage.jsx";
 import LocationPage from "./Location/LocationPage.jsx";
-
 import ZonePage from "./Zone/ZonePage.jsx";
 // placeholder imports (uncomment when available)
 import ConfigPage from "./ProductDimConf/ProductDimConfPage.jsx";
@@ -258,7 +257,7 @@ const componentMap = {
   [PAGE.BATCHES]: <BatchValuePage />,
   [PAGE.BIN]: <BinPage />,
   [PAGE.LOCATION]: <LocationPage />,
-  // [PAGE.RACKS]: <RackPage />,
+  [PAGE.RACKS]: <RackPage />,
   [PAGE.CONFIG]: <ConfigPage />,
   [PAGE.COLOR]: <ColorPage />,
   [PAGE.SERIALS]: <Serial />,

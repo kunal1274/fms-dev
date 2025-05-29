@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 
+import SerialsForm from "./SerialForm";
 
 // import { Button } from "../../../../src/Component/Button/Button";
 const SerialsPage = () => {
@@ -91,7 +92,7 @@ const SerialsPage = () => {
         )}
 
         {view === "form" && (
-          <SerialForm
+          <SerialsForm
             Serials={selectedSerials}
             handleAddSerials={handleAddSerials}
             handleCancel={handleCancel}

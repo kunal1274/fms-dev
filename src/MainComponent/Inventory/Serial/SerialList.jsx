@@ -7,7 +7,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react";
 import "./c.css";
-const SerialsList = ({ handleAddSerials, onView }) => {
+const SerialList = ({ handleAddSerials, onView }) => {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Serials";
   const metricsUrl = `${baseUrl}/metrics`;
 
@@ -600,4 +600,4 @@ const SerialsList = ({ handleAddSerials, onView }) => {
   );
 };
 
-export default SerialsList;
+export default SerialList;

@@ -32,22 +32,31 @@ export default function ZoneForm({ handleCancel }) {
   const groupsBase = "https://fms-qkmw.onrender.com/fms/api/v0/global-groups";
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchLookups = async () => {
       try {
         const [whRes, compRes, grpRes] = await Promise.all([
           axios.get(warehousesBase),
           axios.get(companiesBase),
           axios.get(groupsBase),
         ]);
-        setWarehouses(whRes.data.data || []);
-        setCompanies(compRes.data.data || []);
-        setGroupsList(grpRes.data.data || []);
+
+        // normalize each list
+        const normalize = (res) =>
+          Array.isArray(res.data?.data)
+            ? res.data.data
+            : Array.isArray(res.data)
+            ? res.data
+            : [];
+
+        setWarehouses(normalize(whRes));
+        setCompanies(normalize(compRes));
+        setGroupsList(normalize(grpRes));
       } catch (err) {
         console.error(err);
         toast.error("Error loading lookup data");
       }
     };
-    fetchData();
+    fetchLookups();
   }, []);
 
   const handleChange = (e) => {
@@ -208,7 +217,7 @@ export default function ZoneForm({ handleCancel }) {
             >
               <option value="">Select company</option>
               {companies.map((c) => (
-                <option key={c._id} value={c._1d}>
+                <option key={c._id} value={c._id}>
                   {c.name}
                 </option>
               ))}
