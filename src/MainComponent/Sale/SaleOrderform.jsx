@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import SaleorderViewPage from "./SaleOrderViewPage";
 const SaleOrderform = ({ handleCancel }) => {
+  const warehousesBase = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const customersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
   const salesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
@@ -113,7 +114,14 @@ const SaleOrderform = ({ handleCancel }) => {
         console.error("Error fetching items:", error);
       }
     };
-
+ const fetchWarehouses = async () => {
+      try {
+        const response = await axios.get(itemsBaseUrl);
+        setItems(response.data.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
     fetchCustomers();
     fetchItems();
   }, []);
@@ -657,6 +665,23 @@ const SaleOrderform = ({ handleCancel }) => {
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
+                </div>{" "}
+                <div>
+                  <label>Warehouse</label>
+                  <select
+                    name="warehouse"
+                    value={form.warehouse}
+                    onChange={handleChange}
+                    required
+                    className="mt-1 w-full p-2 border rounded"
+                  >
+                    <option value="">Select</option>
+                    {warehouses.map((w) => (
+                      <option key={w._id} value={w._id}>
+                        {w.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600">

@@ -4,78 +4,103 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function ZoneForm({ handleCancel }) {
-  const [form, setForm] = useState({
-    code: "",
-    name: "",
-    description: "",
-    type: "Physical",
-    warehouse: "",
-    zoneAddress: "",
-    remarks: "",
-    archived: false,
-    company: "",
-    groups: [],
-    createdBy: "",
-    updatedBy: "",
-    active: true,
-    extras: "",
-    files: [],
+  console.log("Line 1: Render ZoneForm component");
+
+  // Initial form state
+  const [form, setForm] = useState(() => {
+    console.log("Line 5: Initializing form state");
+    const initial = {
+      name: "",
+      description: "",
+      type: "Physical",
+      warehouse: "",
+      zoneAddress: "",
+      remarks: "",
+      archived: false,
+      company: "",
+      customer: "",
+      groups: [],
+      createdBy: "",
+      updatedBy: "",
+      active: true,
+      extras: "",
+      files: [],
+    };
+    console.log("Line 20: Initial form object", initial);
+    return initial;
   });
 
+  // Lookup lists
   const [warehouses, setWarehouses] = useState([]);
+  const [warehouse, setWarehouse] = useState([]);
+  console.log("Line 25: Declared warehouses state");
   const [companies, setCompanies] = useState([]);
-  const [groupsList, setGroupsList] = useState([]);
 
-  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/zones";
-  const warehousesBase = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
-  const companiesBase = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
-  const groupsBase = "https://fms-qkmw.onrender.com/fms/api/v0/global-groups";
+  console.log("Line 27: Declared companies state");
+  const [groupsList, setGroupsList] = useState([]);
+  console.log("Line 29: Declared groupsList state");
+
+  // API endpoints
+  console.log("Line 34: Defining API URLs");
+  const apiBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/zones";
+  const warehousesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
+  const companiesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
 
   useEffect(() => {
-    const fetchLookups = async () => {
+   const fetchWarehouses = async () => {
+  try {
+    const response = await axios.get(warehousesUrl);
+    setWarehouses(response.data || []);
+
+    
+  } catch (error) {
+    console.error("Error fetching:", error);
+  }
+};
+    const fetchCompanies = async () => {
       try {
-        const [whRes, compRes, grpRes] = await Promise.all([
-          axios.get(warehousesBase),
-          axios.get(companiesBase),
-          axios.get(groupsBase),
-        ]);
-
-        // normalize each list
-        const normalize = (res) =>
-          Array.isArray(res.data?.data)
-            ? res.data.data
-            : Array.isArray(res.data)
-            ? res.data
-            : [];
-
-        setWarehouses(normalize(whRes));
-        setCompanies(normalize(compRes));
-        setGroupsList(normalize(grpRes));
-      } catch (err) {
-        console.error(err);
-        toast.error("Error loading lookup data");
+        const response = await axios.get(companiesUrl);
+        // setWarehouses(response.data || []);
+        setCompanies(response.data || []);
+      } catch (error) {
+        console.error("Error fetching Company 63:", error);
       }
     };
-    fetchLookups();
+    fetchWarehouses();
+    fetchCompanies();
   }, []);
 
+  // Handle form field changes
   const handleChange = (e) => {
-    const { name, value, type, checked, options } = e.target;
+    console.log("Line 76: handleChange triggered");
+    const { name, type, checked, value, files, options } = e.target;
+    console.log("Line 78: Field change details", {
+      name,
+      type,
+      value,
+      checked,
+    });
     if (type === "checkbox") {
       setForm((prev) => ({ ...prev, [name]: checked }));
+      console.log(`Line 81: Checkbox ${name} set to`, checked);
     } else if (name === "groups") {
-      const selected = [...options]
+      const selected = Array.from(options)
         .filter((o) => o.selected)
         .map((o) => o.value);
       setForm((prev) => ({ ...prev, groups: selected }));
-    } else if (name === "files") {
-      setForm((prev) => ({ ...prev, files: Array.from(e.target.files) }));
+      console.log("Line 85: Groups selected", selected);
+    } else if (type === "file") {
+      setForm((prev) => ({ ...prev, files: Array.from(files) }));
+      console.log("Line 88: Files set", files);
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
+      console.log(`Line 91: Field ${name} set to`, value);
     }
   };
 
+  // Reset form to initial values
   const handleReset = () => {
+    console.log("Line 96: handleReset triggered");
     setForm({
       code: "",
       name: "",
@@ -86,6 +111,7 @@ export default function ZoneForm({ handleCancel }) {
       remarks: "",
       archived: false,
       company: "",
+
       groups: [],
       createdBy: "",
       updatedBy: "",
@@ -93,42 +119,43 @@ export default function ZoneForm({ handleCancel }) {
       extras: "",
       files: [],
     });
+    console.log("Line 117: Form reset complete");
   };
 
+  // Submit form
   const createZone = async (e) => {
     e.preventDefault();
-    try {
-      const payload = new FormData();
-      payload.append("code", form.code);
-      payload.append("name", form.name);
-      payload.append("description", form.description);
-      payload.append("type", form.type);
-      payload.append("warehouse", form.warehouse);
-      payload.append("zoneAddress", form.zoneAddress);
-      payload.append("remarks", form.remarks);
-      payload.append("archived", form.archived);
-      payload.append("company", form.company);
-      form.groups.forEach((g) => payload.append("groups", g));
-      payload.append("createdBy", form.createdBy);
-      payload.append("updatedBy", form.updatedBy);
-      payload.append("active", form.active);
-      try {
-        const extrasObj = JSON.parse(form.extras);
-        payload.append("extras", JSON.stringify(extrasObj));
-      } catch {
-        // ignore invalid JSON
-      }
-      form.files.forEach((file) => payload.append("files", file));
 
-      await axios.post(apiBase, payload, {
-        headers: { "Content-Type": "multipart/form-data" },
+    const payload = {
+      codeAccountNo: form.SiteAccountNo || "",
+      code: form.code || "",
+      name: form.name || "",
+      description: form.description || "",
+      type: form.type || "Physical",
+      site: form.siteId || "",
+      warehouse: form.warehouse || "",
+      zoneAddress: form.zoneAddress || "",
+      remarks: form.remarks || "",
+      archived: form.archived ?? false,
+      company: form.company || "",
+      groups: form.groups || [],
+      createdBy: form.createdBy || "",
+      updatedBy: form.updatedBy || "",
+      active: form.active ?? true,
+      extras: form.extras || "",
+      files: form.files || [],
+    };
+
+    try {
+      await axios.post(apiBaseUrl, payload);
+
+      toast.success("Zone created successfully", {
+        autoClose: 1000,
+        onClose: handleCancel,
       });
-      toast.success("Zone created successfully");
-      handleCancel();
     } catch (err) {
-      console.error("Create error:", err.response || err);
-      const msg = err.response?.data?.message || "Error creating zone";
-      toast.error(msg);
+      // console.error("Create error:", err.response || err);
+      // toast.error(err.response?.data?.message || "Couldn’t create Site");
     }
   };
 
@@ -143,60 +170,53 @@ export default function ZoneForm({ handleCancel }) {
         <section className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Zone Code */}
           <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Zone Code
-            </label>
+            <label>Zone Code</label>
             <input
               name="code"
-              value={form.code}
+              // value={form.code}
               onChange={handleChange}
               placeholder="e.g. ZN-001"
-              required
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
             />
           </div>
-          {/* Name */}
+
+          {/* Zone Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Zone Name
-            </label>
+            <label>Zone Name</label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
               placeholder="e.g. Central Zone"
               required
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              className="mt-1 w-full p-2 border rounded"
             />
           </div>
+
           {/* Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Type
-            </label>
+            <label>Type</label>
             <select
               name="type"
               value={form.type}
               onChange={handleChange}
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              className="mt-1 w-full p-2 border rounded"
             >
               <option value="Physical">Physical</option>
               <option value="Virtual">Virtual</option>
             </select>
           </div>
-          {/* Warehouse Select */}
+          {/* Warehouse */}
           <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Warehouse
-            </label>
+            <label>Warehouse</label>
             <select
               name="warehouse"
               value={form.warehouse}
               onChange={handleChange}
               required
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              className="mt-1 w-full p-2 border rounded"
             >
-              <option value="">Select warehouse</option>
+              <option value="">Select</option>
               {warehouses.map((w) => (
                 <option key={w._id} value={w._id}>
                   {w.name}
@@ -204,36 +224,32 @@ export default function ZoneForm({ handleCancel }) {
               ))}
             </select>
           </div>
-          {/* Company Select */}
+          {/* Company */}
           <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Company
-            </label>
+            <label>Company</label>
             <select
               name="company"
               value={form.company}
               onChange={handleChange}
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              className="mt-1 w-full p-2 border rounded"
             >
-              <option value="">Select company</option>
+              <option value="">Select</option>
               {companies.map((c) => (
                 <option key={c._id} value={c._id}>
-                  {c.name}
+                  {c.companyName}
                 </option>
               ))}
             </select>
           </div>
-          {/* Groups Multi-Select */}
+          {/* Groups */}
           <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Groups
-            </label>
+            <label>Groups</label>
             <select
-              name="groups"
+              name="groepen"
               multiple
               value={form.groups}
               onChange={handleChange}
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 h-32"
+              className="mt-1 w-full p-2 border rounded h-24"
             >
               {groupsList.map((g) => (
                 <option key={g._id} value={g._id}>
@@ -242,64 +258,54 @@ export default function ZoneForm({ handleCancel }) {
               ))}
             </select>
           </div>
-          {/* Zone Address */}
+          {/* Address */}
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-600">
-              Address
-            </label>
+            <label>Address</label>
             <input
               name="zoneAddress"
               value={form.zoneAddress}
               onChange={handleChange}
-              placeholder="Enter address"
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              placeholder="Address"
+              className="mt-1 w-full p-2 border rounded"
             />
           </div>
           {/* Remarks */}
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-600">
-              Remarks
-            </label>
+            <label>Remarks</label>
             <textarea
               name="remarks"
               value={form.remarks}
               onChange={handleChange}
               rows={3}
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              className="mt-1 w-full p-2 border rounded"
             />
           </div>
           {/* Description */}
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-600">
-              Description
-            </label>
+            <label>Description</label>
             <textarea
               name="description"
               value={form.description}
               onChange={handleChange}
               rows={4}
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              className="mt-1 w-full p-2 border rounded"
             />
           </div>
-          {/* Extras JSON */}
+          {/* Extras */}
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-600">
-              Extras (JSON)
-            </label>
+            <label>Extras (JSON)</label>
             <textarea
               name="extras"
               value={form.extras}
               onChange={handleChange}
               rows={3}
-              placeholder='e.g. {"key":"value"}'
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              placeholder='{"key":"value"}'
+              className="mt-1 w-full p-2(border rounded)"
             />
           </div>
-          {/* Files Upload */}
+          {/* Files */}
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-600">
-              Upload Files
-            </label>
+            <label>Files</label>
             <input
               name="files"
               type="file"
@@ -308,75 +314,66 @@ export default function ZoneForm({ handleCancel }) {
               className="mt-1 w-full"
             />
           </div>
-          {/* Archived & Active */}
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2">
+          {/* Checkboxes */}
+          <div className="flex items-center gap-4 sm:col-span-2">
+            <label>
               <input
                 name="archived"
                 type="checkbox"
                 checked={form.archived}
                 onChange={handleChange}
-                className="w-4 h-4"
-              />
-              <span className="text-sm text-gray-600">Archived</span>
+              />{" "}
+              Archived
             </label>
-            <label className="flex items-center gap-2">
+            <label>
               <input
                 name="active"
                 type="checkbox"
                 checked={form.active}
                 onChange={handleChange}
-                className="w-4 h-4"
-              />
-              <span className="text-sm text-gray-600">Active</span>
+              />{" "}
+              Active
             </label>
           </div>
-          {/* Created/Updated By */}
+          {/* Created By */}
           <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Created By
-            </label>
+            <label>Created By</label>
             <input
               name="createdBy"
               value={form.createdBy}
               onChange={handleChange}
               placeholder="User ID"
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              className="mt-1 w-full p-2 border rounded"
             />
           </div>
+          {/* Updated By */}
           <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Updated By
-            </label>
+            <label>Updated By</label>
             <input
               name="updatedBy"
               value={form.updatedBy}
               onChange={handleChange}
               placeholder="User ID"
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              className="mt-1 w-full p-2 border rounded"
             />
           </div>
         </section>
-        {/* Action Buttons */}
-        <div className="py-6 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={handleReset}
-            className="text-gray-500 hover:text-gray-700 text-sm"
-          >
+        {/* Form actions */}
+        <div className="py-6 flex justify-between">
+          <button type="button" onClick={handleReset} className="text-gray-500">
             Reset
           </button>
-          <div className="flex gap-4">
+          <div className="flex gap-2">
             <button
               type="button"
               onClick={handleCancel}
-              className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
+              className="px-4 py-2 bg-gray-200 rounded"
             >
-              Go Back
+              Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+              className="px-4 py-2 bg-blue-600 text-white rounded"
             >
               Create
             </button>

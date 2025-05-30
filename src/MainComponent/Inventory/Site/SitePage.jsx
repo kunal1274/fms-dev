@@ -99,7 +99,7 @@ export default function SitePage() {
         <SiteForm
           site={selectedSite}
           onSave={handleSaveSite}
-          onCancel={handleCancel}
+          handleCancel={handleCancel}
         />
       )}
 
@@ -107,7 +107,7 @@ export default function SitePage() {
         <SiteViewPage
           site={selectedSite}
           onEdit={() => setView("form")}
-          onBack={handleCancel}
+          handleCancel={handleCancel}
         />
       )}
     </div>

@@ -31,24 +31,28 @@ export default function ProductStyle({ handleCancel }) {
   const companiesBase = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
   const groupsBase = "https://fms-qkmw.onrender.com/fms/api/v0/global-groups";
 
-  useEffect(() => {
-    const fetchData = async () => {
+ useEffect(() => {
+    const fetchWarehouses = async () => {
       try {
-        const [whRes, compRes, grpRes] = await Promise.all([
-          axios.get(warehousesBase),
-          axios.get(companiesBase),
-          axios.get(groupsBase),
-        ]);
-        setWarehouses(whRes.data.data || []);
-        setCompanies(compRes.data.data || []);
-        setGroupsList(grpRes.data.data || []);
-      } catch (err) {
-        console.error(err);
-        toast.error("Error loading lookup data");
+        const response = await axios.get(warehousesUrl);
+        setWarehouses(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
       }
     };
-    fetchData();
+    const fetchCompanies = async () => {
+      try {
+        const response = await axios.get(companiesUrl);
+        // setWarehouses(response.data || []);
+        setCompanies(response.data || []);
+      } catch (error) {
+        console.error("Error fetching Company 63:", error);
+      }
+    };
+    fetchWarehouses();
+    fetchCompanies();
   }, []);
+  
 
   const handleChange = (e) => {
     const { name, value, type, checked, options } = e.target;

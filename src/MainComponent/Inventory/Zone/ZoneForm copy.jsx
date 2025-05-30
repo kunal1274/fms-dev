@@ -1,18 +1,16 @@
-
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function ProductSize({ handleCancel }) {
+export default function ZoneForm({ handleCancel }) {
   const [form, setForm] = useState({
     code: "",
     name: "",
     description: "",
     type: "Physical",
     warehouse: "",
-    ProductSizeAddress: "",
+    zoneAddress: "",
     remarks: "",
     archived: false,
     company: "",
@@ -28,33 +26,39 @@ export default function ProductSize({ handleCancel }) {
   const [companies, setCompanies] = useState([]);
   const [groupsList, setGroupsList] = useState([]);
 
-  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/ProductSizes";
+  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/zones";
   const warehousesBase = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
   const companiesBase = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
   const groupsBase = "https://fms-qkmw.onrender.com/fms/api/v0/global-groups";
 
- useEffect(() => {
-    const fetchWarehouses = async () => {
+  useEffect(() => {
+    const fetchLookups = async () => {
       try {
-        const response = await axios.get(warehousesUrl);
-        setWarehouses(response.data || []);
-      } catch (error) {
-        console.error("Error fetching items:", error);
+        const [whRes, compRes, grpRes] = await Promise.all([
+          axios.get(warehousesBase),
+          axios.get(companiesBase),
+          axios.get(groupsBase),
+        ]);
+
+        // normalize each list
+        const normalize = (res) =>
+          Array.isArray(res.data?.data)
+            ? res.data.data
+            : Array.isArray(res.data)
+            ? res.data
+            : [];
+
+        setWarehouses(normalize(whRes));
+        setCompanies(normalize(compRes));
+        setGroupsList(normalize(grpRes));
+      } catch (err) {
+        console.error(err);
+        toast.error("Error loading lookup data");
       }
     };
-    const fetchCompanies = async () => {
-      try {
-        const response = await axios.get(companiesUrl);
-        // setWarehouses(response.data || []);
-        setCompanies(response.data || []);
-      } catch (error) {
-        console.error("Error fetching Company 63:", error);
-      }
-    };
-    fetchWarehouses();
-    fetchCompanies();
+    fetchLookups();
   }, []);
-  
+
   const handleChange = (e) => {
     const { name, value, type, checked, options } = e.target;
     if (type === "checkbox") {
@@ -78,7 +82,7 @@ export default function ProductSize({ handleCancel }) {
       description: "",
       type: "Physical",
       warehouse: "",
-      ProductSizeAddress: "",
+      zoneAddress: "",
       remarks: "",
       archived: false,
       company: "",
@@ -91,7 +95,7 @@ export default function ProductSize({ handleCancel }) {
     });
   };
 
-  const createProductSize = async (e) => {
+  const createZone = async (e) => {
     e.preventDefault();
     try {
       const payload = new FormData();
@@ -100,7 +104,7 @@ export default function ProductSize({ handleCancel }) {
       payload.append("description", form.description);
       payload.append("type", form.type);
       payload.append("warehouse", form.warehouse);
-      payload.append("ProductSizeAddress", form.ProductSizeAddress);
+      payload.append("zoneAddress", form.zoneAddress);
       payload.append("remarks", form.remarks);
       payload.append("archived", form.archived);
       payload.append("company", form.company);
@@ -119,11 +123,11 @@ export default function ProductSize({ handleCancel }) {
       await axios.post(apiBase, payload, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      toast.success("ProductSize created successfully");
+      toast.success("Zone created successfully");
       handleCancel();
     } catch (err) {
       console.error("Create error:", err.response || err);
-      const msg = err.response?.data?.message || "Error creating ProductSize";
+      const msg = err.response?.data?.message || "Error creating zone";
       toast.error(msg);
     }
   };
@@ -131,16 +135,16 @@ export default function ProductSize({ handleCancel }) {
   return (
     <div className="p-4">
       <ToastContainer />
-      <h3 className="text-xl font-semibold mb-4">ProductSize Form</h3>
+      <h3 className="text-xl font-semibold mb-4">Zone Form</h3>
       <form
-        onSubmit={createProductSize}
+        onSubmit={createZone}
         className="bg-white rounded-lg divide-y divide-gray-200"
       >
         <section className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {/* ProductSize Code */}
+          {/* Zone Code */}
           <div>
             <label className="block text-sm font-medium text-gray-600">
-              ProductSize Code
+              Zone Code
             </label>
             <input
               name="code"
@@ -154,13 +158,13 @@ export default function ProductSize({ handleCancel }) {
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-600">
-              ProductSize Name
+              Zone Name
             </label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="e.g. Central ProductSize"
+              placeholder="e.g. Central Zone"
               required
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
             />
@@ -183,7 +187,7 @@ export default function ProductSize({ handleCancel }) {
           {/* Warehouse Select */}
           <div>
             <label className="block text-sm font-medium text-gray-600">
-              values
+              Warehouse
             </label>
             <select
               name="warehouse"
@@ -213,7 +217,7 @@ export default function ProductSize({ handleCancel }) {
             >
               <option value="">Select company</option>
               {companies.map((c) => (
-                <option key={c._id} value={c._1d}>
+                <option key={c._id} value={c._id}>
                   {c.name}
                 </option>
               ))}
@@ -238,14 +242,14 @@ export default function ProductSize({ handleCancel }) {
               ))}
             </select>
           </div>
-          {/* ProductSize Address */}
+          {/* Zone Address */}
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-600">
               Address
             </label>
             <input
-              name="ProductSizeAddress"
-              value={form.ProductSizeAddress}
+              name="zoneAddress"
+              value={form.zoneAddress}
               onChange={handleChange}
               placeholder="Enter address"
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"

@@ -38,7 +38,10 @@ export default function ProductStylePage() {
         <ProductStyleForm
           ProductStyleId={selectedId}
           onSave={handleSaved}
-          onCancel={handleCancel}
+           handleCancel
+           
+           
+           ={handleCancel}
         />
       )}
 

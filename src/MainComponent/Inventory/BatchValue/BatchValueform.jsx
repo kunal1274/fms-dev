@@ -4,50 +4,70 @@ import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 
 export default function BatchForm({ handleCancel }) {
-  const [form, setForm] = useState({});
-  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/Batch";
-
+  const [form, setForm] = useState({
+    Batchcode: "",
+    name: "",
+    description: "",
+    remarks: "",
+    attributes: "",
+    status: "",
+    serialNumber: "",
+    mfgDate: "",
+    expDate: "",
+    active: false,
+    aisles: "",
+  });
+  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/batch";
+  const apiAislesBase = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
+  const [aisles, setAisles] = useState([]);
   // ─── Data ────────────────────────────────────────────────
   const [Batchs, setBatchs] = useState([]);
+  useEffect(() => {
+    const fetchapiAislesBase = async () => {
+      try {
+        const response = await axios.get(apiAislesBase);
+        setAisles(response.data.data || []);
+      } catch (error) {
+        console.error("Error fetching Aisles19:", error);
+      }
+    };
 
+    fetchapiAislesBase();
+  }, []);
   // ─── Helpers ─────────────────────────────────────────────
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
 
-  // ─── Load existing Batchs once ────────────────────────
-  const handleChange = () => {};
-  const createBatch = async (e) => {
+    setForm((prevForm) => ({
+      ...prevForm,
+      [name.trim()]: type === "checkbox" ? checked : value,
+    }));
+  };
+  const createBatchs = async (e) => {
     e.preventDefault();
-
     const payload = {
-      ...form,
-      bankDetails: bankDetailsPayload,
+      AccountNo: form.AccountNo,
+      name: form.name,
+      type: form.type,
+      Id: form.Id, // Assuming this is what you meant
+      description: form.description,
     };
 
     try {
-      const { data } = await axios.post(apiBase, payload, {
-        headers: { "Content-Type": "application/json" },
+      await axios.post(apiBase, payload);
+
+      toast.success("Batchs created successfully", {
+        autoClose: 1000, // dismiss after 1 second
+        onClose: handleCancel, // then run handleCancel()
       });
-      const newBatch = data.data;
-
-      toast.success("Batch saved", {
-        autoClose: 1200,
-        onClose: () => handleCancel(),
-      });
-
-      setBatchs((prev) => [...prev, newBatch]);
-
-      onSaved?.(newBatch);
     } catch (err) {
-      console.error("Error creating Batch:", err.response || err);
-      // const msg = err.response?.data?.message || "Couldn’t save Batch"; // ← define msg properly
-      // toast.error(msg, { autoClose: 2000 });
+      console.error("Create error Batchs :", err.response || err);
+      toast.error(err.response?.data?.message || "Couldn’t create warehouse");
     }
   };
+  // ─── Load existing Batchs once ────────────────────────
 
   // ─── Reset / Cancel ──────────────────────────────────────
-  const resetForm = (nextAccNo) =>
-    setForm({
-      ...form,
-    });
 
   const handleReset = () => {
     const newBatchCode = generateAccountNo(Batchs);
@@ -91,7 +111,7 @@ export default function BatchForm({ handleCancel }) {
       </div>
 
       <form
-        onSubmit={createBatch}
+        onSubmit={createBatchs}
         className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
       >
         {/* Business Details */}
@@ -138,13 +158,14 @@ export default function BatchForm({ handleCancel }) {
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>{" "}  <div>
+            </div>{" "}
+            <div>
               <label className="block text-sm font-medium text-gray-600">
-            remarks
+                remarks
               </label>
               <textarea
-                name="description"
-                value={form.description}
+                name="   remarks"
+                value={form.remarks}
                 onChange={handleChange}
                 placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
                 rows={4}
@@ -152,48 +173,48 @@ export default function BatchForm({ handleCancel }) {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
-         
             <div>
               <label className="block text-sm font-medium text-gray-600">
-             attributes
+                attributes
               </label>
               <input
-                name="type"
-                value={form.type}
+                name="attributes"
+                value={form.attributes}
                 onChange={handleChange}
                 placeholder="e.g. Retail, Wholesale"
                 disabled
                 className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>{" "}   <div>
+            </div>{" "}
+            <div>
               <label className="block text-sm font-medium text-gray-600">
-               Status
+                Status
               </label>
               <input
-                name="type"
-                value={form.type}
+                name="  Status"
+                value={form.Status}
                 onChange={handleChange}
                 placeholder="e.g. Retail, Wholesale"
                 disabled
                 className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>{" "}  
+            </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-            serialNumber
+                serialNumber
               </label>
               <input
                 name="type"
-                value={form.type}
+                value={form.serialNumber}
                 onChange={handleChange}
                 placeholder="e.g. Retail, Wholesale"
                 disabled
                 className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-            <div>   
+            <div>
               <label className="block text-sm font-medium text-gray-600">
-          mfgDate
+                mfgDate
               </label>
               <input
                 name="type"
@@ -203,9 +224,10 @@ export default function BatchForm({ handleCancel }) {
                 disabled
                 className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>  <div>   
+            </div>{" "}
+            <div>
               <label className="block text-sm font-medium text-gray-600">
-          expDate
+                expDate
               </label>
               <input
                 name="type"
@@ -228,15 +250,22 @@ export default function BatchForm({ handleCancel }) {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-              aisle
+                Aisles
               </label>
-              <input
-                name="contactPersonPhone"
-                value={form.contactPersonPhone}
+              <select
+                name=" aisles"
+                value={form.aisles}
                 onChange={handleChange}
-                placeholder="e.g. +91 91234 56789"
+                required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
+              >
+                <option value="">Select aisles</option>
+                {aisles.map((w) => (
+                  <option key={w._id} value={w._id}>
+                    {w.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </section>

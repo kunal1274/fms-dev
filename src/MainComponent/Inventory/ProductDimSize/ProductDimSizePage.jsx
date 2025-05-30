@@ -40,7 +40,13 @@ export default function ProductSizePage() {
         <ProductSizeForm
           ProductSizeId={selectedId}
           onSave={handleSaved}
-          onCancel={handleCancel}
+           handleCancel
+           
+           
+           
+           
+           
+           ={handleCancel}
         />
       )}
 

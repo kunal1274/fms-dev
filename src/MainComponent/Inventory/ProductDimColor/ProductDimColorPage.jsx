@@ -38,7 +38,8 @@ export default function ProductColorPage() {
         <ProductColorForm
           ProductColorId={selectedId}
           onSave={handleSaved}
-          onCancel={handleCancel}
+         handleCancel
+         ={handleCancel}
         />
       )}
 

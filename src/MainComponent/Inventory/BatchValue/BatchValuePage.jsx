@@ -98,7 +98,7 @@ export default function BatchPage() {
         <BatchForm
           Batch={selectedBatch}
           onSave={handleSaveBatch}
-          onCancel={handleCancel}
+         handleCancel={handleCancel}
         />
       )}
 

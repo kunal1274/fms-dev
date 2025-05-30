@@ -38,7 +38,10 @@ export default function ProductPage() {
         <ProductForm
           ProductId={selectedId}
           onSave={handleSaved}
-          onCancel={handleCancel}
+           handleCancel
+           
+           
+           ={handleCancel}
         />
       )}
 

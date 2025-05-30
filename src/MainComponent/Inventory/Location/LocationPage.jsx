@@ -106,7 +106,7 @@ const LocationPage = () => {
           <LocationViewPage
             location={selectedLocation}
             onEdit={() => setView("form")}
-            onBack={handleCancel}
+            handleCancel={handleCancel}
           />
         )}
       </div>

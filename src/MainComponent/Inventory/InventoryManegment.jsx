@@ -197,28 +197,28 @@ const setupSections = [
       },
       {
         id: "ProductColor ",
-        title: "Product",
+        title: "Product Color",
         icon: <FaListUl />,
         page: PAGE.PRODUCTPAGE,
       },
       {
         id: "ProductDimConf ",
-        title: "Product",
+        title: "Product Conf ",
         icon: <FaListUl />,
         page: PAGE.PRODUCTPAGE,
       },
       {
         id: "productDimStyle",
-        title: "Product",
+        title: "Product Style",
         icon: <FaListUl />,
         page: PAGE.PRODUCTPAGE,
       },
-      // {
-      //   id: "Serials",
-      //   title: "Product",
-      //   icon: <FaListUl />,
-      //   page: PAGE.PRODUCTPAGE,
-      // },
+      {
+        id: "Serials",
+        title: "Serials",
+        icon: <FaListUl />,
+        page: PAGE.PRODUCTPAGE,
+      },
       {
         id: "Location",
         title: "Location",
@@ -227,13 +227,13 @@ const setupSections = [
       },
       {
         id: "Shelves",
-        title: "Product",
+        title: "Shelves",
         icon: <FaListUl />,
         page: PAGE.PRODUCTPAGE,
       },
       {
         id: "Site",
-        title: "Product",
+        title: "Site",
         icon: <FaListUl />,
         page: PAGE.PRODUCTPAGE,
       },
@@ -303,7 +303,7 @@ export default function ViewTogglePage() {
               className={
                 viewMode === VIEW_MODES.LIST
                   ? "text-2xl text-gray-500 mr-4"
-                  : "text-4xl text-gray-600 mb-4"
+                  : "text-xl text-gray-600 mb-4"
               }
             >
               {item.icon}
@@ -368,7 +368,7 @@ export default function ViewTogglePage() {
               onClick={() => toggleGroup(grp.id)}
               className="text-gray-600 text-2xl hover:text-gray-800"
             >
-              {hiddenGroups[grp.id] ? ">>" : "^^"}
+              {hiddenGroups[grp.id] ? ">" : "^"}
             </button>
           </div>
 
@@ -382,7 +382,7 @@ export default function ViewTogglePage() {
                         onClick={() => toggleSection(section.id)}
                         className="text-gray-600 hover:text-gray-800"
                       >
-                        {hiddenSections[section.id] ? ">>" : "^^"}
+                        {hiddenSections[section.id] ? ">" : "^"}
                       </button>
                     </div>
                     {!hiddenSections[section.id] &&
@@ -398,7 +398,7 @@ export default function ViewTogglePage() {
                         onClick={() => toggleSubgroup(sub.id)}
                         className="text-gray-600 hover:text-gray-800"
                       >
-                        {hiddenSubgroups[sub.id] ? ">>" : "^^"}
+                        {hiddenSubgroups[sub.id] ? ">" : "^"}
                       </button>
                     </div>
                     {!hiddenSubgroups[sub.id] &&

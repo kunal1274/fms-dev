@@ -38,7 +38,7 @@ export default function ZonePage() {
         <ZoneForm
           zoneId={selectedId}
           onSave={handleSaved}
-          onCancel={handleCancel}
+          handleCancel={handleCancel}
         />
       )}
 

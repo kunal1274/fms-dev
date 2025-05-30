@@ -31,7 +31,10 @@ export default function ProductVersionPage() {
   return (
     <div className="w-full p-6 bg-white rounded-lg">
       {view === "list" && (
-        <ProductVersionList handleAddProductVersion={handleAddProductVersion} onView={handleViewProductVersion} />
+        <ProductVersionList
+          handleAddProductVersion={handleAddProductVersion}
+          onView={handleViewProductVersion}
+        />
       )}
 
       {view === "form" && (
@@ -45,13 +48,8 @@ export default function ProductVersionPage() {
       {view === "details" && (
         <ProductVersionViewPage
           ProductVersionId={selectedId}
-          onEdit={handleEditProductVersion
-
-            
-
-            
-          }
-          onBack={handleCancel}
+          onEdit={handleEditProductVersion}
+          handleCancel={handleCancel}
         />
       )}
     </div>

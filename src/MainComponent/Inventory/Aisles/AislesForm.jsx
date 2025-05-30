@@ -5,7 +5,28 @@ const AislesForm = ({ handleCancel }) => { const [form, setForm] = useState({});
 
   // ─── Data ────────────────────────────────────────────────
   const [aisless, setAisless] = useState([]);
-
+ useEffect(() => {
+    const fetchWarehouses = async () => {
+      try {
+        const response = await axios.get(warehousesUrl);
+        setWarehouses(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+    const fetchCompanies = async () => {
+      try {
+        const response = await axios.get(companiesUrl);
+        // setWarehouses(response.data || []);
+        setCompanies(response.data || []);
+      } catch (error) {
+        console.error("Error fetching Company 63:", error);
+      }
+    };
+    fetchWarehouses();
+    fetchCompanies();
+  }, []);
+  
   // ─── Helpers ─────────────────────────────────────────────
 
   // ─── Load existing aisless once ────────────────────────

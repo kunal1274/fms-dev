@@ -9,39 +9,56 @@ export default function BinForm({ handleCancel }) {
 
   // ─── Data ────────────────────────────────────────────────
   const [bins, setBins] = useState([]);
+  useEffect(() => {
+    const fetchBins = async () => {
+      try {
+        const response = await axios.get(BinsUrl);
+        setBins(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+    const fetchCompanies = async () => {
+      try {
+        const response = await axios.get(companiesUrl);
+        // setBins(response.data || []);
+        setCompanies(response.data || []);
+      } catch (error) {
+        console.error("Error fetching Company 63:", error);
+      }
+    };
+    fetchBins();
+    fetchCompanies();
+  }, []);
 
+  
+  
+  
+  
   // ─── Helpers ─────────────────────────────────────────────
 
   // ─── Load existing bins once ────────────────────────
-const handleChange = () =>{
-
-}
+  const handleChange = () => {};
   const createBin = async (e) => {
     e.preventDefault();
-
     const payload = {
-      ...form,
-      bankDetails: bankDetailsPayload,
+      BinAccountNo: form.BinAccountNo,
+      name: form.name,
+      type: form.type,
+      site: form.siteId,
+      description: form.description,
     };
 
     try {
-      const { data } = await axios.post(apiBase, payload, {
-        headers: { "Content-Type": "application/json" },
+      await axios.post(apiBase, payload);
+
+      toast.success("Bin created successfully", {
+        autoClose: 1000, // dismiss after 1 second
+        onClose: handleCancel, // then run handleCancel()
       });
-      const newBin = data.data;
-
-      toast.success("Bin saved", {
-        autoClose: 1200,
-        onClose: () => handleCancel(),
-      });
-
-      setBins((prev) => [...prev, newBin]);
-
-      onSaved?.(newBin);
     } catch (err) {
-      console.error("Error creating Bin:", err.response || err);
-      // const msg = err.response?.data?.message || "Couldn’t save Bin"; // ← define msg properly
-      // toast.error(msg, { autoClose: 2000 });
+      console.error("Create error:", err.response || err);
+      toast.error(err.response?.data?.message || "Couldn’t create Bin");
     }
   };
 

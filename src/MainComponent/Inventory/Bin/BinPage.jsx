@@ -96,7 +96,7 @@ const BinPage = () => {
           <BinForm
             bin={selectedBin}
             handleAddBin={handleAddBin}
-            handleCancel={handleCancel}
+           handleCancel={handleCancel}
           />
         )}
         {view === "details" && selectedBin && (

@@ -1,5 +1,4 @@
-// 
-
+//
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
@@ -20,7 +19,7 @@ const ShelvesForm = ({ handleCancel }) => {
     archived: false,
     group: "",
     createdBy: "",
-    
+
     type: "",
     description: "",
     active: false,
@@ -31,30 +30,28 @@ const ShelvesForm = ({ handleCancel }) => {
 
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/Shelves";
 
-
   const generateAccountNo = (list) => `AISL-${list.length + 1}`;
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchWarehouses = async () => {
       try {
-        const [aisRes, sitesRes] = await Promise.all([
-          axios.get(apiBase),
-          axios.get(sitesBase),
-        ]);
-        const aisData = aisRes.data.data || [];
-        const sitesData = sitesRes.data.data || [];
-        setShelvess(aisData);
-        setSites(sitesData);
-        setForm((prev) => ({
-          ...prev,
-          ShelvesAccountNo: generateAccountNo(aisData),
-        }));
-      } catch (err) {
-        console.error(err);
-        toast.error("Error loading data");
+        const response = await axios.get(warehousesUrl);
+        setWarehouses(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
       }
     };
-    fetchData();
+    const fetchCompanies = async () => {
+      try {
+        const response = await axios.get(companiesUrl);
+        // setWarehouses(response.data || []);
+        setCompanies(response.data || []);
+      } catch (error) {
+        console.error("Error fetching Company 63:", error);
+      }
+    };
+    fetchWarehouses();
+    fetchCompanies();
   }, []);
 
   const handleChange = (e) => {
@@ -73,33 +70,37 @@ const ShelvesForm = ({ handleCancel }) => {
   };
 
   const createShelves = async (e) => {
-    e.preventDefault();
-    const payload = {
-      ShelvesAccountNo: form.ShelvesAccountNo,
-      name: form.name,
-      updatedBy: form.updatedBy,
-      site: form.siteId,
-      value: form.value,
-      location: form.location,
-      remarks: form.remarks,
-      extras: form.extras,
-      archived: form.archived,
-      group: form.group,
-      createdBy: form.createdBy,
-      type: form.type,
-      description: form.description,
-      active: form.active,
-    };
-    try {
-      await axios.post(apiBase, payload);
-      toast.success("Shelves created successfully");
-      handleCancel();
-    } catch (err) {
-      console.error("Create error:", err.response || err);
-      const msg = err.response?.data?.message || "Error creating Shelves";
-      toast.error(msg);
-    }
+  e.preventDefault();
+
+  const payload = {
+    ShelvesAccountNo: formShelvesAccountNo || "",
+    name: form.name || "",
+    type: form.type || "",
+    siteId: form.siteId || "",
+    description: form.description || "",
+    updatedBy: form.updatedBy || "",
+    value: form.value || "",
+    location: form.location || "",
+    remarks: form.remarks || "",
+    extras: form.extras || "",
+    archived: form.archived || false,
+    group: form.group || "",
+    createdBy: form.createdBy || "",
+    active: form.active || false,
   };
+
+  try {
+    await axios.post(apiBase, payload);
+
+    toast.success("Shelves created successfully", {
+      autoClose: 1000,
+      onClose: handleCancel,
+    });
+  } catch (err) {
+    console.error("Create error:", err.response || err);
+    toast.error(err.response?.data?.message || "Couldn’t create Shelves");
+  }
+};
 
   return (
     <div className="p-4">

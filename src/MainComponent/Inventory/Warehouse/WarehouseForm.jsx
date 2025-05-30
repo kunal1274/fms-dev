@@ -15,6 +15,7 @@ export default function WarehouseForm({ handleCancel }) {
   // ─── API Bases ──────────────────────────────────────────
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
   const apiSite = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
+  const apiAislesBase = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
 
   // ─── Data Lists ─────────────────────────────────────────
   const [warehouses, setWarehouses] = useState([]);
@@ -31,33 +32,18 @@ export default function WarehouseForm({ handleCancel }) {
 
   // ─── Load existing Warehouses & Sites once ───────────────
   useEffect(() => {
-    (async () => {
+    const fetchapiAislesBase = async () => {
       try {
-        const [whRes, siteRes] = await Promise.all([
-          axios.get(apiBase),
-          axios.get(apiSite),
-        ]);
-
-        const whList = Array.isArray(whRes.data.data)
-          ? whRes.data.data
-          : whRes.data;
-        const rawSites = Array.isArray(siteRes.data.data)
-          ? siteRes.data.data
-          : siteRes.data;
-
-        setWarehouses(whList);
-        setSites(rawSites);
-
-        setForm((prev) => ({
-          ...prev,
-          WarehouseAccountNo: generateAccountNo(whList),
-        }));
-      } catch (err) {
-        console.error("Fetch error:", err);
-        toast.error("Couldn’t load warehouses or sites");
+        const response = await axios.get(companiesUrl);
+        // setWarehouses(response.data || []);
+        setAisles(response.data || []);
+      } catch (error) {
+        console.error("Error fetching Company 63:", error);
       }
-    })();
-  }, [apiBase, apiSite, generateAccountNo]);
+    };
+    fetchWarehouses();
+    fetchCompanies();
+  }, []);
 
   // ─── Handlers ────────────────────────────────────────────
   const handleChange = (e) => {
@@ -74,7 +60,6 @@ export default function WarehouseForm({ handleCancel }) {
 
   const createWarehouse = async (e) => {
     e.preventDefault();
-    // Map form.siteId to API expected "site" field
     const payload = {
       WarehouseAccountNo: form.WarehouseAccountNo,
       name: form.name,
@@ -82,14 +67,17 @@ export default function WarehouseForm({ handleCancel }) {
       site: form.siteId,
       description: form.description,
     };
+
     try {
       await axios.post(apiBase, payload);
-      toast.success("Warehouse created successfully");
-      handleCancel();
+
+      toast.success("Warehouse created successfully", {
+        autoClose: 1000, // dismiss after 1 second
+        onClose: handleCancel, // then run handleCancel()
+      });
     } catch (err) {
       console.error("Create error:", err.response || err);
-      const msg = err.response?.data?.message || "Error creating Warehouse";
-      toast.error(msg);
+      toast.error(err.response?.data?.message || "Couldn’t create warehouse");
     }
   };
 

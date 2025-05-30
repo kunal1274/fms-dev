@@ -8,35 +8,50 @@ const LocationForm = ({ handleCancel }) => {
   const [locations, setLocations] = useState([]);
 
   // ─── Helpers ─────────────────────────────────────────────
+  useEffect(() => {
+    const fetchWarehouses = async () => {
+      try {
+        const response = await axios.get(warehousesUrl);
+        setWarehouses(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+    const fetchCompanies = async () => {
+      try {
+        const response = await axios.get(companiesUrl);
+        // setWarehouses(response.data || []);
+        setCompanies(response.data || []);
+      } catch (error) {
+        console.error("Error fetching Company 63:", error);
+      }
+    };
+    fetchWarehouses();
+    fetchCompanies();
+  }, []);
 
   // ─── Load existing Locations once ────────────────────────
   const handleChange = () => {};
-  const createLocation = async (e) => {
+  const createlocation = async (e) => {
     e.preventDefault();
-
     const payload = {
-      ...form,
-      bankDetails: bankDetailsPayload,
+      locationAccountNo: form.locationAccountNo,
+      name: form.name,
+      type: form.type,
+      location: form.locationId,
+      description: form.description,
     };
 
     try {
-      const { data } = await axios.post(apiBase, payload, {
-        headers: { "Content-Type": "application/json" },
+      await axios.post(apiBase, payload);
+
+      toast.success("location created successfully", {
+        autoClose: 1000, // dismiss after 1 second
+        onClose: handleCancel, // then run handleCancel()
       });
-      const newLocation = data.data;
-
-      toast.success("Location saved", {
-        autoClose: 1200,
-        onClose: () => handleCancel(),
-      });
-
-      setLocations((prev) => [...prev, newLocation]);
-
-      onSaved?.(newLocation);
     } catch (err) {
-      console.error("Error creating Location:", err.response || err);
-      // const msg = err.response?.data?.message || "Couldn’t save Location"; // ← define msg properly
-      // toast.error(msg, { autoClose: 2000 });
+      console.error("Create error:", err.response || err);
+      toast.error(err.response?.data?.message || "Couldn’t create location");
     }
   };
 
@@ -46,6 +61,16 @@ const LocationForm = ({ handleCancel }) => {
       ...form,
     });
 
+
+
+
+
+
+
+
+
+
+    
   const handleReset = () => {
     const newLocationCode = generateAccountNo(Locations);
     setForm({ ...initialForm, locationAccountNo: newlocationCode });

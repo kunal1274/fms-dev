@@ -38,7 +38,10 @@ export default function WarehousePage() {
     setSelectedWarehouse(found);
     setView("details");
   };
-
+  const handleCancel = () => {
+    setView("list");
+    setSelectedSite(null);
+  };
   // Delete selected warehouses
   const handleDeleteWarehouse = (toDeleteAccounts) => {
     setWarehouses((prev) =>
@@ -46,11 +49,7 @@ export default function WarehousePage() {
     );
   };
 
-  // Cancel form or detail view
-  const handleCancel = () => {
-    setView("list");
-    setSelectedWarehouse(null);
-  };
+  
 
   // Render header with dynamic title and actions
   const renderHeader = () => {
@@ -90,7 +89,7 @@ export default function WarehousePage() {
       {view === "list" && (
         <WarehouseList
           warehouses={warehouses}
-        handleAddWarehouse={handleAddWarehouse}
+          handleAddWarehouse={handleAddWarehouse}
           onView={handleViewWarehouse}
           onDelete={handleDeleteWarehouse}
         />
@@ -100,7 +99,7 @@ export default function WarehousePage() {
         <WarehouseForm
           warehouse={selectedWarehouse}
           onSave={handleSaveWarehouse}
-          onCancel={handleCancel}
+          handleCancel={handleCancel}
         />
       )}
 

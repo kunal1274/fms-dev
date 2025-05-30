@@ -18,32 +18,7 @@ export default function SiteForm({ handleCancel, onSaved }) {
   // ─── List of existing sites ─────────────────────────────
   const [sites, setSites] = useState([]);
 
-  // ─── Generate unique account no ─────────────────────────
-  const generateAccountNo = useCallback((list) => {
-    const lastIndex = list
-      .map((c) => parseInt(c.SiteAccountNo?.split("_")[1], 10))
-      .filter((n) => !isNaN(n))
-      .reduce((max, n) => Math.max(max, n), 0);
-    return `CUST_${String(lastIndex + 1).padStart(3, "0")}`;
-  }, []);
-
   // ─── Fetch existing sites on mount ──────────────────────
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await axios.get(apiBase);
-        setSites(data.data);
-        // initialize form with next account no
-        setForm((prev) => ({
-          ...prev,
-          SiteAccountNo: generateAccountNo(data.data),
-        }));
-      } catch (error) {
-        console.error("Error fetching sites:", error);
-        toast.error("Couldn’t fetch sites");
-      }
-    })();
-  }, [apiBase, generateAccountNo]);
 
   // ─── Handle input changes ────────────────────────────────
   const handleChange = (e) => {
@@ -54,25 +29,24 @@ export default function SiteForm({ handleCancel, onSaved }) {
   // ─── Submit new site ────────────────────────────────────
   const createSite = async (e) => {
     e.preventDefault();
+    const payload = {
+      SiteAccountNo: form.SiteAccountNo,
+      name: form.name,
+      type: form.type,
+      site: form.siteId,
+      description: form.description,
+    };
 
     try {
-      const { data } = await axios.post(apiBase, form, {
-        headers: { "Content-Type": "application/json" },
-      });
-      const newSite = data.data;
+      await axios.post(apiBase, payload);
 
-      toast.success("Site saved", {
-        autoClose: 1200,
-        onClose: () => handleCancel(),
+      toast.success("Site created successfully", {
+        autoClose: 1000, // dismiss after 1 second
+        onClose: handleCancel, // then run handleCancel()
       });
-
-      // update local list
-      setSites((prev) => [...prev, newSite]);
-      onSaved?.(newSite);
     } catch (err) {
-      console.error("Error creating site:", err.response || err);
-      const message = err.response?.data?.message || "Couldn’t save site";
-      toast.error(message, { autoClose: 2000 });
+      console.error("Create error:", err.response || err);
+      toast.error(err.response?.data?.message || "Couldn’t create Site");
     }
   };
 
@@ -123,18 +97,21 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-   <div>
+            <div>
               <label className="block text-sm font-medium text-gray-600">
-                Site Type
+                Type
               </label>
-              <input
-                name="name"
-                value={form.Type}
+              <select
+                name="type"
+                value={form.type}
                 onChange={handleChange}
-                placeholder="e.g. XYZ Enterprises Pvt. Ltd."
                 required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="">Select type</option>
+                <option value="Physical">Physical</option>
+                <option value="Virtual">Virtual</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">

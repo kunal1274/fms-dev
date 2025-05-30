@@ -10,7 +10,8 @@ import "./c.css";
 // import BatchViewPage from "./LocationsViewPagee";
 
 export default function BatchList({ handleAddBatch }) {
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/batchs";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/batche
+  s";
   const metricsUrl = `${baseUrl}/metrics`;
 
   // Tab names
