@@ -70,37 +70,37 @@ const ShelvesForm = ({ handleCancel }) => {
   };
 
   const createShelves = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const payload = {
-    ShelvesAccountNo: formShelvesAccountNo || "",
-    name: form.name || "",
-    type: form.type || "",
-    siteId: form.siteId || "",
-    description: form.description || "",
-    updatedBy: form.updatedBy || "",
-    value: form.value || "",
-    location: form.location || "",
-    remarks: form.remarks || "",
-    extras: form.extras || "",
-    archived: form.archived || false,
-    group: form.group || "",
-    createdBy: form.createdBy || "",
-    active: form.active || false,
+    const payload = {
+      ShelvesAccountNo: formShelvesAccountNo || "",
+      name: form.name || "",
+      type: form.type || "",
+      siteId: form.siteId || "",
+      description: form.description || "",
+      updatedBy: form.updatedBy || "",
+      value: form.value || "",
+      location: form.location || "",
+      remarks: form.remarks || "",
+      extras: form.extras || "",
+      archived: form.archived || false,
+      group: form.group || "",
+      createdBy: form.createdBy || "",
+      active: form.active || false,
+    };
+
+    try {
+      await axios.post(apiBase, payload);
+
+      toast.success("Shelves created successfully", {
+        autoClose: 1000,
+        onClose: handleCancel,
+      });
+    } catch (err) {
+      console.error("Create error:", err.response || err);
+      toast.error(err.response?.data?.message || "Couldn’t create Shelves");
+    }
   };
-
-  try {
-    await axios.post(apiBase, payload);
-
-    toast.success("Shelves created successfully", {
-      autoClose: 1000,
-      onClose: handleCancel,
-    });
-  } catch (err) {
-    console.error("Create error:", err.response || err);
-    toast.error(err.response?.data?.message || "Couldn’t create Shelves");
-  }
-};
 
   return (
     <div className="p-4">
@@ -193,15 +193,10 @@ const ShelvesForm = ({ handleCancel }) => {
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div> <div>
+            </div>{" "}
+            <div>
               <label className="block text-sm font-medium text-gray-600">
-          Bin
-
-
-
-
-
-          
+                Bin
               </label>
               <input
                 name="value"

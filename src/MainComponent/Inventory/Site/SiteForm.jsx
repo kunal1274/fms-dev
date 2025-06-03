@@ -14,12 +14,23 @@ export default function SiteForm({ handleCancel, onSaved }) {
 
   // ─── API Base ───────────────────────────────────────────Fem
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
-
+  const warehousesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
   // ─── List of existing sites ─────────────────────────────
   const [sites, setSites] = useState([]);
-
+const [warehouses, setWarehouses] = useState([]);
   // ─── Fetch existing sites on mount ──────────────────────
+  useEffect(() => {
+    const fetchWarehouses = async () => {
+      try {
+        const response = await axios.get(warehousesUrl);
+        setWarehouses(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
 
+    fetchWarehouses();
+  }, []);
   // ─── Handle input changes ────────────────────────────────
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -113,20 +124,27 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 <option value="Virtual">Virtual</option>
               </select>
             </div>
-              <div>
+            <div>
               <label className="block text-sm font-medium text-gray-600">
                 Warehouse
               </label>
               <select
-                name="type"
-                value={form.type}
+                name="warehouse"
+                value={form.warehouse}
                 onChange={handleChange}
                 required
-                className="mt-1 w-full p-2 border rounded"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
-                <option value="">Select type</option>
-                <option value="Physical">Physical</option>
-                <option value="Virtual">Virtual</option>
+                <option value="">Select a warehouse…</option>
+                {warehouses.length ? (
+                  warehouses.map((w) => (
+                    <option key={w._id} value={w._id}>
+                      {`${w.name} – ${w.name}`}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading warehouses...</option>
+                )}
               </select>
             </div>
             <div>

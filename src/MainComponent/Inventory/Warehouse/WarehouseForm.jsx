@@ -16,9 +16,10 @@ export default function WarehouseForm({ handleCancel }) {
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
   const apiSite = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
   const apiAislesBase = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
-
-  // ─── Data Lists ─────────────────────────────────────────
+  const [zones, setZones] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
+  // ─── Data Lists ─────────────────────────────────────────
+
   const [sites, setSites] = useState([]);
 
   // ─── Helpers ───────────────────────────────────────────
@@ -32,17 +33,36 @@ export default function WarehouseForm({ handleCancel }) {
 
   // ─── Load existing Warehouses & Sites once ───────────────
   useEffect(() => {
-    const fetchapiAislesBase = async () => {
+    const fetchWarehouses = async () => {
       try {
-        const response = await axios.get(companiesUrl);
-        // setWarehouses(response.data || []);
-        setAisles(response.data || []);
-      } catch (error) {
-        console.error("Error fetching Company 63:", error);
+        const res = await axios.get(apiBase);
+        setWarehouses(res.data || []);
+      } catch (err) {
+        console.error("Error fetching warehouses:", err);
       }
     };
+
+    const fetchSites = async () => {
+      try {
+        const res = await axios.get(apiSite);
+        setSites(res.data || []);
+      } catch (err) {
+        console.error("Error fetching sites:", err);
+      }
+    };
+
+    const fetchZones = async () => {
+      try {
+        const res = await axios.get(apiZoneBase);
+        setZones(res.data || []);
+      } catch (err) {
+        console.error("Error fetching zones:", err);
+      }
+    };
+
     fetchWarehouses();
-    fetchCompanies();
+    fetchSites();
+    fetchZones(); // call this too
   }, []);
 
   // ─── Handlers ────────────────────────────────────────────
@@ -163,26 +183,26 @@ export default function WarehouseForm({ handleCancel }) {
                 )}
               </select>
             </div>
-  <div>
+            <div>
               <label className="block text-sm font-medium text-gray-600">
-             Zone
+                Zone
               </label>
               <select
-                name="siteId"
-                value={form.siteId}
+                name="zone"
+                value={form.zone}
                 onChange={handleChange}
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
-                <option value="">Select a site…</option>
-                {sites.length ? (
-                  sites.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {(s.siteAccountNo || s.SiteAccountNo) + " – " + s.name}
+                <option value="">Select a zone…</option>
+                {zones.length ? (
+                  zones.map((z) => (
+                    <option key={z._id} value={z._id}>
+                      {`${z.zoneAccountNo || z.ZoneAccountNo} – ${z.name}`}
                     </option>
                   ))
                 ) : (
-                  <option disabled>Loading sites...</option>
+                  <option disabled>Loading zones...</option>
                 )}
               </select>
             </div>

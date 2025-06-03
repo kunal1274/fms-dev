@@ -1,12 +1,12 @@
+// InventoryTransactionForm.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
-
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate } from "react-router-dom";
 
-const TaxForm = ({ handleCancel }) => {
-    const initialForm = {
+const InventoryTransactionForm = ({ handleCancel }) => {
+  // ─── Initial form state matching txnSchema ───────────────────────────────────
+  const initialForm = {
     txnDate: "", // will set to ISO date-string
     sourceType: "",
     sourceId: "",
@@ -266,116 +266,23 @@ const TaxForm = ({ handleCancel }) => {
   };
 
   // ─── Reset form to initial ───────────────────────────────────────────────────
-
-
-
-
-  // ─── Data ────────────────────────────────────────────────
-  const [Taxs, setTaxs] = useState([]);
-  useEffect(() => {
-    const apitaxurl = async () => {
-      try {
-        const response = await axios.get([apiBase]);
-        setWarehouses(response.data || []);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-      }
-    };
-    const fetchCompanies = async () => {
-      try {
-        const response = await axios.get(companiesUrl);
-        // setWarehouses(response.data || []);
-        setCompanies(response.data || []);
-      } catch (error) {
-        console.error("Error fetching Company 63:", error);
-      }
-    };
-  }, []);
-
-  // ─── Helpers ─────────────────────────────────────────────
-
-  // ─── Load existing Taxs once ────────────────────────
-  const handleChange = () => {};
-  const createTax = async (e) => {
-    e.preventDefault();
-
-    const payload = {
-      ...form,
-      bankDetails: bankDetailsPayload,
-    };
-
-    try {
-      const { data } = await axios.post(apiBase, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
-      const newTax = data.data;
-
-      toast.success("Tax saved", {
-        autoClose: 1200,
-        onClose: () => handleCancel(),
-      });
-
-      setTaxs((prev) => [...prev, newTax]);
-
-      onSaved?.(newTax);
-    } catch (err) {
-      console.error("Error creating Tax:", err.response || err);
-      // const msg = err.response?.data?.message || "Couldn’t save Tax"; // ← define msg properly
-      // toast.error(msg, { autoClose: 2000 });
-    }
-  };
-
-  // ─── Reset / Cancel ──────────────────────────────────────
-  const resetForm = (nextAccNo) =>
-    setForm({
-      ...form,
-    });
-
   const handleReset = () => {
-    const newTaxCode = generateAccountNo(Taxs);
-    setForm({ ...initialForm, TaxAccountNo: newTaxCode });
+    setForm(initialForm);
   };
-  const handleEdit = () => {
-    navigate("/Taxview", { state: { Tax: formData } });
-  };
+
   return (
-    <div className="">
+    <div className="max-w-3xl mx-auto p-4">
       <ToastContainer />
-      {/* Header Buttons */}
-      <div className="flex justify-between ">
-        <div className="flex items-center space-x-2">
-          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-            {" "}
-            <button
-              type="button"
-              className="text-blue-600 mt-2 text-sm hover:underline"
-            >
-              Upload Photo
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
-                />
-              </svg>{" "}
-            </button>
-          </div>
-          <h3 className="text-xl font-semibold">Tax Form</h3>
-        </div>
+      {/* Header */}
+      <div className="mb-4">
+        <h2 className="text-2xl font-semibold">Inventory Transaction Form</h2>
       </div>
 
       <form
-        onSubmit={createTax}
-        className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
+        onSubmit={createTransaction}
+        className="bg-white shadow rounded-lg divide-y divide-gray-200"
       >
-        {/* Business Details */}
+        {/* ─── Transaction Details ──────────────────────────────────────────────── */}
         <section className="p-6">
           <h3 className="text-lg font-medium text-gray-700 mb-4">
             Transaction Details
@@ -1018,9 +925,7 @@ const TaxForm = ({ handleCancel }) => {
 
         {/* ─── Extras (JSON) ──────────────────────────────────────────────────────── */}
         <section className="p-6">
-          <h3 className="text-lg font-medium text-gray-700 mb-4">
-            Extras (JSON)
-          </h3>
+          <h3 className="text-lg font-medium text-gray-700 mb-4">Extras (JSON)</h3>
           <div>
             <textarea
               id="extras"
@@ -1034,20 +939,15 @@ const TaxForm = ({ handleCancel }) => {
           </div>
         </section>
 
-        {/* Action Buttons */}
-        <div className="py-6 flex items-center justify-between">
-          {/* Left side - Reset Button */}
-          <div>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="text-gray-500 hover:text-gray-700 text-sm"
-            >
-              Reset
-            </button>
-          </div>
-
-          {/* Right side - Go Back and Create Buttons */}
+        {/* ─── Action Buttons ─────────────────────────────────────────────────────── */}
+        <div className="py-6 flex items-center justify-between px-6 bg-white">
+          <button
+            type="button"
+            onClick={handleReset}
+            className="text-gray-500 hover:text-gray-700 text-sm"
+          >
+            Reset
+          </button>
           <div className="flex gap-4">
             <button
               type="button"
@@ -1069,4 +969,4 @@ const TaxForm = ({ handleCancel }) => {
   );
 };
 
-export default TaxForm;
+export default InventoryTransactionForm;
