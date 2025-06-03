@@ -113,6 +113,22 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 <option value="Virtual">Virtual</option>
               </select>
             </div>
+              <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Warehouse
+              </label>
+              <select
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="">Select type</option>
+                <option value="Physical">Physical</option>
+                <option value="Virtual">Virtual</option>
+              </select>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Site Description

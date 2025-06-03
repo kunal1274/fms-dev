@@ -1,16 +1,18 @@
 import React, { useState } from "react";
-import { Button } from "../../../Component/Button/Button";
-import AislesForm from "./AislesForm";
-import Aisles from "./AislesList.jsx";
-import AislesViewPage from "./AislesViewPage.jsx";
+import { Button } from "../../Component/Button/Button.jsx";
+import JournalForm from "./JournalForm.jsx";
+import JournalList from "./JournalList.jsx";
+import JournalViewPage from "./JournalViewPage.jsx";
 
-const AislesPage = () => {
+const JournalPage = () => {
   const [view, setView] = useState("list");
-  const [aisles, setLocataion] = useState([]);
-  const [selectedAisles, setSelectedLocataion] = useState(null);
+  const [Journal, setLocataion] = useState([]);
+  const [selectedJournal, setSelectedLocataion] = useState(null);
 
   /** Save or update a Locataion */
-  const handleSaveAisles = (Locataion) => {
+  const handleSaveJournal
+  
+  = (Locataion) => {
     setLocataion((prev) => {
       const idx = prev.findIndex(
         (c) => c.LocataionAccountNo === Locataion.LocataionAccountNo
@@ -27,14 +29,14 @@ const AislesPage = () => {
   };
 
   /** Open the "Add Locataion" form */
-  const handleAddAisles = () => {
+  const handleAddJournal = () => {
     setSelectedLocataion(null);
     setView("form");
   };
 
   /** Show Locataion details */
-  const handleViewAisles = (LocataionAccountNo) => {
-    const cust = Aisles.find(
+  const handleViewJournal = (LocataionAccountNo) => {
+    const cust = Journal.find(
       (c) => c.LocataionAccountNo === LocataionAccountNo
     );
     setSelectedLocataion(cust);
@@ -42,9 +44,9 @@ const AislesPage = () => {
   };
 
   /** Delete selected Locataions */
-  const handleDeleteAisles = (toDeleteAccounts) => {
-    setAisless((prev) =>
-      prev.filter((c) => !toDeleteAccounts.includes(c.AislesAccountNo))
+  const handleDeleteJournal = (toDeleteAccounts) => {
+    setJournals((prev) =>
+      prev.filter((c) => !toDeleteAccounts.includes(c.JournalAccountNo))
     );
   };
 
@@ -53,20 +55,20 @@ const AislesPage = () => {
 
   /** Render header with title and actions */
   const renderHeader = () => {
-    let title = "Aisless";
+    let title = "Journals";
     let action = null;
 
     if (view === "list") {
-      action = <Button onClick={handleAddAisles}>Add Aisles</Button>;
+      action = <Button onClick={handleAddJournal}>Add Journal</Button>;
     } else if (view === "form") {
-      title = selectedAisles ? "Edit Aisles" : "New Aisles";
+      title = selectedJournal ? "Edit Journal" : "New Journal";
       action = (
         <Button variant="secondary" onClick={handleCancel}>
           Cancel
         </Button>
       );
     } else if (view === "details") {
-      title = "Aisles Details";
+      title = "Journal Details";
       action = (
         <Button variant="secondary" onClick={handleCancel}>
           Back to List
@@ -86,24 +88,24 @@ const AislesPage = () => {
     <div className="w-full bg-white rounded-lg ">
       <div>
         {view === "list" && (
-          <Aisles
-            Aisless={Aisles}
-            handleAddAisles={handleAddAisles}
-            onView={handleViewAisles}
-            onDelete={handleDeleteAisles}
+          <JournalList
+            Journals={Journal}
+            handleAddJournal={handleAddJournal}
+            onView={handleViewJournal}
+            onDelete={handleDeleteJournal}
           />
         )}
 
         {view === "form" && (
-          <AislesForm
-            Aisles={selectedAisles}
-            handleAddAisles={handleAddAisles}
+          <JournalForm
+            Journal={selectedJournal}
+            handleAddJournal={handleAddJournal}
             handleCancel={handleCancel}
           />
         )}
-        {view === "details" && selectedAisles && (
-          <AislesViewPage
-            Aisles={selectedAisles}
+        {view === "details" && selectedJournal && (
+          <JournalViewPage
+            Journal={selectedJournal}
             onEdit={() => setView("form")}
             handleCancel={handleCancel}
           />
@@ -113,4 +115,4 @@ const AislesPage = () => {
   );
 };
 
-export default AislesPage;
+export default JournalPage;

@@ -7,20 +7,21 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react";
 import "./c.css";
-const SerialList = ({ handleAddRacks, onView }) => {
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Racks";
+
+const TaxList = ({ handleAddTax, onView }) => {
+
   const metricsUrl = `${baseUrl}/metrics`;
 
-  const tabNames = ["Racks List"];
+  const tabNames = ["Tax List"];
 
   // States
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  const [RacksList, setRacksList] = useState([]);
+  const [TaxList, setTaxList] = useState([]);
   const [selectedOption, setSelectedOption] = useState("All");
-  const [filteredRacks, setFilteredRacks] = useState([]);
-  const [selectedRacks, setSelectedRacks] = useState([]);
-  const [viewingRacksId, setViewingRacksId] = useState(null);
+  const [filteredTax, setFilteredTax] = useState([]);
+  const [selectedTax, setSelectedTax] = useState([]);
+  const [viewingTaxId, setViewingTaxId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState(
     new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -28,12 +29,12 @@ const SerialList = ({ handleAddRacks, onView }) => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortOption, setSortOption] = useState("");
 
-  const [RacksSummary, setRacksSummary] = useState({
+  const [TaxSummary, setTaxSummary] = useState({
     count: 0,
     creditLimit: 0,
-    paidRackss: 0,
-    activeRackss: 0,
-    onHoldRackss: 0,
+    paidTaxs: 0,
+    activeTaxs: 0,
+    onHoldTaxs: 0,
   });
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState(false);
@@ -69,7 +70,7 @@ const SerialList = ({ handleAddRacks, onView }) => {
 
       toast.success("Logo uploaded successfully ✅");
       // Refresh list
-      fetchRacks();
+      fetchTax();
     } catch (error) {
       console.error(error);
       toast.error("Error uploading logo!");
@@ -87,27 +88,27 @@ const SerialList = ({ handleAddRacks, onView }) => {
     const value = e.target.value;
     setSelectedOption(value);
 
-    let filtered = [...RacksList];
+    let filtered = [...TaxList];
 
     if (value === "All") {
-      setFilteredRacks(filtered);
+      setFilteredTax(filtered);
     } else if (value === "yes") {
-      setFilteredRacks(filtered.filter((aisle) => aisle.active === true));
+      setFilteredTax(filtered.filter((aisle) => aisle.active === true));
     } else if (value === "no") {
-      setFilteredRacks(filtered.filter((aisle) => aisle.active === false));
+      setFilteredTax(filtered.filter((aisle) => aisle.active === false));
     } else if (value === "Aisle Name") {
       filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
-      setFilteredRacks(filtered);
+      setFilteredTax(filtered);
     } else if (value === "Aisle Account no") {
       filtered = filtered.sort((a, b) => a.code.localeCompare(b.code));
-      setFilteredRacks(filtered);
+      setFilteredTax(filtered);
     } else if (value === "Aisle Account no descending") {
       filtered = filtered.sort((a, b) => b.code.localeCompare(a.code));
-      setFilteredRacks(filtered);
+      setFilteredTax(filtered);
     }
   };
-  // Fetch Racks
-  const fetchRacks = useCallback(
+  // Fetch Tax
+  const fetchTax = useCallback(
     async (fromDate = startDate, toDate = endDate) => {
       setLoading(true);
       setError(null);
@@ -116,16 +117,16 @@ const SerialList = ({ handleAddRacks, onView }) => {
           params: { from: fromDate, to: toDate },
         });
         const list = resp.data || resp;
-        setRacksList(list);
+        setTaxList(list);
 
-        +setFilteredRacks(list); // ← Add this line to update the visible Racks immediately
+        +setFilteredTax(list); // ← Add this line to update the visible Tax immediately
 
-        setRacksSummary({
+        setTaxSummary({
           count: list.length,
           creditLimit: list.reduce((s, c) => s + (c.creditLimit || 0), 0),
-          paidRacks: list.filter((c) => c.status === "Paid").length,
-          activeRacks: list.filter((c) => c.active).length,
-          onHoldRacks: list.filter((c) => c.onHold).length,
+          paidTax: list.filter((c) => c.status === "Paid").length,
+          activeTax: list.filter((c) => c.active).length,
+          onHoldTax: list.filter((c) => c.onHold).length,
         });
       } catch (err) {
         console.error(err);
@@ -146,13 +147,13 @@ const SerialList = ({ handleAddRacks, onView }) => {
       });
 
       const m = (resp.metrics && resp.metrics[0]) || {};
-      setRacksSummary((prev) => ({
+      setTaxSummary((prev) => ({
         ...prev,
-        count: m.totalRacks ?? prev.count,
+        count: m.totalTax ?? prev.count,
         creditLimit: m.creditLimit ?? prev.creditLimit,
-        paidRacks: m.paidRacks ?? prev.paidRacks,
-        activeRacks: m.activeRacks ?? prev.activeRacks,
-        onHoldRacks: m.onHoldRacks ?? prev.onHoldRacks,
+        paidTax: m.paidTax ?? prev.paidTax,
+        activeTax: m.activeTax ?? prev.activeTax,
+        onHoldTax: m.onHoldTax ?? prev.onHoldTax,
       }));
     } catch (err) {
       console.error(err);
@@ -160,13 +161,13 @@ const SerialList = ({ handleAddRacks, onView }) => {
   }, [startDate, endDate]);
 
   useEffect(() => {
-    fetchRacks();
+    fetchTax();
     fetchMetrics();
-  }, [fetchRacks, fetchMetrics]);
+  }, [fetchTax, fetchMetrics]);
 
   // Filtering, Search, Sorting
   useEffect(() => {
-    let list = [...RacksList];
+    let list = [...TaxList];
 
     switch (activeTab) {
       case tabNames[1]:
@@ -204,8 +205,8 @@ const SerialList = ({ handleAddRacks, onView }) => {
     else if (sortOption === "code-desc")
       list.sort((a, b) => b.code.localeCompare(a.code));
 
-    setFilteredRacks(list);
-  }, [RacksList, activeTab, statusFilter, searchTerm, sortOption]);
+    setFilteredTax(list);
+  }, [TaxList, activeTab, statusFilter, searchTerm, sortOption]);
 
   // Handlers
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
@@ -214,28 +215,26 @@ const SerialList = ({ handleAddRacks, onView }) => {
   const onTabClick = (tab) => setActiveTab(tab);
 
   const toggleSelectAll = (e) => {
-    setSelectedRacks(
-      e.target.checked ? filteredRacks.map((c) => c._id) : []
-    );
+    setSelectedTax(e.target.checked ? filteredTax.map((c) => c._id) : []);
   };
 
   const handleCheckboxChange = (id) => {
-    setSelectedRacks((prev) =>
+    setSelectedTax((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     );
   };
 
   const handleDeleteSelected = async () => {
-    if (!selectedRacks.length) {
-      toast.info("No Racks selected to delete");
+    if (!selectedTax.length) {
+      toast.info("No Tax selected to delete");
       return;
     }
 
-    if (!window.confirm("Delete selected Racks?")) return;
+    if (!window.confirm("Delete selected Tax?")) return;
 
     try {
       const results = await Promise.allSettled(
-        selectedRacks.map((id) => axios.delete(`${baseUrl}/${id}`))
+        selectedTax.map((id) => axios.delete(`${baseUrl}/${id}`))
       );
 
       const succeeded = results.filter((r) => r.status === "fulfilled").length;
@@ -243,8 +242,8 @@ const SerialList = ({ handleAddRacks, onView }) => {
 
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
-        await fetchRacks();
-        setSelectedRacks([]);
+        await fetchTax();
+        setSelectedTax([]);
       }
       if (failed) toast.error(`${failed} failed — check console`);
     } catch (err) {
@@ -254,13 +253,13 @@ const SerialList = ({ handleAddRacks, onView }) => {
   };
 
   const exportToExcel = () => {
-    if (!RacksList.length) {
+    if (!TaxList.length) {
       toast.info("No data to export.");
       return;
     }
     const ws = XLSX.utils.json_to_sheet(aisleList);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Racks");
+    XLSX.utils.book_append_sheet(wb, ws, "Tax");
     XLSX.writeFile(wb, "aisle_list.xlsx");
   };
 
@@ -268,7 +267,7 @@ const SerialList = ({ handleAddRacks, onView }) => {
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [["#", "Code", "Name", "Contact", "Address", "Status"]],
-      body: filteredRacks.map((c, i) => [
+      body: filteredTax.map((c, i) => [
         i + 1,
         c.code,
         c.name,
@@ -280,8 +279,8 @@ const SerialList = ({ handleAddRacks, onView }) => {
     doc.save("Aisle_list.pdf");
   };
 
-  const handleRacksClick = (RacksId) => {
-    setViewingRacksId(RacksId);
+  const handleTaxClick = (TaxId) => {
+    setViewingTaxId(TaxId);
   };
 
   const resetFilters = () => {
@@ -290,25 +289,23 @@ const SerialList = ({ handleAddRacks, onView }) => {
     setSortOption("");
   };
 
-  const goBack = () => setViewingRacksId(null);
+  const goBack = () => setViewingTaxId(null);
 
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingRacksId) {
+  if (viewingTaxId) {
     return (
       <div className="p-4">
-        <AisleViewPage aisleId={viewingRacksId} goBack={goBack} />
+        <AisleViewPage aisleId={viewingTaxId} goBack={goBack} />
       </div>
     );
   }
-  // ─── Render ─────────────────────────────────────────────────────
-
   return (
     <div>
       <div>
         <div>
-          {viewingRacksId ? (
+          {viewingTaxId ? (
             <AisleViewPage
               toggleView={toggleView}
               aisleId={viewingAisleId}
@@ -349,14 +346,14 @@ const SerialList = ({ handleAddRacks, onView }) => {
                 </div>
                 <div className="flex items-center gap-3 ">
                   <button
-                    onClick={handleAddRacks}
+                    onClick={handleAddTax}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     + Add
                   </button>
                   <button
                     onClick={handleDeleteSelected}
-                    disabled={!selectedRacks.length}
+                    disabled={!selectedTax.length}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     Delete
@@ -395,7 +392,7 @@ const SerialList = ({ handleAddRacks, onView }) => {
                   <button
                     onClick={() => {
                       fetchMetrics();
-                      fetchRacks(startDate, endDate);
+                      fetchTax(startDate, endDate);
                     }}
                     className="px-3 py-1 border rounded"
                   >
@@ -404,11 +401,11 @@ const SerialList = ({ handleAddRacks, onView }) => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Racks", RacksSummary.count],
-                    ["Credit Limit", RacksSummary.creditLimit],
-                    ["Paid Racks", RacksSummary.paidRacks],
-                    ["Active Racks", RacksSummary.activeRacks],
-                    ["On‑Hold Racks", RacksSummary.onHoldRacks],
+                    ["Total Tax", TaxSummary.count],
+                    ["Credit Limit", TaxSummary.creditLimit],
+                    ["Paid Tax", TaxSummary.paidTax],
+                    ["Active Tax", TaxSummary.activeTax],
+                    ["On‑Hold Tax", TaxSummary.onHoldTax],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -516,8 +513,8 @@ const SerialList = ({ handleAddRacks, onView }) => {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedRacks.length === filteredRacks.length &&
-                            filteredRacks.length > 0
+                            selectedTax.length === filteredTax.length &&
+                            filteredTax.length > 0
                           }
                           className="form-checkbox"
                         />
@@ -535,8 +532,8 @@ const SerialList = ({ handleAddRacks, onView }) => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredRacks.length ? (
-                      filteredRacks.map((c) => (
+                    {filteredTax.length ? (
+                      filteredTax.map((c) => (
                         <tr
                           key={c.code}
                           className="hover:bg-gray-100 transition-colors"
@@ -544,7 +541,7 @@ const SerialList = ({ handleAddRacks, onView }) => {
                           <td className="px-4 py-2">
                             <input
                               type="checkbox"
-                              checked={selectedRacks.includes(c._id)}
+                              checked={selectedTax.includes(c._id)}
                               onChange={() => handleCheckboxChange(c._id)}
                               className="form-checkbox"
                             />
@@ -600,4 +597,4 @@ const SerialList = ({ handleAddRacks, onView }) => {
   );
 };
 
-export default SerialList;
+export default TaxList;

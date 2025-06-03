@@ -199,6 +199,18 @@ const LocationForm = ({ handleCancel }) => {
                 disabled
                 className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
               />
+            </div>     <div>
+              <label className="block text-sm font-medium text-gray-600">
+             Aisles
+              </label>
+              <input
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                placeholder="e.g. Retail, Wholesale"
+                disabled
+                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">

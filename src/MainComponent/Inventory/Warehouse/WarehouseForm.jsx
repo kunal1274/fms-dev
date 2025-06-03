@@ -163,7 +163,29 @@ export default function WarehouseForm({ handleCancel }) {
                 )}
               </select>
             </div>
-
+  <div>
+              <label className="block text-sm font-medium text-gray-600">
+             Zone
+              </label>
+              <select
+                name="siteId"
+                value={form.siteId}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select a site…</option>
+                {sites.length ? (
+                  sites.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {(s.siteAccountNo || s.SiteAccountNo) + " – " + s.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading sites...</option>
+                )}
+              </select>
+            </div>
             {/* Type */}
             <div>
               <label className="block text-sm font-medium text-gray-600">

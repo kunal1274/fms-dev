@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import SerialsList from "./SerialList";
 import SerialsForm from "./SerialForm";
 
 // import { Button } from "../../../../src/Component/Button/Button";
@@ -83,7 +83,7 @@ const SerialsPage = () => {
     <div className="w-full bg-white rounded-lg ">
       <div>
         {view === "list" && (
-          <SerialList
+          <SerialsList
             Serialss={Serials}
             handleAddSerials={handleAddSerials}
             onView={handleViewSerials}

@@ -6,7 +6,7 @@ const AislesForm = ({ handleCancel }) => { const [form, setForm] = useState({});
   // ─── Data ────────────────────────────────────────────────
   const [aisless, setAisless] = useState([]);
  useEffect(() => {
-    const fetchWarehouses = async () => {
+    const lOCATIONhouses = async () => {
       try {
         const response = await axios.get(warehousesUrl);
         setWarehouses(response.data || []);
@@ -23,7 +23,7 @@ const AislesForm = ({ handleCancel }) => { const [form, setForm] = useState({});
         console.error("Error fetching Company 63:", error);
       }
     };
-    fetchWarehouses();
+    locationhouses();
     fetchCompanies();
   }, []);
   
@@ -186,6 +186,18 @@ const handleChange = () =>{
               <div>
                 <label className="block text-sm font-medium text-gray-600">
                   location
+                </label>
+                <input
+                  name="type"
+                  value={form.type}
+                  onChange={handleChange}
+                  placeholder="e.g. Retail, Wholesale"
+                  disabled
+                  className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
+                />
+              </div>  <div>
+                <label className="block text-sm font-medium text-gray-600">
+            Racks
                 </label>
                 <input
                   name="type"

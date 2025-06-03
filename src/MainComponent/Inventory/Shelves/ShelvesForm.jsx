@@ -193,6 +193,23 @@ const ShelvesForm = ({ handleCancel }) => {
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
+            </div> <div>
+              <label className="block text-sm font-medium text-gray-600">
+          Bin
+
+
+
+
+
+          
+              </label>
+              <input
+                name="value"
+                value={form.value}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
             </div>
             {/* Location */}
             <div>

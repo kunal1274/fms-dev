@@ -31,12 +31,6 @@ export default function BinForm({ handleCancel }) {
     fetchCompanies();
   }, []);
 
-  
-  
-  
-  
-  // ─── Helpers ─────────────────────────────────────────────
-
   // ─── Load existing bins once ────────────────────────
   const handleChange = () => {};
   const createBin = async (e) => {

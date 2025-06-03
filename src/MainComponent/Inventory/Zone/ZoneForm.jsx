@@ -224,19 +224,19 @@ export default function ZoneForm({ handleCancel }) {
               ))}
             </select>
           </div>
-          {/* Company */}
-          <div>
-            <label>Company</label>
+      <div>
+            <label>Location</label>
             <select
-              name="company"
-              value={form.company}
+              name="warehouse"
+              value={form.warehouse}
               onChange={handleChange}
+              required
               className="mt-1 w-full p-2 border rounded"
             >
               <option value="">Select</option>
-              {companies.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.companyName}
+              {warehouses.map((w) => (
+                <option key={w._id} value={w._id}>
+                  {w.name}
                 </option>
               ))}
             </select>

@@ -12,15 +12,16 @@ import {
 
 const navItems = [
   // { label: "Customer", icon: FaUser },
-  { label: "Company Management", icon: FaTruck },
+  { label: "Company", icon: FaTruck },
   // { label: "Vendor", icon: FaTruck },
   {
-    label: "Inventory Management",
+    label: "Inventory",
     icon: FaBoxOpen,
   },
-  { label: "Sale Mangement", icon: FaShoppingCart },
-  { label: "Purchase Mangement", icon: FaCartPlus },
-  { label: "User Management", icon: FaUser },
+  { label: "Sale", icon: FaShoppingCart },
+  { label: "Purchase ", icon: FaCartPlus },
+  { label: "User ", icon: FaUser },
+  { label: "Tax ", icon: FaUser },
 ];
 
 export default function Sidebar({

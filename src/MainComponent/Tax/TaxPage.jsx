@@ -1,16 +1,16 @@
 import React, { useState } from "react";
-import { Button } from "../../../Component/Button/Button";
-import AislesForm from "./AislesForm";
-import Aisles from "./AislesList.jsx";
-import AislesViewPage from "./AislesViewPage.jsx";
+import { Button } from "../../Component/Button/Button.jsx";
+import TaxForm from "./TaxForm.jsx";
+import TaxList from "./TaxList.jsx";
+import TaxViewPage from "./TaxViewPage.jsx";
 
-const AislesPage = () => {
+const TaxPage = () => {
   const [view, setView] = useState("list");
-  const [aisles, setLocataion] = useState([]);
-  const [selectedAisles, setSelectedLocataion] = useState(null);
+  const [Tax, setLocataion] = useState([]);
+  const [selectedTax, setSelectedLocataion] = useState(null);
 
   /** Save or update a Locataion */
-  const handleSaveAisles = (Locataion) => {
+  const handleSaveTax = (Locataion) => {
     setLocataion((prev) => {
       const idx = prev.findIndex(
         (c) => c.LocataionAccountNo === Locataion.LocataionAccountNo
@@ -27,14 +27,14 @@ const AislesPage = () => {
   };
 
   /** Open the "Add Locataion" form */
-  const handleAddAisles = () => {
+  const handleAddTax = () => {
     setSelectedLocataion(null);
     setView("form");
   };
 
   /** Show Locataion details */
-  const handleViewAisles = (LocataionAccountNo) => {
-    const cust = Aisles.find(
+  const handleViewTax = (LocataionAccountNo) => {
+    const cust = Tax.find(
       (c) => c.LocataionAccountNo === LocataionAccountNo
     );
     setSelectedLocataion(cust);
@@ -42,9 +42,9 @@ const AislesPage = () => {
   };
 
   /** Delete selected Locataions */
-  const handleDeleteAisles = (toDeleteAccounts) => {
-    setAisless((prev) =>
-      prev.filter((c) => !toDeleteAccounts.includes(c.AislesAccountNo))
+  const handleDeleteTax = (toDeleteAccounts) => {
+    setTaxs((prev) =>
+      prev.filter((c) => !toDeleteAccounts.includes(c.TaxAccountNo))
     );
   };
 
@@ -53,20 +53,20 @@ const AislesPage = () => {
 
   /** Render header with title and actions */
   const renderHeader = () => {
-    let title = "Aisless";
+    let title = "Taxs";
     let action = null;
 
     if (view === "list") {
-      action = <Button onClick={handleAddAisles}>Add Aisles</Button>;
+      action = <Button onClick={handleAddTax}>Add Tax</Button>;
     } else if (view === "form") {
-      title = selectedAisles ? "Edit Aisles" : "New Aisles";
+      title = selectedTax ? "Edit Tax" : "New Tax";
       action = (
         <Button variant="secondary" onClick={handleCancel}>
           Cancel
         </Button>
       );
     } else if (view === "details") {
-      title = "Aisles Details";
+      title = "Tax Details";
       action = (
         <Button variant="secondary" onClick={handleCancel}>
           Back to List
@@ -86,24 +86,24 @@ const AislesPage = () => {
     <div className="w-full bg-white rounded-lg ">
       <div>
         {view === "list" && (
-          <Aisles
-            Aisless={Aisles}
-            handleAddAisles={handleAddAisles}
-            onView={handleViewAisles}
-            onDelete={handleDeleteAisles}
+          <TaxList
+            Taxs={Tax}
+            handleAddTax={handleAddTax}
+            onView={handleViewTax}
+            onDelete={handleDeleteTax}
           />
         )}
 
         {view === "form" && (
-          <AislesForm
-            Aisles={selectedAisles}
-            handleAddAisles={handleAddAisles}
+          <TaxForm
+            Tax={selectedTax}
+            handleAddTax={handleAddTax}
             handleCancel={handleCancel}
           />
         )}
-        {view === "details" && selectedAisles && (
-          <AislesViewPage
-            Aisles={selectedAisles}
+        {view === "details" && selectedTax && (
+          <TaxViewPage
+            Tax={selectedTax}
             onEdit={() => setView("form")}
             handleCancel={handleCancel}
           />
@@ -113,4 +113,4 @@ const AislesPage = () => {
   );
 };
 
-export default AislesPage;
+export default TaxPage;

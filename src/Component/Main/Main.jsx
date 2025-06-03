@@ -5,7 +5,7 @@ import SalePage from "../../SaleToggle";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
 import InventoryManegment from "../../MainComponent/Inventory/InventoryManegment";
 import PurchasePage from "../../Purchase Toggle";
-// import SitePage from "../../MainComponent/Inventory/Site/SitePage";
+import TaxPage from "../../MainComponent/Tax/TaxPage";
 // import WarehousePage from "../../MainComponent/Inventory/Warehouse/WarehousePage";
 // import ItemPage from "../../MainComponent/Inventory/Item/ItemPage";
 
@@ -19,7 +19,7 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
       {selectedMenu === "Customer" && (
         <CustomerList onAddNew={onAddNew} onView={onView} />
       )}{" "}
-      {selectedMenu === "Company Management" && (
+      {selectedMenu === "Company" && (
         <CompanyPage onAddNew={onAddNew} onView={onView} />
       )}
       {selectedMenu === "Vendor" && (
@@ -38,17 +38,15 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
           <PurchasePage onAddNew={onAddNew} onView={onView} />
         </div>
       )}
-      {selectedMenu === "Inventory Management" && (
+      {selectedMenu === "Inventory" && (
         <InventoryManegment onAddNew={onAddNew} onView={onView} />
       )}
       {selectedMenu === "itemPage" && (
         <ItemPage onAddNew={onAddNew} onView={onView} />
       )}
-      {selectedMenu === "SitePage" && (
-        <SitePage onAddNew={onAddNew} onView={onView} />
-      )}{" "}
-      {selectedMenu === "Warehouse" && (
-        <WarehousePage onAddNew={onAddNew} onView={onView} />
+   
+      {selectedMenu === "TaxPage" && (
+        <TaxPage onAddNew={onAddNew} onView={onView} />
       )}
     </main>
   );
