@@ -10,6 +10,7 @@ export default function WarehouseForm({ handleCancel }) {
     siteId: "",
     type: "",
     description: "",
+    zone: "", // ← add this
   });
 
   // ─── API Bases ──────────────────────────────────────────

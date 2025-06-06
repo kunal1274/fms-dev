@@ -5,31 +5,42 @@ import { toast, ToastContainer } from "react-toastify";
 export default function SiteForm({ handleCancel, onSaved }) {
   // ─── Form State ────────────────────────────────────────
   const initialForm = {
-    SiteAccountNo: "",
     name: "",
-    email: "",
+    type: "Physical",
+    company: "",
     description: "",
+    active: false,
+    archived: false,
+    groups: [],
+    name: "",
+    type: "Physical",
+    company: "", // or 'warehouse' if that’s the correct ref
+    description: "",
+    active: false, // optional: include if you want the user to set it
+    archived: false,
+    groups: [],
   };
   const [form, setForm] = useState(initialForm);
-
+    const [companies, setCompanies] = useState([]);
   // ─── API Base ───────────────────────────────────────────Fem
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
-  const warehousesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
+  const companyUrl = "https://fms-qkmw.onrender.com/fms/api/v0/company";
+  const groupsUrl = "https://fms-qkmw.onrender.com/fms/api/v0/globalgroups";
   // ─── List of existing sites ─────────────────────────────
-  const [sites, setSites] = useState([]);
-const [warehouses, setWarehouses] = useState([]);
+  const [sites, setSites] = useState([]);  const [groupsList, setGroupsList] = useState([]);
+  const [company, setcompany] = useState([]);
   // ─── Fetch existing sites on mount ──────────────────────
   useEffect(() => {
-    const fetchWarehouses = async () => {
+    const fetchcompany = async () => {
       try {
-        const response = await axios.get(warehousesUrl);
-        setWarehouses(response.data || []);
+        const response = await axios.get(companyUrl);
+        setcompany(response.data || []);
       } catch (error) {
         console.error("Error fetching items:", error);
       }
     };
 
-    fetchWarehouses();
+    fetchcompany();
   }, []);
   // ─── Handle input changes ────────────────────────────────
   const handleChange = (e) => {
@@ -80,7 +91,7 @@ const [warehouses, setWarehouses] = useState([]);
       >
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Business Details
+         Site Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
@@ -108,6 +119,24 @@ const [warehouses, setWarehouses] = useState([]);
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
+            <label>Groups</label>
+            <select
+              name="groups"
+              multiple
+              value={form.groups}
+              onChange={(e) => {
+                const options = Array.from(e.target.selectedOptions).map(
+                  (o) => o.value
+                );
+                setForm((f) => ({ ...f, groups: options }));
+              }}
+            >
+              {groupsList.map((g) => (
+                <option key={g._id} value={g._id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Type
@@ -123,6 +152,29 @@ const [warehouses, setWarehouses] = useState([]);
                 <option value="Physical">Physical</option>
                 <option value="Virtual">Virtual</option>
               </select>
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Company
+              </label>
+              <select
+                name="company"
+                value={form.company}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select a company…</option>
+                {companies.length ? (
+                  companies.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading companies...</option>
+                )}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
@@ -136,14 +188,14 @@ const [warehouses, setWarehouses] = useState([]);
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">Select a warehouse…</option>
-                {warehouses.length ? (
-                  warehouses.map((w) => (
+                {company.length ? (
+                  company.map((w) => (
                     <option key={w._id} value={w._id}>
                       {`${w.name} – ${w.name}`}
                     </option>
                   ))
                 ) : (
-                  <option disabled>Loading warehouses...</option>
+                  <option disabled>Loading company...</option>
                 )}
               </select>
             </div>
@@ -159,6 +211,30 @@ const [warehouses, setWarehouses] = useState([]);
                 rows={4}
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            <div className="flex items-center space-x-2">
+              <label className="block text-sm font-medium text-gray-600">
+                Active
+              </label>
+              <input
+                type="checkbox"
+                name="active"
+                checked={form.active}
+                onChange={handleChange}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+              />
+            </div>{" "}
+            <div className="flex items-center space-x-2">
+              <label className="block text-sm font-medium text-gray-600">
+                Archived
+              </label>
+              <input
+                type="checkbox"
+                name="archived"
+                checked={form.archived}
+                onChange={handleChange}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded"
               />
             </div>
           </div>

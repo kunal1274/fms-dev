@@ -6,8 +6,10 @@ const AislesForm = ({ handleCancel }) => {
   const [form, setForm] = useState({});
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
   const apiLocationBase = "https://fms-qkmw.onrender.com/fms/api/v0/locations";
+  const companiesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
   // ─── Data ────────────────────────────────────────────────
   const [aisless, setAisless] = useState([]);
+  const [companyList, setCompanyList] = useState([]);
   const [location, setLocation] = useState([]);
   useEffect(() => {
     const locationhouses = async () => {
@@ -18,15 +20,15 @@ const AislesForm = ({ handleCancel }) => {
         console.error("Error fetching location:", error);
       }
     };
-    // const fetchCompanies = async () => {
-    //   try {
-    //     const response = await axios.get(companiesUrl);
-    //     // setWarehouses(response.data || []);
-    //     setCompanies(response.data || []);
-    //   } catch (error) {
-    //     console.error("Error fetching Company 63:", error);
-    //   }
-    // };
+    const fetchCompanies = async () => {
+      try {
+        const response = await axios.get(companiesUrl);
+        // setWarehouses(response.data || []);
+        setCompanies(response.data || []);
+      } catch (error) {
+        console.error("Error fetching Company 63:", error);
+      }
+    };
     locationhouses();
     // fetchCompanies();
   }, []);
@@ -145,20 +147,21 @@ const AislesForm = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                description
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
-                rows={4}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}
+         <div>
+  <label className="block text-sm font-medium text-gray-600">
+    Description
+  </label>
+  <textarea
+    name="description"
+    value={form.description}
+    onChange={handleChange}
+    placeholder="Enter a brief description or address..."
+    rows={4}
+    required
+    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+  />
+</div>
+
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Remarks
@@ -173,18 +176,17 @@ const AislesForm = ({ handleCancel }) => {
               />
             </div>{" "}
             <div>
-              <label className="block text-sm font-medium text-gray-600">
-                type
-              </label>
-              <input
+              <label>Type</label>
+              <select
                 name="type"
                 value={form.type}
                 onChange={handleChange}
-                placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="Physical">Physical</option>
+                <option value="Virtual">Virtual</option>
+              </select>
+            </div>
             <div>
               <label>Location</label>
               <select
@@ -228,15 +230,23 @@ const AislesForm = ({ handleCancel }) => {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                company
+                Company
               </label>
-              <input
-                name="contactPersonPhone"
-                value={form.contactPersonPhone}
+              <select
+                name="company"
+                value={form.company}
                 onChange={handleChange}
-                placeholder="e.g. +91 91234 56789"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
+                required
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="">Select</option>
+                {Array.isArray(companyList) &&
+                  companyList.map((company) => (
+                    <option key={company._id} value={company._id}>
+                      {company.name}
+                    </option>
+                  ))}
+              </select>
             </div>
           </div>
         </section>

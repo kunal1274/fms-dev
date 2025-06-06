@@ -138,20 +138,21 @@ export default function BinForm({ handleCancel }) {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                description
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
-                rows={4}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}
+          <div>
+  <label className="block text-sm font-medium text-gray-600">
+    Description
+  </label>
+  <textarea
+    name="description"
+    value={form.description}
+    onChange={handleChange}
+    placeholder="Enter a brief description or address..."
+    rows={4}
+    required
+    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+  />
+</div>
+
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Remarks
@@ -165,31 +166,35 @@ export default function BinForm({ handleCancel }) {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                type
-              </label>
-              <input
+          <div>
+              <label>Type</label>
+              <select
                 name="type"
                 value={form.type}
                 onChange={handleChange}
-                placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                location
-              </label>
-              <input
-                name="type"
-                value={form.type}
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="Physical">Physical</option>
+                <option value="Virtual">Virtual</option>
+              </select>
+            </div>
+              <div>
+              <label>Location</label>
+              <select
+                name="warehouse"
+                value={form.location}
                 onChange={handleChange}
-                placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
-              />
+                required
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="">Select</option>
+                {Array.isArray(location) &&
+                  location.map((w) => (
+                    <option key={w._id} value={w._id}>
+                      {w.name}
+                    </option>
+                  ))}
+              </select>
             </div>
             <div className="flex items-center gap-2 ml-1">
               <label className="text-blue-600 font-medium">Active</label>

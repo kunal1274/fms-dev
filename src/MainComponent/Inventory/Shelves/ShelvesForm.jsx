@@ -10,49 +10,121 @@ const ShelvesForm = ({ handleCancel }) => {
   const [form, setForm] = useState({
     ShelvesAccountNo: "",
     name: "",
-    updatedBy: "",
+    type: "",
     siteId: "",
-    value: "",
+    bin: "",
     location: "",
     remarks: "",
     extras: "",
     archived: false,
     group: "",
     createdBy: "",
-
-    type: "",
+    updatedBy: "",
     description: "",
     active: false,
   });
-
+  const [allShelves, setAllShelves] = useState([]);
   const [shelvess, setShelvess] = useState([]);
   const [sites, setSites] = useState([]);
-
+  const [locations, setLocations] = useState([]);
+  const [bins, setBins] = useState([]);
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/Shelves";
-
+  const apiSites = "https://fms-qkmw.onrender.com/fms/api/v0/Sites";
+  const apiLocations = "https://fms-qkmw.onrender.com/fms/api/v0/Locations";
+  const apiBins = "https://fms-qkmw.onrender.com/fms/api/v0/Bins";
   const generateAccountNo = (list) => `AISL-${list.length + 1}`;
-
   useEffect(() => {
-    const fetchWarehouses = async () => {
+    const fetchShelves = async () => {
       try {
-        const response = await axios.get(warehousesUrl);
-        setWarehouses(response.data || []);
-      } catch (error) {
-        console.error("Error fetching items:", error);
+        const response = await axios.get(apiBase);
+        // Adjust for your exact payload shape:
+        const fetchedShelves = response.data.data || response.data || [];
+        setAllShelves(fetchedShelves);
+        // Immediately generate the initial account number
+        setForm((prev) => ({
+          ...prev,
+          ShelvesAccountNo: generateAccountNo(fetchedShelves),
+        }));
+      } catch (err) {
+        console.error("Error fetching Shelves list:", err);
+        toast.error("Could not load existing Shelves.");
       }
     };
-    const fetchCompanies = async () => {
+
+    const fetchSites = async () => {
       try {
-        const response = await axios.get(companiesUrl);
-        // setWarehouses(response.data || []);
-        setCompanies(response.data || []);
-      } catch (error) {
-        console.error("Error fetching Company 63:", error);
+        const response = await axios.get(apiSites);
+        const fetchedSites = response.data.data || response.data || [];
+        setSites(fetchedSites);
+      } catch (err) {
+        console.error("Error fetching Sites:", err);
+        toast.error("Could not load Sites.");
       }
     };
-    fetchWarehouses();
-    fetchCompanies();
+
+    fetchShelves();
+    fetchSites();
   }, []);
+
+  // ---------------------------------------------------------------------------
+  // 4) Whenever the user picks a Site (form.siteId), fetch that Site's Locations
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (!form.siteId) {
+      setLocations([]);
+      setBins([]);
+      setForm((prev) => ({ ...prev, locationId: "", binId: "" }));
+      return;
+    }
+
+    const fetchLocations = async () => {
+      try {
+        // Assuming your API supports filtering by siteId as a query param:
+        const response = await axios.get(
+          `${apiLocations}?siteId=${form.siteId}`
+        );
+        const fetchedLocations = response.data.data || response.data || [];
+        setLocations(fetchedLocations);
+        // Reset downstream fields:
+        setForm((prev) => ({ ...prev, locationId: "", binId: "" }));
+        setBins([]);
+      } catch (err) {
+        console.error("Error fetching Locations for site:", err);
+        toast.error("Could not load Locations.");
+      }
+    };
+
+    fetchLocations();
+  }, [form.siteId]);
+
+  // ---------------------------------------------------------------------------
+  // 5) Whenever the user picks a Location (form.locationId), fetch that Location's Bins
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (!form.locationId) {
+      setBins([]);
+      setForm((prev) => ({ ...prev, binId: "" }));
+      return;
+    }
+
+    const fetchBins = async () => {
+      try {
+        // Assuming your API supports filtering by locationId as a query param:
+        const response = await axios.get(
+          `${apiBins}?locationId=${form.locationId}`
+        );
+        const fetchedBins = response.data.data || response.data || [];
+        setBins(fetchedBins);
+        // Reset bin selection:
+        setForm((prev) => ({ ...prev, binId: "" }));
+      } catch (err) {
+        console.error("Error fetching Bins for location:", err);
+        toast.error("Could not load Bins.");
+      }
+    };
+
+    fetchBins();
+  }, [form.locationId]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -73,19 +145,18 @@ const ShelvesForm = ({ handleCancel }) => {
     e.preventDefault();
 
     const payload = {
-      ShelvesAccountNo: formShelvesAccountNo || "",
       name: form.name || "",
       type: form.type || "",
       siteId: form.siteId || "",
-      description: form.description || "",
-      updatedBy: form.updatedBy || "",
-      value: form.value || "",
+      bin: form.bin || "",
       location: form.location || "",
       remarks: form.remarks || "",
       extras: form.extras || "",
       archived: form.archived || false,
       group: form.group || "",
       createdBy: form.createdBy || "",
+      updatedBy: form.updatedBy || "",
+      description: form.description || "",
       active: form.active || false,
     };
 
@@ -138,7 +209,7 @@ const ShelvesForm = ({ handleCancel }) => {
                 readOnly
                 disabled
                 placeholder="Auto-generated"
-                className="mt-1 w-full cursor-not-allowed p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full cursor-not-allowed p-2 border rounded focus:ring-2 focus:ring-blue-200 bg-gray-100"
               />
             </div>
             {/* Name */}
@@ -154,7 +225,7 @@ const ShelvesForm = ({ handleCancel }) => {
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>{" "}
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Created By
@@ -163,7 +234,7 @@ const ShelvesForm = ({ handleCancel }) => {
                 name="createdBy"
                 value={form.createdBy}
                 onChange={handleChange}
-                placeholder="User ID"
+                placeholder="Your User ID"
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
@@ -176,12 +247,31 @@ const ShelvesForm = ({ handleCancel }) => {
                 name="updatedBy"
                 value={form.updatedBy}
                 onChange={handleChange}
-                placeholder="User ID"
+                placeholder="User ID (if updating later)"
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
             {/* Site Select */}
             {/* Value */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Site
+              </label>
+              <select
+                name="siteId"
+                value={form.siteId}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select site</option>
+                {sites.map((site) => (
+                  <option key={site._id} value={site._id}>
+                    {site.name}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Shelves Value
@@ -198,26 +288,40 @@ const ShelvesForm = ({ handleCancel }) => {
               <label className="block text-sm font-medium text-gray-600">
                 Bin
               </label>
-              <input
-                name="value"
-                value={form.value}
+              <select
+                name="binId"
+                value={form.binId}
                 onChange={handleChange}
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
+              >
+                <option value="">Select bin</option>
+                {bins.map((b) => (
+                  <option key={b._id} value={b._id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
             </div>
             {/* Location */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Location
               </label>
-              <input
-                name="location"
-                value={form.location}
+              <select
+                name="locationId"
+                value={form.locationId}
                 onChange={handleChange}
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
+              >
+                <option value="">Select location</option>
+                {locations.map((loc) => (
+                  <option key={loc._id} value={loc._id}>
+                    {loc.name}
+                  </option>
+                ))}
+              </select>
             </div>
             {/* Remarks */}
             <div>
@@ -228,6 +332,7 @@ const ShelvesForm = ({ handleCancel }) => {
                 name="remarks"
                 value={form.remarks}
                 onChange={handleChange}
+                placeholder="Optional remarks"
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
@@ -240,21 +345,22 @@ const ShelvesForm = ({ handleCancel }) => {
                 name="extras"
                 value={form.extras}
                 onChange={handleChange}
+                placeholder='e.g. {"color":"red"}'
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
             {/* Archived Checkbox */}
             <div className="flex items-center gap-2">
-              <label className="block text-sm font-medium text-gray-600">
-                Archived
-              </label>
               <input
                 name="archived"
                 type="checkbox"
                 checked={form.archived}
                 onChange={handleChange}
-                className="mt-1 w-4 h-4"
+                className="w-4 h-4"
               />
+              <label className="block text-sm font-medium text-gray-600">
+                Archived
+              </label>
             </div>
             {/* Group Select */}
             <div>
@@ -282,6 +388,7 @@ const ShelvesForm = ({ handleCancel }) => {
                 name="type"
                 value={form.type}
                 onChange={handleChange}
+                required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">Select type</option>
@@ -305,7 +412,6 @@ const ShelvesForm = ({ handleCancel }) => {
             </div>
             {/* Active Checkbox */}
             <div className="flex items-center gap-2 ml-1">
-              <label className="text-blue-600 font-medium">Active</label>
               <input
                 name="active"
                 type="checkbox"
@@ -313,6 +419,7 @@ const ShelvesForm = ({ handleCancel }) => {
                 onChange={handleChange}
                 className="w-4 h-4"
               />
+              <label className="text-blue-600 font-medium">Active</label>
             </div>
           </div>
         </section>

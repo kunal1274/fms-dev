@@ -6,16 +6,17 @@ import "react-toastify/dist/ReactToastify.css";
 export default function Product({ handleCancel }) {
   const [form, setForm] = useState({
     code: "",
+
     name: "",
     description: "",
     type: "Physical",
-    warehouse: "",
-    ProductAddress: "",
-    remarks: "",
+    valuesText: "", // comma-separated string for “values”
+    active: true,
     archived: false,
     company: "",
     groups: [],
-    createdBy: "",
+    extras: "",
+    files: [],
     updatedBy: "",
     active: true,
     extras: "",
@@ -31,7 +32,7 @@ export default function Product({ handleCancel }) {
   const companiesBase = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
   const groupsBase = "https://fms-qkmw.onrender.com/fms/api/v0/global-groups";
 
- useEffect(() => {
+  useEffect(() => {
     const fetchWarehouses = async () => {
       try {
         const response = await axios.get(warehousesUrl);
@@ -52,15 +53,6 @@ export default function Product({ handleCancel }) {
     fetchWarehouses();
     fetchCompanies();
   }, []);
-
-
-
-
-
-
-
-
-  
 
   const handleChange = (e) => {
     const { name, value, type, checked, options } = e.target;
@@ -188,37 +180,38 @@ export default function Product({ handleCancel }) {
             </select>
           </div>
           {/* Warehouse Select */}
-          <div>
+          <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-600">
-              values
+              Values * (comma-separated)
             </label>
-            <select
-              name="warehouse"
-              value={form.warehouse}
+            <textarea
+              name="valuesText"
+              value={form.valuesText}
               onChange={handleChange}
+              rows={2}
+              placeholder="e.g. Red, Blue, Green"
               required
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-            >
-              <option value="">Select warehouse</option>
-              {warehouses.map((w) => (
-                <option key={w._id} value={w._id}>
-                  {w.name}
-                </option>
-              ))}
-            </select>
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Enter each value separated by commas. (e.g. “Small, Medium,
+              Large”)
+            </p>
           </div>
           {/* Company Select */}
           <div>
-            <label className="block text-sm font-medium text-gray-600"></label>
+            <label className="block text-sm font-medium text-gray-600">
+              Company
+            </label>
             <select
               name="company"
               value={form.company}
               onChange={handleChange}
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
             >
-              <option value="">Select company</option>
+              <option value="">— Select company —</option>
               {companies.map((c) => (
-                <option key={c._id} value={c._1d}>
+                <option key={c._id} value={c._id}>
                   {c.name}
                 </option>
               ))}
@@ -255,21 +248,7 @@ export default function Product({ handleCancel }) {
               placeholder="Enter address"
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
             />
-          </div>
-          {/* Remarks */}
-          <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-600">
-              Remarks
-            </label>
-            <textarea
-              name="remarks"
-              value={form.remarks}
-              onChange={handleChange}
-              rows={3}
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-            />
-          </div>
-          {/* Description */}
+          </div>{" "}
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-600">
               Description
@@ -278,11 +257,10 @@ export default function Product({ handleCancel }) {
               name="description"
               value={form.description}
               onChange={handleChange}
-              rows={4}
+              rows={3}
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
             />
           </div>
-          {/* Extras JSON */}
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-600">
               Extras (JSON)

@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
@@ -33,7 +31,7 @@ export default function ProductSize({ handleCancel }) {
   const companiesBase = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
   const groupsBase = "https://fms-qkmw.onrender.com/fms/api/v0/global-groups";
 
- useEffect(() => {
+  useEffect(() => {
     const fetchWarehouses = async () => {
       try {
         const response = await axios.get(warehousesUrl);
@@ -54,7 +52,7 @@ export default function ProductSize({ handleCancel }) {
     fetchWarehouses();
     fetchCompanies();
   }, []);
-  
+
   const handleChange = (e) => {
     const { name, value, type, checked, options } = e.target;
     if (type === "checkbox") {
@@ -209,16 +207,18 @@ export default function ProductSize({ handleCancel }) {
               name="company"
               value={form.company}
               onChange={handleChange}
+              required
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
             >
               <option value="">Select company</option>
               {companies.map((c) => (
-                <option key={c._id} value={c._1d}>
+                <option key={c._id} value={c._id}>
                   {c.name}
                 </option>
               ))}
             </select>
           </div>
+
           {/* Groups Multi-Select */}
           <div>
             <label className="block text-sm font-medium text-gray-600">
@@ -330,7 +330,7 @@ export default function ProductSize({ handleCancel }) {
           {/* Created/Updated By */}
           <div>
             <label className="block text-sm font-medium text-gray-600">
-              Created By
+              Created By (User ID)
             </label>
             <input
               name="createdBy"
@@ -342,7 +342,7 @@ export default function ProductSize({ handleCancel }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-600">
-              Updated By
+              Updated By (User ID)
             </label>
             <input
               name="updatedBy"

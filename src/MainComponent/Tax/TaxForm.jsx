@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate } from "react-router-dom";
 
 const TaxForm = ({ handleCancel }) => {
-    const initialForm = {
-    txnDate: "", // will set to ISO date-string
+  // ─── Initial form (matches txnSchema) ────────────────────────────────
+  const initialForm = {
+    txnDate: "",
     sourceType: "",
     sourceId: "",
     sourceLine: 1,
@@ -43,12 +43,12 @@ const TaxForm = ({ handleCancel }) => {
       withholdingTax: 0,
     },
 
-    extras: "",
+    extras: "", // JSON string to parse on submit
   };
 
   const [form, setForm] = useState(initialForm);
 
-  // ─── Lookup lists ────────────────────────────────────────────────────────────
+  // ─── Lookup lists ───────────────────────────────────────────────────────────
   const [items, setItems] = useState([]);
   const [sites, setSites] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
@@ -68,7 +68,8 @@ const TaxForm = ({ handleCancel }) => {
   const [serials, setSerials] = useState([]);
 
   // ─── Endpoint bases ───────────────────────────────────────────────────────────
-  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/inventorytransactions";
+  const apiBase =
+    "https://fms-qkmw.onrender.com/fms/api/v0/inventorytransactions";
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const sitesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
   const warehousesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
@@ -87,9 +88,9 @@ const TaxForm = ({ handleCancel }) => {
   const batchesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/batches";
   const serialsUrl = "https://fms-qkmw.onrender.com/fms/api/v0/serials";
 
-  // ─── Fetch all lookups on mount ───────────────────────────────────────────────
+  // ─── Fetch all lookups on mount ─────────────────────────────────────────────────
   useEffect(() => {
-    const fetchAll = async () => {
+    const fetchAllLookups = async () => {
       try {
         const [
           itemsRes,
@@ -150,7 +151,7 @@ const TaxForm = ({ handleCancel }) => {
       }
     };
 
-    fetchAll();
+    fetchAllLookups();
   }, []);
 
   // ─── Handlers for top‐level fields ────────────────────────────────────────────
@@ -158,7 +159,7 @@ const TaxForm = ({ handleCancel }) => {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: name === "sourceLine" ? Number(value) : value,
+      [name]: name === "sourceLine" || name === "qty" ? Number(value) : value,
     }));
   };
 
@@ -181,7 +182,7 @@ const TaxForm = ({ handleCancel }) => {
     }));
   };
 
-  // ─── Handlers for nested taxes ───────────────────────────────────────────────
+  // ─── Handler for nested taxes ────────────────────────────────────────────────
   const handleTaxChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({
@@ -193,7 +194,7 @@ const TaxForm = ({ handleCancel }) => {
     }));
   };
 
-  // ─── Handler for extras (as JSON string) ─────────────────────────────────────
+  // ─── Handler for “extras” JSON string ────────────────────────────────────────
   const handleExtrasChange = (e) => {
     setForm((prev) => ({
       ...prev,
@@ -201,56 +202,58 @@ const TaxForm = ({ handleCancel }) => {
     }));
   };
 
-  // ─── Form submission ─────────────────────────────────────────────────────────
+  // ─── Form submission: create one inventory transaction ───────────────────────
   const createTransaction = async (e) => {
     e.preventDefault();
-    try {
-      // Parse extras as JSON if possible
-      let extrasObj = {};
-      if (form.extras.trim()) {
-        try {
-          extrasObj = JSON.parse(form.extras);
-        } catch {
-          toast.error("Extras must be valid JSON", { autoClose: 2000 });
-          return;
-        }
+
+    // Parse extras as JSON if provided
+    let extrasObj = {};
+    if (form.extras.trim()) {
+      try {
+        extrasObj = JSON.parse(form.extras);
+      } catch {
+        toast.error("Extras must be valid JSON", { autoClose: 2000 });
+        return;
       }
+    }
 
-      const payload = {
-        txnDate: form.txnDate,
-        sourceType: form.sourceType,
-        sourceId: form.sourceId,
-        sourceLine: form.sourceLine,
-        item: form.item,
-        dims: {
-          site: form.dims.site,
-          warehouse: form.dims.warehouse,
-          zone: form.dims.zone,
-          location: form.dims.location,
-          aisle: form.dims.aisle,
-          rack: form.dims.rack,
-          shelf: form.dims.shelf,
-          bin: form.dims.bin,
-          config: form.dims.config,
-          color: form.dims.color,
-          size: form.dims.size,
-          style: form.dims.style,
-          version: form.dims.version,
-          batch: form.dims.batch,
-          serial: form.dims.serial,
-        },
-        qty: Number(form.qty),
-        costPrice: Number(form.costPrice),
-        purchasePrice: Number(form.purchasePrice),
-        salesPrice: Number(form.salesPrice),
-        transferPrice: Number(form.transferPrice),
-        taxes: {
-          gst: Number(form.taxes.gst),
-          withholdingTax: Number(form.taxes.withholdingTax),
-        },
-        extras: extrasObj,
-      };
+    // Build payload exactly matching txnSchema
+    const payload = {
+      txnDate: form.txnDate,
+      sourceType: form.sourceType,
+      sourceId: form.sourceId,
+      sourceLine: form.sourceLine,
+      item: form.item,
+      dims: {
+        site: form.dims.site,
+        warehouse: form.dims.warehouse,
+        zone: form.dims.zone,
+        location: form.dims.location,
+        aisle: form.dims.aisle,
+        rack: form.dims.rack,
+        shelf: form.dims.shelf,
+        bin: form.dims.bin,
+        config: form.dims.config,
+        color: form.dims.color,
+        size: form.dims.size,
+        style: form.dims.style,
+        version: form.dims.version,
+        batch: form.dims.batch,
+        serial: form.dims.serial,
+      },
+      qty: Number(form.qty),
+      costPrice: Number(form.costPrice),
+      purchasePrice: Number(form.purchasePrice),
+      salesPrice: Number(form.salesPrice),
+      transferPrice: Number(form.transferPrice),
+      taxes: {
+        gst: Number(form.taxes.gst),
+        withholdingTax: Number(form.taxes.withholdingTax),
+      },
+      extras: extrasObj,
+    };
 
+    try {
       await axios.post(apiBase, payload, {
         headers: { "Content-Type": "application/json" },
       });
@@ -265,87 +268,19 @@ const TaxForm = ({ handleCancel }) => {
     }
   };
 
-  // ─── Reset form to initial ───────────────────────────────────────────────────
-
-
-
-
-  // ─── Data ────────────────────────────────────────────────
-  const [Taxs, setTaxs] = useState([]);
-  useEffect(() => {
-    const apitaxurl = async () => {
-      try {
-        const response = await axios.get([apiBase]);
-        setWarehouses(response.data || []);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-      }
-    };
-    const fetchCompanies = async () => {
-      try {
-        const response = await axios.get(companiesUrl);
-        // setWarehouses(response.data || []);
-        setCompanies(response.data || []);
-      } catch (error) {
-        console.error("Error fetching Company 63:", error);
-      }
-    };
-  }, []);
-
-  // ─── Helpers ─────────────────────────────────────────────
-
-  // ─── Load existing Taxs once ────────────────────────
-  const handleChange = () => {};
-  const createTax = async (e) => {
-    e.preventDefault();
-
-    const payload = {
-      ...form,
-      bankDetails: bankDetailsPayload,
-    };
-
-    try {
-      const { data } = await axios.post(apiBase, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
-      const newTax = data.data;
-
-      toast.success("Tax saved", {
-        autoClose: 1200,
-        onClose: () => handleCancel(),
-      });
-
-      setTaxs((prev) => [...prev, newTax]);
-
-      onSaved?.(newTax);
-    } catch (err) {
-      console.error("Error creating Tax:", err.response || err);
-      // const msg = err.response?.data?.message || "Couldn’t save Tax"; // ← define msg properly
-      // toast.error(msg, { autoClose: 2000 });
-    }
-  };
-
-  // ─── Reset / Cancel ──────────────────────────────────────
-  const resetForm = (nextAccNo) =>
-    setForm({
-      ...form,
-    });
-
+  // ─── Reset form back to initial state ───────────────────────────────────────
   const handleReset = () => {
-    const newTaxCode = generateAccountNo(Taxs);
-    setForm({ ...initialForm, TaxAccountNo: newTaxCode });
+    setForm(initialForm);
   };
-  const handleEdit = () => {
-    navigate("/Taxview", { state: { Tax: formData } });
-  };
+
   return (
     <div className="">
       <ToastContainer />
+
       {/* Header Buttons */}
-      <div className="flex justify-between ">
+      <div className="flex justify-between mb-4">
         <div className="flex items-center space-x-2">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-            {" "}
             <button
               type="button"
               className="text-blue-600 mt-2 text-sm hover:underline"
@@ -364,7 +299,7 @@ const TaxForm = ({ handleCancel }) => {
                   strokeWidth={2}
                   d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
                 />
-              </svg>{" "}
+              </svg>
             </button>
           </div>
           <h3 className="text-xl font-semibold">Tax Form</h3>
@@ -372,10 +307,10 @@ const TaxForm = ({ handleCancel }) => {
       </div>
 
       <form
-        onSubmit={createTax}
+        onSubmit={createTransaction}
         className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
       >
-        {/* Business Details */}
+        {/* ─── Transaction Details ──────────────────────────────────────────────── */}
         <section className="p-6">
           <h3 className="text-lg font-medium text-gray-700 mb-4">
             Transaction Details
@@ -433,7 +368,7 @@ const TaxForm = ({ handleCancel }) => {
                 htmlFor="sourceId"
                 className="block text-sm font-medium text-gray-600"
               >
-                Source ID (ObjectId)
+                Source ID 
               </label>
               <input
                 type="text"
@@ -441,7 +376,7 @@ const TaxForm = ({ handleCancel }) => {
                 name="sourceId"
                 value={form.sourceId}
                 onChange={handleFieldChange}
-                placeholder="e.g. 605c72e... (ObjectId)"
+                placeholder="e.g. 605c72e..."
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
@@ -453,7 +388,7 @@ const TaxForm = ({ handleCancel }) => {
                 htmlFor="sourceLine"
                 className="block text-sm font-medium text-gray-600"
               >
-                Source Line #
+                Source Line 
               </label>
               <input
                 type="number"
@@ -493,7 +428,7 @@ const TaxForm = ({ handleCancel }) => {
           </div>
         </section>
 
-        {/* ─── Dimensions (dims) ───────────────────────────────────────────────────── */}
+        {/* ─── Dimensions ───────────────────────────────────────────────────────── */}
         <section className="p-6 bg-gray-50">
           <h3 className="text-lg font-medium text-gray-700 mb-4">Dimensions</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -852,8 +787,8 @@ const TaxForm = ({ handleCancel }) => {
               >
                 <option value="">Select Serial</option>
                 {serials.map((s) => (
-                  <option key={s._id} value={s._id}>
-                    {s.serialNumber || s._id}
+                  <option key={s._1} value={s._1}>
+                    {s.serialNumber || s._1}
                   </option>
                 ))}
               </select>
@@ -1034,9 +969,9 @@ const TaxForm = ({ handleCancel }) => {
           </div>
         </section>
 
-        {/* Action Buttons */}
+        {/* ─── Action Buttons ─────────────────────────────────────────────────────── */}
         <div className="py-6 flex items-center justify-between">
-          {/* Left side - Reset Button */}
+          {/* Left side – Reset Button */}
           <div>
             <button
               type="button"
@@ -1047,7 +982,7 @@ const TaxForm = ({ handleCancel }) => {
             </button>
           </div>
 
-          {/* Right side - Go Back and Create Buttons */}
+          {/* Right side – Go Back and Create Buttons */}
           <div className="flex gap-4">
             <button
               type="button"

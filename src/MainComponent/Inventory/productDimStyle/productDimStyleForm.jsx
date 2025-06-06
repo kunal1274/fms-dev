@@ -21,41 +21,50 @@ export default function ProductStyle({ handleCancel }) {
     extras: "",
     files: [],
   });
-
   const [warehouses, setWarehouses] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [groupsList, setGroupsList] = useState([]);
 
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/ProductStyles";
-  const warehousesBase = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
-  const companiesBase = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
-  const groupsBase = "https://fms-qkmw.onrender.com/fms/api/v0/global-groups";
+  const warehousesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
+  const companiesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
+  const groupsUrl = "https://fms-qkmw.onrender.com/fms/api/v0/global-groups";
 
- useEffect(() => {
+  useEffect(() => {
     const fetchWarehouses = async () => {
       try {
         const response = await axios.get(warehousesUrl);
         setWarehouses(response.data || []);
       } catch (error) {
-        console.error("Error fetching items:", error);
+        console.error("Error fetching warehouses:", error);
       }
     };
+
     const fetchCompanies = async () => {
       try {
         const response = await axios.get(companiesUrl);
-        // setWarehouses(response.data || []);
         setCompanies(response.data || []);
       } catch (error) {
-        console.error("Error fetching Company 63:", error);
+        console.error("Error fetching companies:", error);
       }
     };
+
+    const fetchGroups = async () => {
+      try {
+        const response = await axios.get(groupsUrl);
+        setGroupsList(response.data || []);
+      } catch (error) {
+        console.error("Error fetching groups:", error);
+      }
+    };
+
     fetchWarehouses();
     fetchCompanies();
+    fetchGroups();
   }, []);
-  
-
   const handleChange = (e) => {
     const { name, value, type, checked, options } = e.target;
+
     if (type === "checkbox") {
       setForm((prev) => ({ ...prev, [name]: checked }));
     } else if (name === "groups") {
@@ -92,6 +101,7 @@ export default function ProductStyle({ handleCancel }) {
 
   const createProductStyle = async (e) => {
     e.preventDefault();
+
     try {
       const payload = new FormData();
       payload.append("code", form.code);
@@ -103,21 +113,26 @@ export default function ProductStyle({ handleCancel }) {
       payload.append("remarks", form.remarks);
       payload.append("archived", form.archived);
       payload.append("company", form.company);
+
       form.groups.forEach((g) => payload.append("groups", g));
       payload.append("createdBy", form.createdBy);
       payload.append("updatedBy", form.updatedBy);
       payload.append("active", form.active);
+
+      // Only append valid JSON for extras
       try {
         const extrasObj = JSON.parse(form.extras);
         payload.append("extras", JSON.stringify(extrasObj));
       } catch {
         // ignore invalid JSON
       }
+
       form.files.forEach((file) => payload.append("files", file));
 
       await axios.post(apiBase, payload, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       toast.success("ProductStyle created successfully");
       handleCancel();
     } catch (err) {
@@ -126,7 +141,6 @@ export default function ProductStyle({ handleCancel }) {
       toast.error(msg);
     }
   };
-
   return (
     <div className="p-4">
       <ToastContainer />
@@ -145,11 +159,12 @@ export default function ProductStyle({ handleCancel }) {
               name="code"
               value={form.code}
               onChange={handleChange}
-              placeholder="e.g. ZN-001"
+              placeholder="e.g. STL-001"
               required
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
             />
           </div>
+
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-600">
@@ -159,7 +174,7 @@ export default function ProductStyle({ handleCancel }) {
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="e.g. Central ProductStyle"
+              placeholder="e.g. Denim"
               required
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
             />
@@ -172,7 +187,7 @@ export default function ProductStyle({ handleCancel }) {
             <select
               name="type"
               value={form.type}
-              onChange={handleChange}
+              onChange={handleTopLevelChange}
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
             >
               <option value="Physical">Physical</option>
@@ -181,6 +196,62 @@ export default function ProductStyle({ handleCancel }) {
           </div>
           {/* Warehouse Select */}
           <div>
+            <label className="block text-sm font-medium text-gray-600">
+              Warehouse
+            </label>
+            <select
+              name="warehouse"
+              value={form.warehouse}
+              onChange={handleChange}
+              required
+              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="">Select warehouse</option>
+              {warehouses.map((w) => (
+                <option key={w._id} value={w._id}>
+                  {w.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-600">
+              Company
+            </label>
+            <select
+              name="company"
+              value={form.company}
+              onChange={handleChange}
+              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="">Select company</option>
+              {companies.map((c) => (
+                <option key={c._id} value={c._id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-600">
+              Groups
+            </label>
+            <select
+              name="groups"
+              multiple
+              value={form.groups}
+              onChange={handleChange}
+              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 h-32"
+            >
+              {groupsList.map((g) => (
+                <option key={g._id} value={g._id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* <div>
             <label className="block text-sm font-medium text-gray-600">
               values
             </label>
@@ -198,7 +269,7 @@ export default function ProductStyle({ handleCancel }) {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
           {/* Company Select */}
           <div>
             <label className="block text-sm font-medium text-gray-600">
@@ -244,7 +315,7 @@ export default function ProductStyle({ handleCancel }) {
             </label>
             <input
               name="ProductStyleAddress"
-            
+              value={form.ProductStyleAddress}
               onChange={handleChange}
               placeholder="Enter address"
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
@@ -263,6 +334,7 @@ export default function ProductStyle({ handleCancel }) {
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
             />
           </div>
+
           {/* Description */}
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-600">
@@ -276,6 +348,7 @@ export default function ProductStyle({ handleCancel }) {
               className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
             />
           </div>
+
           {/* Extras JSON */}
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-600">

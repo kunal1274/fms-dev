@@ -127,7 +127,7 @@ const RacksForm = ({ handleCancel }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                description
+                Description
               </label>
               <textarea
                 name="description"
@@ -154,19 +154,23 @@ const RacksForm = ({ handleCancel }) => {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                type
+                Type
               </label>
-              <input
+              <select
                 name="type"
                 value={form.type}
                 onChange={handleChange}
-                placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}     <div>
+                required
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="">Select type</option>
+                <option value="Physical">Physical</option>
+                <option value="Virtual">Virtual</option>
+              </select>
+            </div>{" "}
+            <div>
               <label className="block text-sm font-medium text-gray-600">
-              Shelef
+                Shelef
               </label>
               <input
                 name="type"
@@ -200,18 +204,6 @@ const RacksForm = ({ handleCancel }) => {
                 className="w-4 h-4"
               />
             </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                shelf
-              </label>
-              <input
-                name="contactPersonPhone"
-                value={form.contactPersonPhone}
-                onChange={handleChange}
-                placeholder="e.g. +91 91234 56789"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
           </div>
         </section>
 

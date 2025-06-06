@@ -1,12 +1,79 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
+import { toast, ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const LocationForm = ({ handleCancel }) => {
   const [form, setForm] = useState({});
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/location";
-
+  // const navigate = useNavigate();
+  const initialForm = {
+    name: "",
+    description: "",
+    type: "Physical", // default per schema
+    warehouse: "", // ObjectId of selected warehouse
+    zone: "", // ObjectId of selected zone
+    locationAddress: "",
+    locationLatLng: "",
+    remarks: "",
+    archived: false,
+    company: "", // ObjectId of selected company
+    groups: [], // Array of ObjectIds (multi-select)
+    active: true,
+    extras: {},
+  };
+  const [warehouses, setWarehouses] = useState([]);
+  const [zones, setZones] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [groupsList, setGroupsList] = useState([]);
   // ─── Data ────────────────────────────────────────────────
   const [locations, setLocations] = useState([]);
+  useEffect(() => {
+    const fetchAllLookups = async () => {
+      try {
+        const [
+          { data: whData },
+          { data: zoneData },
+          { data: compData },
+          { data: grpData },
+        ] = await Promise.all([
+          axios.get(WAREHOUSES_URL),
+          axios.get(ZONES_URL),
+          axios.get(COMPANIES_URL),
+          axios.get(GROUPS_URL),
+        ]);
 
+        setWarehouses(whData || []);
+        setZones(zoneData || []);
+        setCompanies(compData || []);
+        setGroupsList(grpData || []);
+      } catch (err) {
+        console.error("Error fetching lookups:", err);
+        toast.error("Error loading form data");
+      }
+    };
+
+    fetchAllLookups();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked, options } = e.target;
+
+    if (type === "checkbox") {
+      // boolean field
+      setForm((prev) => ({ ...prev, [name]: checked }));
+    } else if (type === "select-multiple") {
+      // multi-select (e.g. groups[])
+      const selectedOptions = Array.from(options)
+        .filter((opt) => opt.selected)
+        .map((opt) => opt.value);
+      setForm((prev) => ({ ...prev, [name]: selectedOptions }));
+    } else {
+      // normal text/select
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
+  };
   // ─── Helpers ─────────────────────────────────────────────
   useEffect(() => {
     const fetchWarehouses = async () => {
@@ -31,27 +98,38 @@ const LocationForm = ({ handleCancel }) => {
   }, []);
 
   // ─── Load existing Locations once ────────────────────────
-  const handleChange = () => {};
-  const createlocation = async (e) => {
+
+  const createLocation = async (e) => {
     e.preventDefault();
+
+    // Build payload exactly as schema expects (omit `code`; backend will generate)
     const payload = {
-      locationAccountNo: form.locationAccountNo,
       name: form.name,
-      type: form.type,
-      location: form.locationId,
       description: form.description,
+      type: form.type,
+      warehouse: form.warehouse || null,
+      zone: form.zone || null,
+      locationAddress: form.locationAddress,
+      locationLatLng: form.locationLatLng,
+      remarks: form.remarks,
+      archived: form.archived,
+      company: form.company || null,
+      groups: form.groups,
+      active: form.active,
+      extras: form.extras,
     };
 
     try {
-      await axios.post(apiBase, payload);
+      await axios.post(LOCATION_API_BASE, payload);
 
-      toast.success("location created successfully", {
-        autoClose: 1000, // dismiss after 1 second
-        onClose: handleCancel, // then run handleCancel()
+      toast.success("Location created successfully", {
+        autoClose: 1000,
+        onClose: handleCancel,
       });
     } catch (err) {
       console.error("Create error:", err.response || err);
-      toast.error(err.response?.data?.message || "Couldn’t create location");
+      const msg = err.response?.data?.message || "Couldn’t create location";
+      toast.error(msg);
     }
   };
 
@@ -61,16 +139,6 @@ const LocationForm = ({ handleCancel }) => {
       ...form,
     });
 
-
-
-
-
-
-
-
-
-
-    
   const handleReset = () => {
     const newLocationCode = generateAccountNo(Locations);
     setForm({ ...initialForm, locationAccountNo: newlocationCode });
@@ -147,21 +215,20 @@ const LocationForm = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-            <div>
+            <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-600">
-                description
+                Description
               </label>
               <textarea
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
-                rows={4}
-                required
+                placeholder="Any details about this location"
+                rows={3}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>{" "}
-            <div>
+            </div>
+            <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-600">
                 Remarks
               </label>
@@ -169,39 +236,46 @@ const LocationForm = ({ handleCancel }) => {
                 name="remarks"
                 value={form.remarks}
                 onChange={handleChange}
-                placeholder="e.g. Any additional notes…"
-                rows={4}
+                placeholder="Additional notes…"
+                rows={3}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>{" "}
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                type
+                Type
               </label>
-              <input
+              <select
                 name="type"
                 value={form.type}
                 onChange={handleChange}
-                placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="Physical">Physical</option>
+                <option value="Virtual">Virtual</option>
+              </select>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Zone
               </label>
-              <input
-                name="type"
-                value={form.type}
+              <select
+                name="zone"
+                value={form.zone}
                 onChange={handleChange}
-                placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>     <div>
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select Zone</option>
+                {zones.map((zn) => (
+                  <option key={zn._id} value={zn._id}>
+                    {zn.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-600">
-             Aisles
+                Aisles
               </label>
               <input
                 name="type"
@@ -216,25 +290,83 @@ const LocationForm = ({ handleCancel }) => {
               <label className="block text-sm font-medium text-gray-600">
                 Warehouse
               </label>
-              <input
-                name="type"
-                value={form.type}
+              <select
+                name="warehouse"
+                value={form.warehouse}
                 onChange={handleChange}
-                placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select Warehouse</option>
+                {warehouses.map((wh) => (
+                  <option key={wh._id} value={wh._id}>
+                    {wh.name}
+                  </option>
+                ))}
+              </select>
+            </div>{" "}
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-600">
+                Location Address
+              </label>
+              <input
+                name="locationAddress"
+                value={form.locationAddress}
+                onChange={handleChange}
+                placeholder="e.g. 123 Industrial Park, City"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Company
+              </label>
+              <select
+                name="company"
+                value={form.company}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select Company</option>
+                {companies.map((co) => (
+                  <option key={co._id} value={co._id}>
+                    {co.name}
+                  </option>
+                ))}
+              </select>
+            </div>{" "}
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-600">
+                Groups
+              </label>
+              <select
+                name="groups"
+                multiple
+                value={form.groups}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 h-32"
+              >
+                {groupsList.map((grp) => (
+                  <option key={grp._id} value={grp._id}>
+                    {grp.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                (Hold Ctrl/Cmd to select multiple)
+              </p>
             </div>
-            <div className="flex items-center gap-2 ml-1">
-              <label className="text-blue-600 font-medium">Active</label>
+            <div className="flex items-center">
               <input
                 name="active"
                 checked={form.active}
                 onChange={handleChange}
                 type="checkbox"
-                className="w-4 h-4"
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded"
               />
-            </div>{" "}
+              <label className="ml-2 text-sm font-medium text-gray-600">
+                Active
+              </label>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 shelf
