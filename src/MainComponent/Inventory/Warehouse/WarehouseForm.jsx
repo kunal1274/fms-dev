@@ -144,7 +144,6 @@ export default function WarehouseForm({ handleCancel }) {
                 className="mt-1 w-full cursor-not-allowed p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
@@ -159,8 +158,36 @@ export default function WarehouseForm({ handleCancel }) {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-
-            {/* Site Select */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Type
+              </label>
+              <select
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="">Select type</option>
+                <option value="Physical">Physical</option>
+                <option value="Virtual">Virtual</option>
+              </select>
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Warehouse Description
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                rows={4}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Site
@@ -176,7 +203,7 @@ export default function WarehouseForm({ handleCancel }) {
                 {sites.length ? (
                   sites.map((s) => (
                     <option key={s._id} value={s._id}>
-                      {(s.siteAccountNo || s.SiteAccountNo) + " – " + s.name}
+                      {(s.code || s.SiteAccountNo) + " – " + s.name}
                     </option>
                   ))
                 ) : (
@@ -184,9 +211,23 @@ export default function WarehouseForm({ handleCancel }) {
                 )}
               </select>
             </div>
+                <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Remarks{" "}
+              </label>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="e.g. XYZ Enterprises Pvt. Ltd."
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+            {/* Site Select */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Zone
+                Company
               </label>
               <select
                 name="zone"
@@ -208,36 +249,57 @@ export default function WarehouseForm({ handleCancel }) {
               </select>
             </div>
             {/* Type */}
+            {/* Description */}
+     
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Type
+                Groups{" "}
               </label>
-              <select
-                name="type"
-                value={form.type}
+              <input
+                name="name"
+                value={form.name}
                 onChange={handleChange}
-                required
-                className="mt-1 w-full p-2 border rounded"
-              >
-                <option value="">Select type</option>
-                <option value="Physical">Physical</option>
-                <option value="Virtual">Virtual</option>
-              </select>
-            </div>
-
-            {/* Description */}
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-600">
-                Warehouse Description
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
-                rows={4}
+                placeholder="e.g. XYZ Enterprises Pvt. Ltd."
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Extra{" "}
+              </label>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="e.g. XYZ Enterprises Pvt. Ltd."
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+        
+            <div className="flex items-center space-x-2">
+              <label className="block text-sm font-medium text-gray-600">
+                Archived
+              </label>
+              <input
+                type="checkbox"
+                name="archived"
+                checked={form.archived}
+                onChange={handleChange}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <label className="block text-sm font-medium text-gray-600">
+                Active
+              </label>
+              <input
+                type="checkbox"
+                name="archived"
+                checked={form.archived}
+                onChange={handleChange}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded"
               />
             </div>
           </div>

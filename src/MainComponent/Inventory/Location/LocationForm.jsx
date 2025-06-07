@@ -215,32 +215,35 @@ const LocationForm = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-            <div className="sm:col-span-2">
+              <div>
               <label className="block text-sm font-medium text-gray-600">
-                Description
+               Location Description
               </label>
               <textarea
                 name="description"
                 value={form.description}
                 onChange={handleChange}
-                placeholder="Any details about this location"
-                rows={3}
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                rows={4}
+                required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
-            <div className="sm:col-span-2">
+            </div>{" "} <div>
               <label className="block text-sm font-medium text-gray-600">
-                Remarks
+            Remarks
               </label>
               <textarea
-                name="remarks"
-                value={form.remarks}
+                name="description"
+                value={form.description}
                 onChange={handleChange}
-                placeholder="Additional notes…"
-                rows={3}
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                rows={4}
+                required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
+            </div>{" "}
+           
+          
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Type
@@ -275,7 +278,7 @@ const LocationForm = ({ handleCancel }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Aisles
+                Location lattitude
               </label>
               <input
                 name="type"
@@ -304,18 +307,7 @@ const LocationForm = ({ handleCancel }) => {
                 ))}
               </select>
             </div>{" "}
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-600">
-                Location Address
-              </label>
-              <input
-                name="locationAddress"
-                value={form.locationAddress}
-                onChange={handleChange}
-                placeholder="e.g. 123 Industrial Park, City"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}
+          
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Company
@@ -334,26 +326,51 @@ const LocationForm = ({ handleCancel }) => {
                 ))}
               </select>
             </div>{" "}
-            <div className="sm:col-span-2">
+          <div>
               <label className="block text-sm font-medium text-gray-600">
-                Groups
+       Groups
               </label>
-              <select
-                name="groups"
-                multiple
-                value={form.groups}
+              <textarea
+                name="description"
+                value={form.description}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 h-32"
-              >
-                {groupsList.map((grp) => (
-                  <option key={grp._id} value={grp._id}>
-                    {grp.name}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-1">
-                (Hold Ctrl/Cmd to select multiple)
-              </p>
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                rows={4}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}    <div>
+            <label>Created By (User ID)</label>
+            <input
+              name="createdBy"
+              value={form.createdBy}
+              onChange={handleChange}
+              placeholder="e.g. 642f9c1234abc456def78901"
+              className="mt-1 w-full p-2 border rounded"
+            />
+          </div>
+          {/* Updated By */}
+          <div>
+            <label>Updated By (User ID)</label>
+            <input
+              name="updatedBy"
+              value={form.updatedBy}
+              onChange={handleChange}
+              placeholder="e.g. 642f9c1234abc456def78901"
+              className="mt-1 w-full p-2 border rounded"
+            />
+          </div>
+             <div className="flex items-center">
+              <input
+                name="active"
+                checked={form.active}
+                onChange={handleChange}
+                type="checkbox"
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+              />
+              <label className="ml-2 text-sm font-medium text-gray-600">
+                Archive
+              </label>
             </div>
             <div className="flex items-center">
               <input
@@ -369,7 +386,7 @@ const LocationForm = ({ handleCancel }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                shelf
+               Extra
               </label>
               <input
                 name="contactPersonPhone"

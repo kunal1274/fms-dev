@@ -255,7 +255,7 @@ export default function ZoneForm({ handleCancel }) {
               ))}
             </select>
           </div>{" "}
-          <div>
+          {/* <div>
             <label>Location (Site)</label>
             <select
               name="site"
@@ -271,7 +271,7 @@ export default function ZoneForm({ handleCancel }) {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
           <div>
             <label>Warehouse</label>
             <select

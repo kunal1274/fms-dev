@@ -21,13 +21,14 @@ export default function SiteForm({ handleCancel, onSaved }) {
     groups: [],
   };
   const [form, setForm] = useState(initialForm);
-    const [companies, setCompanies] = useState([]);
+  const [companies, setCompanies] = useState([]);
   // ─── API Base ───────────────────────────────────────────Fem
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
   const companyUrl = "https://fms-qkmw.onrender.com/fms/api/v0/company";
   const groupsUrl = "https://fms-qkmw.onrender.com/fms/api/v0/globalgroups";
   // ─── List of existing sites ─────────────────────────────
-  const [sites, setSites] = useState([]);  const [groupsList, setGroupsList] = useState([]);
+  const [sites, setSites] = useState([]);
+  const [groupsList, setGroupsList] = useState([]);
   const [company, setcompany] = useState([]);
   // ─── Fetch existing sites on mount ──────────────────────
   useEffect(() => {
@@ -91,7 +92,7 @@ export default function SiteForm({ handleCancel, onSaved }) {
       >
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-         Site Details
+            Site Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
@@ -119,24 +120,29 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-            <label>Groups</label>
-            <select
-              name="groups"
-              multiple
-              value={form.groups}
-              onChange={(e) => {
-                const options = Array.from(e.target.selectedOptions).map(
-                  (o) => o.value
-                );
-                setForm((f) => ({ ...f, groups: options }));
-              }}
-            >
-              {groupsList.map((g) => (
-                <option key={g._id} value={g._id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+              Groups
+              </label>
+              <select
+                name="groups"
+                // multiple
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                value={form.groups}
+                onChange={(e) => {
+                  const options = Array.from(e.target.selectedOptions).map(
+                    (o) => o.value
+                  );
+                  setForm((f) => ({ ...f, groups: options }));
+                }}
+              >
+                {groupsList.map((g) => (
+                  <option key={g._id} value={g._id}>
+                    {g.name}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Type
@@ -152,6 +158,20 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 <option value="Physical">Physical</option>
                 <option value="Virtual">Virtual</option>
               </select>
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Site Description
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                rows={4}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
@@ -176,7 +196,7 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 )}
               </select>
             </div>
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Warehouse
               </label>
@@ -198,21 +218,7 @@ export default function SiteForm({ handleCancel, onSaved }) {
                   <option disabled>Loading company...</option>
                 )}
               </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Site Description
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
-                rows={4}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}
+            </div> */}
             <div className="flex items-center space-x-2">
               <label className="block text-sm font-medium text-gray-600">
                 Active

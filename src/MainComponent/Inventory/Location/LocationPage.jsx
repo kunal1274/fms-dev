@@ -24,13 +24,15 @@ const LocationPage = () => {
       }
       return [...prev, Locataion];
     });
-    setView("list");
+     setView("form");
+    // setView("list");
   };
 
   /** Open the "Add Locataion" form */
   const handleAddLocation = () => {
     setSelectedLocataion(null);
     setView("form");
+      setView("list");
   };
 
   /** Show Locataion details */
