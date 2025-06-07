@@ -214,36 +214,7 @@ const LocationForm = ({ handleCancel }) => {
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
-              <div>
-              <label className="block text-sm font-medium text-gray-600">
-               Location Description
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
-                rows={4}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "} <div>
-              <label className="block text-sm font-medium text-gray-600">
-            Remarks
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
-                rows={4}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
             </div>{" "}
-           
-          
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Type
@@ -257,7 +228,7 @@ const LocationForm = ({ handleCancel }) => {
                 <option value="Physical">Physical</option>
                 <option value="Virtual">Virtual</option>
               </select>
-            </div>
+            </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Zone
@@ -278,6 +249,34 @@ const LocationForm = ({ handleCancel }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
+                Location Description
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                rows={4}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Remarks
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                rows={4}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            {/* <div>
+              <label className="block text-sm font-medium text-gray-600">
                 Location lattitude
               </label>
               <input
@@ -288,8 +287,8 @@ const LocationForm = ({ handleCancel }) => {
                 disabled
                 className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
-            <div>
+            </div> */}
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Warehouse
               </label>
@@ -306,9 +305,8 @@ const LocationForm = ({ handleCancel }) => {
                   </option>
                 ))}
               </select>
-            </div>{" "}
-          
-            <div>
+            </div>{" "} */}
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Company
               </label>
@@ -325,10 +323,10 @@ const LocationForm = ({ handleCancel }) => {
                   </option>
                 ))}
               </select>
-            </div>{" "}
-          <div>
+            </div>{" "} */}
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
-       Groups
+                Groups
               </label>
               <textarea
                 name="description"
@@ -339,39 +337,28 @@ const LocationForm = ({ handleCancel }) => {
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>{" "}    <div>
-            <label>Created By (User ID)</label>
-            <input
-              name="createdBy"
-              value={form.createdBy}
-              onChange={handleChange}
-              placeholder="e.g. 642f9c1234abc456def78901"
-              className="mt-1 w-full p-2 border rounded"
-            />
-          </div>
-          {/* Updated By */}
-          <div>
-            <label>Updated By (User ID)</label>
-            <input
-              name="updatedBy"
-              value={form.updatedBy}
-              onChange={handleChange}
-              placeholder="e.g. 642f9c1234abc456def78901"
-              className="mt-1 w-full p-2 border rounded"
-            />
-          </div>
-             <div className="flex items-center">
+            </div>{" "} */}
+            {/* <div>
+              <label>Created By (User ID)</label>
               <input
-                name="active"
-                checked={form.active}
+                name="createdBy"
+                value={form.createdBy}
                 onChange={handleChange}
-                type="checkbox"
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+                placeholder="e.g. 642f9c1234abc456def78901"
+                className="mt-1 w-full p-2 border rounded"
               />
-              <label className="ml-2 text-sm font-medium text-gray-600">
-                Archive
-              </label>
-            </div>
+            </div> */}
+            {/* Updated By */}
+            {/* <div>
+              <label>Updated By (User ID)</label>
+              <input
+                name="updatedBy"
+                value={form.updatedBy}
+                onChange={handleChange}
+                placeholder="e.g. 642f9c1234abc456def78901"
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div> */}
             <div className="flex items-center">
               <input
                 name="active"
@@ -383,18 +370,6 @@ const LocationForm = ({ handleCancel }) => {
               <label className="ml-2 text-sm font-medium text-gray-600">
                 Active
               </label>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-               Extra
-              </label>
-              <input
-                name="contactPersonPhone"
-                value={form.contactPersonPhone}
-                onChange={handleChange}
-                placeholder="e.g. +91 91234 56789"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
             </div>
           </div>
         </section>

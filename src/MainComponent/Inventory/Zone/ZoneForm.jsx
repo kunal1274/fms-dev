@@ -200,13 +200,15 @@ export default function ZoneForm({ handleCancel }) {
         <section className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Zone Code */}
           <div>
-            <label>Zone Code</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Code
+            </label>
             <input
               name="code"
-              // value={form.code}
-              onChange={handleChange}
-              placeholder="e.g. ZN-001"
-              className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              value={form.code}
+              readOnly
+              placeholder="Auto-generated"
+              className="mt-1 w-full cursor-not-allowed p-2 border rounded focus:ring-2 focus:ring-blue-200"
             />
           </div>
           {/* Zone Name */}
@@ -240,7 +242,7 @@ export default function ZoneForm({ handleCancel }) {
           </div>
           {/* Warehouse */}
           <div>
-            <label>Company</label>
+            <label>WareHouse</label>
             <select
               name="company"
               value={form.company}
@@ -256,23 +258,6 @@ export default function ZoneForm({ handleCancel }) {
             </select>
           </div>{" "}
           {/* <div>
-            <label>Location (Site)</label>
-            <select
-              name="site"
-              value={form.site}
-              onChange={handleChange}
-              required
-              className="mt-1 w-full p-2 border rounded"
-            >
-              <option value="">Select a Location</option>
-              {sites.map((s) => (
-                <option key={s._id} value={s._id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div> */}
-          <div>
             <label>Warehouse</label>
             <select
               name="warehouse"
@@ -288,8 +273,8 @@ export default function ZoneForm({ handleCancel }) {
                 </option>
               ))}
             </select>
-          </div>{" "}
-          <div>
+          </div>{" "} */}
+          {/* <div>
             <label>Groups</label>
             <select
               name="groups"
@@ -304,7 +289,7 @@ export default function ZoneForm({ handleCancel }) {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
           <div>
             <label>Description</label>
             <textarea
@@ -317,7 +302,7 @@ export default function ZoneForm({ handleCancel }) {
           </div>{" "}
           {/* Groups */}
           {/* Address */}
-          <div>
+          {/* <div>
             <label>Address</label>
             <input
               name="zoneAddress"
@@ -326,7 +311,7 @@ export default function ZoneForm({ handleCancel }) {
               placeholder="Enter address"
               className="mt-1 w-full p-2 border rounded h-24"
             />
-          </div>
+          </div> */}
           {/* Remarks */}
           <div>
             <label>Remarks</label>
@@ -340,7 +325,7 @@ export default function ZoneForm({ handleCancel }) {
           </div>
           {/* Description */}
           {/* Extras */}
-          <div>
+          {/* <div>
             <label>Extras</label>
             <textarea
               name="extras"
@@ -350,9 +335,9 @@ export default function ZoneForm({ handleCancel }) {
               placeholder='{"key":"value"}'
               className="mt-1 w-full p-2 border rounded"
             />
-          </div>
+          </div> */}
           {/* Files */}
-          <div className="sm:col-span-2">
+          {/* <div className="sm:col-span-2">
             <label>Files</label>
             <input
               name="files"
@@ -361,10 +346,9 @@ export default function ZoneForm({ handleCancel }) {
               onChange={handleChange}
               className="mt-1 w-full"
             />
-          </div>{" "}
-         
+          </div>{" "} */}
           {/* Checkboxes */}
-          <div className="flex items-center gap-4 sm:col-span-2">
+          {/* <div className="flex items-center gap-4 sm:col-span-2">
             <label>
               <input
                 name="archived"
@@ -383,29 +367,8 @@ export default function ZoneForm({ handleCancel }) {
               />{" "}
               Active
             </label>
-          </div>
+          </div> */}
           {/* Created By */}
-          <div>
-            <label>Created By (User ID)</label>
-            <input
-              name="createdBy"
-              value={form.createdBy}
-              onChange={handleChange}
-              placeholder="e.g. 642f9c1234abc456def78901"
-              className="mt-1 w-full p-2 border rounded"
-            />
-          </div>
-          {/* Updated By */}
-          <div>
-            <label>Updated By (User ID)</label>
-            <input
-              name="updatedBy"
-              value={form.updatedBy}
-              onChange={handleChange}
-              placeholder="e.g. 642f9c1234abc456def78901"
-              className="mt-1 w-full p-2 border rounded"
-            />
-          </div>
         </section>
         {/* Form actions */}
         <div className="py-6 flex justify-between">

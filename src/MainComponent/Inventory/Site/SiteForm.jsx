@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 
-export default function SiteForm({ handleCancel, onSaved }) {
+export default function SiteForm({ handleCancel, onSaved, companyId }) {
   // ─── Form State ────────────────────────────────────────
   const initialForm = {
     name: "",
@@ -120,9 +120,9 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
-              Groups
+                Groups
               </label>
               <select
                 name="groups"
@@ -142,7 +142,7 @@ export default function SiteForm({ handleCancel, onSaved }) {
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Type
@@ -158,22 +158,7 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 <option value="Physical">Physical</option>
                 <option value="Virtual">Virtual</option>
               </select>
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Site Description
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
-                rows={4}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}
-            <div>
+            </div>{" "}   <div>
               <label className="block text-sm font-medium text-gray-600">
                 Company
               </label>
@@ -196,28 +181,46 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 )}
               </select>
             </div>
-            {/* <div>
+            <div>
               <label className="block text-sm font-medium text-gray-600">
-                Warehouse
+                Site Description
               </label>
-              <select
-                name="warehouse"
-                value={form.warehouse}
+              <textarea
+                name="description"
+                value={form.description}
                 onChange={handleChange}
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                rows={4}
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select a warehouse…</option>
-                {company.length ? (
-                  company.map((w) => (
-                    <option key={w._id} value={w._id}>
-                      {`${w.name} – ${w.name}`}
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>Loading company...</option>
-                )}
-              </select>
+              />
+            </div>{" "}  <div>
+              <label className="block text-sm font-medium text-gray-600">
+             Remarks
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                rows={4}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+         
+            {/* <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Extra
+              </label>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="e.g. XYZ Enterprises Pvt. Ltd."
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
             </div> */}
             <div className="flex items-center space-x-2">
               <label className="block text-sm font-medium text-gray-600">
@@ -231,7 +234,7 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 className="h-4 w-4 text-blue-600 border-gray-300 rounded"
               />
             </div>{" "}
-            <div className="flex items-center space-x-2">
+            {/* <div className="flex items-center space-x-2">
               <label className="block text-sm font-medium text-gray-600">
                 Archived
               </label>
@@ -242,7 +245,17 @@ export default function SiteForm({ handleCancel, onSaved }) {
                 onChange={handleChange}
                 className="h-4 w-4 text-blue-600 border-gray-300 rounded"
               />
-            </div>
+            </div>{" "}
+            <div className="sm:col-span-2">
+              <label>Files</label>
+              <input
+                name="files"
+                type="file"
+                multiple
+                onChange={handleChange}
+                className="mt-1 w-full"
+              />
+            </div>{" "} */}
           </div>
         </section>
 

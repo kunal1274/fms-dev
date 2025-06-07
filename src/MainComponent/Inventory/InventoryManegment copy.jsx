@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+  import React, { useState } from "react";
 import {
   FaThLarge,
   FaListUl,
@@ -9,32 +8,34 @@ import {
   FaWarehouse,
   FaFilter,
   FaSortAmountDown,
-  FaColumns,
   FaMap,
+  FaColumns,
+  FaArchive,
   FaMapMarkerAlt,
   FaPalette,
-  FaArchive,
 } from "react-icons/fa";
 
 // import your real pages:
-import WarehousePage from "./Warehouse/WarehouseForm.jsx";
-import ItemMasterPage from "./Item/Form.jsx";
-import SitePage from "./Site/SiteForm.jsx";
-import Aisles from "./Aisles/AislesForm.jsx";
-import ShelvesPage from "./Shelves/ShelvesForm.jsx";
-import Serial from "./Serial/SerialForm.jsx";
-import BatchValuePage from "./BatchValue/BatchValueform.jsx";
-import BinPage from "./Bin/BinForm.jsx";
-import RackPage from "./Rack/RackForm.jsx";
-import LocationPage from "./Location/LocationForm.jsx";
-import ZonePage from "./Zone/ZoneForm.jsx";
-import ConfigPage from "./ProductDimConf/ProductDimConfForm.jsx";
-import ColorPage from "./ProductDimColor/ProductDimColorForm.jsx";
+import WarehousePage from "./Warehouse/WarehousePage.jsx";
+import ItemMasterPage from "./Item/ItemPage.jsx";
+import SitePage from "./Site/SitePage.jsx";
+import Aisles from "./Aisles/AislesPage.jsx";
+import ShelvesPage from "./Shelves/ShelvesPage.jsx";
+import Serial from "./Serial/SerialPage.jsx";
+import BatchValuePage from "./BatchValue/BatchValuePage.jsx";
+import BinPage from "./Bin/BinPage.jsx";
+import RackPage from "./Rack/RackPage.jsx";
+import LocationPage from "./Location/LocationPage.jsx";
+import ZonePage from "./Zone/ZonePage.jsx";
+// placeholder imports (uncomment when available)
+import ConfigPage from "./ProductDimConf/ProductDimConfPage.jsx";
+import ColorPage from "./ProductDimColor/ProductDimColorPage.jsx";
 
 const PAGE = {
   TOGGLE: "TOGGLE",
   ITEM_MASTER: "ITEM_MASTER",
   SITE: "SITE",
+  SHELVES: "SHELVES",
   WAREHOUSE: "WAREHOUSE",
   ZONE: "ZONE",
   SHELVES: "SHELVES",
@@ -42,6 +43,7 @@ const PAGE = {
   BATCHES: "BATCHES",
   BIN: "BIN",
   LOCATION: "LOCATION",
+  // RACKS: "RACKS",
   INVENTORY_JOURNALS: "INVENTORY_JOURNALS",
   INVENTORY_TRANSACTIONS: "INVENTORY_TRANSACTIONS",
   ON_HAND_STOCK: "ON_HAND_STOCK",
@@ -52,10 +54,15 @@ const PAGE = {
   CONFIG: "CONFIG",
   COLOR: "COLOR",
   SERIALS: "SERIALS",
+  productDimVersionForm: "productDimVersionForm",
+  productDimSize: "productDimSize",
+  ProductDimVersion: "ProductDimVersion",
+  productDimStyleForm: "productDimStyleForm",
+  PRODUCTPAGE: "PRODUCTPAGE",
+  LOCATIONPAGE: "PRODUCTPAGE",
 };
 
 const VIEW_MODES = { GRID: "GRID", ICON: "ICON", LIST: "LIST" };
-const initialForm = { company: "" };
 
 const groups = [
   {
@@ -70,10 +77,7 @@ const groups = [
       },
     ],
   },
-  {
-    id: "setups",
-    title: "Setups & Configurations",
-  },
+  { id: "setups", title: "Setups & Configurations" },
   {
     id: "transaction",
     title: "Transactions",
@@ -130,6 +134,7 @@ const groups = [
   },
 ];
 
+// Setup sections with dynamic cols for grid
 const setupSections = [
   {
     id: "storage",
@@ -144,21 +149,56 @@ const setupSections = [
         page: PAGE.WAREHOUSE,
       },
       { id: "zone", title: "Zone", icon: <FaMapMarkerAlt />, page: PAGE.ZONE },
-      { id: "aisles", title: "Aisles", icon: <FaListUl />, page: PAGE.AISLES },
       {
-        id: "shelves",
-        title: "Shelves",
+        id: "Aisles",
+        title: "Aisles",
         icon: <FaListUl />,
-        page: PAGE.SHELVES,
+        page: PAGE.AISLES,
       },
-      { id: "bin", title: "Bin", icon: <FaListUl />, page: PAGE.BIN },
       {
-        id: "location",
+        id: "Bin",
+        title: "Bin",
+        icon: <FaListUl />,
+        page: PAGE.BIN,
+      },
+      {
+        id: "Location",
         title: "Location",
         icon: <FaListUl />,
         page: PAGE.LOCATION,
       },
-      { id: "rack", title: "Rack", icon: <FaListUl />, page: PAGE.RACKS },
+
+      {
+        id: "Serials",
+        title: "Serials",
+        icon: <FaListUl />,
+        page: PAGE.PRODUCTPAGE,
+      },
+      {
+        id: "Location",
+        title: "Location",
+        icon: <FaListUl />,
+        page: PAGE.LOCATION,
+      },
+      {
+        id: "Rack",
+        title: "Rack",
+        icon: <FaListUl />,
+        page: PAGE.LOCATION,
+      },
+      {
+        id: "Sheilf",
+        title: "Sheilf",
+        icon: <FaListUl />,
+        page: PAGE.LOCATION,
+      },
+     
+      {
+        id: "Pallet",
+        title: "Pallet",
+        icon: <FaListUl />,
+        page: PAGE.LOCATION,
+      },
     ],
   },
   {
@@ -167,16 +207,22 @@ const setupSections = [
     cols: 2,
     items: [
       {
-        id: "color",
+        id: "ProductColor ",
         title: "Product Color",
-        icon: <FaPalette />,
-        page: PAGE.COLOR,
+        icon: <FaFilter />,
+        page: PAGE.PRODUCTPAGE,
       },
       {
-        id: "config",
-        title: "Product Config",
-        icon: <FaFilter />,
-        page: PAGE.CONFIG,
+        id: "ProductDimConf ",
+        title: "Product Conf ",
+        icon: <FaPalette />,
+        page: PAGE.PRODUCTPAGE,
+      },
+      {
+        id: "productDimStyle",
+        title: "Product Style",
+        icon: <FaListUl />,
+        page: PAGE.PRODUCTPAGE,
       },
     ],
   },
@@ -216,75 +262,13 @@ const componentMap = {
   [PAGE.COLOR]: <ColorPage />,
   [PAGE.SERIALS]: <Serial />,
 };
-function CompanyDropdown({ companies, form, setForm }) {
-  const [open, setOpen] = useState(false);
 
-  const handleSelect = (id) => {
-    setForm({ ...form, company: id });
-    setOpen(false);
-  };
-
-  return (
-    <div
-      className="relative w-64"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
-      <div className="p-2 border rounded cursor-pointer bg-white">
-        {form.company
-          ? companies.find((c) => c._id === form.company)?.companyName
-          : "Select a company…"}
-      </div>
-      {open && (
-        <div className="absolute z-10 w-full bg-white border rounded shadow max-h-60 overflow-y-auto">
-          {companies.map((c) => (
-            <div
-              key={c._id}
-              onClick={() => handleSelect(c._id)}
-              className="p-2 hover:bg-blue-100 cursor-pointer"
-            >
-              {c.companyCode} {c.companyName}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 export default function ViewTogglePage() {
-  const [form, setForm] = useState(initialForm);
-  const [companies, setCompanies] = useState([]);
   const [page, setPage] = useState(PAGE.TOGGLE);
   const [viewMode, setViewMode] = useState(VIEW_MODES.GRID);
   const [hiddenGroups, setHiddenGroups] = useState({});
   const [hiddenSections, setHiddenSections] = useState({});
   const [hiddenSubgroups, setHiddenSubgroups] = useState({});
-
-  // Fetch companies once on mount
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      try {
-        const response = await axios.get(
-          "https://fms-qkmw.onrender.com/fms/api/v0/companies"
-        );
-        const payload = response.data;
-        const list = Array.isArray(payload)
-          ? payload
-          : Array.isArray(payload.data)
-          ? payload.data
-          : [];
-        setCompanies(list);
-      } catch (err) {
-        console.error("Error fetching companies:", err);
-      }
-    };
-    fetchCompanies();
-  }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
 
   const goBack = () => setPage(PAGE.TOGGLE);
   const toggleGroup = (id) =>
@@ -294,6 +278,7 @@ export default function ViewTogglePage() {
   const toggleSubgroup = (id) =>
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
+  // generic item renderer respecting viewMode
   const renderItems = (items, cols) => {
     const containerClass =
       viewMode === VIEW_MODES.GRID
@@ -356,32 +341,25 @@ export default function ViewTogglePage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold">Dashboard</h1>
-
-        <div className="flex items-center space-x-4">
-          <CompanyDropdown
-            companies={companies}
-            form={form}
-            setForm={setForm}
-          />
-          <div className="flex bg-gray-100 rounded-lg overflow-hidden">
-            {[
-              { mode: VIEW_MODES.GRID, icon: <FaThLarge /> },
-              { mode: VIEW_MODES.ICON, icon: <FaTh /> },
-              { mode: VIEW_MODES.LIST, icon: <FaListUl /> },
-            ].map(({ mode, icon }) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={`p-3 ${
-                  viewMode === mode ? "bg-white shadow" : "hover:bg-gray-200"
-                } transition`}
-              >
-                {React.cloneElement(icon, { className: "text-lg" })}
-              </button>
-            ))}
-          </div>
+        <div className="flex bg-gray-100 rounded-lg overflow-hidden">
+          {[
+            { mode: VIEW_MODES.GRID, icon: <FaThLarge /> },
+            { mode: VIEW_MODES.ICON, icon: <FaTh /> },
+            { mode: VIEW_MODES.LIST, icon: <FaListUl /> },
+          ].map(({ mode, icon }) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className={`p-3 ${
+                viewMode === mode ? "bg-white shadow" : "hover:bg-gray-200"
+              } transition`}
+            >
+              {React.cloneElement(icon, { className: "text-lg" })}
+            </button>
+          ))}
         </div>
       </div>
+
       {groups.map((grp) => (
         <div key={grp.id} className="mb-8">
           <div className="flex justify-between items-center mb-4">
@@ -393,6 +371,7 @@ export default function ViewTogglePage() {
               {hiddenGroups[grp.id] ? ">" : "^"}
             </button>
           </div>
+
           {!hiddenGroups[grp.id] &&
             (grp.id === "setups"
               ? setupSections.map((section) => (

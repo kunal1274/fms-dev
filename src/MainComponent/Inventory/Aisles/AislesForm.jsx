@@ -147,34 +147,6 @@ const AislesForm = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-         <div>
-  <label className="block text-sm font-medium text-gray-600">
-    Description
-  </label>
-  <textarea
-    name="description"
-    value={form.description}
-    onChange={handleChange}
-    placeholder="Enter a brief description or address..."
-    rows={4}
-    required
-    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-  />
-</div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Remarks
-              </label>
-              <textarea
-                name="remarks"
-                value={form.remarks}
-                onChange={handleChange}
-                placeholder="e.g. Any additional notes…"
-                rows={4}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}
             <div>
               <label>Type</label>
               <select
@@ -207,17 +179,32 @@ const AislesForm = ({ handleCancel }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Racks
+                Description
               </label>
-              <input
-                name="type"
-                value={form.type}
+              <textarea
+                name="description"
+                value={form.description}
                 onChange={handleChange}
-                placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
+                placeholder="Enter a brief description or address..."
+                rows={4}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Remarks
+              </label>
+              <textarea
+                name="remarks"
+                value={form.remarks}
+                onChange={handleChange}
+                placeholder="e.g. Any additional notes…"
+                rows={4}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+ 
             <div className="flex items-center gap-2 ml-1">
               <label className="text-blue-600 font-medium">Active</label>
               <input
@@ -228,26 +215,6 @@ const AislesForm = ({ handleCancel }) => {
                 className="w-4 h-4"
               />
             </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Company
-              </label>
-              <select
-                name="company"
-                value={form.company}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full p-2 border rounded"
-              >
-                <option value="">Select</option>
-                {Array.isArray(companyList) &&
-                  companyList.map((company) => (
-                    <option key={company._id} value={company._id}>
-                      {company.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
           </div>
         </section>
 

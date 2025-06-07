@@ -225,8 +225,34 @@ const ShelvesForm = ({ handleCancel }) => {
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
-            <div>
+            </div>  <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Type
+              </label>
+              <select
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select type</option>
+                <option value="Physical">Physical</option>
+                <option value="Virtual">Virtual</option>
+              </select>
+            </div>  <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Shelves Value
+              </label>
+              <input
+                name="value"
+                value={form.value}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Created By
               </label>
@@ -237,9 +263,9 @@ const ShelvesForm = ({ handleCancel }) => {
                 placeholder="Your User ID"
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
+            </div> */}
             {/* Updated By */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Updated By
               </label>
@@ -250,10 +276,10 @@ const ShelvesForm = ({ handleCancel }) => {
                 placeholder="User ID (if updating later)"
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
+            </div> */}
             {/* Site Select */}
             {/* Value */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Site
               </label>
@@ -271,20 +297,21 @@ const ShelvesForm = ({ handleCancel }) => {
                   </option>
                 ))}
               </select>
-            </div>
-            <div>
+            </div> */}   <div>
               <label className="block text-sm font-medium text-gray-600">
-                Shelves Value
+             Discription
               </label>
-              <input
-                name="value"
-                value={form.value}
+              <textarea
+                name="remarks"
+                value={form.remarks}
                 onChange={handleChange}
-                required
+                placeholder="e.g. Any additional notes…"
+                rows={4}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
-            <div>
+          
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Bin
               </label>
@@ -302,9 +329,9 @@ const ShelvesForm = ({ handleCancel }) => {
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
             {/* Location */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Location
               </label>
@@ -322,35 +349,25 @@ const ShelvesForm = ({ handleCancel }) => {
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
             {/* Remarks */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Remarks
               </label>
-              <input
+              <textarea
                 name="remarks"
                 value={form.remarks}
                 onChange={handleChange}
-                placeholder="Optional remarks"
+                placeholder="e.g. Any additional notes…"
+                rows={4}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
+            </div>{" "}
             {/* Extras */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Extras
-              </label>
-              <input
-                name="extras"
-                value={form.extras}
-                onChange={handleChange}
-                placeholder='e.g. {"color":"red"}'
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
+ 
             {/* Archived Checkbox */}
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <input
                 name="archived"
                 type="checkbox"
@@ -361,9 +378,9 @@ const ShelvesForm = ({ handleCancel }) => {
               <label className="block text-sm font-medium text-gray-600">
                 Archived
               </label>
-            </div>
+            </div> */}
             {/* Group Select */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Group
               </label>
@@ -377,39 +394,12 @@ const ShelvesForm = ({ handleCancel }) => {
                 <option value="Physical">Physical</option>
                 <option value="Virtual">Virtual</option>
               </select>
-            </div>
+            </div> */}
             {/* Created By */}
             {/* Type Select */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Type
-              </label>
-              <select
-                name="type"
-                value={form.type}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select type</option>
-                <option value="Physical">Physical</option>
-                <option value="Virtual">Virtual</option>
-              </select>
-            </div>
+          
             {/* Description */}
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-600">
-                Description
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="Enter description"
-                rows={4}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
+         
             {/* Active Checkbox */}
             <div className="flex items-center gap-2 ml-1">
               <input
