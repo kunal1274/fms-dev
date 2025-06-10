@@ -204,7 +204,6 @@ const AislesForm = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
- 
             <div className="flex items-center gap-2 ml-1">
               <label className="text-blue-600 font-medium">Active</label>
               <input
