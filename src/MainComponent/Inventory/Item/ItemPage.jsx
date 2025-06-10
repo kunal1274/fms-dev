@@ -6,6 +6,12 @@ import ItemForm from "./Form";
 import ItemList from "./List";
 
 const ItemPage = () => {
+
+const { form, setForm, companies } = useContext(CompanyContext);
+  useEffect(() => {
+    console.log("Current company:", form.company);
+  }, [form.company]);
+
   const [view, setView] = useState("list");
   const [Items, setItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -73,6 +79,7 @@ const ItemPage = () => {
 
     return (
       <div className="flex justify-between ">
+        
         <h1 className="text-2xl font-semibold text-gray-800">{title}</h1>
         {action}
       </div>
@@ -81,6 +88,7 @@ const ItemPage = () => {
 
   return (
     <div className="w-full bg-white rounded-lg ">
+       <h2>Item Master - Selected Company: {form.company}</h2>
       <div>
         {view === "list" && (
           <ItemList

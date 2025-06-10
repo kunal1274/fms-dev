@@ -172,8 +172,22 @@ const componentMap = {
   [PAGE.BULK_UPDATE]: null, // add your component here
   [PAGE.UNIT_CONVERSIONS]: null, // add your component here
 };
+const [open, setOpen] = useState(false);
 
+  const handleSelect = (id) => {
+    // update form
+    setForm({ ...form, company: id });
+    // persist for next load
+    localStorage.setItem("selectedCompany", id);
+    setOpen(false);
+  };
 export default function ViewTogglePage() {
+  useEffect(() => {
+  const stored = localStorage.getItem("selectedCompany");
+  if (stored) {
+    setForm(prev => ({ ...prev, company: stored }));
+  }
+}, []);
   const [page, setPage] = useState(PAGE.TOGGLE);
   const [viewMode, setViewMode] = useState(VIEW_MODES.GRID);
 
@@ -261,9 +275,11 @@ export default function ViewTogglePage() {
                 </span>
               </div>
             ))}
+              <h2>hjye</h2>
           </div>
         </div>
       ))}
+    
     </div>
   );
 }

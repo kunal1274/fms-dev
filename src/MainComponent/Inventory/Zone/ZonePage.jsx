@@ -14,7 +14,7 @@ export default function ZonePage() {
   };
   const handleViewZone = (id) => {
     setSelectedId(id);
-    setView("details");
+    setView("list");
   };
   const handleEditZone = () => {
     setView("form");

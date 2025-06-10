@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { PAGE, VIEW_MODES, groups, setupSections } from "./constants"; // Make sure to define/export these
+import CompanyDropdown from "./CompanyDropdown";
+import Footer from "./Footer";
+
 import axios from "axios";
 import {
   FaThLarge,
@@ -16,22 +20,22 @@ import {
   FaArchive,
 } from "react-icons/fa";
 
-// import your real pages:
-import WarehousePage from "./Warehouse/WarehouseForm.jsx";
-import ItemMasterPage from "./Item/Form.jsx";
-import SitePage from "./Site/SiteForm.jsx";
-import Aisles from "./Aisles/AislesForm.jsx";
-import ShelvesPage from "./Shelves/ShelvesForm.jsx";
-import Serial from "./Serial/SerialForm.jsx";
-import BatchValuePage from "./BatchValue/BatchValueform.jsx";
-import BinPage from "./Bin/BinForm.jsx";
-import RackPage from "./Rack/RackForm.jsx";
-import LocationPage from "./Location/LocationForm.jsx";
-import ZonePage from "./Zone/ZoneForm.jsx";
-import ConfigPage from "./ProductDimConf/ProductDimConfForm.jsx";
-import ColorPage from "./ProductDimColor/ProductDimColorForm.jsx";
+import ItemMasterPage from "./Item/ItemPage";
 
-const PAGE = {
+import SitePage from "./Site/SitePage";
+import ZonePage from "./Zone/ZonePage";
+import ShelvesPage from "./Shelves/ShelvesPage";
+import Aisles from "./Aisles/AislesPage";
+import BatchValuePage from "./BatchValue/BatchValuePage";
+import BinPage from "./Bin/BinPage";
+import LocationPage from "./Location/LocationPage";
+import RackPage from "./Rack/RackPage";
+import ConfigPage from "./ProductDimConf/ProductDimConfPage";
+import ColorPage from "./ProductDimColor/ProductDimColorPage";
+import Serial from "./Serial/SerialPage";
+
+// Define page keys
+export const PAGE = {
   TOGGLE: "TOGGLE",
   ITEM_MASTER: "ITEM_MASTER",
   SITE: "SITE",
@@ -42,6 +46,7 @@ const PAGE = {
   BATCHES: "BATCHES",
   BIN: "BIN",
   LOCATION: "LOCATION",
+  RACK: "RACK",
   INVENTORY_JOURNALS: "INVENTORY_JOURNALS",
   INVENTORY_TRANSACTIONS: "INVENTORY_TRANSACTIONS",
   ON_HAND_STOCK: "ON_HAND_STOCK",
@@ -54,9 +59,70 @@ const PAGE = {
   SERIALS: "SERIALS",
 };
 
-const VIEW_MODES = { GRID: "GRID", ICON: "ICON", LIST: "LIST" };
-const initialForm = { company: "" };
+// Footer component
+export default function Footer({ companies, form, setForm }) {
+  return (
+    <footer className="flex ">
+      <CompanyDropdown companies={companies} form={form} setForm={setForm} />
+    </footer>
+  );
+}
 
+const VIEW_MODES = { GRID: "GRID", ICON: "ICON", LIST: "LIST" };
+
+// Company dropdown with hover
+export default function CompanyDropdown({ companies, form, setForm }) {
+  const [open, setOpen] = useState(false);
+  const [hovering, setHovering] = useState(false);
+
+  const handleSelect = (id) => {
+    setForm({ ...form, company: id });
+    localStorage.setItem("selectedCompany", id);
+    setOpen(false);
+  };
+
+  const selectedCompany = companies.find((c) => c._id === form.company);
+
+  return (
+    <div
+      className="relative w-64"
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+    >
+      {/* Display Box */}
+      <div
+        className="p-2 border rounded cursor-pointer bg-white relative"
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        {selectedCompany ? selectedCompany.companyCode : "Select a company…"}
+
+        {/* Tooltip on Hover */}
+        {hovering && selectedCompany && (
+          <div className="absolute top-full mt-1 left-0 w-max bg-white border rounded shadow p-2 text-sm z-20">
+            {selectedCompany.companyCode} - {selectedCompany.companyName}
+          </div>
+        )}
+      </div>
+
+      {/* Dropdown List */}
+      {open && (
+        <div className="absolute bottom-full mb-2 z-10 w-full bg-white border rounded shadow max-h-60 overflow-y-auto">
+          {companies.map((c) => (
+            <div
+              key={c._id}
+              onClick={() => handleSelect(c._id)}
+              className="p-2 hover:bg-blue-100 cursor-pointer"
+            >
+              {c.companyCode} - {c.companyName}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Layout sections and groups
 const groups = [
   {
     id: "master",
@@ -158,7 +224,7 @@ const setupSections = [
         icon: <FaListUl />,
         page: PAGE.LOCATION,
       },
-      { id: "rack", title: "Rack", icon: <FaListUl />, page: PAGE.RACKS },
+      { id: "rack", title: "Rack", icon: <FaListUl />, page: PAGE.RACK },
     ],
   },
   {
@@ -201,56 +267,10 @@ const setupSections = [
   },
 ];
 
-const componentMap = {
-  [PAGE.ITEM_MASTER]: <ItemMasterPage />,
-  [PAGE.WAREHOUSE]: <WarehousePage />,
-  [PAGE.SITE]: <SitePage />,
-  [PAGE.ZONE]: <ZonePage />,
-  [PAGE.SHELVES]: <ShelvesPage />,
-  [PAGE.AISLES]: <Aisles />,
-  [PAGE.BATCHES]: <BatchValuePage />,
-  [PAGE.BIN]: <BinPage />,
-  [PAGE.LOCATION]: <LocationPage />,
-  [PAGE.RACKS]: <RackPage />,
-  [PAGE.CONFIG]: <ConfigPage />,
-  [PAGE.COLOR]: <ColorPage />,
-  [PAGE.SERIALS]: <Serial />,
+const initialForm = {
+  company: localStorage.getItem("selectedCompany") || "",
 };
-function CompanyDropdown({ companies, form, setForm }) {
-  const [open, setOpen] = useState(false);
 
-  const handleSelect = (id) => {
-    setForm({ ...form, company: id });
-    setOpen(false);
-  };
-
-  return (
-    <div
-      className="relative w-64"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
-      <div className="p-2 border rounded cursor-pointer bg-white">
-        {form.company
-          ? companies.find((c) => c._id === form.company)?.companyName
-          : "Select a company…"}
-      </div>
-      {open && (
-        <div className="absolute z-10 w-full bg-white border rounded shadow max-h-60 overflow-y-auto">
-          {companies.map((c) => (
-            <div
-              key={c._id}
-              onClick={() => handleSelect(c._id)}
-              className="p-2 hover:bg-blue-100 cursor-pointer"
-            >
-              {c.companyCode} {c.companyName}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 export default function ViewTogglePage() {
   const [form, setForm] = useState(initialForm);
   const [companies, setCompanies] = useState([]);
@@ -260,31 +280,24 @@ export default function ViewTogglePage() {
   const [hiddenSections, setHiddenSections] = useState({});
   const [hiddenSubgroups, setHiddenSubgroups] = useState({});
 
-  // Fetch companies once on mount
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
         const response = await axios.get(
           "https://fms-qkmw.onrender.com/fms/api/v0/companies"
         );
-        const payload = response.data;
-        const list = Array.isArray(payload)
-          ? payload
-          : Array.isArray(payload.data)
-          ? payload.data
+        const data = Array.isArray(response.data)
+          ? response.data
+          : Array.isArray(response.data.data)
+          ? response.data.data
           : [];
-        setCompanies(list);
+        setCompanies(data);
       } catch (err) {
         console.error("Error fetching companies:", err);
       }
     };
     fetchCompanies();
   }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
 
   const goBack = () => setPage(PAGE.TOGGLE);
   const toggleGroup = (id) =>
@@ -338,6 +351,46 @@ export default function ViewTogglePage() {
     );
   };
 
+  const componentMap = {
+    [PAGE.ITEM_MASTER]: (
+      <ItemMasterPage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.WAREHOUSE]: (
+      <WarehousePage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.SITE]: (
+      <SitePage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.ZONE]: (
+      <ZonePage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.SHELVES]: (
+      <ShelvesPage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.AISLES]: (
+      <Aisles companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.BATCHES]: (
+      <BatchValuePage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.BIN]: <BinPage companies={companies} form={form} setForm={setForm} />,
+    [PAGE.LOCATION]: (
+      <LocationPage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.RACK]: (
+      <RackPage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.CONFIG]: (
+      <ConfigPage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.COLOR]: (
+      <ColorPage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.SERIALS]: (
+      <Serial companies={companies} form={form} setForm={setForm} />
+    ),
+  };
+
   if (page !== PAGE.TOGGLE) {
     return (
       <div className="p-6">
@@ -356,32 +409,35 @@ export default function ViewTogglePage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold">Dashboard</h1>
-
-        <div className="flex items-center space-x-4">
+        <div className="flex justify-end items-center space-x-4">
           <CompanyDropdown
             companies={companies}
             form={form}
             setForm={setForm}
           />
           <div className="flex bg-gray-100 rounded-lg overflow-hidden">
-            {[
-              { mode: VIEW_MODES.GRID, icon: <FaThLarge /> },
-              { mode: VIEW_MODES.ICON, icon: <FaTh /> },
-              { mode: VIEW_MODES.LIST, icon: <FaListUl /> },
-            ].map(({ mode, icon }) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={`p-3 ${
-                  viewMode === mode ? "bg-white shadow" : "hover:bg-gray-200"
-                } transition`}
-              >
-                {React.cloneElement(icon, { className: "text-lg" })}
-              </button>
-            ))}
+            {[VIEW_MODES.GRID, VIEW_MODES.ICON, VIEW_MODES.LIST].map(
+              (mode, index) => {
+                const icons = [<FaThLarge />, <FaTh />, <FaListUl />];
+                return (
+                  <button
+                    key={mode}
+                    onClick={() => setViewMode(mode)}
+                    className={`p-3 ${
+                      viewMode === mode
+                        ? "bg-white shadow"
+                        : "hover:bg-gray-200"
+                    } transition`}
+                  >
+                    {React.cloneElement(icons[index], { className: "text-lg" })}
+                  </button>
+                );
+              }
+            )}
           </div>
         </div>
       </div>
+
       {groups.map((grp) => (
         <div key={grp.id} className="mb-8">
           <div className="flex justify-between items-center mb-4">
@@ -425,24 +481,19 @@ export default function ViewTogglePage() {
                     {!hiddenSubgroups[sub.id] &&
                       renderItems(
                         sub.items,
-                        viewMode === VIEW_MODES.ICON
-                          ? sub.items.length
-                          : viewMode === VIEW_MODES.GRID
-                          ? 4
-                          : sub.items.length
+                        viewMode === VIEW_MODES.GRID ? 4 : sub.items.length
                       )}
                   </div>
                 ))
               : renderItems(
                   grp.items,
-                  viewMode === VIEW_MODES.ICON
-                    ? grp.items.length
-                    : viewMode === VIEW_MODES.GRID
-                    ? 4
-                    : grp.items.length
+                  viewMode === VIEW_MODES.GRID ? 4 : grp.items.length
                 ))}
         </div>
       ))}
+      <div className="flex justify-end">
+        <Footer companies={companies} form={form} setForm={setForm} />
+      </div>
     </div>
   );
 }
