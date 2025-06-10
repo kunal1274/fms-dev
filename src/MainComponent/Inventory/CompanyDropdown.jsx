@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
+import { FaChevronDown } from "react-icons/fa";
 
-const   CompanyDropdown = ({ companies, selectedCompany, onCompanyChange }) => {
+const CompanyDropdown = ({ companies, selectedCompany, onCompanyChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Find the currently selected company object
+  // Find selected company object
   const selectedCompanyObj = companies.find((c) => c.id === selectedCompany);
 
   // Close dropdown when clicking outside
@@ -15,75 +16,72 @@ const   CompanyDropdown = ({ companies, selectedCompany, onCompanyChange }) => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
     <div className="relative inline-block text-left" ref={dropdownRef}>
-      {/* Toggle Button */}
-      <button
-        type="button"
-        className="w-full inline-flex justify-between items-center bg-white border border-gray-300 rounded-md shadow-sm px-4 py-2 text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        onClick={() => setIsOpen((prev) => !prev)}
-      >
-        {selectedCompanyObj ? (
-          <div className="flex items-center">
-            {selectedCompanyObj.iconUrl && (
-              <img
-                src={selectedCompanyObj.iconUrl}
-                alt={selectedCompanyObj.companyName}
-                className="w-5 h-5 mr-2"
-              />
-            )}
-            <span>
-              {selectedCompanyObj.companyCode} -{" "}
-              {selectedCompanyObj.companyName}
-            </span>
-          </div>
-        ) : (
-          <span>Select a company</span>
-        )}
-        {/* Chevron Icon */}
-        <svg
-          className="w-5 h-5 ml-2 -mr-1"
-          viewBox="0 0 20 20"
-          fill="currentColor"
+      {/* Toggle Button with hover tooltip */}
+      <div className="relative group inline-block">
+        <button
+          type="button"
+          className="inline-flex justify-between items-center bg-white border border-gray-300 rounded-md shadow-sm px-4 py-2 text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          onClick={() => setIsOpen((prev) => !prev)}
         >
-          <path
-            fillRule="evenodd"
-            d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 01.02-1.06z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </button>
-
-      {/* Dropdown List */}
-      {isOpen && (
-        <ul className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 overflow-auto rounded-md focus:outline-none">
-          {companies.map((company) => (
-            <li
-              key={company.id}
-              className="flex items-center px-4 py-2 cursor-pointer hover:bg-indigo-50 group"
-              onClick={() => {
-                onCompanyChange(company.id);
-                setIsOpen(false);
-              }}
-            >
-              {company.iconUrl && (
+          {selectedCompanyObj ? (
+            <div className="flex items-center space-x-2">
+              {selectedCompanyObj.iconUrl && (
                 <img
-                  src={company.iconUrl}
-                  alt={company.companyName}
-                  className="w-5 h-5 mr-2"
+                  src={selectedCompanyObj.iconUrl}
+                  alt={selectedCompanyObj.companyName}
+                  className="w-5 h-5"
                 />
               )}
-              {/* Always show code */}
-              <span className="font-medium">{company.companyCode}</span>
-              {/* Show name on hover */}
-              <span className="ml-2 text-sm text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                {company.companyName}
+              <span className="font-medium">
+                {selectedCompanyObj.companyCode} 
+              
               </span>
+            </div>
+          ) : (
+            <span className="text-gray-500">Select a company</span>
+          )}
+          <FaChevronDown className="ml-2 text-gray-500" />
+        </button>
+        {/* Tooltip for button */}
+        {selectedCompanyObj && (
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -mb-2 hidden group-hover:block bg-yellow-200 text-gray-800 text-sm px-3 py-1 rounded shadow-lg whitespace-nowrap">
+            {selectedCompanyObj.companyCode} - {selectedCompanyObj.companyName}
+          </div>
+        )}
+      </div>
+
+      {/* Dropdown List opens upward and adjusts width to content */}
+      {isOpen && (
+        <ul className="absolute z-10 bottom-full mb-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto min-w-max">
+          {companies.map((company) => (
+            <li key={company.id} className="relative group">
+              <div
+                onClick={() => {
+                  onCompanyChange(company.id);
+                  setIsOpen(false);
+                }}
+                className="flex items-center px-4 py-2 cursor-pointer hover:bg-indigo-50 whitespace-nowrap"
+              >
+                {company.iconUrl && (
+                  <img
+                    src={company.iconUrl}
+                    alt={company.companyName}
+                    className="w-5 h-5 mr-2"
+                  />
+                )}
+                <span className="font-medium">
+                  {company.companyCode} - {company.companyName}
+                </span>
+              </div>
+              {/* Tooltip above list item */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -mb-1 hidden group-hover:block bg-yellow-200 text-gray-800 text-sm px-3 py-1 rounded shadow-lg whitespace-nowrap">
+                {company.companyCode} - {company.companyName}
+              </div>
             </li>
           ))}
         </ul>

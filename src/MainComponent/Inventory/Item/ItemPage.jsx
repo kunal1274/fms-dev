@@ -1,32 +1,32 @@
-import React, { useState } from "react";
-
+import React, { useState, useEffect, useContext } from "react";
 import ItemViewPage from "./ItemViewPage";
-import { Button } from "../../../Component/Button/Button";
 import ItemForm from "./Form";
 import ItemList from "./List";
+import { Button } from "../../../Component/Button/Button";
+// import CompanyContext from "../../../context/CompanyContext.jsx";
+import CompanyContext from "../../../context/CompanyContext";
 
 const ItemPage = () => {
+  const { form, setForm, companies } = useContext(CompanyContext);
 
-const { form, setForm, companies } = useContext(CompanyContext);
   useEffect(() => {
     console.log("Current company:", form.company);
   }, [form.company]);
 
   const [view, setView] = useState("list");
-  const [Items, setItems] = useState([]);
+  const [items, setItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  /** Save or update a Item */
-  const handleSaveItem = (Item) => {
+  /** Save or update an Item */
+  const handleSaveItem = (item) => {
     setItems((prev) => {
-      const idx = prev.findIndex((c) => c.ItemAccountNo === Item.ItemAccountNo);
-
+      const idx = prev.findIndex((c) => c.ItemAccountNo === item.ItemAccountNo);
       if (idx !== -1) {
         const updated = [...prev];
-        updated[idx] = Item;
+        updated[idx] = item;
         return updated;
       }
-      return [...prev, Item];
+      return [...prev, item];
     });
     setView("list");
   };
@@ -39,8 +39,8 @@ const { form, setForm, companies } = useContext(CompanyContext);
 
   /** Show Item details */
   const handleViewItem = (ItemAccountNo) => {
-    const cust = Items.find((c) => c.ItemAccountNo === ItemAccountNo);
-    setSelectedItem(cust);
+    const item = items.find((c) => c.ItemAccountNo === ItemAccountNo);
+    setSelectedItem(item);
     setView("details");
   };
 
@@ -60,7 +60,7 @@ const { form, setForm, companies } = useContext(CompanyContext);
     let action = null;
 
     if (view === "list") {
-      action = <Button onClick={handleAddItem}>Add Item</Button>;
+      // action = <Button onClick={handleAddItem}>Add Item</Button>;
     } else if (view === "form") {
       title = selectedItem ? "Edit Item" : "New Item";
       action = (
@@ -78,8 +78,7 @@ const { form, setForm, companies } = useContext(CompanyContext);
     }
 
     return (
-      <div className="flex justify-between ">
-        
+      <div className="flex justify-between">
         <h1 className="text-2xl font-semibold text-gray-800">{title}</h1>
         {action}
       </div>
@@ -87,13 +86,16 @@ const { form, setForm, companies } = useContext(CompanyContext);
   };
 
   return (
-    <div className="w-full bg-white rounded-lg ">
-       <h2>Item Master - Selected Company: {form.company}</h2>
-      <div>
+    <div className="w-full bg-white rounded-lg p-4">
+      {/* {renderHeader()} */}
+      <h2 className="mt-2 text-lg">
+        {/* Item Master - Selected Company: {form.company} */}
+      </h2>
+      <div className="mt-4">
         {view === "list" && (
           <ItemList
-            Items={Items}
-            handleAddItem={handleAddItem}
+            items={items}
+            onAddItem={handleAddItem}
             onView={handleViewItem}
             onDelete={handleDeleteItem}
           />
@@ -101,14 +103,15 @@ const { form, setForm, companies } = useContext(CompanyContext);
 
         {view === "form" && (
           <ItemForm
-            Item={selectedItem}
-            handleAddItem={handleAddItem}
-            handleCancel={handleCancel}
+            item={selectedItem}
+            onSave={handleSaveItem}
+            onCancel={handleCancel}
           />
         )}
+
         {view === "details" && selectedItem && (
           <ItemViewPage
-            Item={selectedItem}
+            item={selectedItem}
             onEdit={() => setView("form")}
             onBack={handleCancel}
           />

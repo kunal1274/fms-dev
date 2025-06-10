@@ -32,8 +32,12 @@ const Footer = ({ onBack, onOk }) => {
   }, []);
 
   return (
-    <footer className="flex justify-between items-center p-4 bg-white border-t">
-      <CompanyDropdown companies={companies} form={form} setForm={setForm} />
+    <footer className="flex justify-between items-center  bg-white border-t">
+    <CompanyDropdown
+  companies={companies}
+  selectedCompany={form.company}
+  onCompanyChange={(id) => setForm({ ...form, company: id })}
+/>
     </footer>
   );
 };
