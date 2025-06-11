@@ -590,9 +590,9 @@ export default function CompanyList({ handleAddCompany, onView }) {
                             {new Date(c.createdAt).toLocaleString()}
                           </td>
                           <td className="px-6 py-4">{c.contactNumber}</td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-1">
                             <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              className={` text-xs font-semibold rounded-full ${
                                 c.active
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"

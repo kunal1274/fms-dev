@@ -121,7 +121,7 @@ export default function CompanyForm({ handleCancel }) {
       bankName: /^[A-Z0-9\s]{0,50}$/, // ✅ Now allows spaces and longer names
       panNumber: /^[A-Z0-9]{0,10}$/,
       gstNumber: /^[A-Z0-9]{0,15}$/,
-      companyCode: /^[A-Z0-9\s]{0,50}$/,
+    
       tanNumber: /^[A-Z0-9]{0,10}$/,
       ifsc: /^[A-Z0-9]{0,12}$/,
       swift: /^[A-Z0-9]{0,10}$/,
@@ -190,7 +190,7 @@ export default function CompanyForm({ handleCancel }) {
 
     const bankDetailsPayload = [
       {
-        code: form.code, // your bank‐detail code
+        code: form.companyCode, // your bank‐detail code
         type: form.bankType, // e.g. "Bank", "UPI", etc.
         bankAccNum: form.bankAccNum, // account number (≤18 digits)
         bankName: form.bankName, // bank’s name
@@ -351,12 +351,11 @@ export default function CompanyForm({ handleCancel }) {
               <input
                 name="companyCode"
                 value={form.companyCode}
-                onChange={handleChange}
+                onChange={handleChange} // ✅ Add this line
                 required
-                placeholder="e.g. HYDN83683"
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
+            </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Company Name
@@ -484,7 +483,6 @@ export default function CompanyForm({ handleCancel }) {
                 onChange={handleChange}
                 placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
                 rows={4}
-                required
                 className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
@@ -498,7 +496,6 @@ export default function CompanyForm({ handleCancel }) {
                 onChange={handleChange}
                 placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
                 rows={4}
-                required
                 className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
@@ -512,7 +509,6 @@ export default function CompanyForm({ handleCancel }) {
                 onChange={handleChange}
                 placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
                 rows={4}
-                required
                 className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
@@ -542,7 +538,7 @@ export default function CompanyForm({ handleCancel }) {
                 name="bankType"
                 value={form.bankType}
                 onChange={handleChange}
-                required
+             
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">Select type</option>
@@ -690,7 +686,7 @@ export default function CompanyForm({ handleCancel }) {
                 value={form.tanNumber}
                 onChange={handleChange}
                 placeholder="e.g. ABCDE1234F"
-                required
+             
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>

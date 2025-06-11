@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Sidebar from "../Sidebar/Sidebar";
 import Header from "../Header/Header";
 import Main from "../Main/Main";
+import Footer from "../Footer/Footer";
 
 const Dashboard = () => {
   // Sidebar open/closed
@@ -48,7 +49,9 @@ const Dashboard = () => {
             onView={handleView}
           />
         </main>
+         <Footer /> 
       </div>
+
     </div>
   );
 };

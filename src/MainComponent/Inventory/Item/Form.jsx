@@ -57,13 +57,13 @@ export default function ItemForm({ onSaved, handleCancel }) {
   // API endpoints
   const apiItemBase = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const apiSiteBase = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
-  // const apiLocationBase = "https://fms-qkmw.onrender.com/fms/api/v0/location";
-  // const apiRackBase = "https://fms-qkmw.onrender.com/fms/api/v0/rack";
-  // const apiShelvesBase = "https://fms-qkmw.onrender.com/fms/api/v0/shelves";
-  // const apiZoneBase = "https://fms-qkmw.onrender.com/fms/api/v0/zone";
-  // const apiWarehouseBase = "https://fms-qkmw.onrender.com/fms/api/v0/warehouse";
+  const apiLocationBase = "https://fms-qkmw.onrender.com/fms/api/v0/location";
+  const apiRackBase = "https://fms-qkmw.onrender.com/fms/api/v0/rack";
+  const apiShelvesBase = "https://fms-qkmw.onrender.com/fms/api/v0/shelves";
+  const apiZoneBase = "https://fms-qkmw.onrender.com/fms/api/v0/zone";
+  const apiWarehouseBase = "https://fms-qkmw.onrender.com/fms/api/v0/warehouse";
   const apiAislesBase = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
-  // const apiBinBase = "https://fms-qkmw.onrender.com/fms/api/v0/bin";
+  const apiBinBase = "https://fms-qkmw.onrender.com/fms/api/v0/bins";
   useEffect(() => {
     const fetchapiShelvesBase = async () => {
       try {

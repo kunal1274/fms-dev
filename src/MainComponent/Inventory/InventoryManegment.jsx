@@ -38,15 +38,29 @@ const initialForm = {
 };
 
 export default function ViewTogglePage() {
-  const [form, setForm] = useState(initialForm);
   const [companies, setCompanies] = useState([]);
+
+  // ──────────────────────────────────────────────────────────
+  // 1. Load available companies once on mount  // ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const resp = await axios.get("/fms/api/v0/companies");
+        // adjust to match your payload shape:
+        setCompanies(Array.isArray(resp.data) ? resp.data : resp.data.data);
+      } catch (err) {
+        console.error("Failed to load companies:", err);
+      }
+    };
+    fetchCompanies();
+  }, []);
+  const [form, setForm] = useState(initialForm);
+
   const [page, setPage] = useState(PAGE.TOGGLE);
   const [viewMode, setViewMode] = useState(VIEW_MODES.GRID);
   const [hiddenGroups, setHiddenGroups] = useState({});
   const [hiddenSections, setHiddenSections] = useState({});
   const [hiddenSubgroups, setHiddenSubgroups] = useState({});
-
-;
 
   const goBack = () => setPage(PAGE.TOGGLE);
   const toggleGroup = (id) =>
@@ -55,7 +69,11 @@ export default function ViewTogglePage() {
     setHiddenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   const toggleSubgroup = (id) =>
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
-
+  const handleSaveCompany = () => {
+    console.log("Saving selected company:", form.company);
+    localStorage.setItem("selectedCompany", form.company);
+    // You can add a success message or API call here
+  };
   const renderItems = (items, cols) => {
     const containerClass =
       viewMode === VIEW_MODES.GRID
@@ -159,7 +177,6 @@ export default function ViewTogglePage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold">Dashboard</h1>
         <div className="flex justify-end items-center space-x-4">
-        
           <div className="flex bg-gray-100 rounded-lg overflow-hidden">
             {[VIEW_MODES.GRID, VIEW_MODES.ICON, VIEW_MODES.LIST].map(
               (mode, index) => {
@@ -236,9 +253,7 @@ export default function ViewTogglePage() {
                 ))}
         </div>
       ))}
-      <div className="flex justify-end">
-        <Footer companies={companies} form={form} setForm={setForm} />
-      </div>
+     
     </div>
   );
 }

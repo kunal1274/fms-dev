@@ -89,13 +89,13 @@ const ItemPage = () => {
     <div className="w-full bg-white rounded-lg p-4">
       {/* {renderHeader()} */}
       <h2 className="mt-2 text-lg">
-        {/* Item Master - Selected Company: {form.company} */}
+        Item Master - Selected Company: {form.company}
       </h2>
       <div className="mt-4">
         {view === "list" && (
           <ItemList
             items={items}
-            onAddItem={handleAddItem}
+           handleAddItem={handleAddItem}
             onView={handleViewItem}
             onDelete={handleDeleteItem}
           />
