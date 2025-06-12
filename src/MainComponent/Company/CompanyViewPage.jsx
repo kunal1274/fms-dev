@@ -581,7 +581,7 @@ const CompanyViewPage = ({
                 onChange={handleChange}
                 placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
                 rows={4}
-                required
+     
                 className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}

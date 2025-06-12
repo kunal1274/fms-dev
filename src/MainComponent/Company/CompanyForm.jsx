@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
-
+import "react-toastify/dist/ReactToastify.css";
 const businessTypes = [
   "Individual",
   "Manufacturing",
@@ -185,54 +185,163 @@ export default function CompanyForm({ handleCancel }) {
 
   // ─── Save ────────────────────────────────────────────────
 
-  const createCompany = async (e) => {
-    e.preventDefault();
+//  const createCompany = async (e) => {
+//     e.preventDefault();
 
-    const bankDetailsPayload = [
-      {
-        code: form.companyCode, // your bank‐detail code
-        type: form.bankType, // e.g. "Bank", "UPI", etc.
-        bankAccNum: form.bankAccNum, // account number (≤18 digits)
-        bankName: form.bankName, // bank’s name
-        accountHolderName: form.accountHolderName, // name on the account
-        ifsc: form.ifsc, // 12‐char uppercase IFSC
-        swift: form.swift, // ≤16‐char uppercase SWIFT
-        active: true, // boolean flag
-        qrDetails: form.qrDetails, // whatever you store for UPI/QR
-      },
-    ];
-    const taxInfo = {
-      gstNumber: form.gstNumber,
-      tanNumber: form.tanNumber,
-      panNumber: form.panNumber,
-    };
-    const payload = {
-      ...form,
-      bankDetails: bankDetailsPayload,
-      taxInfo,
-    };
+//     const bankDetailsPayload = [
+//       {
+//         code: form.companyCode, // your bank‐detail code
+//         type: form.bankType, // e.g. "Bank", "UPI", etc.
+//         bankAccNum: form.bankAccNum, // account number (≤18 digits)
+//         bankName: form.bankName, // bank’s name
+//         accountHolderName: form.accountHolderName, // name on the account
+//         ifsc: form.ifsc, // 12‐char uppercase IFSC
+//         swift: form.swift, // ≤16‐char uppercase SWIFT
+//         active: true, // boolean flag
+//         qrDetails: form.qrDetails, // whatever you store for UPI/QR
+//       },
+//     ];
+//     const taxInfo = {
+//       gstNumber: form.gstNumber,
+//       tanNumber: form.tanNumber,
+//       panNumber: form.panNumber,
+//     };
+//     const payload = {
+//       ...form,
+//       bankDetails: bankDetailsPayload,
+//       taxInfo,
+//     };
 
-    try {
-      const { data } = await axios.post(apiBase, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
-      const newCompany = data.data;
+//     try {
+//       const { data } = await axios.post(apiBase, payload, {
+//         headers: { "Content-Type": "application/json" },
+//       });
+//       const newCompany = data.data;
 
-      toast.success("Company saved", {
-        autoClose: 1200,
-        onClose: () => handleCancel(),
-      });
+//       toast.success("Company saved", {
+//         autoClose: 1200,
+//         onClose: () => handleCancel(),
+//       });
 
-      setCompany((prev) => [...prev, newCompany]);
+//       setCompany((prev) => [...prev, newCompany]);
 
-      onSaved?.(newCompany);
-    } catch (err) {
-      console.error("Error creating Company:", err.response || err);
-      // const msg = err.response?.data?.message || "Couldn’t save Company"; // ← define msg properly
-      // toast.error(msg, { autoClose: 2000 });
-    }
+//       onSaved?.(newCompany);
+//     }catch (err) {
+//     console.error("Error creating Company:", err);
+
+//     const errorData =
+//       err.response?.data?.errors || err.response?.data?.message || err.message;
+
+//     if (Array.isArray(errorData)) {
+//       // Handle validation errors as array
+//       errorData.forEach((error) => {
+//         toast.error(error.msg || error.message || JSON.stringify(error), {
+//           autoClose: 3000,
+//         });
+//       });
+//     } else if (typeof errorData === "object") {
+//       // Handle structured object errors
+//       Object.entries(errorData).forEach(([field, message]) => {
+//         toast.error(`${field}: ${message}`, { autoClose: 3000 });
+//       });
+//     } else {
+//       // Handle single message
+//       toast.error(errorData, { autoClose: 3000 });
+//     }
+//   }
+
+// catch (err) {
+//     console.error("Error creating Company:", err);
+
+//     const errorData =
+//       err.response?.data?.errors || err.response?.data?.message || err.message;
+
+//     if (Array.isArray(errorData)) {
+//       // Handle validation errors as array
+//       errorData.forEach((error) => {
+//         toast.error(error.msg || error.message || JSON.stringify(error), {
+//           autoClose: 3000,
+//         });
+//       });
+//     } else if (typeof errorData === "object") {
+//       // Handle structured object errors
+//       Object.entries(errorData).forEach(([field, message]) => {
+//         toast.error(`${field}: ${message}`, { autoClose: 3000 });
+//       });
+//     } else {
+//       // Handle single message
+//       toast.error(errorData, { autoClose: 3000 });
+//     }
+//   }
+// };
+const createCompany = async (e) => {
+  e.preventDefault();
+
+  const bankDetailsPayload = [
+    {
+      code: form.companyCode,
+      type: form.bankType,
+      bankAccNum: form.bankAccNum,
+      bankName: form.bankName,
+      accountHolderName: form.accountHolderName,
+      ifsc: form.ifsc,
+      swift: form.swift,
+      active: true,
+      qrDetails: form.qrDetails,
+    },
+  ];
+
+  const taxInfo = {
+    gstNumber: form.gstNumber,
+    tanNumber: form.tanNumber,
+    panNumber: form.panNumber,
   };
 
+  const payload = {
+    ...form,
+    bankDetails: bankDetailsPayload,
+    taxInfo,
+  };
+
+  try {
+    const { data } = await axios.post(apiBase, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const newCompany = data.data;
+
+    toast.success("Company saved", {
+      autoClose: 1200,
+      onClose: () => handleCancel(),
+    });
+
+    setCompany((prev) => [...prev, newCompany]);
+
+    onSaved?.(newCompany);
+  } catch (err) {
+    console.error("Error creating Company:", err);
+
+    const errorData =
+      err.response?.data?.errors || err.response?.data?.message || err.message;
+
+    if (Array.isArray(errorData)) {
+      // If it's an array of error messages
+      errorData.forEach((error) => {
+        toast.error(error.msg || error.message || JSON.stringify(error), {
+          autoClose: 3000,
+        });
+      });
+    } else if (typeof errorData === "object") {
+      // If it's an object with field: error
+      Object.entries(errorData).forEach(([field, message]) => {
+        toast.error(`${field}: ${message}`, { autoClose: 3000 });
+      });
+    } else {
+      // Plain string message
+      toast.error(errorData, { autoClose: 3000 });
+    }
+  }
+};
   // ─── Reset / Cancel ──────────────────────────────────────
   const resetForm = () => {
     // const nextCode = generateCompanyCode(companies);
