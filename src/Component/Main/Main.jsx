@@ -33,7 +33,7 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
           <SalePage onAddNew={onAddNew} onView={onView} />
         </div>
       )}
-      {selectedMenu === "Purchase Mangement" && (
+      {selectedMenu === "Purchase" && (
         <div className="text-gray-700">
           <PurchasePage onAddNew={onAddNew} onView={onView} />
         </div>

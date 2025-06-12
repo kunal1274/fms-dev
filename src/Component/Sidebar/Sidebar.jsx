@@ -19,9 +19,9 @@ const navItems = [
     icon: FaBoxOpen,
   },
   { label: "Sale", icon: FaShoppingCart },
-  { label: "Purchase ", icon: FaCartPlus },
-  { label: "User ", icon: FaUser },
-  { label: "Tax ", icon: FaUser },
+  { label: "Purchase", icon: FaCartPlus },
+  { label: "User", icon: FaUser },
+  { label: "Tax", icon: FaUser },
 ];
 
 export default function Sidebar({
