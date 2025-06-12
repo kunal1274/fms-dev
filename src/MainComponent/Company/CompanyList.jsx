@@ -23,7 +23,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
 
   // States
   const [activeTab, setActiveTab] = useState(tabNames[0]);
-
+const [deleting, setDeleting] = useState(false);
   const [companyList, setCompanyList] = useState([]);
   const [selectedOption, setSelectedOption] = useState("All");
   const [filteredComapniess, setFilteredComapniess] = useState([]);
@@ -48,10 +48,6 @@ export default function CompanyList({ handleAddCompany, onView }) {
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
 
-
-
-
-  
   // Upload Logo
   const fileInputRef = useRef(null);
 
@@ -241,37 +237,38 @@ export default function CompanyList({ handleAddCompany, onView }) {
     );
   };
 
-  const handleDeleteSelected = async () => {
-    if (!setSelectedComapniess.length) {
-      toast.info("No companies selected to delete");
-      return;
+ const handleDeleteSelected = async () => {
+  if (!selectedComapniess.length) {
+    toast.info("No companies selected to delete");
+    return;
+  }
+
+  if (!window.confirm("Delete selected companies?")) return;
+
+  try {
+    setDeleting(true);
+
+    const results = await Promise.allSettled(
+      selectedComapniess.map((id) => axios.delete(`${baseUrl}/${id}`))
+    );
+
+    const succeeded = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected").length;
+
+    if (succeeded) {
+      toast.success(`${succeeded} deleted`);
+      await fetchComapniess(); // ← Reload latest data
+      setSelectedComapniess([]);
     }
 
-    if (!window.confirm("Delete selected companies?")) return;
-
-    try {
-      const results = await Promise.allSettled(
-        selectedComapniess.map((id) => axios.delete(`${baseUrl}/${id}`))
-      );
-
-      const succeeded = results.filter((r) => r.status === "fulfilled").length;
-      const failed = results.filter((r) => r.status === "rejected").length;
-
-      results
-        .filter((r) => r.status === "rejected")
-        .forEach((r) => console.error("Delete failed:", r.reason));
-
-      if (succeeded) {
-        toast.success(`${succeeded} deleted`);
-        await fetchCompanies();
-        setSelectedComapniess([]);
-      }
-      if (failed) toast.error(`${failed} failed — check console`);
-    } catch (err) {
-      console.error(err);
-      toast.error("Unexpected error while deleting");
-    }
-  };
+    if (failed) toast.error(`${failed} failed — check console`);
+  } catch (err) {
+    console.error(err);
+    toast.error("Unexpected error while deleting");
+  } finally {
+    setDeleting(false);
+  }
+};
 
   const exportToExcel = () => {
     if (!CompanyList.length) {
