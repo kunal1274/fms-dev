@@ -92,11 +92,7 @@ const CompanyPage = () => {
       )}
 
       {view === "form" && (
-        <CompanyForm
-          company={selectedCompany}
-          onSave={handleSaveCompany}
-          handleCancel={handleCancel}
-        />
+        <CompanyForm company={selectedCompany} handleCancel={handleCancel} />
       )}
 
       {view === "details" && selectedCompany && (
