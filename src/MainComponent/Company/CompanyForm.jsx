@@ -239,7 +239,7 @@ export default function CompanyForm({ handleCancel }) {
         // If it's an array of error messages
         errorData.forEach((error) => {
           toast.error(
-            "kjdksjdks 243",
+            "Something fill the data properly",
             error.msg || error.message || JSON.stringify(error),
             {
               autoClose: 3000,
@@ -253,7 +253,7 @@ export default function CompanyForm({ handleCancel }) {
         });
       } else {
         // Plain string message
-        toast.error("skjdkj 254", errorData, { autoClose: 1000 });
+        toast.error("Something fill the data properly", errorData, { autoClose: 1000 });
       }
     }
   };
