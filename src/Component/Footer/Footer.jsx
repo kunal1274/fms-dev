@@ -71,23 +71,12 @@ const Footer = () => {
   }, []);
 
   return (
-    <header className="bg-white border-b h-12 border-gray-200 px-3 py-2 sticky top-0 z-10 shadow-sm">
-      <div className="flex items-center justify-between h-9 text-gray-600">
-        {/* LEFT SECTION (was previously right) */}
+    <footer className="bg-white border-b h-12 border-gray-200 px-3 py-2 sticky top-0 z-10 shadow-sm">
+      <div className="flex items-center justify-end h-full text-gray-600">
         <div className="flex items-center gap-4">
-          <button className="relative text-gray-600 hover:text-gray-800 focus:outline-none">
-            <FaBell className="w-5 h-5" />
-            <span className="absolute top-0 right-0 block h-1.5 w-1.5 rounded-full bg-red-500"></span>
-          </button>
-
-          {/* <img
-            src="/path/to/profile-pic.png"
-            alt="Profile"
-            className="h-6 w-6 rounded-full object-cover"
-          /> */}
-
-          {/* Company dropdown */}
+          {/* Company Dropdown */}
           <div className="relative group" ref={dropdownRef}>
+            {/* Button */}
             <button
               type="button"
               onClick={() => setIsOpen((prev) => !prev)}
@@ -102,10 +91,11 @@ const Footer = () => {
               ) : (
                 <FaBuilding className="w-4 h-4" />
               )}
+              <span>{selectedCompanyObj?.companyCode || "No Company"}</span>
               <FaChevronDown className="text-gray-500" />
             </button>
 
-            {/* Hover popup tooltip */}
+            {/* Hover Tooltip */}
             {selectedCompanyObj && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-200 text-gray-800 text-xs px-3 py-1 rounded shadow-md whitespace-nowrap z-50">
                 {selectedCompanyObj.companyCode} -{" "}
@@ -113,14 +103,17 @@ const Footer = () => {
               </div>
             )}
 
-            {/* Dropdown List */}
+            {/* Dropdown Menu */}
             {isOpen && (
               <div className="absolute bottom-full right-0 mb-2 w-60 bg-white border border-gray-300 shadow-lg rounded-md z-50 max-h-60 overflow-y-auto">
                 {companies.map((company) => (
                   <div
                     key={company.id}
                     className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleCompanyChange(company.id)}
+                    onClick={() => {
+                      handleCompanyChange(company.id);
+                      setIsOpen(false);
+                    }}
                   >
                     {company.iconUrl && (
                       <img
@@ -142,26 +135,8 @@ const Footer = () => {
               </div>
             )}
           </div>
-        </div>
 
-        {/* RIGHT SECTION (was previously left) */}
-        <div className="flex items-center gap-4">
-          <FaCog
-            title="Settings"
-            className="w-5 h-5 hover:text-indigo-600 cursor-pointer"
-          />
-          <div className="relative group flex items-center gap-1">
-            <FaBuilding title="Company" className="w-5 h-5" />
-            <span className="text-sm">
-              {selectedCompanyObj?.companyCode || "No Company"}
-            </span>
-            {selectedCompanyObj && (
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-200 text-gray-800 text-xs px-3 py-1 rounded shadow-md whitespace-nowrap z-50">
-                {selectedCompanyObj.companyCode} -{" "}
-                {selectedCompanyObj.companyName}
-              </div>
-            )}
-          </div>
+          {/* Clock Display */}
           <div className="flex items-center gap-1">
             <FaClock className="w-4 h-4" />
             <span className="text-sm font-mono">
@@ -170,7 +145,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </header>
+    </footer>
   );
 };
 
