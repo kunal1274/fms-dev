@@ -17,7 +17,6 @@ const currency = ["INR", "USD", "EUR", "GBP"];
 
 const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", " UPI"];
 export default function CompanyForm({ handleCancel }) {
- 
   const [company, setCompany] = useState([]);
   const [form, setForm] = useState({
     companyCode: "",
@@ -122,7 +121,7 @@ export default function CompanyForm({ handleCancel }) {
       bankName: /^[A-Z0-9\s]{0,50}$/, // ✅ Now allows spaces and longer names
       panNumber: /^[A-Z0-9]{0,10}$/,
       gstNumber: /^[A-Z0-9]{0,15}$/,
-    
+
       tanNumber: /^[A-Z0-9]{0,10}$/,
       ifsc: /^[A-Z0-9]{0,12}$/,
       swift: /^[A-Z0-9]{0,10}$/,
@@ -186,75 +185,78 @@ export default function CompanyForm({ handleCancel }) {
 
   // ─── Save ────────────────────────────────────────────────
 
+  const createCompany = async (e) => {
+    e.preventDefault();
 
-const createCompany = async (e) => {
-  e.preventDefault();
+    const bankDetailsPayload = [
+      {
+        code: form.companyCode,
+        type: form.bankType,
+        bankAccNum: form.bankAccNum,
+        bankName: form.bankName,
+        accountHolderName: form.accountHolderName,
+        ifsc: form.ifsc,
+        swift: form.swift,
+        active: true,
+        qrDetails: form.qrDetails,
+      },
+    ];
 
-  const bankDetailsPayload = [
-    {
-      code: form.companyCode,
-      type: form.bankType,
-      bankAccNum: form.bankAccNum,
-      bankName: form.bankName,
-      accountHolderName: form.accountHolderName,
-      ifsc: form.ifsc,
-      swift: form.swift,
-      active: true,
-      qrDetails: form.qrDetails,
-    },
-  ];
+    const taxInfo = {
+      gstNumber: form.gstNumber,
+      tanNumber: form.tanNumber,
+      panNumber: form.panNumber,
+    };
 
-  const taxInfo = {
-    gstNumber: form.gstNumber,
-    tanNumber: form.tanNumber,
-    panNumber: form.panNumber,
-  };
+    const payload = {
+      ...form,
+      bankDetails: bankDetailsPayload,
+      taxInfo,
+    };
 
-  const payload = {
-    ...form,
-    bankDetails: bankDetailsPayload,
-    taxInfo,
-  };
+    try {
+      const { data } = await axios.post(apiBase, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
 
-  try {
-    const { data } = await axios.post(apiBase, payload, {
-      headers: { "Content-Type": "application/json" },
-    });
+      const newCompany = data.data;
 
-    const newCompany = data.data;
+      toast.success("Company saved", {
+        autoClose: 1000,
+        onClose: () => handleCancel(),
+      });
 
-    toast.success("Company saved", {
-      autoClose: 1000,
-      onClose: () => handleCancel(),
-    });
+      setCompany((prev) => [...prev, newCompany]);
+    } catch (err) {
+      console.error("Error creating Company:", err);
 
-    setCompany((prev) => [...prev, newCompany]);
+      const errorData =
+        err.response?.data?.errors ||
+        err.response?.data?.message ||
+        err.message;
 
-   
-  } catch (err) {
-    console.error("Error creating Company:", err);
-
-    const errorData =
-      err.response?.data?.errors || err.response?.data?.message || err.message;
-
-    if (Array.isArray(errorData)) {
-      // If it's an array of error messages
-      errorData.forEach((error) => {
-        toast.error(error.msg || error.message || JSON.stringify(error), {
-          autoClose: 3000,
+      if (Array.isArray(errorData)) {
+        // If it's an array of error messages
+        errorData.forEach((error) => {
+          toast.error(
+            "kjdksjdks 243",
+            error.msg || error.message || JSON.stringify(error),
+            {
+              autoClose: 3000,
+            }
+          );
         });
-      });
-    } else if (typeof errorData === "object") {
-      // If it's an object with field: error
-      Object.entries(errorData).forEach(([field, message]) => {
-        toast.error(`${field}: ${message}`, { autoClose: 1000 });
-      });
-    } else {
-      // Plain string message
-      toast.error(errorData, { autoClose: 1000 });
+      } else if (typeof errorData === "object") {
+        // If it's an object with field: error
+        Object.entries(errorData).forEach(([field, message]) => {
+          toast.error(`${field}: ${message}`, { autoClose: 1000 });
+        });
+      } else {
+        // Plain string message
+        toast.error("skjdkj 254", errorData, { autoClose: 1000 });
+      }
     }
-  }
-};
+  };
   // ─── Reset / Cancel ──────────────────────────────────────
   const resetForm = () => {
     // const nextCode = generateCompanyCode(companies);
@@ -560,7 +562,6 @@ const createCompany = async (e) => {
                 name="bankType"
                 value={form.bankType}
                 onChange={handleChange}
-             
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">Select type</option>
@@ -708,7 +709,6 @@ const createCompany = async (e) => {
                 value={form.tanNumber}
                 onChange={handleChange}
                 placeholder="e.g. ABCDE1234F"
-             
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
