@@ -3,10 +3,11 @@ import ItemViewPage from "./ItemViewPage";
 import ItemForm from "./Form";
 import ItemList from "./List";
 import { Button } from "../../../Component/Button/Button";
-// import CompanyContext from "../../../context/CompanyContext.jsx";
-import CompanyContext from "../../../context/CompanyContext";
 
+import CompanyContext from "../../../context/CompanyContext";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const ItemPage = () => {
+    const queryClient = new QueryClient();
   const { form, setForm, companies } = useContext(CompanyContext);
 
   useEffect(() => {
@@ -95,19 +96,20 @@ const ItemPage = () => {
         {view === "list" && (
           <ItemList
             items={items}
-           handleAddItem={handleAddItem}
+            handleAddItem={handleAddItem}
             onView={handleViewItem}
             onDelete={handleDeleteItem}
           />
         )}
-
-        {view === "form" && (
-          <ItemForm
-            item={selectedItem}
-            onSave={handleSaveItem}
-            onCancel={handleCancel}
-          />
-        )}
+        <QueryClientProvider client={queryClient}>
+          {view === "form" && (
+            <ItemForm
+              item={selectedItem}
+              handleSaveItem={handleSaveItem}
+              onCancel={handleCancel}
+            />
+          )}
+        </QueryClientProvider>
 
         {view === "details" && selectedItem && (
           <ItemViewPage

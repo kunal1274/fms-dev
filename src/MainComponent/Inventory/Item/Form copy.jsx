@@ -57,14 +57,98 @@ export default function ItemForm({ onSaved, handleCancel }) {
   // API endpoints
   const apiItemBase = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const apiSiteBase = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
-  const apiLocationBase = "https://fms-qkmw.onrender.com/fms/api/v0/Location";
-  const apiRackBase = "https://fms-qkmw.onrender.com/fms/api/v0/Rack";
-  const apiShelvesBase = "https://fms-qkmw.onrender.com/fms/api/v0/Shelves";
-  const apiZoneBase = "https://fms-qkmw.onrender.com/fms/api/v0/Zone";
-  const apiWarehouseBase = "https://fms-qkmw.onrender.com/fms/api/v0/Warehouse";
-  const apiAislesBase = "https://fms-qkmw.onrender.com/fms/api/v0/Aisles";
-  const apiBinBase = "https://fms-qkmw.onrender.com/fms/api/v0/Bin";
-
+  const apiLocationBase = "https://fms-qkmw.onrender.com/fms/api/v0/location";
+  const apiRackBase = "https://fms-qkmw.onrender.com/fms/api/v0/rack";
+  const apiShelvesBase = "https://fms-qkmw.onrender.com/fms/api/v0/shelves";
+  const apiZoneBase = "https://fms-qkmw.onrender.com/fms/api/v0/zone";
+  const apiWarehouseBase = "https://fms-qkmw.onrender.com/fms/api/v0/warehouse";
+  const apiAislesBase = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
+  const apiBinBase = "https://fms-qkmw.onrender.com/fms/api/v0/bins";
+  useEffect(() => {
+    const fetchapiShelvesBase = async () => {
+      try {
+        const response = await axios.get(apiShelvesBase);
+        setShelves(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items 73V:", error);
+      }
+    };
+    const fetchapiWarehouseBase = async () => {
+      try {
+        const response = await axios.get(apiWarehouseBase);
+        setWarehouses(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+    const fetchapiRackBase = async () => {
+      try {
+        const response = await axios.get(apiRackBase);
+        setRacks(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+    const fetchapiZoneBase = async () => {
+      try {
+        const response = await axios.get(apiZoneBase);
+        setZones(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+    const fetchBinBases = async () => {
+      try {
+        const response = await axios.get(apiBinBase);
+        setBins(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+    const fetchapiAislesBase = async () => {
+      try {
+        const response = await axios.get(apiAislesBase);
+        setAisles(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+    const fetchLocationBase = async () => {
+      try {
+        const response = await axios.get(apiLocationBase);
+        setLocations(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+    const fetchapiSiteBase = async () => {
+      try {
+        const response = await axios.get(apiSiteBase);
+        setSites(response.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+    const fetchCompanies = async () => {
+      try {
+        const response = await axios.get(companiesUrl);
+        // setWarehouses(response.data || []);
+        setBins(response.data || []);
+      } catch (error) {
+        console.error("Error fetching Company 63:", error);
+      }
+    };
+    fetchLocationBase();
+    fetchapiSiteBase();
+    fetchLocationBase();
+    fetchapiWarehouseBase();
+    fetchapiZoneBase();
+    fetchapiAislesBase();
+    fetchapiRackBase();
+    fetchBinBases();
+    fetchapiShelvesBase();
+    fetchapiWarehouseBase();
+  }, []);
   // Helpers
   const generateItemCode = useCallback((list) => {
     const last = list
@@ -96,17 +180,6 @@ export default function ItemForm({ onSaved, handleCancel }) {
   };
 
   // Initial load
-  useEffect(() => {
-    fetchItems();
-    fetchList(apiSiteBase, setSites, "sites");
-    fetchList(apiLocationBase, setLocations, "locations");
-    fetchList(apiRackBase, setRacks, "racks");
-    fetchList(apiShelvesBase, setShelves, "shelves");
-    fetchList(apiZoneBase, setZones, "zones");
-    fetchList(apiWarehouseBase, setWarehouses, "warehouses");
-    fetchList(apiAislesBase, setAisles, "aisles");
-    fetchList(apiBinBase, setBins, "bins");
-  }, []);
 
   // Generate code when items loaded
   useEffect(() => {
@@ -125,7 +198,7 @@ export default function ItemForm({ onSaved, handleCancel }) {
   };
 
   // Submit
-  const createItem  = async (e) => {
+  const createItem = async (e) => {
     e.preventDefault();
     const payload = {
       itemCode: form.itemCode,
@@ -370,7 +443,7 @@ export default function ItemForm({ onSaved, handleCancel }) {
         </section>
 
         {/* Storage Dimension */}
-    
+
         <section className="p-6 bg-white rounded Item">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Storage Dimension
@@ -417,9 +490,7 @@ export default function ItemForm({ onSaved, handleCancel }) {
                 {warehouses.length ? (
                   warehouses.map((w) => (
                     <option key={w._id} value={w._id}>
-                      {`${w.warehouseAccountNo || w.WarehouseAccountNo} – ${
-                        w.name
-                      }`}
+                      {`${w.name} – ${w.name}`}
                     </option>
                   ))
                 ) : (

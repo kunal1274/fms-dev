@@ -39,7 +39,6 @@ const CompanyViewPage = ({
   handleSavecompany,
   toggleView,
 }) => {
-  const [formData, setFormData] = useState({ bankDetails: [], ...company });
   const [isEditing, setIsEditing] = useState(false);
   const [isEdited, setIsEdited] = useState(false);
   const [name, setName] = useState(0);
@@ -84,23 +83,8 @@ const CompanyViewPage = ({
       }, 500); // 0.5 second delay
     }
   };
-  const handleAddBank = () => {
-    const newBankDetail = {
-      bankType: "",
-      bankName: "",
-      bankAccNum: "",
-      accountHolderName: "",
-      ifsc: "",
-      swift: "",
-      qrDetails: "",
-    };
 
-    setFormData((prev) => ({
-      ...prev,
-      bankDetails: [...(prev.bankDetails || []), newBankDetail],
-    }));
-  };
-
+  const [formData, setFormData] = useState({ ...company });
   const [error, setError] = useState(null);
   const [form, setForm] = useState({
     code: "",
@@ -597,6 +581,7 @@ const CompanyViewPage = ({
                 onChange={handleChange}
                 placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
                 rows={4}
+     
                 className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
@@ -650,15 +635,8 @@ const CompanyViewPage = ({
         {/* Bank Details */}
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 ">Bank Details</h2>
-          <button
-            type="button"
-            onClick={handleAddBank}
-            class="bg-gray-300 text-gray-800 border border-gray-400 px-4 py-2 rounded hover:bg-gray-400"
-          >
-            Add Bank
-          </button>
           {formData.bankDetails?.length > 0 &&
-            formData.bankDetails.map((b, i) => (
+            formData.bankDetails.slice(0, 1).map((b, i) => (
               <div key={i} className="rounded-lg mt-2">
                 <h3 className="text-sm font-semibold text-grey-700 "></h3>
                 <div className="grid grid-cols-1 mt-3 sm:grid-cols-3 gap-6">

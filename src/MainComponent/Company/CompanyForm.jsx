@@ -51,7 +51,89 @@ export default function CompanyForm({ handleCancel }) {
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
 
   // ─── Data ────────────────────────────────────────────────
+  const createCompany = async (e) => {
+    e.preventDefault();
 
+    // 1) Build bankDetailsPayload only if at least one bank field is non-empty
+    const hasBankInfo = [
+      form.bankType,
+      form.bankAccNum,
+      form.bankName,
+      form.accountHolderName,
+      form.ifsc,
+      form.swift,
+      form.qrDetails,
+    ].some((val) => val && val.trim() !== "");
+
+    const bankDetailsPayload = hasBankInfo
+      ? [
+          {
+            code: form.companyCode,
+            type: form.bankType,
+            bankAccNum: form.bankAccNum,
+            bankName: form.bankName,
+            accountHolderName: form.accountHolderName,
+            ifsc: form.ifsc,
+            swift: form.swift,
+            qrDetails: form.qrDetails,
+            active: true,
+          },
+        ]
+      : [];
+
+    // 2) Tax info
+    const taxInfo = {
+      gstNumber: form.gstNumber,
+      tanNumber: form.tanNumber,
+      panNumber: form.panNumber,
+    };
+
+    // 3) Final payload
+    const payload = {
+      ...form,
+      bankDetails: bankDetailsPayload,
+      taxInfo,
+    };
+
+    console.log("Submitting payload:", payload);
+
+    try {
+      const { data } = await axios.post(apiBase, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const newCompany = data.data;
+      toast.success("Company saved successfully", {
+        autoClose: 1000,
+        onClose: () => handleCancel(),
+      });
+      setCompany((prev) => [...prev, newCompany]);
+    } catch (err) {
+      console.error("Error creating Company:", err);
+
+      // Normalize error data
+      const errorData =
+        err.response?.data?.errors ||
+        err.response?.data?.message ||
+        err.message;
+
+      if (Array.isArray(errorData)) {
+        // Array of validation errors
+        errorData.forEach((error) => {
+          const msg = error.msg || error.message || JSON.stringify(error);
+          toast.error(msg, { autoClose: 3000 });
+        });
+      } else if (typeof errorData === "object") {
+        // Object mapping field → message
+        Object.entries(errorData).forEach(([field, message]) => {
+          toast.error(`${field}: ${message}`, { autoClose: 3000 });
+        });
+      } else {
+        // Plain string
+        toast.error(String(errorData), { autoClose: 3000 });
+      }
+    }
+  };
   const disableBankFields =
     form.bankType === "Cash" ||
     form.bankType === "Barter" ||
@@ -185,81 +267,10 @@ export default function CompanyForm({ handleCancel }) {
 
   // ─── Save ────────────────────────────────────────────────
 
-  const createCompany = async (e) => {
-    e.preventDefault();
-
-    const bankDetailsPayload = [
-      {
-        code: form.companyCode,
-        type: form.bankType,
-        bankAccNum: form.bankAccNum,
-        bankName: form.bankName,
-        accountHolderName: form.accountHolderName,
-        ifsc: form.ifsc,
-        swift: form.swift,
-        active: true,
-        qrDetails: form.qrDetails,
-      },
-    ];
-
-    const taxInfo = {
-      gstNumber: form.gstNumber,
-      tanNumber: form.tanNumber,
-      panNumber: form.panNumber,
-    };
-
-    const payload = {
-      ...form,
-      bankDetails: bankDetailsPayload,
-      taxInfo,
-    };
-
-    try {
-      const { data } = await axios.post(apiBase, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const newCompany = data.data;
-
-      toast.success("Company saved", {
-        autoClose: 1000,
-        onClose: () => handleCancel(),
-      });
-
-      setCompany((prev) => [...prev, newCompany]);
-    } catch (err) {
-      console.error("Error creating Company:", err);
-
-      const errorData =
-        err.response?.data?.errors ||
-        err.response?.data?.message ||
-        err.message;
-
-      if (Array.isArray(errorData)) {
-        // If it's an array of error messages
-        errorData.forEach((error) => {
-          toast.error(
-            "Something fill the data properly",
-            error.msg || error.message || JSON.stringify(error),
-            {
-              autoClose: 3000,
-            }
-          );
-        });
-      } else if (typeof errorData === "object") {
-        // If it's an object with field: error
-        Object.entries(errorData).forEach(([field, message]) => {
-          toast.error(`${field}: ${message}`, { autoClose: 1000 });
-        });
-      } else {
-        // Plain string message
-        toast.error("Something fill the data properly", errorData, { autoClose: 1000 });
-      }
-    }
-  };
+  
   // ─── Reset / Cancel ──────────────────────────────────────
   const resetForm = () => {
-    // const nextCode = generateCompanyCode(companies);
+    
     setForm({
       companyCode: "",
       companyName: "",

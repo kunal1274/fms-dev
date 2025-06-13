@@ -1,9 +1,30 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+  useQueries,
+} from "@tanstack/react-query";
+
+// Initialize React Query client
+const queryClient = new QueryClient();
 
 const currency = ["INR", "USD", "EUR", "GBP"];
+
+const api = {
+  items: "https://fms-qkmw.onrender.com/fms/api/v0/items",
+  sites: "https://fms-qkmw.onrender.com/fms/api/v0/sites",
+  locations: "https://fms-qkmw.onrender.com/fms/api/v0/locations",
+  warehouses: "https://fms-qkmw.onrender.com/fms/api/v0/warehouses",
+  zones: "https://fms-qkmw.onrender.com/fms/api/v0/zones",
+  racks: "https://fms-qkmw.onrender.com/fms/api/v0/racks",
+  shelves: "https://fms-qkmw.onrender.com/fms/api/v0/shelves",
+  aisles: "https://fms-qkmw.onrender.com/fms/api/v0/aisles",
+  bins: "https://fms-qkmw.onrender.com/fms/api/v0/bins",
+};
 
 const initialForm = {
   itemCode: "",
@@ -17,7 +38,6 @@ const initialForm = {
   hierarchicalCategory: "",
   externalCode: "",
   active: false,
-  // storage dimensions
   site: "",
   warehouse: "",
   zone: "",
@@ -27,177 +47,97 @@ const initialForm = {
   shelf: "",
   bin: "",
   pallet: "",
-  // product dimensions
   colour: "",
   size: "",
   configuration: "",
   style: "",
   version: "",
-  // tracking dimensions
   batch: "",
   serial: "",
   manufacturingDate: "",
   expiryDate: "",
 };
 
-export default function ItemForm({ onSaved, handleCancel }) {
+function ItemForm({ handleSaveItem, handleCancel }) {
+  // ITEMS
+  const itemsQuery = useQuery({
+    queryKey: ["items"],
+    queryFn: async () => {
+      const res = await axios.get(api.items);
+      return Array.isArray(res.data.data) ? res.data.data : [];
+    },
+    initialData: [],
+    onError: (err) => {
+      console.error("Error fetching items:", err);
+      toast.error("Error loading items");
+    },
+  });
+
+  // METADATA
+  const metaQueries = useQueries({
+    queries: Object.entries({
+      sites: api.sites,
+      locations: api.locations,
+      warehouses: api.warehouses,
+      zones: api.zones,
+      racks: api.racks,
+      shelves: api.shelves,
+      aisles: api.aisles,
+      bins: api.bins,
+    }).map(([key, url]) => ({
+      queryKey: [key],
+      queryFn: async () => {
+        const res = await axios.get(url);
+        return Array.isArray(res.data.data) ? res.data.data : [];
+      },
+      initialData: [],
+      onError: (err) => {
+        console.error(`Error fetching ${key}:`, err);
+        toast.error(`Error loading ${key}`);
+      },
+    })),
+  });
+
+  const isLoading =
+    itemsQuery.isLoading || metaQueries.some((q) => q.isLoading);
+  const isError = itemsQuery.isError || metaQueries.some((q) => q.isError);
   const [form, setForm] = useState(initialForm);
-  const [items, setItems] = useState([]);
 
-  // Dropdown data lists
-  const [sites, setSites] = useState([]);
-  const [locations, setLocations] = useState([]);
-  const [racks, setRacks] = useState([]);
-  const [shelves, setShelves] = useState([]);
-  const [zones, setZones] = useState([]);
-  const [warehouses, setWarehouses] = useState([]);
-  const [aisles, setAisles] = useState([]);
-  const [bins, setBins] = useState([]);
-
-  // API endpoints
-  const apiItemBase = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-  const apiSiteBase = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
-  const apiLocationBase = "https://fms-qkmw.onrender.com/fms/api/v0/location";
-  const apiRackBase = "https://fms-qkmw.onrender.com/fms/api/v0/rack";
-  const apiShelvesBase = "https://fms-qkmw.onrender.com/fms/api/v0/shelves";
-  const apiZoneBase = "https://fms-qkmw.onrender.com/fms/api/v0/zone";
-  const apiWarehouseBase = "https://fms-qkmw.onrender.com/fms/api/v0/warehouse";
-  const apiAislesBase = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
-  const apiBinBase = "https://fms-qkmw.onrender.com/fms/api/v0/bins";
-  useEffect(() => {
-    const fetchapiShelvesBase = async () => {
-      try {
-        const response = await axios.get(apiShelvesBase);
-        setShelves(response.data || []);
-      } catch (error) {
-        console.error("Error fetching items 73V:", error);
-      }
-    };
-    const fetchapiWarehouseBase = async () => {
-      try {
-        const response = await axios.get(apiWarehouseBase);
-        setWarehouses(response.data || []);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-      }
-    };
-    const fetchapiRackBase = async () => {
-      try {
-        const response = await axios.get(apiRackBase);
-        setRacks(response.data || []);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-      }
-    };
-    const fetchapiZoneBase = async () => {
-      try {
-        const response = await axios.get(apiZoneBase);
-        setZones(response.data || []);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-      }
-    };
-    const fetchBinBases = async () => {
-      try {
-        const response = await axios.get(apiBinBase);
-        setBins(response.data || []);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-      }
-    };
-    const fetchapiAislesBase = async () => {
-      try {
-        const response = await axios.get(apiAislesBase);
-        setAisles(response.data || []);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-      }
-    };
-    const fetchLocationBase = async () => {
-      try {
-        const response = await axios.get(apiLocationBase);
-        setLocations(response.data || []);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-      }
-    };
-    const fetchapiSiteBase = async () => {
-      try {
-        const response = await axios.get(apiSiteBase);
-        setSites(response.data || []);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-      }
-    };
-    const fetchCompanies = async () => {
-      try {
-        const response = await axios.get(companiesUrl);
-        // setWarehouses(response.data || []);
-        setBins(response.data || []);
-      } catch (error) {
-        console.error("Error fetching Company 63:", error);
-      }
-    };
-    fetchLocationBase();
-    fetchapiSiteBase();
-    fetchLocationBase();
-    fetchapiWarehouseBase();
-    fetchapiZoneBase();
-    fetchapiAislesBase();
-    fetchapiRackBase();
-    fetchBinBases();
-    fetchapiShelvesBase();
-    fetchapiWarehouseBase();
-  }, []);
-  // Helpers
+  // Generate next item code
   const generateItemCode = useCallback((list) => {
-    const last = list
+    const maxIndex = list
       .map((i) => parseInt(i.itemCode?.split("_")[1], 10))
       .filter((n) => !isNaN(n))
       .reduce((m, n) => Math.max(m, n), 0);
-    return `ITEM_${String(last + 1).padStart(3, "0")}`;
+    console.log("Generated new item code based on list:", maxIndex + 1);
+    return `ITEM_${String(maxIndex + 1).padStart(3, "0")}`;
   }, []);
 
-  // Fetch functions
-  const fetchItems = async () => {
-    try {
-      const { data } = await axios.get(apiItemBase);
-      setItems(data.data || []);
-    } catch (err) {
-      console.error(err);
-      toast.error("Couldn’t fetch items");
-    }
-  };
-
-  const fetchList = async (url, setter, label) => {
-    try {
-      const { data } = await axios.get(url);
-      setter(data.data || []);
-    } catch (err) {
-      console.error(err);
-      toast.error(`Couldn’t fetch ${label}`);
-    }
-  };
-
-  // Initial load
-
-  // Generate code when items loaded
   useEffect(() => {
-    if (items.length) {
-      setForm((prev) => ({ ...prev, itemCode: generateItemCode(items) }));
+    if (itemsQuery.isSuccess) {
+      setForm((f) => ({ ...f, itemCode: generateItemCode(itemsQuery.data) }));
     }
-  }, [items, generateItemCode]);
+  }, [itemsQuery.data, itemsQuery.isSuccess, generateItemCode]);
 
-  // Handle change
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    console.log(
+      `Field changed: ${name} =>`,
+      type === "checkbox" ? checked : value
+    );
+    setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
   };
 
-  // Submit
+  const handleReset = () => {
+    console.log("Form reset");
+    setForm({ ...initialForm, itemCode: generateItemCode(itemsQuery.data) });
+  };
+
+  if (isLoading) return <div>Loading…</div>;
+  if (isError) return <div>Error loading data</div>;
+
+  const [sites, locations, warehouses, zones, racks, shelves, aisles, bins] =
+    metaQueries.map((q) => q.data);
   const createItem = async (e) => {
     e.preventDefault();
     const payload = {
@@ -250,12 +190,6 @@ export default function ItemForm({ onSaved, handleCancel }) {
       console.error(err);
       toast.error(err.response?.data?.message || "Couldn’t save item");
     }
-  };
-
-  // Reset
-  const handleReset = () => {
-    const next = generateItemCode(items);
-    setForm({ ...initialForm, itemCode: next });
   };
 
   return (
@@ -861,5 +795,14 @@ export default function ItemForm({ onSaved, handleCancel }) {
         </div>
       </form>
     </div>
+  );
+}
+
+// Wrapper that provides React Query context
+export default function ItemFormWrapper(props) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ItemForm {...props} />
+    </QueryClientProvider>
   );
 }
