@@ -28,21 +28,15 @@ const SaleOrderform = ({ handleCancel }) => {
     "Net90D",
     "Advance",
   ];
-  const [form, setForm] = useState({
-    site: "",
-    warehouse: "",
-    // Add other form fields if needed
-  });
   const [goForInvoice, setGoSaleInvoice] = useState(null);
   const [advance, setAdvance] = useState(0);
   const [customers, setCustomers] = useState([]);
   const [viewingSaleId, setViewingSaleId] = useState(null);
-  const [warehouses, setWarehouses] = useState([]);
   const [selectedSaleOrderId, setSelectedSaleOrderId] = useState("");
   const [items, setItems] = useState([]);
   const [remarks, setRemarks] = useState("");
   const [saleOrderNum, setSaleOrderNum] = useState(null);
-  const [sites, setSites] = useState([]);
+
   // Global form states (for a single order line)
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
@@ -112,10 +106,8 @@ const SaleOrderform = ({ handleCancel }) => {
   // -------------------------
   useEffect(() => {
     const fetchCustomers = async () => {
-      console.log("Fetching customers...");
       try {
         const response = await axios.get(customersBaseUrl);
-        console.log("Customers fetched:", response.data);
         setCustomers(response.data.data || []);
       } catch (error) {
         console.error("Error fetching customers:", error);
@@ -123,50 +115,35 @@ const SaleOrderform = ({ handleCancel }) => {
     };
 
     const fetchItems = async () => {
-      console.log("Fetching items...");
       try {
         const response = await axios.get(itemsBaseUrl);
-        console.log("Items fetched:", response.data);
         setItems(response.data.data || []);
       } catch (error) {
         console.error("Error fetching items:", error);
       }
     };
-
     const fetchWarehouses = async () => {
-      console.log("Fetching warehouses...");
       try {
         const response = await axios.get(warehousesBaseUrl);
-        console.log("Warehouses fetched:", response.data);
-        setItems(response.data.data || []); // <- likely a mistake, you probably meant `setWarehouses`
+        setItems(response.data.data || []);
       } catch (error) {
-        console.error("Error fetching warehouses:", error);
+        console.error("Error fetching items:", error);
       }
     };
-
     const fetchSiteBaseUrl = async () => {
-      console.log("Fetching site base data...");
       try {
         const response = await axios.get(siteBaseUrl);
-        console.log("Site base data fetched:", response.data);
-        setItems(response.data.data || []); // <- again, likely meant `setSites` or similar
+        setItems(response.data.data || []);
       } catch (error) {
-        console.error("Error fetching site base data:", error);
+        console.error("Error fetching items:", error);
       }
     };
-
     fetchSiteBaseUrl();
     fetchCustomers();
     fetchWarehouses();
     fetchItems();
   }, []);
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+
   // -------------------------
   // Basic Form Validation
   // -------------------------
@@ -711,34 +688,34 @@ const SaleOrderform = ({ handleCancel }) => {
                   <label>Site</label>
                   <select
                     name="site"
-                    value={form.site}
-                    onChange={handleChange}
+                    // value={form.site}
+                    // onChange={handleChange}
                     required
                     className="mt-1 w-full p-2 border rounded"
                   >
                     <option value="">Select</option>
-                    {sites.map((s) => (
-                      <option key={s._id} value={s._id}>
-                        {s.name}
+                    {/* {warehouses.map((w) => (
+                      <option key={w._id} value={w._id}>
+                        {w.name}
                       </option>
-                    ))}
+                    ))} */}
                   </select>
                 </div>
                 <div>
                   <label>Warehouse</label>
                   <select
                     name="warehouse"
-                    value={form.warehouse}
-                    onChange={handleChange}
+                    // value={form.warehouse}
+                    // onChange={handleChange}
                     required
                     className="mt-1 w-full p-2 border rounded"
                   >
                     <option value="">Select</option>
-                    {warehouses.map((w) => (
+                    {/* {warehouses.map((w) => (
                       <option key={w._id} value={w._id}>
                         {w.name}
                       </option>
-                    ))}
+                    ))} */}
                   </select>
                 </div>
                 <div>
@@ -795,8 +772,8 @@ const SaleOrderform = ({ handleCancel }) => {
           </div>
         </section>
 
-        <section className="p-6">
-          <div className="max-h-96 overflow-y-auto mt-4 border rounded-lg bg-white">
+        {/* <section className="p-6">
+          <div className="max-h-96 overflow-y-auto mt-4 border rounded-lg shadow-md bg-white">
             <div className="space-y-6 p-4">
               <table className="min-w-full border-collapse text-sm text-gray-700">
                 <thead className="bg-gray-100 text-gray-900 uppercase text-xs font-semibold sticky top-0 z-10">
@@ -912,7 +889,7 @@ const SaleOrderform = ({ handleCancel }) => {
                 </tbody>
               </table>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg shadow">
                 <SummaryCard label="Advance" value={advance} />
                 <SummaryCard
                   label="Amt"
@@ -925,7 +902,122 @@ const SaleOrderform = ({ handleCancel }) => {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
+{/* <section className="p-6">
+  <div className="max-h-96 overflow-y-auto mt-4 border rounded-lg shadow-md bg-white">
+    <div className="space-y-6 p-4">
+      <table className="min-w-full border-collapse text-sm text-gray-700">
+        <thead className="bg-gray-100 text-gray-900 uppercase text-xs font-semibold sticky top-0 z-10">
+          <tr>
+            {[
+              "S.N",
+              "Item Code",
+              "Item Name",
+              "Qty",
+              "Unit",
+              "Price",
+              "Discount %",
+              "Amount",
+              "Tax %",
+              "TCS/TDS %",
+              "Total Amount",
+            ].map((header, index) => (
+              <th key={index} className="border border-gray-300 px-2 py-1 text-center">
+                {header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          <tr key="sales-order-row" className="hover:bg-gray-50">
+            <td className="border text-center px-2 py-1">1</td>
+            <td className="border px-2 py-1 text-center">
+              {selectedItem?.code || ""}
+            </td>
+            <td className="border px-2 py-1">
+              <select
+                value={selectedItem?._id || ""}
+                disabled={!isEdited && saleOrderNum}
+                onChange={(e) => {
+                  const sel = items.find((item) => item._id === e.target.value);
+                  setSelectedItem(sel);
+                  if (sel) setPrice(Number(sel.price) || 0);
+                }}
+                className="w-full border rounded px-2 py-1"
+              >
+                <option value="">Select Item</option>
+                {items.map((itemOption) => (
+                  <option key={itemOption._id} value={itemOption._id}>
+                    {itemOption.name}
+                  </option>
+                ))}
+              </select>
+            </td>
+            <td className="border px-2 py-1">
+              <input
+                type="text"
+                className="w-full border rounded text-center px-2 py-1"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value) || 0)}
+              />
+            </td>
+            <td className="border px-2 py-1 text-center">
+              <input
+                type="text"
+                value={selectedItem?.unit || ""}
+                readOnly
+                className="w-full border rounded text-center px-2 py-1 bg-gray-100"
+              />
+            </td>
+            <td className="border px-2 py-1">
+              <input
+                type="text"
+                className="w-full border rounded text-center px-2 py-1"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value) || 0)}
+              />
+            </td>
+            <td className="border px-2 py-1">
+              <input
+                type="text"
+                className="w-full border rounded text-center px-2 py-1"
+                value={discount}
+                onChange={(e) => setDiscount(Number(e.target.value) || 0)}
+              />
+            </td>
+            <td className="border px-2 py-1 text-center">
+              {isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)}
+            </td>
+            <td className="border px-2 py-1">
+              <input
+                type="text"
+                className="w-full border rounded text-center px-2 py-1"
+                value={tax}
+                onChange={(e) => setTax(Number(e.target.value) || 0)}
+              />
+            </td>
+            <td className="border px-2 py-1">
+              <input
+                type="text"
+                className="w-full border rounded text-center px-2 py-1"
+                value={tcs}
+                onChange={(e) => setTcs(Number(e.target.value) || 0)}
+              />
+            </td>
+            <td className="border px-2 py-1 text-center">{lineAmt}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg shadow">
+        <SummaryCard label="Advance" value={advance} />
+        <SummaryCard label="Amt" value={isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)} />
+        <SummaryCard label="Discount" value={discount} />
+        <SummaryCard label="Line Amt" value={lineAmt} />
+      </div>
+    </div>
+  </div>
+</section> */}
 
         {/* Action Buttons */}
         <div className="py-6 flex items-center justify-between">
