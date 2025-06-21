@@ -8,7 +8,7 @@ import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react";
 import "./c.css";
 const SerialList = ({ handleAddSerials, onView }) => {
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Serials";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/serials";
   const metricsUrl = `${baseUrl}/metrics`;
 
   const tabNames = ["Serials List"];

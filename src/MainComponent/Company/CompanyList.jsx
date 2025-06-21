@@ -224,7 +224,24 @@ export default function CompanyList({ handleAddCompany, onView }) {
   const handleStatusChange = (e) => setStatusFilter(e.target.value);
   const handleSortChange = (e) => setSortOption(e.target.value);
   const onTabClick = (tab) => setActiveTab(tab);
+  useEffect(() => {
+    const onFocus = () => {
+      fetchComapniess();
+      fetchMetrics();
+    };
 
+    // when the window regains focus...
+    window.addEventListener("focus", onFocus);
+    // ...and also when the page becomes visible again (optional)
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) onFocus();
+    });
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
+  }, [fetchComapniess, fetchMetrics]);
   const toggleSelectAll = (e) => {
     setSelectedComapniess(
       e.target.checked ? filteredComapniess.map((c) => c._id) : []
@@ -238,57 +255,46 @@ export default function CompanyList({ handleAddCompany, onView }) {
   };
 
   const handleDeleteSelected = async () => {
-    if (!selectedComapniess.length) {
-      toast.info("⚠️ No companies selected to delete");
+    console.log("🗑️ Deleting these IDs:", selectedComapniess);
+
+    if (selectedComapniess.length === 0) {
+      toast.info("No companies selected to delete");
       return;
     }
 
-    if (
-      !window.confirm("Are you sure you want to delete the selected companies?")
-    ) {
-      console.log("User cancelled deletion.");
+    if (!window.confirm(`Delete ${selectedComapniess.length} company(ies)?`)) {
+      console.log("❌ Delete cancelled by user");
       return;
     }
 
+    setDeleting(true);
     try {
-      console.log("Deleting companies:", selectedComapniess);
-      setDeleting(true);
-
       const results = await Promise.allSettled(
-        selectedComapniess.map((id) =>
-          axios.delete(`${baseUrl}/${id}`).then(() => ({ id }))
-        )
+        selectedComapniess.map((id) => {
+          console.log(`→ sending DELETE ${baseUrl}/${id}`);
+          return axios.delete(`${baseUrl}/${id}`);
+        })
       );
+      console.log("✅ Delete results:", results);
 
-      const succeeded = results.filter((r) => r.status === "fulfilled");
-      const failed = results.filter((r) => r.status === "rejected");
+      const succeeded = results.filter((r) => r.status === "fulfilled").length;
+      const failed = results.filter((r) => r.status === "rejected").length;
+      console.log(`   ✓ succeeded: ${succeeded}, ✗ failed: ${failed}`);
 
-      if (succeeded.length > 0) {
-        toast.success(
-          `✅ Deleted ${succeeded.length} compan${
-            succeeded.length === 1 ? "y" : "ies"
-          }`
-        );
-        console.log(
-          "Successfully deleted:",
-          succeeded.map((s) => s.value.id)
-        );
+      if (succeeded) {
+        toast.success(`${succeeded} deleted successfully`);
+        await fetchComapniess(); // re-load from API
+        setSelectedComapniess([]); // clear your selection
       }
-
-      if (failed.length > 0) {
-        toast.error(
-          `❌ Failed to delete ${failed.length} compan${
-            failed.length === 1 ? "y" : "ies"
-          } — check console`
-        );
-        console.error("Deletion errors:", failed);
+      if (failed) {
+        toast.error(`${failed} failed — see console for details`);
+        results
+          .filter((r) => r.status === "rejected")
+          .forEach((r, i) => console.error(`Error ${i}:`, r.reason));
       }
-
-      await fetchComapniess(); // Refresh list
-      setSelectedComapniess([]);
     } catch (err) {
-      console.error("Unexpected error during deletion:", err);
-      toast.error("❌ Unexpected error occurred during deletion");
+      console.error("🚨 Unexpected error in deletion:", err);
+      toast.error("Unexpected error while deleting. See console.");
     } finally {
       setDeleting(false);
     }

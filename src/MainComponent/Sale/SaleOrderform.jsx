@@ -6,8 +6,10 @@ import "react-toastify/dist/ReactToastify.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import SaleorderViewPage from "./SaleOrderViewPage";
 const SaleOrderform = ({ handleCancel }) => {
-  const warehousesBase = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
+  const warehousesBaseUrl =
+    "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
+  const siteBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
   const customersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
   const salesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
   const paymentTerms = [
@@ -114,15 +116,25 @@ const SaleOrderform = ({ handleCancel }) => {
         console.error("Error fetching items:", error);
       }
     };
- const fetchWarehouses = async () => {
+    const fetchWarehouses = async () => {
       try {
-        const response = await axios.get(itemsBaseUrl);
+        const response = await axios.get(warehousesBaseUrl);
         setItems(response.data.data || []);
       } catch (error) {
         console.error("Error fetching items:", error);
       }
     };
+    const fetchSiteBaseUrl = async () => {
+      try {
+        const response = await axios.get(siteBaseUrl);
+        setItems(response.data.data || []);
+      } catch (error) {
+        console.error("Error fetching items:", error);
+      }
+    };
+    fetchSiteBaseUrl();
     fetchCustomers();
+    fetchWarehouses();
     fetchItems();
   }, []);
 
@@ -667,20 +679,37 @@ const SaleOrderform = ({ handleCancel }) => {
                   />
                 </div>{" "}
                 <div>
-                  <label>Warehouse</label>
+                  <label>Site</label>
                   <select
-                    name="warehouse"
-                    value={form.warehouse}
-                    onChange={handleChange}
+                    name="site"
+                    // value={form.site}
+                    // onChange={handleChange}
                     required
                     className="mt-1 w-full p-2 border rounded"
                   >
                     <option value="">Select</option>
-                    {warehouses.map((w) => (
+                    {/* {warehouses.map((w) => (
                       <option key={w._id} value={w._id}>
                         {w.name}
                       </option>
-                    ))}
+                    ))} */}
+                  </select>
+                </div>
+                <div>
+                  <label>Warehouse</label>
+                  <select
+                    name="warehouse"
+                    // value={form.warehouse}
+                    // onChange={handleChange}
+                    required
+                    className="mt-1 w-full p-2 border rounded"
+                  >
+                    <option value="">Select</option>
+                    {/* {warehouses.map((w) => (
+                      <option key={w._id} value={w._id}>
+                        {w.name}
+                      </option>
+                    ))} */}
                   </select>
                 </div>
                 <div>

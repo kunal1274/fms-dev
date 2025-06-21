@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useContext } from "react";
 import ItemViewPage from "./ItemViewPage";
-import ItemForm from "./Form";
+import ItemForm from "./ItemForm";
 import ItemList from "./List";
 import { Button } from "../../../Component/Button/Button";
 
 import CompanyContext from "../../../context/CompanyContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const ItemPage = () => {
-    const queryClient = new QueryClient();
+  const queryClient = new QueryClient();
   const { form, setForm, companies } = useContext(CompanyContext);
 
   useEffect(() => {
@@ -90,7 +90,7 @@ const ItemPage = () => {
     <div className="w-full bg-white rounded-lg p-4">
       {/* {renderHeader()} */}
       <h2 className="mt-2 text-lg">
-        Item Master - Selected Company: {form.company}
+        {/* Item Master - Selected Company: {form.company} */}
       </h2>
       <div className="mt-4">
         {view === "list" && (

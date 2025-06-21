@@ -1,51 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Reusable input
-const FormInput = ({ label, name, value, onChange, ...props }) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-600">{label}</label>
-    <input
-      name={name}
-      value={value}
-      onChange={onChange}
-      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-      {...props}
-    />
-  </div>
-);
-
-// Reusable select with fixed options
-const FormSelect = ({
-  label,
-  name,
-  value,
-  onChange,
-  options = [],
-  required = false,
-}) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-600">{label}</label>
-    <select
-      name={name}
-      value={value}
-      onChange={onChange}
-      required={required}
-      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-    >
-      <option value="">{`Select ${label.toLowerCase()}...`}</option>
-      {options.map((opt) => (
-        <option key={opt} value={opt}>
-          {opt}
-        </option>
-      ))}
-    </select>
-  </div>
-);
-
-// Reusable select with metadata
+const metadataUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items/metadata";
+const API_URL = "https://fms-qkmw.onrender.com/fms/api/v0/items";
 const FormSelectMeta = ({
   label,
   name,
@@ -74,78 +33,23 @@ const FormSelectMeta = ({
     </select>
   </div>
 );
+const ItemForm = () => {
+  const [form, setForm] = useState({
+    itemNum: "",
+    name: "",
+    description: "",
+    type: "",
+    unit: "",
+    price: "",
+    purchPrice: "",
+    salesPrice: "",
+    invPrice: "",
+    active: false,
+  });
 
-// Reusable textarea
-const FormTextArea = ({ label, name, value, onChange }) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-600">{label}</label>
-    <textarea
-      name={name}
-      value={value}
-      onChange={onChange}
-      rows={3}
-      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-    />
-  </div>
-);
-
-// Reusable checkbox
-const FormCheckbox = ({ label, name, checked, onChange }) => (
-  <div className="flex items-center ml-2">
-    <input
-      name={name}
-      type="checkbox"
-      checked={checked}
-      onChange={onChange}
-      className="h-4 w-4"
-    />
-    <label className="ml-2 text-sm font-medium text-gray-600">{label}</label>
-  </div>
-);
-
-const metadataUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items/metadata";
-const apiItemBase = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-
-const initialForm = {
-  itemNum: "",
-  itemCode: "",
-  name: "",
-  description: "",
-  type: "",
-  unit: "",
-  price: "",
-  purchPrice: "",
-  salesPrice: "",
-  invPrice: "",
-  active: true,
-  financialGroup: "",
-  hierarchicalCategory: "",
-  externalCode: "",
-  globalPartyId: "",
-  site: "",
-  warehouse: "",
-  zone: "",
-  location: "",
-  aisle: "",
-  rack: "",
-  shelf: "",
-  bin: "",
-  pallet: "",
-  colour: "",
-  size: "",
-  configuration: "",
-  style: "",
-  version: "",
-  batch: "",
-  serial: "",
-  manufacturingDate: "",
-  expiryDate: "",
-};
-
-export default function ItemForm({ onSaved, handleCancel }) {
-  const [form, setForm] = useState(initialForm);
-  const [items, setItems] = useState([]);
+  //   const [items, setItems] = useState([]);
   const [colours, setColours] = useState([]);
+  const [items, setItems] = useState([]);
   const [sites, setSites] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [zones, setZones] = useState([]);
@@ -161,7 +65,6 @@ export default function ItemForm({ onSaved, handleCancel }) {
   const [configurations, setConfigurations] = useState([]);
   const [styles, setStyles] = useState([]);
   const [versions, setVersions] = useState([]);
-
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
@@ -192,7 +95,7 @@ export default function ItemForm({ onSaved, handleCancel }) {
 
     const fetchItems = async () => {
       try {
-        const res = await axios.get(apiItemBase);
+        const res = await axios.get(API_URL);
         setItems(res.data.data || []);
       } catch (err) {
         console.error("Error loading items:", err);
@@ -202,42 +105,17 @@ export default function ItemForm({ onSaved, handleCancel }) {
     fetchMetadata();
     fetchItems();
   }, []);
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
-    setForm((prev) => {
-      const updated = {
-        ...prev,
-        [name]: type === "checkbox" ? checked : value,
-      };
-
-      if (name === "name") {
-        updated.itemCode = value.trim(); // Keep itemCode in sync with name
-      }
-
-      return updated;
-    });
+    const val = type === "checkbox" ? checked : value;
+    setForm((prev) => ({
+      ...prev,
+      [name]: val,
+    }));
   };
-  const removeEmptyFields = (obj) =>
-    Object.entries(obj)
-      .filter(([_, v]) => v !== "" && v !== undefined && v !== null)
-      .reduce((acc, [k, v]) => {
-        acc[k] =
-          typeof v === "object" && !Array.isArray(v) ? removeEmptyFields(v) : v;
-        return acc;
-      }, {});
-      
-  const createItem = async (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const itemCodeFinal = form.itemCode?.trim();
-    const itemNameFinal = form.name?.trim();
-
-    if (!itemCodeFinal || !itemNameFinal) {
-      toast.error("Item Code and Item Name are required");
-      return;
-    }
 
     const payload = {
       ...form,
@@ -246,24 +124,30 @@ export default function ItemForm({ onSaved, handleCancel }) {
       salesPrice: parseFloat(form.salesPrice) || 0,
       invPrice: parseFloat(form.invPrice) || 0,
     };
-    const cleanedPayload = removeEmptyFields(payload);
 
     try {
-      const res = await axios.post(apiItemBase, cleanedPayload, {
-        headers: { "Content-Type": "application/json" },
+      const response = await axios.post(API_URL, payload);
+      console.log("POST Response:", response.data);
+      toast.success("Item created successfully!");
+      setForm({
+        itemNum: "",
+        name: "",
+        description: "",
+        type: "",
+        unit: "",
+        price: "",
+        purchPrice: "",
+        salesPrice: "",
+        invPrice: "",
+        active: false,
       });
-      const newItem = res.data.data;
-      toast.success("Item saved!", { autoClose: 1200, onClose: handleCancel });
-      setItems((prev) => [...prev, newItem]);
-      onSaved?.(newItem);
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Couldn’t save item");
+    } catch (error) {
+      console.error("POST Error:", error.response?.data || error.message);
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to create item. Please try again."
+      );
     }
-  };
-
-  const handleReset = () => {
-    setForm({ ...initialForm });
   };
 
   return (
@@ -284,7 +168,7 @@ export default function ItemForm({ onSaved, handleCancel }) {
         </div>
       </div>
 
-      <form onSubmit={createItem} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Item Details */}
         <section className="p-6 bg-white rounded Item">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
@@ -296,8 +180,8 @@ export default function ItemForm({ onSaved, handleCancel }) {
                 Item Code
               </label>
               <input
-                name="itemCode"
-                value={form.itemCode}
+                name="itemNum"
+                value={form.itemNum}
                 onChange={handleChange}
                 required
                 className="mt-1 w-full p-2 border rounded"
@@ -560,33 +444,37 @@ export default function ItemForm({ onSaved, handleCancel }) {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <FormSelectMeta
-              label="Batch"
               name="batch"
-              value={form.batch}
+              label="Batch"
+              value={form.version}
               onChange={handleChange}
-              list={batches}
+              list={versions}
             />
             <FormSelectMeta
-              label="Serial"
-              name="serial"
-              value={form.serial}
+              name="Serials"
+              label="Serials"
+              value={form.version}
               onChange={handleChange}
-              list={serials}
+              list={versions}
             />
-            <FormInput
-              name="manufacturingDate"
-              label="Manufacturing Date"
-              type="date"
-              value={form.manufacturingDate}
-              onChange={handleChange}
-            />
-            <FormInput
-              name="expiryDate"
-              label="Expiry Date"
-              type="date"
-              value={form.expiryDate}
-              onChange={handleChange}
-            />
+            <div className="">
+              <label className="block text-sm font-medium text-gray-600">
+                Manufacturing Date
+              </label>
+              <input
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div>
+            <div className="">
+              <label className="block text-sm font-medium text-gray-600">
+                Expiry Date
+              </label>
+              <input
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div>
           </div>
         </section>
 
@@ -594,7 +482,6 @@ export default function ItemForm({ onSaved, handleCancel }) {
         <div className="flex justify-between items-center py-6">
           <button
             type="button"
-            onClick={handleReset}
             className="text-sm text-gray-500 hover:text-gray-700"
           >
             Reset
@@ -602,7 +489,7 @@ export default function ItemForm({ onSaved, handleCancel }) {
           <div className="flex gap-4">
             <button
               type="button"
-              onClick={handleCancel}
+              //   onClick={handleCancel}
               className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300"
             >
               Go Back
@@ -618,4 +505,6 @@ export default function ItemForm({ onSaved, handleCancel }) {
       </form>
     </div>
   );
-}
+};
+
+export default ItemForm;
