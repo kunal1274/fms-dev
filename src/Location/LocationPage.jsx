@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Button } from "../../../Component/Button/Button";
-import LocationForm from "./LocationForm";
+import { Button } from "../Component/Button/Button.jsx";
+import LocationForm from "./LocationForm.jsx";
 import LocationViewpage from "./LocationViewpage.jsx";
 import Location from "./Location.jsx";
 

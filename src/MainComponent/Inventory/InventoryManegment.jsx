@@ -27,7 +27,7 @@ import ShelvesPage from "./Shelves/ShelvesPage";
 import Aisles from "./Aisles/AislesPage";
 import BatchValuePage from "./BatchValue/BatchValuePage";
 import BinPage from "./Bin/BinPage";
-import LocationPage from "./Location/LocationPage";
+import LocationPage from "../../Location/LocationPage";
 import RackPage from "./Rack/RackPage";
 // import ConfigPage from "./ProductDimConf/ProductDimConfPage.jsx";
 // import ColorPage from "./ProductDimColor/ProductDimColorPage.jsx/index.js";
