@@ -439,21 +439,18 @@ export default function ShelvesList({ handleAddShelves }) {
                           }
                         />
                       </th>
-                      {[
-                        "Code",
-                        "Name",
-                        "Discription",
-                        "site",
-                        "Type",
-                        "Status",
-                      ].map((h) => (
-                        <th
-                          key={h}
-                          className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
-                        >
-                          {h}
-                        </th>
-                      ))}
+                      {["Code", "Name", "Discription", "Type", "Status"].map(
+
+                        
+                        (h) => (
+                          <th
+                            key={h}
+                            className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                          >
+                            {h}
+                          </th>
+                        )
+                      )}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">

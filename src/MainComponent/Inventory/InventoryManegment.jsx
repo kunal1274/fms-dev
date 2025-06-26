@@ -29,8 +29,8 @@ import BatchValuePage from "./BatchValue/BatchValuePage";
 import BinPage from "./Bin/BinPage";
 import LocationPage from "./Location/LocationPage";
 import RackPage from "./Rack/RackPage";
-import ConfigPage from "./ProductDimConf/ProductDimConfPage";
-import ColorPage from "./ProductDimColor/ProductDimColorPage";
+// import ConfigPage from "./ProductDimConf/ProductDimConfPage.jsx";
+// import ColorPage from "./ProductDimColor/ProductDimColorPage.jsx/index.js";
 import Serial from "./Serial/SerialPage";
 
 const initialForm = {
@@ -147,12 +147,12 @@ export default function ViewTogglePage() {
     [PAGE.RACK]: (
       <RackPage companies={companies} form={form} setForm={setForm} />
     ),
-    [PAGE.CONFIG]: (
-      <ConfigPage companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.COLOR]: (
-      <ColorPage companies={companies} form={form} setForm={setForm} />
-    ),
+    // [PAGE.CONFIG]: (
+    //   <ConfigPage companies={companies} form={form} setForm={setForm} />
+    // ),
+    // [PAGE.COLOR]: (
+    //   <ColorPage companies={companies} form={form} setForm={setForm} />
+    // ),
     [PAGE.SERIALS]: (
       <Serial companies={companies} form={form} setForm={setForm} />
     ),

@@ -7,6 +7,7 @@ import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react";
+import LocationViewpage from "./LocationViewpage"
 import "./c.css";
 const Location = ({handleAddLocation}) => {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Location";
@@ -93,16 +94,16 @@ const Location = ({handleAddLocation}) => {
     if (value === "All") {
       setFilteredLocation(filtered);
     } else if (value === "yes") {
-      setFilteredLocation(filtered.filter((aisle) => aisle.active === true));
+      setFilteredLocation(filtered.filter((Location) => Location.active === true));
     } else if (value === "no") {
-      setFilteredLocation(filtered.filter((aisle) => aisle.active === false));
-    } else if (value === "Aisle Name") {
+      setFilteredLocation(filtered.filter((Location) => Location.active === false));
+    } else if (value === "Location Name") {
       filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
       setFilteredLocation(filtered);
-    } else if (value === "Aisle Account no") {
+    } else if (value === "Location Account no") {
       filtered = filtered.sort((a, b) => a.code.localeCompare(b.code));
       setFilteredLocation(filtered);
-    } else if (value === "Aisle Account no descending") {
+    } else if (value === "Location Account no descending") {
       filtered = filtered.sort((a, b) => b.code.localeCompare(a.code));
       setFilteredLocation(filtered);
     }
@@ -130,7 +131,7 @@ const Location = ({handleAddLocation}) => {
         });
       } catch (err) {
         console.error(err);
-        setError("Unable to load Aisle data.");
+        setError("Unable to load Location data.");
       } finally {
         setLoading(false);
       }
@@ -259,10 +260,10 @@ const Location = ({handleAddLocation}) => {
       toast.info("No data to export.");
       return;
     }
-    const ws = XLSX.utils.json_to_sheet(aisleList);
+    const ws = XLSX.utils.json_to_sheet(LocationList);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Location");
-    XLSX.writeFile(wb, "aisle_list.xlsx");
+    XLSX.writeFile(wb, "Location_list.xlsx");
   };
 
   const generatePDF = () => {
@@ -278,7 +279,7 @@ const Location = ({handleAddLocation}) => {
         c.active ? "Active" : "Inactive",
       ]),
     });
-    doc.save("Aisle_list.pdf");
+    doc.save("Location_list.pdf");
   };
 
   const handleLocationClick = (LocationId) => {
@@ -299,7 +300,7 @@ const Location = ({handleAddLocation}) => {
   if (viewingLocationId) {
     return (
       <div className="p-4">
-        <AisleViewPage aisleId={viewingLocationId} goBack={goBack} />
+        <LocationViewPage LocationId={viewingLocationId} goBack={goBack} />
       </div>
     );
   }
@@ -310,9 +311,9 @@ const Location = ({handleAddLocation}) => {
       <div>
         <div>
           {viewingLocationId ? (
-            <AisleViewPage
+            <LocationViewpage
               toggleView={toggleView}
-              aisleId={viewingAisleId}
+              LocationId={viewingLocationId}
               goBack={goBack}
             />
           ) : (
@@ -346,7 +347,7 @@ const Location = ({handleAddLocation}) => {
                   </div>
 
                   {/* </div> */}
-                  <h3 className="text-xl font-semibold">Aisle List</h3>
+                  <h3 className="text-xl font-semibold">Location List</h3>
                 </div>
                 <div className="flex items-center gap-3 ">
                   <button
@@ -436,12 +437,12 @@ const Location = ({handleAddLocation}) => {
                       className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="Aisle Name">Aisle Name</option>
-                      <option value="Aisle Account no">
-                        Aisle Account in Ascending
+                      <option value="Location Name">Location Name</option>
+                      <option value="Location Account no">
+                        Location Account in Ascending
                       </option>
-                      <option value="Aisle Account no descending">
-                        Aisle Account in descending
+                      <option value="Location Account no descending">
+                        Location Account in descending
                       </option>
                     </select>
                   </div>
@@ -524,7 +525,12 @@ const Location = ({handleAddLocation}) => {
                           className="form-checkbox"
                         />
                       </th>
-                      {["Code", "Name", "Address", "Contact", "Status"].map(
+                      {[    "Code",
+                        "Name",
+                        "Discription",
+                        "Type",
+                      
+                        "Status",].map(
                         (h) => (
                           <th
                             key={h}
@@ -552,12 +558,12 @@ const Location = ({handleAddLocation}) => {
                             />
                           </td>
                           <td
-                          // onClick={() => handleAisleClick(Aisle._id)}
+                          // onClick={() => handleLocationClick(Location._id)}
                           // className="px-6 py-4 cursor-pointer text-blue-600 hover:underline"
                           >
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleAisleClick(c._id)}
+                              onClick={() => handleLocationClick(c._id)}
                             >
                               {c.code}
                             </button>

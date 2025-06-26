@@ -1,9 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import { Button } from "../../../Component/Button/Button";
-import LocationForm from './LocationForm';
-import Location from './Location.jsx';
-import LocationViewPage from '../Location/LocationViewPage';
-
+import LocationForm from "./LocationForm";
+import Location from "./Location.jsx";
+import LocationViewpage from "./LocationViewpage.jsx";
 
 const LocationPage = () => {
   const [view, setView] = useState("list");
@@ -24,7 +23,7 @@ const LocationPage = () => {
       }
       return [...prev, Locataion];
     });
-     setView("form");
+    setView("form");
     // setView("list");
   };
 
@@ -32,7 +31,7 @@ const LocationPage = () => {
   const handleAddLocation = () => {
     setSelectedLocataion(null);
     setView("form");
-      setView("list");
+    setView("list");
   };
 
   /** Show Locataion details */
@@ -86,7 +85,7 @@ const LocationPage = () => {
   };
 
   return (
-    <div className="w-full bg-white rounded-lg ">
+    <div>
       <div>
         {view === "list" && (
           <Location
@@ -105,7 +104,7 @@ const LocationPage = () => {
           />
         )}
         {view === "details" && selectedLocation && (
-          <LocationViewPage
+          <LocationViewpage
             location={selectedLocation}
             onEdit={() => setView("form")}
             handleCancel={handleCancel}
@@ -116,5 +115,4 @@ const LocationPage = () => {
   );
 };
 
-
-export default LocationPage
+export default LocationPage;

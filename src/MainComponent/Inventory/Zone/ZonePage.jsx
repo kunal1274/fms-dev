@@ -29,7 +29,7 @@ export default function ZonePage() {
   };
 
   return (
-    <div className="w-full p-6 bg-white rounded-lg">
+    <div>
       {view === "list" && (
         <ZoneList handleAddZone={handleAddZone} onView={handleViewZone} />
       )}

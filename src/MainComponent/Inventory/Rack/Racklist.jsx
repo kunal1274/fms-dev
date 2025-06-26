@@ -7,6 +7,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react";
 import "./c.css";
+import RackViewPage from "./RackViewPage";
 const SerialList = ({ handleAddRacks, onView }) => {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Racks";
   const metricsUrl = `${baseUrl}/metrics`;
@@ -92,16 +93,16 @@ const SerialList = ({ handleAddRacks, onView }) => {
     if (value === "All") {
       setFilteredRacks(filtered);
     } else if (value === "yes") {
-      setFilteredRacks(filtered.filter((aisle) => aisle.active === true));
+      setFilteredRacks(filtered.filter((Rack) => Rack.active === true));
     } else if (value === "no") {
-      setFilteredRacks(filtered.filter((aisle) => aisle.active === false));
-    } else if (value === "Aisle Name") {
+      setFilteredRacks(filtered.filter((Rack) => Rack.active === false));
+    } else if (value === "RacksName") {
       filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
       setFilteredRacks(filtered);
-    } else if (value === "Aisle Account no") {
+    } else if (value === "RacksAccount no") {
       filtered = filtered.sort((a, b) => a.code.localeCompare(b.code));
       setFilteredRacks(filtered);
-    } else if (value === "Aisle Account no descending") {
+    } else if (value === "RacksAccount no descending") {
       filtered = filtered.sort((a, b) => b.code.localeCompare(a.code));
       setFilteredRacks(filtered);
     }
@@ -129,7 +130,7 @@ const SerialList = ({ handleAddRacks, onView }) => {
         });
       } catch (err) {
         console.error(err);
-        setError("Unable to load Aisle data.");
+        setError("Unable to load Racksdata.");
       } finally {
         setLoading(false);
       }
@@ -214,9 +215,7 @@ const SerialList = ({ handleAddRacks, onView }) => {
   const onTabClick = (tab) => setActiveTab(tab);
 
   const toggleSelectAll = (e) => {
-    setSelectedRacks(
-      e.target.checked ? filteredRacks.map((c) => c._id) : []
-    );
+    setSelectedRacks(e.target.checked ? filteredRacks.map((c) => c._id) : []);
   };
 
   const handleCheckboxChange = (id) => {
@@ -258,10 +257,10 @@ const SerialList = ({ handleAddRacks, onView }) => {
       toast.info("No data to export.");
       return;
     }
-    const ws = XLSX.utils.json_to_sheet(aisleList);
+    const ws = XLSX.utils.json_to_sheet(RackList);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Racks");
-    XLSX.writeFile(wb, "aisle_list.xlsx");
+    XLSX.writeFile(wb, "Rack_list.xlsx");
   };
 
   const generatePDF = () => {
@@ -277,7 +276,7 @@ const SerialList = ({ handleAddRacks, onView }) => {
         c.active ? "Active" : "Inactive",
       ]),
     });
-    doc.save("Aisle_list.pdf");
+    doc.save("Rack_list.pdf");
   };
 
   const handleRacksClick = (RacksId) => {
@@ -298,7 +297,7 @@ const SerialList = ({ handleAddRacks, onView }) => {
   if (viewingRacksId) {
     return (
       <div className="p-4">
-        <AisleViewPage aisleId={viewingRacksId} goBack={goBack} />
+        <RackViewPage RackId={viewingRacksId} goBack={goBack} />
       </div>
     );
   }
@@ -309,9 +308,9 @@ const SerialList = ({ handleAddRacks, onView }) => {
       <div>
         <div>
           {viewingRacksId ? (
-            <AisleViewPage
-              toggleView={toggleView}
-              aisleId={viewingAisleId}
+            <RackViewPage
+              // toggleView={toggleView}
+              RackId={viewingRacksId}
               goBack={goBack}
             />
           ) : (
@@ -345,7 +344,7 @@ const SerialList = ({ handleAddRacks, onView }) => {
                   </div>
 
                   {/* </div> */}
-                  <h3 className="text-xl font-semibold">Aisle List</h3>
+                  <h3 className="text-xl font-semibold">Racks List</h3>
                 </div>
                 <div className="flex items-center gap-3 ">
                   <button
@@ -435,12 +434,12 @@ const SerialList = ({ handleAddRacks, onView }) => {
                       className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="Aisle Name">Aisle Name</option>
-                      <option value="Aisle Account no">
-                        Aisle Account in Ascending
+                      <option value="RacksName">RacksName</option>
+                      <option value="RacksAccount no">
+                        RacksAccount in Ascending
                       </option>
-                      <option value="Aisle Account no descending">
-                        Aisle Account in descending
+                      <option value="RacksAccount no descending">
+                        RacksAccount in descending
                       </option>
                     </select>
                   </div>
@@ -522,7 +521,14 @@ const SerialList = ({ handleAddRacks, onView }) => {
                           className="form-checkbox"
                         />
                       </th>
-                      {["Code", "Name", "Address", "Contact", "Status"].map(
+                      {[    "Code",
+                        "Name",
+                        "Discription",
+                        "Type",
+                      
+                        "Status",
+                      
+                      ].map(
                         (h) => (
                           <th
                             key={h}
@@ -550,12 +556,12 @@ const SerialList = ({ handleAddRacks, onView }) => {
                             />
                           </td>
                           <td
-                          // onClick={() => handleAisleClick(Aisle._id)}
+                          // onClick={() => handleRackClick(Rack._id)}
                           // className="px-6 py-4 cursor-pointer text-blue-600 hover:underline"
                           >
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleAisleClick(c._id)}
+                              onClick={() => handleRacksClick(c._id)}
                             >
                               {c.code}
                             </button>

@@ -5,153 +5,101 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
 
-const baseUrl = "https://fms-qkmw.onrender.com";
-const secondUrl = "/fms/api/v0";
-const thirdUrl = "/Sites";
-const mergedUrl = `${baseUrl}${secondUrl}${thirdUrl}`;
+const mergedUrl = `https://fms-qkmw.onrender.com/fms/api/v0/sites`;
 
-const SiteViewPagee = ({ SiteId, goBack }) => {
-  const [form, setForm] = useState({
-    SiteAccountNo: "",
-    name: "",
-    email: "",
-    description: "",
-  });
-  const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
+const SiteViewPage = ({ siteId, Site, goBack }) => {
   const { id } = useParams();
+  const effectiveId = siteId || id;
 
-  // Fetch existing site data
-  useEffect(() => {
-    const fetchSite = async () => {
-      try {
-        const resp = await axios.get(`${mergedUrl}/${SiteId || id}`);
-        const data = resp.data.data || resp.data;
-        setForm({
-          SiteAccountNo: data.SiteAccountNo || "",
-          name: data.name || "",
-          email: data.email || "",
-          description: data.description || "",
-        });
-      } catch (err) {
-        toast.error(
-          err.response?.data?.message ||
-            "Failed to load site data. Please try again."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSite();
-  }, [SiteId, id]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
+  const initialForm = {
+    code: "",
+    name: "",
+    type: "Physical",
+    company: "",
+    description: "",
+    remarks: "",
+    active: false,
+    archived: false,
+    groups: [],
+    bankDetails: [],
   };
 
-  const handleEdit = () => {
-    setIsEditing(true);
+  const [form, setForm] = useState(initialForm);
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : value;
+    setForm((prev) => ({ ...prev, [name]: newValue }));
   };
 
   const handleUpdate = async () => {
-    if (!window.confirm("Are you sure you want to update this Site?")) return;
-    setLoading(true);
-    const toastId = toast.loading("Updating…");
+    const confirmUpdate = window.confirm(
+      "Are you sure you want to update this Site?"
+    );
+    if (!confirmUpdate) return;
+
+    const toastId = toast.loading("Updating site...");
     try {
-      await axios.put(`${mergedUrl}/${SiteId || id}`, form);
-      toast.update(toastId, {
-        render: "Site updated successfully!",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      });
-      setIsEditing(false);
+      const response = await axios.put(`${mergedUrl}/${effectiveId}`, form);
+      if (response.status === 200) {
+        toast.update(toastId, {
+          render: "Site updated successfully!",
+          type: "success",
+          isLoading: false,
+          autoClose: 3000,
+        });
+        setIsEditing(false);
+      }
     } catch (err) {
       toast.update(toastId, {
-        render:
-          err.response?.data?.message || "Update failed. Please try again.",
+        render: err.response?.data?.message || "Update failed",
         type: "error",
         isLoading: false,
         autoClose: 3000,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <div className="w-16 h-16 border-4 border-gray-300 border-t-transparent rounded-full animate-spin" />
-        <p className="mt-4 text-gray-500 text-lg">Loading Site…</p>
-      </div>
-    );
-  }
+  const handleEdit = () => setIsEditing(true);
+
+  useEffect(() => {
+    const fetchSiteDetail = async () => {
+      try {
+        const response = await axios.get(`${mergedUrl}/${effectiveId}`);
+        if (response.status === 200) {
+          setForm(response.data.data || initialForm);
+        } else {
+          setError(`Unexpected response status: ${response.status}`);
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || "Error fetching data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSiteDetail();
+  }, [effectiveId]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-600">Error: {error}</div>;
 
   return (
-    <div className="p-6">
+    <div className="space-y-6">
       <ToastContainer />
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-            <button
-              type="button"
-              className="text-blue-600 hover:underline"
-              /* TODO: hook up file upload handler */
-            >
-              Upload Photo
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 inline-block ml-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
-                />
-              </svg>
-            </button>
-          </div>
-          <h3 className="text-2xl font-semibold">Site View Page</h3>
-        </div>
-        <div className="space-x-2">
-          <button
-            onClick={handleEdit}
-            disabled={isEditing}
-            className="px-4 py-2 bg-green-200 rounded hover:bg-green-300 transition"
-          >
-            Edit
-          </button>
-          <button
-            onClick={goBack}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
-          >
-            Go Back
-          </button>
-          <button
-            onClick={handleUpdate}
-            disabled={!isEditing}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          >
-            Update
-          </button>
-        </div>
+      <div className="flex justify-between items-center">
+        <h3 className="text-xl font-semibold">Site View Page</h3>
       </div>
 
-      {/* Business Details Form */}
-      <form className="bg-white shadow rounded p-6 space-y-6">
-        <section>
-          <h2 className="text-xl font-medium text-gray-700 mb-4">
-            Business Details
+      <form className="bg-white shadow-none rounded-lg divide-y divide-gray-200">
+        <section className="p-6">
+          <h2 className="text-lg font-medium text-gray-700 mb-4">
+            Site Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Site Code */}
+            {/* Site Code - Readonly */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Site Code
@@ -160,10 +108,11 @@ const SiteViewPagee = ({ SiteId, goBack }) => {
                 name="code"
                 value={form.code}
                 readOnly
-                placeholder="Auto-generated"
-                className="mt-1 w-full cursor-not-allowed p-2 border rounded bg-gray-100"
+                disabled
+                className="mt-1 w-full p-2 border bg-gray-100 rounded cursor-not-allowed"
               />
             </div>
+
             {/* Site Name */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
@@ -174,31 +123,12 @@ const SiteViewPagee = ({ SiteId, goBack }) => {
                 value={form.name}
                 onChange={handleChange}
                 disabled={!isEditing}
-                required
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                  !isEditing ? "bg-gray-50" : ""
-                }`}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                type
-              </label>
-              <input
-                name="type"
-                type="type"
-                value={form.email}
-                onChange={handleChange}
-                disabled={!isEditing}
-                required
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                  !isEditing ? "bg-gray-50" : ""
-                }`}
-              />
-            </div>
+
             {/* Description */}
-            <div className="sm:col-span-2">
+            <div>
               <label className="block text-sm font-medium text-gray-600">
                 Site Description
               </label>
@@ -206,14 +136,97 @@ const SiteViewPagee = ({ SiteId, goBack }) => {
                 name="description"
                 value={form.description}
                 onChange={handleChange}
+                rows={3}
                 disabled={!isEditing}
-                rows={4}
-                required
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                  !isEditing ? "bg-gray-50" : ""
-                }`}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
+
+            {/* Remarks */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Remarks
+              </label>
+              <textarea
+                name="remarks"
+                value={form.remarks}
+                onChange={handleChange}
+                rows={3}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            {/* Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Type
+              </label>
+              <select
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="">Select type</option>
+                <option value="Physical">Physical</option>
+                <option value="Virtual">Virtual</option>
+              </select>
+            </div>
+
+            {/* Active Checkbox */}
+            <div className="flex items-center space-x-2 mt-6">
+              <label className="text-sm font-medium text-gray-600">
+                Active
+              </label>
+              <input
+                type="checkbox"
+                name="active"
+                checked={form.active}
+                onChange={handleChange}
+                disabled={!isEditing}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+              />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+       <div className="py-6 flex justify-end gap-4">
+            {!isEditing ? (
+              <button
+                type="button"
+                onClick={handleEdit}
+                className="px-6 py-2 bg-green-200 rounded hover:bg-green-300 transition"
+              >
+                Edit
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="px-6 py-2 bg-red-200 rounded hover:bg-red-300 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUpdate}
+                  className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                >
+                  Update
+                </button>
+              </>
+            )}
+
+            <button
+              type="button"
+              onClick={goBack}
+              className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
+            >
+              Go Back
+            </button>
           </div>
         </section>
       </form>
@@ -221,4 +234,4 @@ const SiteViewPagee = ({ SiteId, goBack }) => {
   );
 };
 
-export default SiteViewPagee;
+export default SiteViewPage;

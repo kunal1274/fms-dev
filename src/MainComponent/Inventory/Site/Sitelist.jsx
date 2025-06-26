@@ -4,7 +4,7 @@ import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
-
+import SiteViewPagee from "./SiteViewPagee";
 export default function SiteList({ handleAddSite }) {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
 
@@ -24,7 +24,7 @@ export default function SiteList({ handleAddSite }) {
   const [sortKey, setSortKey] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   // …any other state…
-
+  const goBack = () => setViewingSiteId(null);
   // ––– now it’s safe to reference them in your useEffect:
   useEffect(() => {
     let data = [...sites];
@@ -270,8 +270,8 @@ export default function SiteList({ handleAddSite }) {
       <div>
         <div>
           {viewingSiteId ? (
-            <SiteViewPage
-              toggleView={toggleView}
+            <SiteViewPagee
+              // toggleView={toggleView}
               siteId={viewingSiteId}
               goBack={goBack}
             />
@@ -484,12 +484,9 @@ export default function SiteList({ handleAddSite }) {
                         />
                       </th>
                       {[
-                        "Code",
-                        "Name",
-                        "Discription",
-                        "Type",
-                        "Date",
-                        "Status",
+                    
+                    
+                    
                       ].map((h) => (
                         <th
                           key={h}

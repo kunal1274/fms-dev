@@ -3,247 +3,270 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./c.css";
 
-const API_BASE = "https://fms-qkmw.onrender.com/fms/api/v0/Shelvess";
-const SITES_API = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
+const mergedUrl = `https://fms-qkmw.onrender.com/fms/api/v0/Shelvess`;
+const RackUrl = `https://fms-qkmw.onrender.com/fms/api/v0/Racks`;
 
-export default function ShelvesViewPage({ ShelvesId: propId, goBack }) {
-  // Determine ID from prop or URL
-  const { id: paramId } = useParams();
-  const ShelvesId = propId || paramId;
+const ShelvesViewPage = ({ ShelvesId, Shelves, goBack }) => {
+  const { id } = useParams();
+  const effectiveId = ShelvesId || id;
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-
-  const [Shelves, setShelves] = useState(null);
-  const [formData, setFormData] = useState({});
-  const [sites, setSites] = useState([]);
-
-  const [logoUploading, setLogoUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-
-  // Fetch Shelves detail
-  useEffect(() => {
-    async function fetchDetail() {
-      setLoading(true);
-      try {
-        const resp = await axios.get(`${API_BASE}/${ShelvesId}`);
-        const data = resp.data.data || resp.data;
-        setShelves(data);
-        setFormData({ ...data });
-      } catch (err) {
-        console.error(err);
-        setError(err.response?.data?.message || "Failed to load data");
-      } finally {
-        setLoading(false);
-      }
-    }
-    if (ShelvesId) fetchDetail();
-  }, [ShelvesId]);
-
-  // Fetch list of sites for dropdown
-  useEffect(() => {
-    async function fetchSites() {
-      try {
-        const resp = await axios.get(SITES_API);
-        setSites(resp.data.data || resp.data || []);
-      } catch (err) {
-        console.error("Failed to load sites:", err);
-      }
-    }
-    fetchSites();
-  }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const initialForm = {
+    code: "",
+    name: "",
+    type: "Physical",
+    company: "",
+    description: "",
+    remarks: "",
+    active: false,
+    archived: false,
+    Rack: "",
+    groups: [],
+    bankDetails: [],
   };
 
-  const handleEdit = () => setIsEditing(true);
+  const [form, setForm] = useState(initialForm);
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [Racks, setRacks] = useState([]);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : value;
+    setForm((prev) => ({ ...prev, [name]: newValue }));
+  };
 
   const handleUpdate = async () => {
-    if (!window.confirm("Are you sure you want to update this Shelves?"))
-      return;
-    setLoading(true);
-    const toastId = toast.loading("Updating...");
+    const confirmUpdate = window.confirm(
+      "Are you sure you want to update this Shelves?"
+    );
+    if (!confirmUpdate) return;
+
+    const toastId = toast.loading("Updating Shelves...");
     try {
-      const resp = await axios.put(`${API_BASE}/${ShelvesId}`, formData);
-      const updated = resp.data.data || resp.data;
-      setShelves(updated);
-      setFormData(updated);
-      setIsEditing(false);
-      toast.update(toastId, {
-        render: "Updated successfully!",
-        type: "success",
-        isLoading: false,
-        autoClose: 3000,
-      });
+      const response = await axios.put(`${mergedUrl}/${effectiveId}`, form);
+      if (response.status === 200) {
+        toast.update(toastId, {
+          render: "Shelves updated successfully!",
+          type: "success",
+          isLoading: false,
+          autoClose: 3000,
+        });
+        setIsEditing(false);
+      }
     } catch (err) {
-      console.error(err);
       toast.update(toastId, {
         render: err.response?.data?.message || "Update failed",
         type: "error",
         isLoading: false,
         autoClose: 3000,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleFileUpload = async (file) => {
-    if (!file) return toast.error("No file selected");
-    setLogoUploading(true);
-    try {
-      const data = new FormData();
-      data.append("logoImage", file);
-      const resp = await axios.post(`${API_BASE}/logoImage`, data, {
-        headers: { "Content-Type": "multipart/form-data" },
-        onUploadProgress: (e) =>
-          setUploadProgress(Math.round((e.loaded * 100) / e.total)),
-      });
-      toast.success("Logo uploaded");
-      const updated = resp.data.data || resp.data;
-      setShelves(updated);
-      setFormData(updated);
-    } catch (err) {
-      console.error(err);
-      toast.error("Upload failed");
-    } finally {
-      setLogoUploading(false);
-      setUploadProgress(0);
-    }
-  };
+  const handleEdit = () => setIsEditing(true);
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-      </div>
-    );
+  useEffect(() => {
+    const fetchShelvesDetail = async () => {
+      try {
+        const response = await axios.get(`${mergedUrl}/${effectiveId}`);
+        if (response.status === 200) {
+          setForm(response.data.data || initialForm);
+        } else {
+          setError(`Unexpected response status: ${response.status}`);
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || "Error fetching data");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (error) return <p className="text-red-500">{error}</p>;
+    const fetchRacks = async () => {
+      try {
+        const res = await axios.get(RackUrl);
+        if (res.status === 200) setRacks(res.data.data || []);
+      } catch (err) {
+        console.error("Failed to fetch Racks", err);
+      }
+    };
+
+    fetchShelvesDetail();
+    fetchRacks();
+  }, [effectiveId]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-600">Error: {error}</div>;
 
   return (
-    <div className="p-6 bg-white rounded shadow">
+    <div className="space-y-6">
       <ToastContainer />
-      <header className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Shelves Details</h2>
-        <div className="space-x-2">
-          {!isEditing && (
-            <button
-              onClick={handleEdit}
-              className="px-4 py-2 bg-green-500 text-white rounded"
-            >
-              Edit
-            </button>
-          )}
-          <button onClick={goBack} className="px-4 py-2 bg-gray-300 rounded">
-            Back
-          </button>
-          {isEditing && (
-            <button
-              onClick={handleUpdate}
-              className="px-4 py-2 bg-blue-600 text-white rounded"
-            >
-              Save
-            </button>
-          )}
-        </div>
-      </header>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Code (always read-only) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Code
-          </label>
-          <input
-            name="code"
-            value={formData.code || ""}
-            readOnly
-            className="mt-1 block w-full bg-gray-100 p-2 rounded"
-          />
-        </div>
-
-        {/* Name (always read-only) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Name
-          </label>
-          <input
-            name="name"
-            value={formData.name || ""}
-            readOnly
-            className="mt-1 block w-full bg-gray-100 p-2 rounded"
-          />
-        </div>
-
-        {/* Type (always read-only) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Type
-          </label>
-          <input
-            name="type"
-            value={formData.type || ""}
-            readOnly
-            className="mt-1 block w-full bg-gray-100 p-2 rounded"
-          />
-        </div>
-
-        {/* Description (editable when editing) */}
-        <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Shelves Description
-          </label>
-          <textarea
-            name="description"
-            value={formData.description || ""}
-            onChange={handleChange}
-            readOnly={!isEditing}
-            rows={4}
-            className={`mt-1 block w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-              !isEditing ? "bg-gray-100" : ""
-            }`}
-          />
-        </div>
-
-        {/* Site (select, editable when editing) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Site
-          </label>
-          <select
-            name="siteId"
-            value={formData.siteId || ""}
-            onChange={handleChange}
-            disabled={!isEditing}
-            className={`mt-1 block w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-              !isEditing ? "bg-gray-100" : ""
-            }`}
-          >
-            <option value="">Select a site…</option>
-            {sites.map((s) => (
-              <option key={s._id} value={s._id}>
-                {s.SiteAccountNo} – {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Logo Upload */}
-        <div className="md:col-span-2 flex items-center space-x-4">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleFileUpload(e.target.files[0])}
-            disabled={!isEditing || logoUploading}
-          />
-          {logoUploading && <span>{uploadProgress}%</span>}
-        </div>
+      <div className="flex justify-between items-center">
+        <h3 className="text-xl font-semibold">Shelves View Page</h3>
       </div>
+
+      <form className="bg-white shadow-none rounded-lg divide-y divide-gray-200">
+        <section className="p-6">
+          <h2 className="text-lg font-medium text-gray-700 mb-4">
+            Shelves Details
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Shelves Code - Readonly */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Shelves Code
+              </label>
+              <input
+                name="code"
+                value={form.code}
+                readOnly
+                disabled
+                className="mt-1 w-full p-2 border bg-gray-100 rounded cursor-not-allowed"
+              />
+            </div>
+
+            {/* Shelves Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Shelves Name
+              </label>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Shelves Description
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                rows={3}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            {/* Remarks */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Remarks
+              </label>
+              <textarea
+                name="remarks"
+                value={form.remarks}
+                onChange={handleChange}
+                rows={3}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            {/* Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Type
+              </label>
+              <select
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="">Select type</option>
+                <option value="Physical">Physical</option>
+                <option value="Virtual">Virtual</option>
+              </select>
+            </div>
+
+            {/* Rack */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Rack
+              </label>
+              <select
+                name="Rack"
+                value={form.Rack}
+                onChange={handleChange}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="">Select a Rack</option>
+                {Racks.map((w) => (
+                  <option key={w._id} value={w._id}>
+                    {w.code} - {w.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Active Checkbox */}
+            <div className="flex items-center space-x-2 mt-6">
+              <label className="text-sm font-medium text-gray-600">
+                Active
+              </label>
+              <input
+                type="checkbox"
+                name="active"
+                checked={form.active}
+                onChange={handleChange}
+                disabled={!isEditing}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+              />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="py-6 flex justify-end gap-4">
+            {!isEditing ? (
+              <button
+                type="button"
+                onClick={handleEdit}
+                className="px-6 py-2 bg-green-200 rounded hover:bg-green-300 transition"
+              >
+                Edit
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="px-6 py-2 bg-red-200 rounded hover:bg-red-300 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUpdate}
+                  className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                >
+                  Update
+                </button>
+              </>
+            )}
+
+            <button
+              type="button"
+              onClick={goBack}
+              className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
+            >
+              Go Back
+            </button>
+          </div>
+        </section>
+      </form>
     </div>
   );
-}
+};
+
+export default ShelvesViewPage;

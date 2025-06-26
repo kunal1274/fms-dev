@@ -1,27 +1,35 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
-import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
+import { FaSortAmountDown, FaFilter, FaSearch } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import * as XLSX from "xlsx";
+
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { Tabs } from "flowbite-react";
+import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
 import BinViewPage from "./BinViewPage";
 
-export default function BinList({ handleAddBin, onView }) {
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/bin";
+export default function BinList({ handleAddBin }) {
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/bins";
   const metricsUrl = `${baseUrl}/metrics`;
 
-  const tabNames = ["bin List"];
+  const tabNames = ["All Bins", "Active", "Archived"];
+  const [selectedBins, setselectedBins] = useState([]);
 
-  // States
+  const [Bins, setBins] = useState([]);
+
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  const [summary, setSummary] = useState({ total: 0, active: 0, archived: 0 });
+
+  const [viewingId, setViewingId] = useState(null);
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  const [binList, setBinList] = useState([]);
+  const [BinList, setBinList] = useState([]);
   const [selectedOption, setSelectedOption] = useState("All");
-  const [filteredBin, setFilteredBin] = useState([]);
-  const [selectedBin, setSelectedBin] = useState([]);
+  const [filteredBins, setFilteredBins] = useState([]);
+  const [selectedBin, setSelectedBins] = useState([]);
   const [viewingBinId, setViewingBinId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState(
@@ -71,7 +79,7 @@ export default function BinList({ handleAddBin, onView }) {
 
       toast.success("Logo uploaded successfully ✅");
       // Refresh list
-      fetchBin();
+      fetchBins();
     } catch (error) {
       console.error(error);
       toast.error("Error uploading logo!");
@@ -92,24 +100,27 @@ export default function BinList({ handleAddBin, onView }) {
     let filtered = [...BinList];
 
     if (value === "All") {
-      setFilteredBin(filtered);
+      setFilteredBins(filtered);
     } else if (value === "yes") {
-      setFilteredBin(filtered.filter((Bin) => Bin.active === true));
+      setFilteredBins(filtered.filter((Bin) => Bin.active === true));
     } else if (value === "no") {
-      setFilteredBin(filtered.filter((Bin) => Bin.active === false));
+      setFilteredBins(filtered.filter((Bin) => Bin.active === false));
     } else if (value === "Bin Name") {
       filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
-      setFilteredBin(filtered);
+      setFilteredBins(filtered);
     } else if (value === "Bin Account no") {
       filtered = filtered.sort((a, b) => a.code.localeCompare(b.code));
-      setFilteredBin(filtered);
+      setFilteredBins(filtered);
     } else if (value === "Bin Account no descending") {
       filtered = filtered.sort((a, b) => b.code.localeCompare(a.code));
-      setFilteredBin(filtered);
+      setFilteredBins(filtered);
     }
   };
-  // Fetch Bin
-  const fetchBin = useCallback(
+  // Fetch Bins
+  const handleBinClick = (BinId) => {
+    setViewingBinId(BinId);
+  };
+  const fetchBins = useCallback(
     async (fromDate = startDate, toDate = endDate) => {
       setLoading(true);
       setError(null);
@@ -120,14 +131,14 @@ export default function BinList({ handleAddBin, onView }) {
         const list = resp.data || resp;
         setBinList(list);
 
-        +setFilteredBin(list); // ← Add this line to update the visible Bin immediately
+        +setFilteredBins(list); // ← Add this line to update the visible Bins immediately
 
         setBinSummary({
           count: list.length,
           creditLimit: list.reduce((s, c) => s + (c.creditLimit || 0), 0),
-          paidBin: list.filter((c) => c.status === "Paid").length,
-          activeBin: list.filter((c) => c.active).length,
-          onHoldBin: list.filter((c) => c.onHold).length,
+          paidBins: list.filter((c) => c.status === "Paid").length,
+          activeBins: list.filter((c) => c.active).length,
+          onHoldBins: list.filter((c) => c.onHold).length,
         });
       } catch (err) {
         console.error(err);
@@ -150,11 +161,11 @@ export default function BinList({ handleAddBin, onView }) {
       const m = (resp.metrics && resp.metrics[0]) || {};
       setBinSummary((prev) => ({
         ...prev,
-        count: m.totalBin ?? prev.count,
+        count: m.totalBins ?? prev.count,
         creditLimit: m.creditLimit ?? prev.creditLimit,
-        paidBin: m.paidBin ?? prev.paidBin,
-        activeBin: m.activeBin ?? prev.activeBin,
-        onHoldBin: m.onHoldBin ?? prev.onHoldBin,
+        paidBins: m.paidBins ?? prev.paidBins,
+        activeBins: m.activeBins ?? prev.activeBins,
+        onHoldBins: m.onHoldBins ?? prev.onHoldBins,
       }));
     } catch (err) {
       console.error(err);
@@ -162,13 +173,13 @@ export default function BinList({ handleAddBin, onView }) {
   }, [startDate, endDate]);
 
   useEffect(() => {
-    fetchBin();
+    fetchBins();
     fetchMetrics();
-  }, [fetchBin, fetchMetrics]);
+  }, [fetchBins, fetchMetrics]);
 
   // Filtering, Search, Sorting
   useEffect(() => {
-    let list = [...binList];
+    let list = [...BinList];
 
     switch (activeTab) {
       case tabNames[1]:
@@ -206,8 +217,8 @@ export default function BinList({ handleAddBin, onView }) {
     else if (sortOption === "code-desc")
       list.sort((a, b) => b.code.localeCompare(a.code));
 
-    setFilteredBin(list);
-  }, [binList, activeTab, statusFilter, searchTerm, sortOption]);
+    setFilteredBins(list);
+  }, [BinList, activeTab, statusFilter, searchTerm, sortOption]);
 
   // Handlers
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
@@ -216,26 +227,26 @@ export default function BinList({ handleAddBin, onView }) {
   const onTabClick = (tab) => setActiveTab(tab);
 
   const toggleSelectAll = (e) => {
-    setSelectedBin(e.target.checked ? filteredBin.map((c) => c._id) : []);
+    setSelectedBins(e.target.checked ? filteredBins.map((c) => c._id) : []);
   };
 
   const handleCheckboxChange = (id) => {
-    setSelectedBin((prev) =>
+    setSelectedBins((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     );
   };
 
   const handleDeleteSelected = async () => {
-    if (!selectedBin.length) {
-      toast.info("No Bin selected to delete");
+    if (!selectedBins.length) {
+      toast.info("No Bins selected to delete");
       return;
     }
 
-    if (!window.confirm("Delete selected Bin?")) return;
+    if (!window.confirm("Delete selected Bins?")) return;
 
     try {
       const results = await Promise.allSettled(
-        selectedBin.map((id) => axios.delete(`${baseUrl}/${id}`))
+        selectedBins.map((id) => axios.delete(`${baseUrl}/${id}`))
       );
 
       const succeeded = results.filter((r) => r.status === "fulfilled").length;
@@ -243,8 +254,8 @@ export default function BinList({ handleAddBin, onView }) {
 
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
-        await fetchBin();
-        setSelectedBin([]);
+        await fetchBins();
+        setSelectedBins([]);
       }
       if (failed) toast.error(`${failed} failed — check console`);
     } catch (err) {
@@ -254,13 +265,13 @@ export default function BinList({ handleAddBin, onView }) {
   };
 
   const exportToExcel = () => {
-    if (!binList.length) {
+    if (!BinList.length) {
       toast.info("No data to export.");
       return;
     }
     const ws = XLSX.utils.json_to_sheet(BinList);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "bin");
+    XLSX.utils.book_append_sheet(wb, ws, "Bins");
     XLSX.writeFile(wb, "Bin_list.xlsx");
   };
 
@@ -268,7 +279,7 @@ export default function BinList({ handleAddBin, onView }) {
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [["#", "Code", "Name", "Contact", "Address", "Status"]],
-      body: filteredBin.map((c, i) => [
+      body: filteredBins.map((c, i) => [
         i + 1,
         c.code,
         c.name,
@@ -280,10 +291,6 @@ export default function BinList({ handleAddBin, onView }) {
     doc.save("Bin_list.pdf");
   };
 
-  const handleBinClick = (BinId) => {
-    setViewingBinId(BinId);
-  };
-
   const resetFilters = () => {
     setSearchTerm("");
     setStatusFilter("All");
@@ -291,26 +298,74 @@ export default function BinList({ handleAddBin, onView }) {
   };
 
   const goBack = () => setViewingBinId(null);
+  // Table column headers
+  const columns = [
+    "Code",
+    "Name",
+    "Description",
+    "Type",
+    "Warehouse",
+    "Bin Address",
+    "Remarks",
+    "Archived",
+    "Company",
+    "Groups",
+    "Created By",
+    "Updated By",
+    "Active",
+  ];
 
+  // Fetch Bins list
+
+  // On mount/update: fetch data
+  useEffect(() => {
+    fetchBins();
+    fetchMetrics();
+  }, [fetchBins, fetchMetrics]);
+
+  // Apply filters (tab, search, sort)
+  useEffect(() => {
+    let list = [...Bins];
+    if (activeTab === "Active") list = list.filter((z) => z.active);
+    else if (activeTab === "Archived") list = list.filter((z) => z.archived);
+
+    if (searchTerm) {
+      const t = searchTerm.toLowerCase();
+      list = list.filter(
+        (z) =>
+          z.code.toLowerCase().includes(t) || z.name.toLowerCase().includes(t)
+      );
+    }
+
+    if (sortOption === "code-asc")
+      list.sort((a, b) => a.code.localeCompare(b.code));
+    else if (sortOption === "code-desc")
+      list.sort((a, b) => b.code.localeCompare(a.code));
+
+    setFilteredBins(list);
+  }, [Bins, activeTab, searchTerm, sortOption]);
+
+  // Toggle select all
+
+  // Delete selected Bins
+
+  // Loading or error states
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
-
-  if (viewingBinId) {
+  if (viewingId)
     return (
-      <div className="p-4">
-        <BinViewPage BinId={viewingBinId} goBack={goBack} />
-      </div>
+      <BinViewPage BinId={viewingId} goBack={() => setViewingId(null)} />
     );
-  }
-  // ─── Render ─────────────────────────────────────────────────────
 
+  // Render main table
   return (
     <div>
+      <ToastContainer />
       <div>
         <div>
           {viewingBinId ? (
             <BinViewPage
-              toggleView={toggleView}
+              // toggleView={toggleView}
               BinId={viewingBinId}
               goBack={goBack}
             />
@@ -356,7 +411,7 @@ export default function BinList({ handleAddBin, onView }) {
                   </button>
                   <button
                     onClick={handleDeleteSelected}
-                    disabled={!selectedBin.length}
+                    disabled={!selectedBins.length}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     Delete
@@ -395,7 +450,7 @@ export default function BinList({ handleAddBin, onView }) {
                   <button
                     onClick={() => {
                       fetchMetrics();
-                      fetchBin(startDate, endDate);
+                      fetchBins(startDate, endDate);
                     }}
                     className="px-3 py-1 border rounded"
                   >
@@ -404,11 +459,11 @@ export default function BinList({ handleAddBin, onView }) {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Bin", BinSummary.count],
+                    ["Total Bins", BinSummary.count],
                     ["Credit Limit", BinSummary.creditLimit],
-                    ["Paid Bin", BinSummary.paidBin],
-                    ["Active Bin", BinSummary.activeBin],
-                    ["On‑Hold Bin", BinSummary.onHoldBin],
+                    ["Paid Bins", BinSummary.paidBins],
+                    ["Active Bins", BinSummary.activeBins],
+                    ["On‑Hold Bins", BinSummary.onHoldBins],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -516,13 +571,25 @@ export default function BinList({ handleAddBin, onView }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedBin.length === filteredBin.length &&
-                            filteredBin.length > 0
+                            selectedBins.length === filteredBins.length &&
+                            filteredBins.length > 0
                           }
                           className="form-checkbox"
                         />
                       </th>
-                      {["Code", "Name", "Address", "Contact", "Status"].map(
+                      {[    "Code",
+                        "Name",
+                        "Discription",
+                        "Type",
+                      
+                        "Status",
+                      
+                      
+                      
+                      
+                      
+                      
+                      ].map(
                         (h) => (
                           <th
                             key={h}
@@ -535,8 +602,8 @@ export default function BinList({ handleAddBin, onView }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredBin.length ? (
-                      filteredBin.map((c) => (
+                    {filteredBins.length ? (
+                      filteredBins.map((c) => (
                         <tr
                           key={c.code}
                           className="hover:bg-gray-100 transition-colors"
@@ -544,13 +611,13 @@ export default function BinList({ handleAddBin, onView }) {
                           <td className="px-4 py-2">
                             <input
                               type="checkbox"
-                              checked={selectedBin.includes(c._id)}
+                              checked={selectedBins.includes(c._id)}
                               onChange={() => handleCheckboxChange(c._id)}
                               className="form-checkbox"
                             />
                           </td>
                           <td
-                          // onClick={() => handleBinClick(Bin._id)}
+                          // onClick={() => handlesiteClick(site._id)}
                           // className="px-6 py-4 cursor-pointer text-blue-600 hover:underline"
                           >
                             <button

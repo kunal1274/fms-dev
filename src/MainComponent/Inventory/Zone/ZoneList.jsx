@@ -117,6 +117,9 @@ export default function ZoneList({ handleAddZone }) {
     }
   };
   // Fetch Zones
+  const handleZoneClick = (zoneId) => {
+    setViewingZoneId(zoneId);
+  };
   const fetchZones = useCallback(
     async (fromDate = startDate, toDate = endDate) => {
       setLoading(true);
@@ -288,10 +291,6 @@ export default function ZoneList({ handleAddZone }) {
     doc.save("Zone_list.pdf");
   };
 
-  const handleZoneClick = (zoneId) => {
-    setViewingZoneId(zoneId);
-  };
-
   const resetFilters = () => {
     setSearchTerm("");
     setStatusFilter("All");
@@ -365,9 +364,9 @@ export default function ZoneList({ handleAddZone }) {
       <div>
         <div>
           {viewingZoneId ? (
-            <zoneViewPage
-              toggleView={toggleView}
-              zoneId={viewingzoneId}
+            <ZoneViewPage
+              // toggleView={toggleView}
+              zoneId={viewingZoneId}
               goBack={goBack}
             />
           ) : (
@@ -578,7 +577,16 @@ export default function ZoneList({ handleAddZone }) {
                           className="form-checkbox"
                         />
                       </th>
-                      {["Code", "Name", "Address", "Contact", "Status"].map(
+                      {[    "Code",
+                        "Name",
+                        "Discription",
+                        "Type",
+                      
+                        "Status",
+                      
+                      
+                      
+                      ].map(
                         (h) => (
                           <th
                             key={h}
@@ -600,18 +608,18 @@ export default function ZoneList({ handleAddZone }) {
                           <td className="px-4 py-2">
                             <input
                               type="checkbox"
-                              checked={selectedzones.includes(c._id)}
+                              checked={selectedZones.includes(c._id)}
                               onChange={() => handleCheckboxChange(c._id)}
                               className="form-checkbox"
                             />
                           </td>
                           <td
-                          // onClick={() => handlezoneClick(zone._id)}
+                          // onClick={() => handlesiteClick(site._id)}
                           // className="px-6 py-4 cursor-pointer text-blue-600 hover:underline"
                           >
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handlezoneClick(c._id)}
+                              onClick={() => handleZoneClick(c._id)}
                             >
                               {c.code}
                             </button>

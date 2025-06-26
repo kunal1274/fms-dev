@@ -5,12 +5,12 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
 
-const mergedUrl = `https://fms-qkmw.onrender.com/fms/api/v0/zones`;
-const warehouseUrl = `https://fms-qkmw.onrender.com/fms/api/v0/warehouses`;
+const mergedUrl = `https://fms-qkmw.onrender.com/fms/api/v0/Racks`;
+const AislesUrl = `https://fms-qkmw.onrender.com/fms/api/v0/aisles`;
 
-const ZoneViewPage = ({ zoneId, Zone, goBack }) => {
+const RackViewPage = ({ RackId, Rack, goBack }) => {
   const { id } = useParams();
-  const effectiveId = zoneId || id;
+  const effectiveId = RackId || id;
 
   const initialForm = {
     code: "",
@@ -21,7 +21,7 @@ const ZoneViewPage = ({ zoneId, Zone, goBack }) => {
     remarks: "",
     active: false,
     archived: false,
-    warehouse: "",
+    Aisles: "",
     groups: [],
     bankDetails: [],
   };
@@ -30,7 +30,7 @@ const ZoneViewPage = ({ zoneId, Zone, goBack }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [warehouses, setWarehouses] = useState([]);
+  const [Aisless, setAisless] = useState([]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -40,16 +40,21 @@ const ZoneViewPage = ({ zoneId, Zone, goBack }) => {
 
   const handleUpdate = async () => {
     const confirmUpdate = window.confirm(
-      "Are you sure you want to update this Zone?"
+      "Are you sure you want to update this Rack?"
     );
     if (!confirmUpdate) return;
 
-    const toastId = toast.loading("Updating Zone...");
+    if (!form.name || !form.Aisles) {
+      toast.error("Rack Name and Aisle are required.");
+      return;
+    }
+
+    const toastId = toast.loading("Updating Rack...");
     try {
       const response = await axios.put(`${mergedUrl}/${effectiveId}`, form);
       if (response.status === 200) {
         toast.update(toastId, {
-          render: "Zone updated successfully!",
+          render: "Rack updated successfully!",
           type: "success",
           isLoading: false,
           autoClose: 3000,
@@ -67,13 +72,17 @@ const ZoneViewPage = ({ zoneId, Zone, goBack }) => {
   };
 
   const handleEdit = () => setIsEditing(true);
+  const handleCancel = () => setIsEditing(false);
 
   useEffect(() => {
-    const fetchZoneDetail = async () => {
+    const fetchRackDetail = async () => {
       try {
         const response = await axios.get(`${mergedUrl}/${effectiveId}`);
         if (response.status === 200) {
-          setForm(response.data.data || initialForm);
+          setForm((prev) => ({
+            ...prev,
+            ...response.data.data,
+          }));
         } else {
           setError(`Unexpected response status: ${response.status}`);
         }
@@ -84,17 +93,17 @@ const ZoneViewPage = ({ zoneId, Zone, goBack }) => {
       }
     };
 
-    const fetchWarehouses = async () => {
+    const fetchAisless = async () => {
       try {
-        const res = await axios.get(warehouseUrl);
-        if (res.status === 200) setWarehouses(res.data.data || []);
+        const res = await axios.get(AislesUrl);
+        if (res.status === 200) setAisless(res.data.data || []);
       } catch (err) {
-        console.error("Failed to fetch warehouses", err);
+        console.error("Failed to fetch Aisles", err);
       }
     };
 
-    fetchZoneDetail();
-    fetchWarehouses();
+    fetchRackDetail();
+    fetchAisless();
   }, [effectiveId]);
 
   if (loading) return <div>Loading...</div>;
@@ -104,19 +113,19 @@ const ZoneViewPage = ({ zoneId, Zone, goBack }) => {
     <div className="space-y-6">
       <ToastContainer />
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold">Zone View Page</h3>
+        <h3 className="text-xl font-semibold">Rack View Page</h3>
       </div>
 
       <form className="bg-white shadow-none rounded-lg divide-y divide-gray-200">
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Zone Details
+            Rack Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Zone Code - Readonly */}
+            {/* Rack Code */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Zone Code
+                Rack Code
               </label>
               <input
                 name="code"
@@ -127,10 +136,10 @@ const ZoneViewPage = ({ zoneId, Zone, goBack }) => {
               />
             </div>
 
-            {/* Zone Name */}
+            {/* Rack Name */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Zone Name
+                Rack Name
               </label>
               <input
                 name="name"
@@ -144,7 +153,7 @@ const ZoneViewPage = ({ zoneId, Zone, goBack }) => {
             {/* Description */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Zone Description
+                Rack Description
               </label>
               <textarea
                 name="description"
@@ -189,20 +198,24 @@ const ZoneViewPage = ({ zoneId, Zone, goBack }) => {
               </select>
             </div>
 
-            {/* Warehouse */}
+            {/* Aisles Dropdown */}
             <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Warehouse
+              <label
+                htmlFor="Aisles"
+                className="block text-sm font-medium text-gray-600"
+              >
+                Aisle
               </label>
               <select
-                name="warehouse"
-                value={form.warehouse}
+                id="Aisles"
+                name="Aisles"
+                value={form.Aisles}
                 onChange={handleChange}
                 disabled={!isEditing}
                 className="mt-1 w-full p-2 border rounded"
               >
-                <option value="">Select a Warehouse</option>
-                {warehouses.map((w) => (
+                <option value="">Select an Aisle</option>
+                {Aisless.map((w) => (
                   <option key={w._id} value={w._id}>
                     {w.code} - {w.name}
                   </option>
@@ -227,7 +240,7 @@ const ZoneViewPage = ({ zoneId, Zone, goBack }) => {
           </div>
 
           {/* Action Buttons */}
-         <div className="py-6 flex justify-end gap-4">
+          <div className="py-6 flex justify-end gap-4">
             {!isEditing ? (
               <button
                 type="button"
@@ -254,7 +267,6 @@ const ZoneViewPage = ({ zoneId, Zone, goBack }) => {
                 </button>
               </>
             )}
-
             <button
               type="button"
               onClick={goBack}
@@ -269,4 +281,4 @@ const ZoneViewPage = ({ zoneId, Zone, goBack }) => {
   );
 };
 
-export default ZoneViewPage;
+export default RackViewPage;

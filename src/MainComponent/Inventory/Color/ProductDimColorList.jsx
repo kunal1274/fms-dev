@@ -9,7 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
 // import ProductColorViewPage from "./ProductColorViewPagee";
 
-export default function ProductColorList({ handleAddProductColor }) {
+export default function ColorList({ handleAddProductColor }) {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/ProductColors";
   const metricsUrl = `${baseUrl}/metrics`;
 

@@ -120,29 +120,34 @@ export default function SiteForm({ handleCancel, onSaved, companyId }) {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-            {/* <div>
+            <div>
               <label className="block text-sm font-medium text-gray-600">
-                Groups
+                Site Description
               </label>
-              <select
-                name="groups"
-                // multiple
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                rows={4}
+                required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                value={form.groups}
-                onChange={(e) => {
-                  const options = Array.from(e.target.selectedOptions).map(
-                    (o) => o.value
-                  );
-                  setForm((f) => ({ ...f, groups: options }));
-                }}
-              >
-                {groupsList.map((g) => (
-                  <option key={g._id} value={g._id}>
-                    {g.name}
-                  </option>
-                ))}
-              </select>
-            </div> */}
+              />
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Remarks
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                rows={4}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Type
@@ -158,70 +163,7 @@ export default function SiteForm({ handleCancel, onSaved, companyId }) {
                 <option value="Physical">Physical</option>
                 <option value="Virtual">Virtual</option>
               </select>
-            </div>{" "}   <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Company
-              </label>
-              <select
-                name="company"
-                value={form.company}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select a company…</option>
-                {companies.length ? (
-                  companies.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>Loading companies...</option>
-                )}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Site Description
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
-                rows={4}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}  <div>
-              <label className="block text-sm font-medium text-gray-600">
-             Remarks
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
-                rows={4}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
             </div>{" "}
-         
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Extra
-              </label>
-              <input
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                placeholder="e.g. XYZ Enterprises Pvt. Ltd."
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div> */}
             <div className="flex items-center space-x-2">
               <label className="block text-sm font-medium text-gray-600">
                 Active
@@ -234,28 +176,6 @@ export default function SiteForm({ handleCancel, onSaved, companyId }) {
                 className="h-4 w-4 text-blue-600 border-gray-300 rounded"
               />
             </div>{" "}
-            {/* <div className="flex items-center space-x-2">
-              <label className="block text-sm font-medium text-gray-600">
-                Archived
-              </label>
-              <input
-                type="checkbox"
-                name="archived"
-                checked={form.archived}
-                onChange={handleChange}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-              />
-            </div>{" "}
-            <div className="sm:col-span-2">
-              <label>Files</label>
-              <input
-                name="files"
-                type="file"
-                multiple
-                onChange={handleChange}
-                className="mt-1 w-full"
-              />
-            </div>{" "} */}
           </div>
         </section>
 

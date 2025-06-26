@@ -12,49 +12,28 @@ const LocationForm = ({ handleCancel }) => {
     name: "",
     description: "",
     type: "Physical", // default per schema
-    warehouse: "", // ObjectId of selected warehouse
+
     zone: "", // ObjectId of selected zone
     locationAddress: "",
     locationLatLng: "",
     remarks: "",
     archived: false,
-    company: "", // ObjectId of selected company
-    groups: [], // Array of ObjectIds (multi-select)
-    active: true,
-    extras: {},
   };
-  const [warehouses, setWarehouses] = useState([]);
   const [zones, setZones] = useState([]);
-  const [companies, setCompanies] = useState([]);
-  const [groupsList, setGroupsList] = useState([]);
+
   // ─── Data ────────────────────────────────────────────────
   const [locations, setLocations] = useState([]);
   useEffect(() => {
-    const fetchAllLookups = async () => {
+    const fetchZones = async () => {
       try {
-        const [
-          { data: whData },
-          { data: zoneData },
-          { data: compData },
-          { data: grpData },
-        ] = await Promise.all([
-          axios.get(WAREHOUSES_URL),
-          axios.get(ZONES_URL),
-          axios.get(COMPANIES_URL),
-          axios.get(GROUPS_URL),
-        ]);
-
-        setWarehouses(whData || []);
-        setZones(zoneData || []);
-        setCompanies(compData || []);
-        setGroupsList(grpData || []);
-      } catch (err) {
-        console.error("Error fetching lookups:", err);
-        toast.error("Error loading form data");
+        const res = await axios.get(ZonesUrl);
+        setZones(res.data || []);
+      } catch (error) {
+        console.error("Failed to fetch Zones:", error);
+        toast.error("Failed to load Zones.");
       }
     };
-
-    fetchAllLookups();
+    fetchZones();
   }, []);
 
   const handleChange = (e) => {
@@ -76,10 +55,10 @@ const LocationForm = ({ handleCancel }) => {
   };
   // ─── Helpers ─────────────────────────────────────────────
   useEffect(() => {
-    const fetchWarehouses = async () => {
+    const fetchZones = async () => {
       try {
-        const response = await axios.get(warehousesUrl);
-        setWarehouses(response.data || []);
+        const response = await axios.get(ZonesUrl);
+        setZones(response.data || []);
       } catch (error) {
         console.error("Error fetching items:", error);
       }
@@ -87,13 +66,13 @@ const LocationForm = ({ handleCancel }) => {
     const fetchCompanies = async () => {
       try {
         const response = await axios.get(companiesUrl);
-        // setWarehouses(response.data || []);
+        // setZones(response.data || []);
         setCompanies(response.data || []);
       } catch (error) {
         console.error("Error fetching Company 63:", error);
       }
     };
-    fetchWarehouses();
+    fetchZones();
     fetchCompanies();
   }, []);
 
@@ -103,21 +82,7 @@ const LocationForm = ({ handleCancel }) => {
     e.preventDefault();
 
     // Build payload exactly as schema expects (omit `code`; backend will generate)
-    const payload = {
-      name: form.name,
-      description: form.description,
-      type: form.type,
-      warehouse: form.warehouse || null,
-      zone: form.zone || null,
-      locationAddress: form.locationAddress,
-      locationLatLng: form.locationLatLng,
-      remarks: form.remarks,
-      archived: form.archived,
-      company: form.company || null,
-      groups: form.groups,
-      active: form.active,
-      extras: form.extras,
-    };
+    const payload = {};
 
     try {
       await axios.post(LOCATION_API_BASE, payload);
@@ -275,90 +240,6 @@ const LocationForm = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Location lattitude
-              </label>
-              <input
-                name="type"
-                value={form.type}
-                onChange={handleChange}
-                placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div> */}
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Warehouse
-              </label>
-              <select
-                name="warehouse"
-                value={form.warehouse}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Warehouse</option>
-                {warehouses.map((wh) => (
-                  <option key={wh._id} value={wh._id}>
-                    {wh.name}
-                  </option>
-                ))}
-              </select>
-            </div>{" "} */}
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Company
-              </label>
-              <select
-                name="company"
-                value={form.company}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Company</option>
-                {companies.map((co) => (
-                  <option key={co._id} value={co._id}>
-                    {co.name}
-                  </option>
-                ))}
-              </select>
-            </div>{" "} */}
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Groups
-              </label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
-                rows={4}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "} */}
-            {/* <div>
-              <label>Created By (User ID)</label>
-              <input
-                name="createdBy"
-                value={form.createdBy}
-                onChange={handleChange}
-                placeholder="e.g. 642f9c1234abc456def78901"
-                className="mt-1 w-full p-2 border rounded"
-              />
-            </div> */}
-            {/* Updated By */}
-            {/* <div>
-              <label>Updated By (User ID)</label>
-              <input
-                name="updatedBy"
-                value={form.updatedBy}
-                onChange={handleChange}
-                placeholder="e.g. 642f9c1234abc456def78901"
-                className="mt-1 w-full p-2 border rounded"
-              />
-            </div> */}
             <div className="flex items-center">
               <input
                 name="active"
