@@ -8,7 +8,7 @@ const Dashboard = () => {
   // Sidebar open/closed
   const [sidebarOpen, setSidebarOpen] = useState(true);
   // Which menu is active: Customer, Vendor, Item, Sale, Purchase
-  const [selectedMenu, setSelectedMenu] = useState("Customer");
+  const [selectedMenu, setSelectedMenu] = useState("Company");
 
   // Toggle sidebar width
   const handleSidebarToggle = () => {
