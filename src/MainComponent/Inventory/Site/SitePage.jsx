@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import SiteList from "./SiteList";
+import SiteList from "./Sitelist";
 import SiteForm from "./SiteForm";
-
 
 export default function SitePage() {
   const [view, setView] = useState("list"); // "list" | "form" | "details"
