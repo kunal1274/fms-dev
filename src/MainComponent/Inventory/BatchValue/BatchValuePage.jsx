@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import BatchList from "./BatchValueList";
-import BatchForm from "./BatchValueform";
+import BatchForm from "./Form";
 import BatchViewPage from "./BatchValueViewPagee";
 import { Button } from "../../../Component/Button/Button";
 
@@ -12,7 +12,9 @@ export default function BatchPage() {
   // Save or update a Batch in state
   const handleSaveBatch = (Batch) => {
     setBatchs((prev) => {
-      const idx = prev.findIndex((w) => w.BatchAccountNo === Batch.BatchAccountNo);
+      const idx = prev.findIndex(
+        (w) => w.BatchAccountNo === Batch.BatchAccountNo
+      );
 
       if (idx !== -1) {
         const updated = [...prev];
@@ -82,7 +84,7 @@ export default function BatchPage() {
   };
 
   return (
-    <div className="w-full p-6 bg-white rounded-lg ">
+    <div>
       {renderHeader()}
 
       {view === "list" && (
@@ -98,7 +100,7 @@ export default function BatchPage() {
         <BatchForm
           Batch={selectedBatch}
           onSave={handleSaveBatch}
-         handleCancel={handleCancel}
+          handleCancel={handleCancel}
         />
       )}
 

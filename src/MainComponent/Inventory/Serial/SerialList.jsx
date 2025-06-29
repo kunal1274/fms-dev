@@ -92,16 +92,16 @@ const SerialList = ({ handleAddSerials, onView }) => {
     if (value === "All") {
       setFilteredSerials(filtered);
     } else if (value === "yes") {
-      setFilteredSerials(filtered.filter((aisle) => aisle.active === true));
+      setFilteredSerials(filtered.filter((Serial) => Serial.active === true));
     } else if (value === "no") {
-      setFilteredSerials(filtered.filter((aisle) => aisle.active === false));
-    } else if (value === "Aisle Name") {
+      setFilteredSerials(filtered.filter((Serial) => Serial.active === false));
+    } else if (value === "Serial Name") {
       filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
       setFilteredSerials(filtered);
-    } else if (value === "Aisle Account no") {
+    } else if (value === "Serial Account no") {
       filtered = filtered.sort((a, b) => a.code.localeCompare(b.code));
       setFilteredSerials(filtered);
-    } else if (value === "Aisle Account no descending") {
+    } else if (value === "Serial Account no descending") {
       filtered = filtered.sort((a, b) => b.code.localeCompare(a.code));
       setFilteredSerials(filtered);
     }
@@ -129,7 +129,7 @@ const SerialList = ({ handleAddSerials, onView }) => {
         });
       } catch (err) {
         console.error(err);
-        setError("Unable to load Aisle data.");
+        setError("Unable to load Serial data.");
       } finally {
         setLoading(false);
       }
@@ -258,10 +258,10 @@ const SerialList = ({ handleAddSerials, onView }) => {
       toast.info("No data to export.");
       return;
     }
-    const ws = XLSX.utils.json_to_sheet(aisleList);
+    const ws = XLSX.utils.json_to_sheet(SerialList);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Serials");
-    XLSX.writeFile(wb, "aisle_list.xlsx");
+    XLSX.writeFile(wb, "Serial_list.xlsx");
   };
 
   const generatePDF = () => {
@@ -277,7 +277,7 @@ const SerialList = ({ handleAddSerials, onView }) => {
         c.active ? "Active" : "Inactive",
       ]),
     });
-    doc.save("Aisle_list.pdf");
+    doc.save("Serial_list.pdf");
   };
 
   const handleSerialsClick = (SerialsId) => {
@@ -298,7 +298,7 @@ const SerialList = ({ handleAddSerials, onView }) => {
   if (viewingSerialsId) {
     return (
       <div className="p-4">
-        <AisleViewPage aisleId={viewingSerialsId} goBack={goBack} />
+        <SerialViewPage SerialId={viewingSerialsId} goBack={goBack} />
       </div>
     );
   }
@@ -309,9 +309,9 @@ const SerialList = ({ handleAddSerials, onView }) => {
       <div>
         <div>
           {viewingSerialsId ? (
-            <AisleViewPage
+            <SerialViewPage
               toggleView={toggleView}
-              aisleId={viewingAisleId}
+              SerialId={viewingSerialId}
               goBack={goBack}
             />
           ) : (
@@ -345,7 +345,7 @@ const SerialList = ({ handleAddSerials, onView }) => {
                   </div>
 
                   {/* </div> */}
-                  <h3 className="text-xl font-semibold">Aisle List</h3>
+                  <h3 className="text-xl font-semibold">Serial List</h3>
                 </div>
                 <div className="flex items-center gap-3 ">
                   <button
@@ -435,12 +435,12 @@ const SerialList = ({ handleAddSerials, onView }) => {
                       className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="Aisle Name">Aisle Name</option>
-                      <option value="Aisle Account no">
-                        Aisle Account in Ascending
+                      <option value="Serial Name">Serial Name</option>
+                      <option value="Serial Account no">
+                        Serial Account in Ascending
                       </option>
-                      <option value="Aisle Account no descending">
-                        Aisle Account in descending
+                      <option value="Serial Account no descending">
+                        Serial Account in descending
                       </option>
                     </select>
                   </div>
@@ -550,12 +550,12 @@ const SerialList = ({ handleAddSerials, onView }) => {
                             />
                           </td>
                           <td
-                          // onClick={() => handleAisleClick(Aisle._id)}
+                          // onClick={() => handleSerialClick(Serial._id)}
                           // className="px-6 py-4 cursor-pointer text-blue-600 hover:underline"
                           >
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleAisleClick(c._id)}
+                              onClick={() => handleSerialClick(c._id)}
                             >
                               {c.code}
                             </button>
