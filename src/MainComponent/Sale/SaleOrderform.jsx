@@ -596,11 +596,11 @@ const SaleOrderform = ({ handleCancel }) => {
             Sale Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="">
+            {/* Sale Order */}
+            <div>
               <label className="block text-sm font-medium text-gray-600">
                 Sale Order
               </label>
-
               <input
                 type="text"
                 name="saleOrder"
@@ -610,6 +610,8 @@ const SaleOrderform = ({ handleCancel }) => {
                 readOnly
               />
             </div>
+
+            {/* Customer Name */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Customer Name
@@ -626,27 +628,71 @@ const SaleOrderform = ({ handleCancel }) => {
                   </option>
                 ))}
               </select>
-            </div>{" "}
-            <div className="flex flex-col">
+            </div>
+
+            {/* Customer Account */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Customer Account
+              </label>
+              <input
+                type="text"
+                value={selectedCustomerDetails?.account || ""}
+                placeholder="Customer Account"
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                readOnly
+              />
+            </div>
+
+            {/* Order Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Order Date
+              </label>
+              <input
+                type="date"
+                name="orderDate"
+                value={form.orderDate}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div>
+
+            {/* Created On */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Created on
+              </label>
+              <input
+                type="text"
+                value={form.createdOn || ""}
+                readOnly
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
+            </div>
+
+            {/* Order Status */}
+            <div>
               <label className="block text-sm font-medium text-gray-600">
                 Order Status
               </label>
-
               <input
                 type="text"
                 value={status}
                 placeholder="Selected Status"
-                disabled
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
               />
-            </div>{" "}
+            </div>
+
+            {/* Conditional Customer Details */}
             {selectedCustomerDetails && (
               <>
+                {/* Currency */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Currency
-                  </label>{" "}
+                  </label>
                   <input
                     type="text"
                     value={selectedCustomerDetails.currency}
@@ -654,39 +700,84 @@ const SaleOrderform = ({ handleCancel }) => {
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
-                </div>{" "}
-                {selectedCustomerDetails && (
-                  <div className="flex flex-col">
-                    <label className="block text-sm font-medium text-gray-600">
-                      Customer Address
-                    </label>
-                    <textarea
-                      name="address"
-                      rows="4"
-                      value={selectedCustomerDetails.address}
-                      disabled={!isEdited}
-                      placeholder="Customer Address / Buyer Address / Billing Address"
-                      className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                      readOnly
-                    />
-                  </div>
-                )}{" "}
-                <div className="flex flex-col">
+                </div>
+
+                {/* Email (User Editable) */}
+                <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Sale Address
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded"
+                  />
+                </div>
+
+                {/* Customer Address */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Customer Address
                   </label>
                   <textarea
                     name="address"
                     rows="4"
-                    onChange={(e) => setSalesAddress(e.target.value)}
-                    placeholder="Customer Address / Buyer Address / Billing Address"
+                    value={selectedCustomerDetails.address}
+                    readOnly
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                   />
                 </div>
-                <div className="flex flex-col">
+
+                {/* Sale Agreement No */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Sale Agreement No (if applicable)
+                  </label>
+                  <input
+                    type="text"
+                    name="saleAgreementNo"
+                    value={form.saleAgreementNo}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded"
+                  />
+                </div>
+
+                {/* Purchase Reference No */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Purchase Reference No
+                  </label>
+                  <input
+                    type="text"
+                    name="purchaseRef"
+                    value={form.purchaseRef}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded"
+                  />
+                </div>
+
+                {/* Sale Address */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Sale Address
+                  </label>
+                  <textarea
+                    name="salesAddress"
+                    rows="4"
+                    value={form.salesAddress}
+                    onChange={(e) => setSalesAddress(e.target.value)}
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
+
+                {/* Contact Details */}
+                <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Contact Details
-                  </label>{" "}
+                  </label>
                   <input
                     type="text"
                     value={selectedCustomerDetails.contactNum}
@@ -694,26 +785,31 @@ const SaleOrderform = ({ handleCancel }) => {
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
-                </div>{" "}
-                <div className="flex flex-col">
+                </div>
+
+                {/* Contact Email */}
+                <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Contact email
-                  </label>{" "}
+                    Contact Email
+                  </label>
                   <input
                     type="text"
                     value={selectedCustomerDetails.email}
-                    placeholder="Contact Number"
+                    placeholder="Contact Email"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
-                </div>{" "}
+                </div>
+
+                {/* Site */}
                 <div>
-                  <label>Site</label>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Site
+                  </label>
                   <select
                     name="site"
                     value={form.site}
                     onChange={handleChange}
-                    required
                     className="mt-1 w-full p-2 border rounded"
                   >
                     <option value="">Select</option>
@@ -724,13 +820,16 @@ const SaleOrderform = ({ handleCancel }) => {
                     ))}
                   </select>
                 </div>
+
+                {/* Warehouse */}
                 <div>
-                  <label>Warehouse</label>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Warehouse
+                  </label>
                   <select
                     name="warehouse"
                     value={form.warehouse}
                     onChange={handleChange}
-                    required
                     className="mt-1 w-full p-2 border rounded"
                   >
                     <option value="">Select</option>
@@ -741,57 +840,88 @@ const SaleOrderform = ({ handleCancel }) => {
                     ))}
                   </select>
                 </div>
+
+                {/* Payment Terms */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Terms of payment
                   </label>
                   <select
                     name="paymentTerms"
-                    required
+                    value={form.paymentTerms}
+                    onChange={handleChange}
                     className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                   >
                     <option value="">Select type</option>
                     {paymentTerms.map((type) => (
-                      <option key={type.trim()} value={type.trim()}>
-                        {type.trim()}
+                      <option key={type} value={type}>
+                        {type}
                       </option>
                     ))}
                   </select>
                 </div>
-                <div className="flex flex-col">
+
+                {/* Delivery Mode */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Delivery Mode
+                  </label>
+                  <input
+                    type="text"
+                    name="deliveryMode"
+                    value={form.deliveryMode}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded"
+                  />
+                </div>
+
+                {/* Order ID */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Order Id
+                  </label>
+                  <input
+                    type="text"
+                    name="orderId"
+                    value={form.orderId}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded"
+                  />
+                </div>
+
+                {/* Advance */}
+                <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Advance
                   </label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <input
-                      type="text"
-                      value={advance}
-                      name="advance"
-                      placeholder="Advance"
-                      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                      onChange={(e) => {
-                        const value =
-                          Number(e.target.value.replace(/\D/g, "")) || 0;
-                        setAdvance(value);
-                      }}
-                    />{" "}
-                  </div>
+                  <input
+                    type="text"
+                    name="advance"
+                    value={advance}
+                    onChange={(e) => {
+                      const value =
+                        Number(e.target.value.replace(/\D/g, "")) || 0;
+                      setAdvance(value);
+                    }}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
                 </div>
               </>
-            )}{" "}
+            )}
+
             {/* Remarks */}
-            <div className="flex flex-col ">
+            <div>
               <label className="block text-sm font-medium text-gray-600">
                 Remarks
               </label>
               <textarea
                 name="remarks"
-                placeholder="Remarks"
                 rows="4"
+                value={form.remarks}
                 onChange={(e) => setRemarks(e.target.value)}
-                className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300"
+                className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring focus:ring-blue-300"
               />
-            </div>{" "}
+            </div>
           </div>
         </section>
 
@@ -805,6 +935,9 @@ const SaleOrderform = ({ handleCancel }) => {
                       "S.N",
                       "Item Code",
                       "Item Name",
+                      "Description",
+                      "Site",
+                      "Warehouse",
                       "Qty",
                       "Unit",
                       "Price",
@@ -823,16 +956,19 @@ const SaleOrderform = ({ handleCancel }) => {
                     ))}
                   </tr>
                 </thead>
+
                 <tbody className="divide-y divide-gray-200">
-                  <tr key="sales-order-row" className="hover:bg-gray-50">
+                  <tr key="purchase-order-row" className="hover:bg-gray-50">
                     <td className="border text-center px-2 py-1">1</td>
+
                     <td className="border px-2 py-1 text-center">
                       {selectedItem?.code || ""}
                     </td>
+
                     <td className="border px-2 py-1">
                       <select
                         value={selectedItem?._id || ""}
-                        disabled={!isEdited && saleOrderNum}
+                        disabled={!isEdited}
                         onChange={(e) => {
                           const sel = items.find(
                             (item) => item._id === e.target.value
@@ -850,6 +986,32 @@ const SaleOrderform = ({ handleCancel }) => {
                         ))}
                       </select>
                     </td>
+
+                    <td className="border px-2 py-1 text-center">
+                      <input
+                        type="text"
+                        value={selectedItem?.description || ""}
+                        readOnly
+                        className="w-full border rounded text-center px-2 py-1 bg-gray-100"
+                      />
+                    </td>
+
+                    <td className="border px-2 py-1 text-center">
+                      <input
+                        type="text"
+                        placeholder="Site"
+                        className="w-full border rounded text-center px-2 py-1"
+                      />
+                    </td>
+
+                    <td className="border px-2 py-1 text-center">
+                      <input
+                        type="text"
+                        placeholder="Warehouse"
+                        className="w-full border rounded text-center px-2 py-1"
+                      />
+                    </td>
+
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -860,6 +1022,7 @@ const SaleOrderform = ({ handleCancel }) => {
                         }
                       />
                     </td>
+
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
@@ -868,6 +1031,7 @@ const SaleOrderform = ({ handleCancel }) => {
                         className="w-full border rounded text-center px-2 py-1 bg-gray-100"
                       />
                     </td>
+
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -876,6 +1040,7 @@ const SaleOrderform = ({ handleCancel }) => {
                         onChange={(e) => setPrice(Number(e.target.value) || 0)}
                       />
                     </td>
+
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -886,11 +1051,13 @@ const SaleOrderform = ({ handleCancel }) => {
                         }
                       />
                     </td>
+
                     <td className="border px-2 py-1 text-center">
                       {isNaN(amountBeforeTax)
                         ? "0.00"
                         : amountBeforeTax.toFixed(2)}
                     </td>
+
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -899,6 +1066,7 @@ const SaleOrderform = ({ handleCancel }) => {
                         onChange={(e) => setTax(Number(e.target.value) || 0)}
                       />
                     </td>
+
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -907,21 +1075,33 @@ const SaleOrderform = ({ handleCancel }) => {
                         onChange={(e) => setTcs(Number(e.target.value) || 0)}
                       />
                     </td>
+
                     <td className="border px-2 py-1 text-center">{lineAmt}</td>
                   </tr>
                 </tbody>
               </table>
 
+              {/* Summary Section */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
                 <SummaryCard label="Advance" value={advance} />
                 <SummaryCard
-                  label="Amt"
+                  label="Amount"
                   value={
                     isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
                   }
                 />
-                <SummaryCard label="Discount" value={discount} />
                 <SummaryCard label="Line Amt" value={lineAmt} />
+                <SummaryCard
+                  label="Total TDS/TCS"
+                  value={
+                    isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
+                  }
+                />
+                <SummaryCard
+                  label="Grand Total"
+                  value={isNaN(lineAmt) ? "0.00" : lineAmt}
+                />
+                <SummaryCard label="Discount" value={discount} />
               </div>
             </div>
           </div>

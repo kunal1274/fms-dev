@@ -245,6 +245,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
 
     setFilteredSales(filtered);
   };
+  
   const handleSortChange = (e) => {
     const value = e.target.value;
     setSelectedSortOption(value);

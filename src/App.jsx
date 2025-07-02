@@ -1,9 +1,8 @@
 import React from "react";
 ``;
-import Dashbord from "./Component/Dashbord/Dashbord";
+// import Dashbord from "./Component/Dashbord/Dashbord";
 //
-// import Dashbord from "../src/MainComponent/Inventory/Serial/Form"
-// orm";
+import Dashbord from "./MainComponent/Sale/CreditNoteDebitNote";
 
 const App = () => {
   return (

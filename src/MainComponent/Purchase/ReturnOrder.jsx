@@ -3,18 +3,33 @@ import axios from "axios";
 // import Invoice from "./Invoice"; // Uncomment if you have an Invoice component
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 const SummaryCard = ({ label, value }) => (
   <div className="flex flex-col">
     <span className="text-sm text-gray-600">{label}</span>
     <span className="text-lg font-semibold text-gray-800">{value}</span>
   </div>
 );
-const PurchaseOrderForm = ({ handleCancel }) => {
+const ReturnForm = ({ handleCancel }) => {
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const VendorsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/vendors";
-  const PurchasesOrderUrl =
-    "https://fms-qkmw.onrender.com/fms/api/v0/purchasesorders";
+  const returnsOrderUrl =
+    "https://fms-qkmw.onrender.com/fms/api/v0/returnsorders";
+  const [form, setForm] = useState({
+    returnOrderNo: "",
+    returnDateTime: "",
+    vendorAccount: "",
+    agreementNo: "",
+    paymentTerms: "",
+    status: "",
+    orderId: "",
+    returnAmount: "",
+    remarks: "",
+  });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
   const paymentTerms = [
     "COD",
     "Net30D",
@@ -25,16 +40,16 @@ const PurchaseOrderForm = ({ handleCancel }) => {
     "Net90D",
     "Advance",
   ];
-  const [goForInvoice, setGoPurchaseInvoice] = useState(null);
+  const [goForInvoice, setGoreturnInvoice] = useState(null);
   const [advance, setAdvance] = useState(0);
   const [vendor, setVendor] = useState([]);
   const [vendors, setVendors] = useState([]);
-  const [viewingPurchaseId, setViewingPurchaseId] = useState(null);
-  const [selectedPurchaseOrderId, setSelectedPurchaseOrderId] = useState("");
+  const [viewingreturnId, setViewingreturnId] = useState(null);
+  const [selectedreturnreturnId, setSelectedreturnreturnId] = useState("");
   const [items, setItems] = useState([]);
   const [remarks, setRemarks] = useState("");
+  const [returnOrderNum, setReturnOrderNum] = useState(null);
 
-  const [purchaseOrderNum, setPurchaseOrderNum] = useState(null);
   // Global form states (for a single order line)
   const [selectedVendor, setSelectedVendor] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
@@ -45,7 +60,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   const [tcs, setTcs] = useState(0);
   const [charges, setCharges] = useState(0);
   const [lineAmt, setLineAmt] = useState("0.00");
-  const [purchasesAddress, setPurchasesAddress] = useState(null);
+  const [returnsAddress, setreturnsAddress] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Editing and status management states
@@ -62,11 +77,11 @@ const PurchaseOrderForm = ({ handleCancel }) => {
     if (
       location.state &&
       location.state.edit &&
-      location.state.purchaseOrderNum
+      location.state.returnreturnNum
     ) {
-      setPurchaseOrderNum(location.state.purchaseOrderNum);
+      setreturnreturnNum(location.state.returnreturnNum);
       setIsEdited(true);
-      // Optionally, fetch purchase order details here from your API.
+      // Optionally, fetch return order details here from your API.
     }
   }, [location.state]);
 
@@ -134,7 +149,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   // -------------------------
   const validateForm = () => {
     if (!selectedVendor) {
-      toast.warn("⚠️ No purchase order selected to delete.", {
+      toast.warn("⚠️ No return order selected to delete.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -170,8 +185,8 @@ const PurchaseOrderForm = ({ handleCancel }) => {
     }
     return true;
   };
-
-  const handleCreate = async (e) => {
+  // const navigate = useNavigate();
+  const handleReturn = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -213,23 +228,23 @@ const PurchaseOrderForm = ({ handleCancel }) => {
       withholdingTax: Number(tcs) || 0,
       charges: Number(charges) || 0,
       advance: Number(advance) || 0,
-      purchasesAddress: purchasesAddress,
+      returnsAddress: returnsAddress,
     };
 
     console.log("📌 Payload being sent:", payload);
 
     try {
       setLoading(true);
-      const { data } = await axios.post(purchasesOrderUrl, payload, {
+      const { data } = await axios.post(returnsOrderUrl, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      // Set purchase order number and mark as created/editable.
-      setPurchaseOrderNum(data.data.orderNum);
+      // Set return order number and mark as returnd/editable.
+      setreturnreturnNum(data.data.orderNum);
       set_id(data.data._id);
       console.log(data.data._id, "id");
       setIsEdited(true);
       toast.success(
-        `Purchases Order Created Successfully! Order Number: ${data.data.orderNum}`,
+        `returns Order returnd Successfully! Order Number: ${data.data.orderNum}`,
         {
           position: "top-right",
           autoClose: 3000,
@@ -244,7 +259,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
       console.error("🚨 Error response:", error.response);
       toast.error(
         `Error: ${
-          error.response?.data?.message || "Failed to create Purchases Order"
+          error.response?.data?.message || "Failed to return returns Order"
         }`,
         {
           position: "top-right",
@@ -466,10 +481,10 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
   // -------------------------
   // Handle Edit button click:
-  // Navigate to the purchase Order View Page with the purchase order identifier.
+  // Navigate to the return Order View Page with the return order identifier.
   // -------------------------
   const handleEdit = () => {
-    setViewingPurchaseId(_id);
+    setViewingreturnId(_id);
   };
 
   // -------------------------
@@ -486,11 +501,11 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   return (
     <div className="">
       <ToastContainer />
-
       {/* Header Buttons */}
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between ">
         <div className="flex items-center space-x-2">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
+            {" "}
             <button
               type="button"
               className="text-blue-600 mt-2 text-sm hover:underline"
@@ -509,25 +524,25 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                   strokeWidth={2}
                   d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
                 />
-              </svg>
+              </svg>{" "}
             </button>
           </div>
-          <h3 className="text-xl font-semibold">Purchase Order Form</h3>
+          <h3 className="text-xl font-semibold">Return Order Form</h3>
         </div>
       </div>
 
-      {/* Form */}
       <form
-        onSubmit={handleCreate}
-        className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
+        onSubmit={handleReturn}
+        className="bg-white shadowshhshhshh-none rounded-lg divide-y divide-gray-200"
       >
         {/* Business Details */}
         <section className="p-6">
           <div className="flex flex-wrap w-full gap-2">
+            {/* Maintain Section */}
             <div className="p-2 h-17 bg-white">
               <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-6">
                 <div className="flex flex-nowrap gap-2">
-                  {purchaseOrderNum ? (
+                  {returnOrderNum ? (
                     <>
                       <button
                         type="button"
@@ -546,6 +561,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                     </>
                   ) : (
                     <button
+                      onClick={handleReturn}
                       type="submit"
                       className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
                     >
@@ -564,21 +580,47 @@ const PurchaseOrderForm = ({ handleCancel }) => {
           </div>
 
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Purchase Details
+            Return Details
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Purchase Order
+                Return Order
               </label>
               <input
                 type="text"
-                name="purchaseOrder"
-                value={purchaseOrderNum || ""}
-                placeholder="Purchase Order"
+                name="returnOrderNum"
+                value={returnOrderNum || ""}
+                placeholder="Return Order"
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Return Order No
+              </label>
+              <input
+                name="returnOrderNo"
+                value={form.returnOrderNo || ""}
+                onChange={handleChange}
+                placeholder="e.g. RET-0001"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Return Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                name="returnDateTime"
+                value={form.returnDateTime || ""}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
@@ -604,14 +646,13 @@ const PurchaseOrderForm = ({ handleCancel }) => {
               <label className="block text-sm font-medium text-gray-600">
                 Vendor Account
               </label>
-              <input type="text" className="w-full p-2 border rounded" />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Purchase Agreement No (if applicable)
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
+              <input
+                type="text"
+                name="vendorAccount"
+                value={form.vendorAccount || ""}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
             </div>
 
             {selectedVendorDetails && (
@@ -623,9 +664,8 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                   <input
                     type="text"
                     value={selectedVendorDetails.currency}
-                    placeholder="Currency"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                   />
                 </div>
 
@@ -634,86 +674,42 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                     Vendor Address
                   </label>
                   <textarea
-                    name="address"
                     rows="4"
                     value={selectedVendorDetails.address}
-                    placeholder="Vendor Address"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                   />
                 </div>
-
-                {/* <div>
+                <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Purchase Address
+                    Remarks
                   </label>
                   <textarea
-                    name="purchasesAddress"
                     rows="4"
-                    onChange={(e) => setPurchasesAddress(e.target.value)}
-                    placeholder="Purchase Address"
-                    className="mt-1 w-full p-2 border rounded"
-                  />
-                </div> */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Purchase Reference No
-                  </label>
-                  <input type="text" className="w-full p-2 border rounded" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Contact Details
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedVendorDetails.contactNum}
-                    placeholder="Contact Number"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    value={selectedVendorDetails.address}
                     readOnly
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Contact Email
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedVendorDetails.email}
-                    placeholder="Email"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Terms of Payment
+                    Return reason
                   </label>
-                  <select
-                    name="paymentTerms"
-                    required
-                    className="mt-1 w-full p-2 border rounded"
-                  >
-                    <option value="">Select type</option>
-                    {paymentTerms.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
+                  <input type="text" />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Order Status
+                    Return Status
                   </label>
                   <input
                     type="text"
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="mt-1 w-full p-2 border rounded"
+                    name="status"
+                    value={form.status || ""}
+                    onChange={handleChange}
+                    placeholder="e.g. Draft, Confirmed"
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
               </>
@@ -721,34 +717,32 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Delivery Mode
+                Order ID
               </label>
-              <input type="text" className="w-full p-2 border rounded" />
+              <input
+                type="text"
+                name="orderId"
+                value={form.orderId || ""}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Advance Paid Amount
+                Total Return Amount
               </label>
               <input
-                type="text"
-                value={advance}
-                onChange={(e) =>
-                  setAdvance(Number(e.target.value.replace(/\D/g, "")) || 0)
-                }
-                className="w-full p-2 border rounded"
+                type="number"
+                name="returnAmount"
+                value={form.returnAmount || ""}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Order Id
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
             </div>
           </div>
         </section>
 
-        {/* ...Line Items Table and Summary goes here (already provided) */}
         <section className="p-6">
           <div className="max-h-96 overflow-y-auto mt-4 border rounded-lg bg-white">
             <div className="space-y-6 p-4">
@@ -757,12 +751,13 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                   <tr>
                     {[
                       "S.N",
+                      "Purchase Order ID (Against Return)",
                       "Item Code",
                       "Item Name",
                       "Description",
+                      "Qty",
                       "Site",
                       "Warehouse",
-                      "Qty",
                       "Unit",
                       "Price",
                       "Discount %",
@@ -780,10 +775,13 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                     ))}
                   </tr>
                 </thead>
-
                 <tbody className="divide-y divide-gray-200">
-                  <tr key="purchase-order-row" className="hover:bg-gray-50">
+                  <tr key="return-order-row" className="hover:bg-gray-50">
                     <td className="border text-center px-2 py-1">1</td>
+
+                    <td className="border text-center px-2 py-1">
+                      {returnOrderNum || ""}
+                    </td>
 
                     <td className="border px-2 py-1 text-center">
                       {selectedItem?.code || ""}
@@ -792,7 +790,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                     <td className="border px-2 py-1">
                       <select
                         value={selectedItem?._id || ""}
-                        disabled={!isEdited && purchaseOrderNum}
+                        disabled={!isEdited && returnOrderNum}
                         onChange={(e) => {
                           const sel = items.find(
                             (item) => item._id === e.target.value
@@ -812,35 +810,15 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                     </td>
 
                     <td className="border px-2 py-1 text-center">
-                      <input
-                        type="text"
-                        value={selectedItem?.description || ""}
-                        readOnly
-                        className="w-full border rounded text-center px-2 py-1 bg-gray-100"
-                      />
-                    </td>
-
-                    <td className="border px-2 py-1 text-center">
-                      <input
-                        type="text"
-                        placeholder="Site"
-                        className="w-full border rounded text-center px-2 py-1"
-                      />
-                    </td>
-
-                    <td className="border px-2 py-1 text-center">
-                      <input
-                        type="text"
-                        placeholder="Warehouse"
-                        className="w-full border rounded text-center px-2 py-1"
-                      />
+                      {selectedItem?.description || "-"}
                     </td>
 
                     <td className="border px-2 py-1">
                       <input
-                        type="text"
+                        type="number"
+                        min="0"
                         className="w-full border rounded text-center px-2 py-1"
-                        value={quantity}
+                        value={quantity || ""}
                         onChange={(e) =>
                           setQuantity(Number(e.target.value) || 0)
                         }
@@ -848,6 +826,14 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                     </td>
 
                     <td className="border px-2 py-1 text-center">
+                      {selectedItem?.site || "-"}
+                    </td>
+
+                    <td className="border px-2 py-1 text-center">
+                      {selectedItem?.warehouse || "-"}
+                    </td>
+
+                    <td className="border px-2 py-1">
                       <input
                         type="text"
                         value={selectedItem?.unit || ""}
@@ -858,18 +844,20 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
                     <td className="border px-2 py-1">
                       <input
-                        type="text"
+                        type="number"
+                        min="0"
                         className="w-full border rounded text-center px-2 py-1"
-                        value={price}
+                        value={price || ""}
                         onChange={(e) => setPrice(Number(e.target.value) || 0)}
                       />
                     </td>
 
                     <td className="border px-2 py-1">
                       <input
-                        type="text"
+                        type="number"
+                        min="0"
                         className="w-full border rounded text-center px-2 py-1"
-                        value={discount}
+                        value={discount || ""}
                         onChange={(e) =>
                           setDiscount(Number(e.target.value) || 0)
                         }
@@ -884,55 +872,53 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
                     <td className="border px-2 py-1">
                       <input
-                        type="text"
+                        type="number"
+                        min="0"
                         className="w-full border rounded text-center px-2 py-1"
-                        value={tax}
+                        value={tax || ""}
                         onChange={(e) => setTax(Number(e.target.value) || 0)}
                       />
                     </td>
 
                     <td className="border px-2 py-1">
                       <input
-                        type="text"
+                        type="number"
+                        min="0"
                         className="w-full border rounded text-center px-2 py-1"
-                        value={tcs}
+                        value={tcs || ""}
                         onChange={(e) => setTcs(Number(e.target.value) || 0)}
                       />
                     </td>
 
-                    <td className="border px-2 py-1 text-center">{lineAmt}</td>
+                    <td className="border px-2 py-1 text-center">
+                    
+                    </td>
                   </tr>
                 </tbody>
               </table>
 
               {/* Summary Section */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
-                <SummaryCard label="Advance" value={advance} />
+                <SummaryCard label="Advance" value={advance || 0} />
                 <SummaryCard
                   label="Amount"
                   value={
                     isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
                   }
                 />
-                <SummaryCard label="Line Amt" value={lineAmt} />
+                <SummaryCard label="Discount" value={discount || 0} />
                 <SummaryCard
-                  label="Total TDS/TCS"
-                  value={
-                    isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
-                  }
+                  label="Line Amount"
+                
                 />
-                <SummaryCard
-                  label="Grand Total"
-                  value={isNaN(lineAmt) ? "0.00" : lineAmt}
-                />
-                <SummaryCard label="Discount" value={discount} />
               </div>
             </div>
           </div>
         </section>
 
         {/* Action Buttons */}
-        <div className="py-6 flex items-center justify-between px-6">
+        <div className="py-6 flex items-center justify-between">
+          {/* Left side - Reset Button */}
           <div>
             <button
               type="button"
@@ -943,6 +929,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
             </button>
           </div>
 
+          {/* Right side - Go Back and return Buttons */}
           <div className="flex gap-4">
             <button
               type="button"
@@ -955,7 +942,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
             >
-              Create
+              return
             </button>
           </div>
         </div>
@@ -964,4 +951,4 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   );
 };
 
-export default PurchaseOrderForm;
+export default ReturnForm;

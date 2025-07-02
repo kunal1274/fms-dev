@@ -10,11 +10,10 @@ const SummaryCard = ({ label, value }) => (
     <span className="text-lg font-semibold text-gray-800">{value}</span>
   </div>
 );
-const PurchaseOrderForm = ({ handleCancel }) => {
+const noteOrderForm = ({ handleCancel }) => {
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-  const VendorsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/vendors";
-  const PurchasesOrderUrl =
-    "https://fms-qkmw.onrender.com/fms/api/v0/purchasesorders";
+  const CustomersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Customers";
+  const notesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/notesorders";
   const paymentTerms = [
     "COD",
     "Net30D",
@@ -25,18 +24,18 @@ const PurchaseOrderForm = ({ handleCancel }) => {
     "Net90D",
     "Advance",
   ];
-  const [goForInvoice, setGoPurchaseInvoice] = useState(null);
+  const [goForInvoice, setGonoteInvoice] = useState(null);
   const [advance, setAdvance] = useState(0);
-  const [vendor, setVendor] = useState([]);
-  const [vendors, setVendors] = useState([]);
-  const [viewingPurchaseId, setViewingPurchaseId] = useState(null);
-  const [selectedPurchaseOrderId, setSelectedPurchaseOrderId] = useState("");
+  const [Customer, setCustomer] = useState([]);
+  const [Customers, setCustomers] = useState([]);
+  const [viewingnoteId, setViewingnoteId] = useState(null);
+  const [selectednoteOrderId, setSelectednoteOrderId] = useState("");
   const [items, setItems] = useState([]);
   const [remarks, setRemarks] = useState("");
 
-  const [purchaseOrderNum, setPurchaseOrderNum] = useState(null);
+  const [noteOrderNum, setnoteOrderNum] = useState(null);
   // Global form states (for a single order line)
-  const [selectedVendor, setSelectedVendor] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState(0);
@@ -45,7 +44,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   const [tcs, setTcs] = useState(0);
   const [charges, setCharges] = useState(0);
   const [lineAmt, setLineAmt] = useState("0.00");
-  const [purchasesAddress, setPurchasesAddress] = useState(null);
+  const [notesAddress, setnotesAddress] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Editing and status management states
@@ -59,14 +58,10 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
   // If coming back in edit mode, pre-populate form fields accordingly
   useEffect(() => {
-    if (
-      location.state &&
-      location.state.edit &&
-      location.state.purchaseOrderNum
-    ) {
-      setPurchaseOrderNum(location.state.purchaseOrderNum);
+    if (location.state && location.state.edit && location.state.noteOrderNum) {
+      setnoteOrderNum(location.state.noteOrderNum);
       setIsEdited(true);
-      // Optionally, fetch purchase order details here from your API.
+      // Optionally, fetch note order details here from your API.
     }
   }, [location.state]);
 
@@ -104,15 +99,15 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   });
 
   // -------------------------
-  // Fetch Vendors & Items
+  // Fetch Customers & Items
   // -------------------------
   useEffect(() => {
-    const fetchVendors = async () => {
+    const fetchCustomers = async () => {
       try {
-        const response = await axios.get(VendorsBaseUrl);
-        setVendors(response.data.data || []);
+        const response = await axios.get(CustomersBaseUrl);
+        setCustomers(response.data.data || []);
       } catch (error) {
-        console.error("Error fetching vendors:", error);
+        console.error("Error fetching Customers:", error);
       }
     };
 
@@ -125,7 +120,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
       }
     };
 
-    fetchVendors();
+    fetchCustomers();
     fetchItems();
   }, []);
 
@@ -133,8 +128,8 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   // Basic Form Validation
   // -------------------------
   const validateForm = () => {
-    if (!selectedVendor) {
-      toast.warn("⚠️ No purchase order selected to delete.", {
+    if (!selectedCustomer) {
+      toast.warn("⚠️ No note order selected to delete.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -143,7 +138,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
         draggable: true,
         theme: "colored",
       });
-      toast.warn("⚠️ Vendor selection is required.", {
+      toast.warn("⚠️ Customer selection is required.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -203,7 +198,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
     // Construct payload from global fields
     const payload = {
-      vendor: selectedVendor,
+      Customer: selectedCustomer,
       item: selectedItem._id || selectedItem.id || "",
       quantity: Number(quantity) || 1,
       price: Number(price) || 0,
@@ -213,23 +208,23 @@ const PurchaseOrderForm = ({ handleCancel }) => {
       withholdingTax: Number(tcs) || 0,
       charges: Number(charges) || 0,
       advance: Number(advance) || 0,
-      purchasesAddress: purchasesAddress,
+      notesAddress: notesAddress,
     };
 
     console.log("📌 Payload being sent:", payload);
 
     try {
       setLoading(true);
-      const { data } = await axios.post(purchasesOrderUrl, payload, {
+      const { data } = await axios.post(notesOrderUrl, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      // Set purchase order number and mark as created/editable.
-      setPurchaseOrderNum(data.data.orderNum);
+      // Set note order number and mark as created/editable.
+      setnoteOrderNum(data.data.orderNum);
       set_id(data.data._id);
       console.log(data.data._id, "id");
       setIsEdited(true);
       toast.success(
-        `Purchases Order Created Successfully! Order Number: ${data.data.orderNum}`,
+        `notes Order Created Successfully! Order Number: ${data.data.orderNum}`,
         {
           position: "top-right",
           autoClose: 3000,
@@ -244,7 +239,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
       console.error("🚨 Error response:", error.response);
       toast.error(
         `Error: ${
-          error.response?.data?.message || "Failed to create Purchases Order"
+          error.response?.data?.message || "Failed to create notes Order"
         }`,
         {
           position: "top-right",
@@ -372,34 +367,34 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   }, [lineItems]);
 
   // -------------------------
-  // Fetch Vendor Details on Vendor Selection
+  // Fetch Customer Details on Customer Selection
   // -------------------------
-  const [selectedVendorDetails, setSelectedVendorDetails] = useState({
+  const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
     contactNum: "",
     currency: "",
     address: "",
     email: "",
   });
   useEffect(() => {
-    if (selectedVendor) {
-      const vendor = vendors.find((c) => c._id === selectedVendor);
-      if (vendor) {
-        setSelectedVendorDetails({
-          contactNum: vendor.contactNum || "",
-          currency: vendor.currency || "",
-          address: vendor.address || "",
-          email: vendor.email || "", // ← correct!
+    if (selectedCustomer) {
+      const Customer = Customers.find((c) => c._id === selectedCustomer);
+      if (Customer) {
+        setSelectedCustomerDetails({
+          contactNum: Customer.contactNum || "",
+          currency: Customer.currency || "",
+          address: Customer.address || "",
+          email: Customer.email || "", // ← correct!
         });
       }
     } else {
-      setSelectedVendorDetails({
+      setSelectedCustomerDetails({
         contactNum: "",
         currency: "",
         address: "",
         email: "",
       });
     }
-  }, [selectedVendor, vendors]);
+  }, [selectedCustomer, Customers]);
 
   // -------------------------
   // Fetch Item Details on Global Item Selection
@@ -466,10 +461,10 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
   // -------------------------
   // Handle Edit button click:
-  // Navigate to the purchase Order View Page with the purchase order identifier.
+  // Navigate to the note Order View Page with the note order identifier.
   // -------------------------
   const handleEdit = () => {
-    setViewingPurchaseId(_id);
+    setViewingnoteId(_id);
   };
 
   // -------------------------
@@ -512,7 +507,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
               </svg>
             </button>
           </div>
-          <h3 className="text-xl font-semibold">Purchase Order Form</h3>
+          <h3 className="text-xl font-semibold">Credit Note Debit Note</h3>
         </div>
       </div>
 
@@ -523,11 +518,12 @@ const PurchaseOrderForm = ({ handleCancel }) => {
       >
         {/* Business Details */}
         <section className="p-6">
-          <div className="flex flex-wrap w-full gap-2">
-            <div className="p-2 h-17 bg-white">
+          {/* Top Action Buttons */}
+          <div className="flex flex-wrap w-full gap-2 mb-4">
+            <div className="p-2 bg-white w-full">
               <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-6">
-                <div className="flex flex-nowrap gap-2">
-                  {purchaseOrderNum ? (
+                <div className="flex gap-2">
+                  {noteOrderNum ? (
                     <>
                       <button
                         type="button"
@@ -563,20 +559,22 @@ const PurchaseOrderForm = ({ handleCancel }) => {
             </div>
           </div>
 
+          {/* Heading */}
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Purchase Details
+            Credit Note Details
           </h2>
 
+          {/* Form Fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Purchase Order
+                Credit Note ID
               </label>
               <input
                 type="text"
-                name="purchaseOrder"
-                value={purchaseOrderNum || ""}
-                placeholder="Purchase Order"
+                name="noteOrder"
+                value={noteOrderNum || ""}
+                placeholder="Credit Note ID"
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
               />
@@ -584,17 +582,38 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Vendor Name
+                Reference Transaction ID
+              </label>
+              <input
+                type="text"
+                readOnly
+                className="w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Issue Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                className="w-full p-2 border rounded"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Customer Name
               </label>
               <select
-                value={selectedVendor}
-                onChange={(e) => setselectedVendor(e.target.value)}
+                value={selectedCustomer}
+                onChange={(e) => setselectedCustomer(e.target.value)}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
-                <option value="">Select Vendor</option>
-                {vendors.map((vendor) => (
-                  <option key={vendor._id} value={vendor._id}>
-                    {vendor.name}
+                <option value="">Select Customer</option>
+                {Customers.map((Customer) => (
+                  <option key={Customer._id} value={Customer._id}>
+                    {Customer.name}
                   </option>
                 ))}
               </select>
@@ -602,19 +621,12 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Vendor Account
+                Customer Account
               </label>
               <input type="text" className="w-full p-2 border rounded" />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Purchase Agreement No (if applicable)
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
-            </div>
-
-            {selectedVendorDetails && (
+            {selectedCustomerDetails && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
@@ -622,98 +634,41 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                   </label>
                   <input
                     type="text"
-                    value={selectedVendorDetails.currency}
-                    placeholder="Currency"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    value={selectedCustomerDetails.currency}
                     readOnly
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Vendor Address
+                    Customer Address
                   </label>
                   <textarea
                     name="address"
-                    rows="4"
-                    value={selectedVendorDetails.address}
-                    placeholder="Vendor Address"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    rows="3"
+                    value={selectedCustomerDetails.address}
                     readOnly
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                   />
                 </div>
 
-                {/* <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Purchase Address
-                  </label>
-                  <textarea
-                    name="purchasesAddress"
-                    rows="4"
-                    onChange={(e) => setPurchasesAddress(e.target.value)}
-                    placeholder="Purchase Address"
-                    className="mt-1 w-full p-2 border rounded"
-                  />
-                </div> */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Purchase Reference No
+                    Reason
                   </label>
                   <input type="text" className="w-full p-2 border rounded" />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Contact Details
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedVendorDetails.contactNum}
-                    placeholder="Contact Number"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Contact Email
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedVendorDetails.email}
-                    placeholder="Email"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Terms of Payment
-                  </label>
-                  <select
-                    name="paymentTerms"
-                    required
-                    className="mt-1 w-full p-2 border rounded"
-                  >
-                    <option value="">Select type</option>
-                    {paymentTerms.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Order Status
+                    Return Status
                   </label>
                   <input
                     type="text"
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
-                    className="mt-1 w-full p-2 border rounded"
+                    className="w-full p-2 border rounded"
                   />
                 </div>
               </>
@@ -721,14 +676,14 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Delivery Mode
+                Total Credit/Debit Amount
               </label>
-              <input type="text" className="w-full p-2 border rounded" />
+              <input type="number" className="w-full p-2 border rounded" />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Advance Paid Amount
+                Posted Ledger Account
               </label>
               <input
                 type="text"
@@ -739,11 +694,23 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                 className="w-full p-2 border rounded"
               />
             </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Order Id
+                Order ID
               </label>
               <input type="text" className="w-full p-2 border rounded" />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-600">
+                Remarks
+              </label>
+              <textarea
+                rows={4}
+                placeholder="e.g. Any additional notes…"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
             </div>
           </div>
         </section>
@@ -759,7 +726,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                       "S.N",
                       "Item Code",
                       "Item Name",
-                      "Description",
+
                       "Site",
                       "Warehouse",
                       "Qty",
@@ -782,7 +749,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                 </thead>
 
                 <tbody className="divide-y divide-gray-200">
-                  <tr key="purchase-order-row" className="hover:bg-gray-50">
+                  <tr key="note-order-row" className="hover:bg-gray-50">
                     <td className="border text-center px-2 py-1">1</td>
 
                     <td className="border px-2 py-1 text-center">
@@ -792,7 +759,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                     <td className="border px-2 py-1">
                       <select
                         value={selectedItem?._id || ""}
-                        disabled={!isEdited && purchaseOrderNum}
+                        disabled={!isEdited && noteOrderNum}
                         onChange={(e) => {
                           const sel = items.find(
                             (item) => item._id === e.target.value
@@ -964,4 +931,4 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   );
 };
 
-export default PurchaseOrderForm;
+export default noteOrderForm;
