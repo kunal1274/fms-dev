@@ -629,7 +629,8 @@ export default function CompanyList({ handleAddCompany, onView }) {
                           <td className="px-6 py-2">
                             {c.gstNumber || "-"}
                           </td>
-                          <td className="px-6 py-2">{c.tanNumber || "-"}</td>
+                          <td className="px-6 py-2">{c.tanNumber
+                           || "-"}</td>
                           <td className="px-6 py-2">
                             <span
                               className={`text-xs font-semibold rounded-full ${

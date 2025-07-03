@@ -9,8 +9,8 @@ import {
 } from "react-icons/fa";
 
 // import your actual pages:
-import VendorPage from "./MainComponent/Vendor/VendorPage";
-import PurchasePage from "./MainComponent/Purchase/PurchaseMaster/PurchasePage";
+import VendorPage from "../../Vendor/VendorPage";
+import PurchasePage from "../PurchaseMaster/PurchasePage";
 
 // View modes
 const VIEW_MODES = {
