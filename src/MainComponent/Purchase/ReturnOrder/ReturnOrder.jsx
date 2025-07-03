@@ -890,9 +890,7 @@ const ReturnForm = ({ handleCancel }) => {
                       />
                     </td>
 
-                    <td className="border px-2 py-1 text-center">
-                    
-                    </td>
+                    <td className="border px-2 py-1 text-center"></td>
                   </tr>
                 </tbody>
               </table>
@@ -907,10 +905,7 @@ const ReturnForm = ({ handleCancel }) => {
                   }
                 />
                 <SummaryCard label="Discount" value={discount || 0} />
-                <SummaryCard
-                  label="Line Amount"
-                
-                />
+                <SummaryCard label="Line Amount" />
               </div>
             </div>
           </div>

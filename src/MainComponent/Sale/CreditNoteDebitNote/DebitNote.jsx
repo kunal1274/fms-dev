@@ -4,12 +4,14 @@ import axios from "axios";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
-
-const PurchaseOrderForm = ({ handleCancel }) => {
-  const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-  const VendorsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/vendors";
-  const PurchasesOrderUrl =
-    "https://fms-qkmw.onrender.com/fms/api/v0/purchasesorders";
+const SummaryCard = ({ label, value }) => (
+  <div className="flex flex-col">
+    <span className="text-sm text-gray-600">{label}</span>
+    <span className="text-lg font-semibold text-gray-800">{value}</span>
+  </div>
+);
+const noteOrderForm = ({ handleCancel }) => {
+ 
   const paymentTerms = [
     "COD",
     "Net30D",
@@ -20,17 +22,18 @@ const PurchaseOrderForm = ({ handleCancel }) => {
     "Net90D",
     "Advance",
   ];
-  const [goForInvoice, setGoPurchaseInvoice] = useState(null);
-  const [advance, setAdvance] = useState(0);  const [vendor, setVendor] = useState([]);
-  const [vendors, setVendors] = useState([]);
-  const [viewingPurchaseId, setViewingPurchaseId] = useState(null);
-  const [selectedPurchaseOrderId, setSelectedPurchaseOrderId] = useState("");
+  const [goForInvoice, setGonoteInvoice] = useState(null);
+  const [advance, setAdvance] = useState(0);
+  const [Customer, setCustomer] = useState([]);
+  const [Customers, setCustomers] = useState([]);
+  const [viewingnoteId, setViewingnoteId] = useState(null);
+  const [selectednoteOrderId, setSelectednoteOrderId] = useState("");
   const [items, setItems] = useState([]);
   const [remarks, setRemarks] = useState("");
-  const [purchaseOrderNum, setPurchaseOrderNum] = useState(null);
 
+  const [noteOrderNum, setnoteOrderNum] = useState(null);
   // Global form states (for a single order line)
-  const [selectedVendor, setSelectedVendor] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState(0);
@@ -39,7 +42,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   const [tcs, setTcs] = useState(0);
   const [charges, setCharges] = useState(0);
   const [lineAmt, setLineAmt] = useState("0.00");
-  const [purchasesAddress, setPurchasesAddress] = useState(null);
+  const [notesAddress, setnotesAddress] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Editing and status management states
@@ -53,14 +56,10 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
   // If coming back in edit mode, pre-populate form fields accordingly
   useEffect(() => {
-    if (
-      location.state &&
-      location.state.edit &&
-      location.state.purchaseOrderNum
-    ) {
-      setPurchaseOrderNum(location.state.purchaseOrderNum);
+    if (location.state && location.state.edit && location.state.noteOrderNum) {
+      setnoteOrderNum(location.state.noteOrderNum);
       setIsEdited(true);
-      // Optionally, fetch purchase order details here from your API.
+      // Optionally, fetch note order details here from your API.
     }
   }, [location.state]);
 
@@ -98,15 +97,15 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   });
 
   // -------------------------
-  // Fetch Vendors & Items
+  // Fetch Customers & Items
   // -------------------------
   useEffect(() => {
-    const fetchVendors = async () => {
+    const fetchCustomers = async () => {
       try {
-        const response = await axios.get(VendorsBaseUrl);
-        setVendors(response.data.data || []);
+        const response = await axios.get(CustomersBaseUrl);
+        setCustomers(response.data.data || []);
       } catch (error) {
-        console.error("Error fetching vendors:", error);
+        console.error("Error fetching Customers:", error);
       }
     };
 
@@ -119,7 +118,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
       }
     };
 
-    fetchVendors();
+    fetchCustomers();
     fetchItems();
   }, []);
 
@@ -127,8 +126,8 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   // Basic Form Validation
   // -------------------------
   const validateForm = () => {
-    if (!selectedVendor) {
-      toast.warn("⚠️ No purchase order selected to delete.", {
+    if (!selectedCustomer) {
+      toast.warn("⚠️ No note order selected to delete.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -137,7 +136,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
         draggable: true,
         theme: "colored",
       });
-      toast.warn("⚠️ Vendor selection is required.", {
+      toast.warn("⚠️ Customer selection is required.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -197,7 +196,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
     // Construct payload from global fields
     const payload = {
-      vendor: selectedVendor,
+      Customer: selectedCustomer,
       item: selectedItem._id || selectedItem.id || "",
       quantity: Number(quantity) || 1,
       price: Number(price) || 0,
@@ -207,23 +206,23 @@ const PurchaseOrderForm = ({ handleCancel }) => {
       withholdingTax: Number(tcs) || 0,
       charges: Number(charges) || 0,
       advance: Number(advance) || 0,
-      purchasesAddress: purchasesAddress,
+      notesAddress: notesAddress,
     };
 
     console.log("📌 Payload being sent:", payload);
 
     try {
       setLoading(true);
-      const { data } = await axios.post(purchasesOrderUrl, payload, {
+      const { data } = await axios.post(notesOrderUrl, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      // Set purchase order number and mark as created/editable.
-      setPurchaseOrderNum(data.data.orderNum);
+      // Set note order number and mark as created/editable.
+      setnoteOrderNum(data.data.orderNum);
       set_id(data.data._id);
       console.log(data.data._id, "id");
       setIsEdited(true);
       toast.success(
-        `Purchases Order Created Successfully! Order Number: ${data.data.orderNum}`,
+        `notes Order Created Successfully! Order Number: ${data.data.orderNum}`,
         {
           position: "top-right",
           autoClose: 3000,
@@ -238,7 +237,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
       console.error("🚨 Error response:", error.response);
       toast.error(
         `Error: ${
-          error.response?.data?.message || "Failed to create Purchases Order"
+          error.response?.data?.message || "Failed to create notes Order"
         }`,
         {
           position: "top-right",
@@ -366,34 +365,34 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   }, [lineItems]);
 
   // -------------------------
-  // Fetch Vendor Details on Vendor Selection
+  // Fetch Customer Details on Customer Selection
   // -------------------------
-  const [selectedVendorDetails, setSelectedVendorDetails] = useState({
+  const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
     contactNum: "",
     currency: "",
     address: "",
     email: "",
   });
   useEffect(() => {
-    if (selectedVendor) {
-      const vendor = vendors.find((c) => c._id === selectedVendor);
-      if (vendor) {
-        setSelectedVendorDetails({
-          contactNum: vendor.contactNum || "",
-          currency: vendor.currency || "",
-          address: vendor.address || "",
-          email: vendor.email || "", // ← correct!
+    if (selectedCustomer) {
+      const Customer = Customers.find((c) => c._id === selectedCustomer);
+      if (Customer) {
+        setSelectedCustomerDetails({
+          contactNum: Customer.contactNum || "",
+          currency: Customer.currency || "",
+          address: Customer.address || "",
+          email: Customer.email || "", // ← correct!
         });
       }
     } else {
-      setSelectedVendorDetails({
+      setSelectedCustomerDetails({
         contactNum: "",
         currency: "",
         address: "",
         email: "",
       });
     }
-  }, [selectedVendor, vendors]);
+  }, [selectedCustomer, Customers]);
 
   // -------------------------
   // Fetch Item Details on Global Item Selection
@@ -460,10 +459,10 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
   // -------------------------
   // Handle Edit button click:
-  // Navigate to the purchase Order View Page with the purchase order identifier.
+  // Navigate to the note Order View Page with the note order identifier.
   // -------------------------
   const handleEdit = () => {
-    setViewingPurchaseId(_id);
+    setViewingnoteId(_id);
   };
 
   // -------------------------
@@ -480,11 +479,11 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   return (
     <div className="">
       <ToastContainer />
+
       {/* Header Buttons */}
-      <div className="flex justify-between ">
+      <div className="flex justify-between mb-4">
         <div className="flex items-center space-x-2">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-            {" "}
             <button
               type="button"
               className="text-blue-600 mt-2 text-sm hover:underline"
@@ -503,25 +502,26 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                   strokeWidth={2}
                   d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
                 />
-              </svg>{" "}
+              </svg>
             </button>
           </div>
-          <h3 className="text-xl font-semibold">Purchase Order Form</h3>
+          <h3 className="text-xl font-semibold">Credit Note Debit Note</h3>
         </div>
       </div>
 
+      {/* Form */}
       <form
         onSubmit={handleCreate}
         className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
       >
         {/* Business Details */}
         <section className="p-6">
-          <div className="flex flex-wrap w-full gap-2">
-            {/* Maintain Section */}
-            <div className="p-2 h-17 bg-white">
+          {/* Top Action Buttons */}
+          <div className="flex flex-wrap w-full gap-2 mb-4">
+            <div className="p-2 bg-white w-full">
               <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-6">
-                <div className="flex flex-nowrap gap-2">
-                  {purchaseOrderNum ? (
+                <div className="flex gap-2">
+                  {noteOrderNum ? (
                     <>
                       <button
                         type="button"
@@ -540,7 +540,6 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                     </>
                   ) : (
                     <button
-                      onClick={handleCreate}
                       type="submit"
                       className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
                     >
@@ -557,217 +556,216 @@ const PurchaseOrderForm = ({ handleCancel }) => {
               </div>
             </div>
           </div>
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Purchase Details
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="">
-              <label className="block text-sm font-medium text-gray-600">
-                Purchase Order
-              </label>
 
+          {/* Heading */}
+          <h2 className="text-lg font-medium text-gray-700 mb-4">
+            Credit Note Details
+          </h2>
+
+          {/* Form Fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Credit Note ID
+              </label>
               <input
                 type="text"
-                name="purchaseOrder"
-                value={purchaseOrderNum || ""}
-                placeholder="Purchase Order"
+                name="noteOrder"
+                value={noteOrderNum || ""}
+                placeholder="Credit Note ID"
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
               />
             </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Vendor Name
+                Reference Transaction ID
+              </label>
+              <input
+                type="text"
+                readOnly
+                className="w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Issue Date & Time
+              </label>
+              <input
+                type="datetime-local"
+                className="w-full p-2 border rounded"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Customer Name
               </label>
               <select
-                value={selectedVendor}
-                onChange={(e) => setselectedVendor(e.target.value)}
+                value={selectedCustomer}
+                onChange={(e) => setselectedCustomer(e.target.value)}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
-                <option value="">Select Vendor</option>
-                {vendors.map((Vendor) => (
-                  <option key={Vendor._id} value={Vendor._id}>
-                    {Vendor.name}
+                <option value="">Select Customer</option>
+                {Customers.map((Customer) => (
+                  <option key={Customer._id} value={Customer._id}>
+                    {Customer.name}
                   </option>
                 ))}
               </select>
-            </div>{" "}
-            <div className="flex flex-col">
-              <label className="block text-sm font-medium text-gray-600">
-                Order Status
-              </label>
+            </div>
 
-              <input
-                type="text"
-                value={status}
-                placeholder="Selected Status"
-                disabled
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                readOnly
-              />
-            </div>{" "}
-            {selectedVendorDetails && (
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Customer Account
+              </label>
+              <input type="text" className="w-full p-2 border rounded" />
+            </div>
+
+            {selectedCustomerDetails && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Currency
-                  </label>{" "}
+                  </label>
                   <input
                     type="text"
-                    value={selectedVendorDetails.currency}
-                    placeholder="Currency"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    value={selectedCustomerDetails.currency}
                     readOnly
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                   />
-                </div>{" "}
-                {selectedVendorDetails && (
-                  <div className="flex flex-col">
-                    <label className="block text-sm font-medium text-gray-600">
-                      Vendor Address
-                    </label>
-                    <textarea
-                      name="address"
-                      rows="4"
-                      value={selectedVendorDetails.address}
-                      disabled={!isEdited}
-                      placeholder="Vendor Address / Buyer Address / Billing Address"
-                      className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                      readOnly
-                    />
-                  </div>
-                )}{" "}
-                <div className="flex flex-col">
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Purchase Address
+                    Customer Address
                   </label>
                   <textarea
                     name="address"
-                    rows="4"
-                    onChange={(e) => setPurchasesAddress(e.target.value)}
-                    placeholder="Vendor Address / Buyer Address / Billing Address"
+                    rows="3"
+                    value={selectedCustomerDetails.address}
+                    readOnly
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                   />
                 </div>
-                <div className="flex flex-col">
-                  <label className="block text-sm font-medium text-gray-600">
-                    Contact Details
-                  </label>{" "}
-                  <input
-                    type="text"
-                    value={selectedVendorDetails.contactNum}
-                    placeholder="Contact Number"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>{" "}
-                <div className="flex flex-col">
-                  <label className="block text-sm font-medium text-gray-600">
-                    Contact email
-                  </label>{" "}
-                  <input
-                    type="text"
-                    value={selectedVendorDetails.email}
-                    placeholder="Contact Number"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Terms of payment
+                    Reason
                   </label>
-                  <select
-                    name="paymentTerms"
-                    required
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                  >
-                    <option value="">Select type</option>
-                    {paymentTerms.map((type) => (
-                      <option key={type.trim()} value={type.trim()}>
-                        {type.trim()}
-                      </option>
-                    ))}
-                  </select>
+                  <input type="text" className="w-full p-2 border rounded" />
                 </div>
-                <div className="flex flex-col">
+
+                <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Advance
+                    Return Status
                   </label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <input
-                      type="text"
-                      value={advance}
-                      name="advance"
-                      placeholder="Advance"
-                      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                      onChange={(e) => {
-                        const value =
-                          Number(e.target.value.replace(/\D/g, "")) || 0;
-                        setAdvance(value);
-                      }}
-                    />{" "}
-                  </div>
+                  <input
+                    type="text"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    className="w-full p-2 border rounded"
+                  />
                 </div>
               </>
-            )}{" "}
-            {/* Remarks */}
-            <div className="flex flex-col ">
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Total Credit/Debit Amount
+              </label>
+              <input type="number" className="w-full p-2 border rounded" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Posted Ledger Account
+              </label>
+              <input
+                type="text"
+                value={advance}
+                onChange={(e) =>
+                  setAdvance(Number(e.target.value.replace(/\D/g, "")) || 0)
+                }
+                className="w-full p-2 border rounded"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Order ID
+              </label>
+              <input type="text" className="w-full p-2 border rounded" />
+            </div>
+
+            <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-600">
                 Remarks
               </label>
               <textarea
-                name="remarks"
-                placeholder="Remarks"
-                rows="4"
-                onChange={(e) => setRemarks(e.target.value)}
-                className="border border-gray-300 rounded-lg p-1 w-full focus:outline-none focus:ring focus:ring-blue-300"
+                rows={4}
+                placeholder="e.g. Any additional notes…"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>{" "}
+            </div>
           </div>
         </section>
 
+        {/* ...Line Items Table and Summary goes here (already provided) */}
         <section className="p-6">
-          <div className="max-h-96 overflow-y-auto mt-4">
-            <div className="space-y-6">
-              <table className="min-w-full border-collapse border border-gray-300 text-sm text-gray-700">
-                <thead className="bg-gray-100 text-gray-900 uppercase text-xs font-semibold">
+          <div className="max-h-96 overflow-y-auto mt-4 border rounded-lg bg-white">
+            <div className="space-y-6 p-4">
+              <table className="min-w-full border-collapse text-sm text-gray-700">
+                <thead className="bg-gray-100 text-gray-900 uppercase text-xs font-semibold sticky top-0 z-10">
                   <tr>
-                    <th className="border p-1 text-center">S.N</th>
-                    <th className="border p-1 text-center">Item Code</th>
-                    <th className="border p-1 w-60 text-center">Item Name</th>
-                    <th className="border p-1 text-center">Qty</th>
-                    <th className="border p-1 text-center">Unit</th>
-                    <th className="border p-1 text-center">Price</th>
-                    <th className="border p-1 text-center">Discount %</th>
-                    <th className="border p-1 text-center">Amount</th>
-                    <th className="border p-1 text-center">Tax %</th>
-                    <th className="border p-1 text-center">TCS/TDS %</th>
-                    <th className="border p-1 text-center">Total Amount</th>
+                    {[
+                      "S.N",
+                      "Item Code",
+                      "Item Name",
+
+                      "Site",
+                      "Warehouse",
+                      "Qty",
+                      "Unit",
+                      "Price",
+                      "Discount %",
+                      "Amount",
+                      "Tax %",
+                      "TCS/TDS %",
+                      "Total Amount",
+                    ].map((header, index) => (
+                      <th
+                        key={index}
+                        className="border border-gray-300 px-2 py-1 text-center"
+                      >
+                        {header}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
+
                 <tbody className="divide-y divide-gray-200">
-                  <tr key="purchases-order-row" className="hover:bg-gray-50">
-                    {/* Serianpml Number */}
-                    <td className="border text-center p-1">1</td>
-                    {/* Item Code (displayed from the selected item) */}
-                    <td className="border p-1">
-                      {selectedItem ? selectedItem.code : ""}
+                  <tr key="note-order-row" className="hover:bg-gray-50">
+                    <td className="border text-center px-2 py-1">1</td>
+
+                    <td className="border px-2 py-1 text-center">
+                      {selectedItem?.code || ""}
                     </td>
-                    {/* Item Name Dropdown */}
-                    <td className="border p-1">
+
+                    <td className="border px-2 py-1">
                       <select
-                        value={selectedItem ? selectedItem._id : ""}
-                        disabled={!isEdited && purchaseOrderNum}
+                        value={selectedItem?._id || ""}
+                        disabled={!isEdited && noteOrderNum}
                         onChange={(e) => {
                           const sel = items.find(
                             (item) => item._id === e.target.value
                           );
                           setSelectedItem(sel);
-                          if (sel) {
-                            setPrice(Number(sel.price) || 0);
-                          }
+                          if (sel) setPrice(Number(sel.price) || 0);
                         }}
-                        className="border rounded p-1 text-left w-60"
+                        className="w-full border rounded px-2 py-1"
                       >
                         <option value="">Select Item</option>
                         {items.map((itemOption) => (
@@ -777,111 +775,129 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                         ))}
                       </select>
                     </td>
-                    {/* Quantity Input */}
-                    <td className="border p-1">
+
+                    <td className="border px-2 py-1 text-center">
                       <input
-                        type="text  "
-                        className="border rounded p-1 text-center w-24"
+                        type="text"
+                        value={selectedItem?.description || ""}
+                        readOnly
+                        className="w-full border rounded text-center px-2 py-1 bg-gray-100"
+                      />
+                    </td>
+
+                    <td className="border px-2 py-1 text-center">
+                      <input
+                        type="text"
+                        placeholder="Site"
+                        className="w-full border rounded text-center px-2 py-1"
+                      />
+                    </td>
+
+                    <td className="border px-2 py-1 text-center">
+                      <input
+                        type="text"
+                        placeholder="Warehouse"
+                        className="w-full border rounded text-center px-2 py-1"
+                      />
+                    </td>
+
+                    <td className="border px-2 py-1">
+                      <input
+                        type="text"
+                        className="w-full border rounded text-center px-2 py-1"
                         value={quantity}
                         onChange={(e) =>
                           setQuantity(Number(e.target.value) || 0)
                         }
                       />
                     </td>
-                    {/* Unit (displayed from the selected item) */}
-                    <td className="border p-1">
+
+                    <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
-                        value={selectedItem ? selectedItem.unit : ""}
-                        readOnly // Ensures it's only for display, remove if editing is needed
-                        className="border rounded p-1 text-center w-24"
+                        value={selectedItem?.unit || ""}
+                        readOnly
+                        className="w-full border rounded text-center px-2 py-1 bg-gray-100"
                       />
                     </td>
 
-                    {/* Price Input */}
-                    <td className="border p-1">
+                    <td className="border px-2 py-1">
                       <input
                         type="text"
+                        className="w-full border rounded text-center px-2 py-1"
                         value={price}
-                        className="border rounded p-1 text-center w-24"
                         onChange={(e) => setPrice(Number(e.target.value) || 0)}
                       />
                     </td>
-                    {/* Discount % Input */}
-                    <td className="border p-1">
+
+                    <td className="border px-2 py-1">
                       <input
                         type="text"
-                        className="border rounded p-1 text-center w-24"
+                        className="w-full border rounded text-center px-2 py-1"
                         value={discount}
                         onChange={(e) =>
                           setDiscount(Number(e.target.value) || 0)
                         }
                       />
                     </td>
-                    {/* Amount before Tax */}
-                    <td className="border p-1 text-center">
+
+                    <td className="border px-2 py-1 text-center">
                       {isNaN(amountBeforeTax)
                         ? "0.00"
                         : amountBeforeTax.toFixed(2)}
                     </td>
-                    {/* Tax % Input */}
-                    <td className="border p-1">
+
+                    <td className="border px-2 py-1">
                       <input
                         type="text"
-                        className="border rounded p-1 text-center w-24"
+                        className="w-full border rounded text-center px-2 py-1"
                         value={tax}
                         onChange={(e) => setTax(Number(e.target.value) || 0)}
                       />
                     </td>
-                    {/* TCS/TDS % Input */}
-                    <td className="border p-1">
+
+                    <td className="border px-2 py-1">
                       <input
                         type="text"
-                        className="border rounded p-1 text-center w-24"
+                        className="w-full border rounded text-center px-2 py-1"
                         value={tcs}
                         onChange={(e) => setTcs(Number(e.target.value) || 0)}
                       />
                     </td>
-                    {/* Total Amount */}
-                    <td className="border p-1 text-center">{lineAmt}</td>
+
+                    <td className="border px-2 py-1 text-center">{lineAmt}</td>
                   </tr>
                 </tbody>
-              </table>{" "}
-              <div className="summary border p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 rounded shadow-sm">
-                <div className="flex flex-col">
-                  <span className="text-sm text-gray-600">Advance</span>
-                  <span className="text-lg font-semibold text-gray-800">
-                    {advance}
-                  </span>
-                </div>{" "}
-                <div className="flex flex-col">
-                  <span className="text-sm text-gray-600"> Amt</span>
-                  <span className="text-lg font-semibold text-gray-800">
-                    {isNaN(amountBeforeTax)
-                      ? "0.00"
-                      : amountBeforeTax.toFixed(2)}
-                  </span>
-                </div>{" "}
-                <div className="flex flex-col">
-                  <span className="text-sm text-gray-600"> Discount</span>
-                  <span className="text-lg font-semibold text-gray-800">
-                    {discount}
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm text-gray-600">Line Amt</span>
-                  <span className="text-lg font-semibold text-gray-800">
-                    {lineAmt}
-                  </span>
-                </div>
+              </table>
+
+              {/* Summary Section */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
+                <SummaryCard label="Advance" value={advance} />
+                <SummaryCard
+                  label="Amount"
+                  value={
+                    isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
+                  }
+                />
+                <SummaryCard label="Line Amt" value={lineAmt} />
+                <SummaryCard
+                  label="Total TDS/TCS"
+                  value={
+                    isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
+                  }
+                />
+                <SummaryCard
+                  label="Grand Total"
+                  value={isNaN(lineAmt) ? "0.00" : lineAmt}
+                />
+                <SummaryCard label="Discount" value={discount} />
               </div>
-            </div>{" "}
+            </div>
           </div>
         </section>
 
         {/* Action Buttons */}
-        <div className="py-6 flex items-center justify-between">
-          {/* Left side - Reset Button */}
+        <div className="py-6 flex items-center justify-between px-6">
           <div>
             <button
               type="button"
@@ -892,7 +908,6 @@ const PurchaseOrderForm = ({ handleCancel }) => {
             </button>
           </div>
 
-          {/* Right side - Go Back and Create Buttons */}
           <div className="flex gap-4">
             <button
               type="button"
@@ -914,4 +929,4 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   );
 };
 
-export default PurchaseOrderForm;
+export default noteOrderForm;

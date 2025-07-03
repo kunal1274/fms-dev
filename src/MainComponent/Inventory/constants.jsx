@@ -51,7 +51,7 @@ export const groups = [
       {
         id: "itemMaster",
         title: "Item Master",
-        icon: <FaBoxOpen />,
+        
         page: PAGE.ITEM_MASTER,
       },
     ],

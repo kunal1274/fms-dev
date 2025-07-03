@@ -1,7 +1,7 @@
 import React from "react";
 import CustomerList from "../../MainComponent/Customer/CustomerPage";
 import CompanyPage from "../../MainComponent/Company/CompanyPage";
-import SalePage from "../../MainComponent/Sale/SaleToggle";
+import SalePage from "../../MainComponent/Sale/Home.jsx/SaleHomePage";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
 import InventoryManegment from "../../MainComponent/Inventory/InventoryManegment";
 import PurchasePage from "../../Purchase Toggle";
@@ -44,7 +44,6 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
       {selectedMenu === "itemPage" && (
         <ItemPage onAddNew={onAddNew} onView={onView} />
       )}
-   
       {selectedMenu === "TaxPage" && (
         <TaxPage onAddNew={onAddNew} onView={onView} />
       )}

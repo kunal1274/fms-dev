@@ -9,8 +9,8 @@ import {
 } from "react-icons/fa";
 
 // import your actual pages:
-import VendorPage from "./MainComponent/Vendor/VendorPage";
-import PurchasePage from "./MainComponent/Purchase/PurchaseMaster/PurchasePage";
+import CustomerPage from "../../Customer/CustomerPage";
+import SalePage from "../Sale/SaleManegment";
 
 // View modes
 const VIEW_MODES = {
@@ -22,22 +22,22 @@ const VIEW_MODES = {
 // Page keys
 const PAGES = {
   DASHBOARD: "DASHBOARD",
-  VENDOR: "VENDOR",
-  PURCHASE: "PURCHASE",
+  CUSTOMER: "CUSTOMER",
+  SALE: "SALE",
 };
 
 // Dashboard items configuration
 const items = [
   {
     id: 1,
-    title: "Vendor",
+    title: "Customer",
     icon: <FaBoxOpen />,
     description: "Manage your vendors",
     page: PAGES.VENDOR,
   },
   {
     id: 2,
-    title: "Purchase Order List",
+    title: "Sale Order List",
     icon: <FaWarehouse />,
     description: "View and manage purchase orders",
     page: PAGES.PURCHASE,
@@ -60,7 +60,7 @@ export default function ViewTogglePage() {
         >
           <FaArrowLeft className="mr-2" /> Back to Dashboard
         </button>
-        <VendorPage />
+        <CustomerPage/>
       </div>
     );
   }
@@ -74,7 +74,7 @@ export default function ViewTogglePage() {
         >
           <FaArrowLeft className="mr-2" /> Back to Dashboard
         </button>
-        <PurchasePage />
+        <SalePage />
       </div>
     );
   }
