@@ -565,9 +565,9 @@ export default function CompanyList({ handleAddCompany, onView }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedComapniess.length ===
-                              filteredComapniess.length &&
-                            filteredComapniess.length > 0
+                            selectedCompanies.length ===
+                              filteredCompanies.length &&
+                            filteredCompanies.length > 0
                           }
                           className="form-checkbox"
                         />
@@ -579,7 +579,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
                         "Currency",
                         "Address",
                         "Contact",
-                        "email",
+                        "Email",
                         "Registration Number",
                         "Tax ID / GST No",
                         "Status",
@@ -594,24 +594,21 @@ export default function CompanyList({ handleAddCompany, onView }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredComapniess.length ? (
-                      filteredComapniess.map((c) => (
+                    {filteredCompanies.length ? (
+                      filteredCompanies.map((c) => (
                         <tr
-                          key={c.code}
+                          key={c._id}
                           className="hover:bg-gray-100 transition-colors"
                         >
                           <td className="px-4 py-2">
                             <input
                               type="checkbox"
-                              checked={selectedComapniess.includes(c._id)}
+                              checked={selectedCompanies.includes(c._id)}
                               onChange={() => handleCheckboxChange(c._id)}
                               className="form-checkbox"
                             />
                           </td>
-                          <td
-                          // onClick={() => handleComapniesClick(Comapnies._id)}
-                          // className="px-6 py-4 cursor-pointer text-blue-600 hover:underline"
-                          >
+                          <td className="px-6 py-2">
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
                               onClick={() => handleComapniesClick(c._id)}
@@ -619,17 +616,23 @@ export default function CompanyList({ handleAddCompany, onView }) {
                               {c.companyCode}
                             </button>
                           </td>
-                          <td className="px-6 py-4">{c.companyName}</td>
-                          <td className="px-6 py-4">
-                            {c.primaryGSTAddress}
-                          </td>{" "}
-                          <td className="px-6 py-3 truncate">
-                            {new Date(c.createdAt).toLocaleString()}
+                          <td className="px-6 py-2">{c.businessType || "-"}</td>
+                          <td className="px-6 py-2">{c.companyName || "-"}</td>
+                          <td className="px-6 py-2">{c.currency || "-"}</td>
+                          <td className="px-6 py-2 truncate">
+                            {c.primaryGSTAddress || "-"}
                           </td>
-                          <td className="px-6 py-4">{c.contactNumber}</td>
-                          <td className="px-6 py-1">
+                          <td className="px-6 py-2">
+                            {c.contactNumber || "-"}
+                          </td>
+                          <td className="px-6 py-2">{c.email || "-"}</td>
+                          <td className="px-6 py-2">
+                            {c.gstNumber || "-"}
+                          </td>
+                          <td className="px-6 py-2">{c.tanNumber || "-"}</td>
+                          <td className="px-6 py-2">
                             <span
-                              className={` text-xs font-semibold rounded-full ${
+                              className={`text-xs font-semibold rounded-full ${
                                 c.active
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
@@ -643,7 +646,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
                     ) : (
                       <tr>
                         <td
-                          colSpan={6}
+                          colSpan={11}
                           className="px-6 py-4 text-center text-sm text-gray-500"
                         >
                           No data
