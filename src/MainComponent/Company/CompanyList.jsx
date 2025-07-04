@@ -7,7 +7,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react";
 import "./c.css";
-import ComapniesViewPage from "./CompanyViewPage";
+import CompanyViewPage from "./CompanyViewPage";
 
 export default function CompanyList({ handleAddCompany, onView }) {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
@@ -26,8 +26,8 @@ export default function CompanyList({ handleAddCompany, onView }) {
   const [deleting, setDeleting] = useState(false);
   const [companyList, setCompanyList] = useState([]);
   const [selectedOption, setSelectedOption] = useState("All");
-  const [filteredComapniess, setFilteredComapniess] = useState([]);
-  const [selectedComapniess, setSelectedComapniess] = useState([]);
+  const [filteredCompanies, setfilteredCompanies] = useState([]);
+  const [selectedCompanies, setselectedCompanies] = useState([]);
   const [viewingComapniesId, setViewingComapniesId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState(
@@ -36,12 +36,12 @@ export default function CompanyList({ handleAddCompany, onView }) {
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortOption, setSortOption] = useState("");
 
-  const [ComapniesSummary, setComapniesSummary] = useState({
+  const [Companiessummary, setCompaniessummary] = useState({
     count: 0,
     creditLimit: 0,
-    paidComapniess: 0,
-    activeComapniess: 0,
-    onHoldComapniess: 0,
+    paidCompaniess: 0,
+    activeCompaniess: 0,
+    onHoldCompaniess: 0,
   });
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState(false);
@@ -77,7 +77,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
 
       toast.success("Logo uploaded successfully ✅");
       // Refresh list
-      fetchComapniess();
+      fetchCompaniess();
     } catch (error) {
       console.error(error);
       toast.error("Error uploading logo!");
@@ -98,28 +98,28 @@ export default function CompanyList({ handleAddCompany, onView }) {
     let filtered = [...CompanyList];
 
     if (value === "All") {
-      setFilteredComapniess(filtered);
+      setfilteredCompanies(filtered);
     } else if (value === "yes") {
-      setFilteredComapniess(
+      setfilteredCompanies(
         filtered.filter((Comapnies) => Comapnies.active === true)
       );
     } else if (value === "no") {
-      setFilteredComapniess(
+      setfilteredCompanies(
         filtered.filter((Comapnies) => Comapnies.active === false)
       );
     } else if (value === "Comapnies Name") {
       filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
-      setFilteredComapniess(filtered);
+      setfilteredCompanies(filtered);
     } else if (value === "Comapnies Account no") {
       filtered = filtered.sort((a, b) => a.code.localeCompare(b.code));
-      setFilteredComapniess(filtered);
+      setfilteredCompanies(filtered);
     } else if (value === "Comapnies Account no descending") {
       filtered = filtered.sort((a, b) => b.code.localeCompare(a.code));
-      setFilteredComapniess(filtered);
+      setfilteredCompanies(filtered);
     }
   };
-  // Fetch Comapniess
-  const fetchComapniess = useCallback(
+  // Fetch Companiess
+  const fetchCompaniess = useCallback(
     async (fromDate = startDate, toDate = endDate) => {
       setLoading(true);
       setError(null);
@@ -130,14 +130,14 @@ export default function CompanyList({ handleAddCompany, onView }) {
         const list = resp.data || resp;
         setCompanyList(list);
 
-        +setFilteredComapniess(list); // ← Add this line to update the visible Comapniess immediately
+        +setfilteredCompanies(list); // ← Add this line to update the visible Companiess immediately
 
-        setComapniesSummary({
+        setCompaniessummary({
           count: list.length,
           creditLimit: list.reduce((s, c) => s + (c.creditLimit || 0), 0),
-          paidComapniess: list.filter((c) => c.status === "Paid").length,
-          activeComapniess: list.filter((c) => c.active).length,
-          onHoldComapniess: list.filter((c) => c.onHold).length,
+          paidCompaniess: list.filter((c) => c.status === "Paid").length,
+          activeCompaniess: list.filter((c) => c.active).length,
+          onHoldCompaniess: list.filter((c) => c.onHold).length,
         });
       } catch (err) {
         console.error(err);
@@ -158,13 +158,13 @@ export default function CompanyList({ handleAddCompany, onView }) {
       });
 
       const m = (resp.metrics && resp.metrics[0]) || {};
-      setComapniesSummary((prev) => ({
+      setCompaniessummary((prev) => ({
         ...prev,
-        count: m.totalComapniess ?? prev.count,
+        count: m.totalCompaniess ?? prev.count,
         creditLimit: m.creditLimit ?? prev.creditLimit,
-        paidComapniess: m.paidComapniess ?? prev.paidComapniess,
-        activeComapniess: m.activeComapniess ?? prev.activeComapniess,
-        onHoldComapniess: m.onHoldComapniess ?? prev.onHoldComapniess,
+        paidCompaniess: m.paidCompaniess ?? prev.paidCompaniess,
+        activeCompaniess: m.activeCompaniess ?? prev.activeCompaniess,
+        onHoldCompaniess: m.onHoldCompaniess ?? prev.onHoldCompaniess,
       }));
     } catch (err) {
       console.error(err);
@@ -172,9 +172,9 @@ export default function CompanyList({ handleAddCompany, onView }) {
   }, [startDate, endDate]);
 
   useEffect(() => {
-    fetchComapniess();
+    fetchCompaniess();
     fetchMetrics();
-  }, [fetchComapniess, fetchMetrics]);
+  }, [fetchCompaniess, fetchMetrics]);
 
   // Filtering, Search, Sorting
   useEffect(() => {
@@ -216,7 +216,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
     else if (sortOption === "code-desc")
       list.sort((a, b) => b.code.localeCompare(a.code));
 
-    setFilteredComapniess(list);
+    setfilteredCompanies(list);
   }, [CompanyList, activeTab, statusFilter, searchTerm, sortOption]);
 
   // Handlers
@@ -226,7 +226,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
   const onTabClick = (tab) => setActiveTab(tab);
   useEffect(() => {
     const onFocus = () => {
-      fetchComapniess();
+      fetchCompaniess();
       fetchMetrics();
     };
 
@@ -241,28 +241,28 @@ export default function CompanyList({ handleAddCompany, onView }) {
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
     };
-  }, [fetchComapniess, fetchMetrics]);
+  }, [fetchCompaniess, fetchMetrics]);
   const toggleSelectAll = (e) => {
-    setSelectedComapniess(
-      e.target.checked ? filteredComapniess.map((c) => c._id) : []
+    setselectedCompanies(
+      e.target.checked ? filteredCompanies.map((c) => c._id) : []
     );
   };
 
   const handleCheckboxChange = (id) => {
-    setSelectedComapniess((prev) =>
+    setselectedCompanies((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     );
   };
 
   const handleDeleteSelected = async () => {
-    console.log("🗑️ Deleting these IDs:", selectedComapniess);
+    console.log("🗑️ Deleting these IDs:", selectedCompanies);
 
-    if (selectedComapniess.length === 0) {
+    if (selectedCompanies.length === 0) {
       toast.info("No companies selected to delete");
       return;
     }
 
-    if (!window.confirm(`Delete ${selectedComapniess.length} company(ies)?`)) {
+    if (!window.confirm(`Delete ${selectedCompanies.length} company(ies)?`)) {
       console.log("❌ Delete cancelled by user");
       return;
     }
@@ -270,7 +270,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
     setDeleting(true);
     try {
       const results = await Promise.allSettled(
-        selectedComapniess.map((id) => {
+        selectedCompanies.map((id) => {
           console.log(`→ sending DELETE ${baseUrl}/${id}`);
           return axios.delete(`${baseUrl}/${id}`);
         })
@@ -283,8 +283,8 @@ export default function CompanyList({ handleAddCompany, onView }) {
 
       if (succeeded) {
         toast.success(`${succeeded} deleted successfully`);
-        await fetchComapniess(); // re-load from API
-        setSelectedComapniess([]); // clear your selection
+        await fetchCompaniess(); // re-load from API
+        setselectedCompanies([]); // clear your selection
       }
       if (failed) {
         toast.error(`${failed} failed — see console for details`);
@@ -307,7 +307,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
     }
     const ws = XLSX.utils.json_to_sheet(CompanyList);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Comapniess");
+    XLSX.utils.book_append_sheet(wb, ws, "Companiess");
     XLSX.writeFile(wb, "Comapnies_list.xlsx");
   };
 
@@ -315,7 +315,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [["#", "Code", "Name", "Contact", "Address", "Status"]],
-      body: filteredComapniess.map((c, i) => [
+      body: filteredCompanies.map((c, i) => [
         i + 1,
         c.code,
         c.name,
@@ -345,7 +345,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
   if (viewingComapniesId) {
     return (
       <div className="p-4">
-        <ComapniesViewPage ComapniesId={viewingComapniesId} goBack={goBack} />
+        <CompanyViewPage ComapniesId={viewingComapniesId} goBack={goBack} />
       </div>
     );
   }
@@ -357,7 +357,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
       <div>
         <div>
           {viewingComapniesId ? (
-            <ComapniesViewPage
+            <CompanyViewPage
               toggleView={toggleView}
               ComapniesId={viewingComapniesId}
               goBack={goBack}
@@ -405,7 +405,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
 
                   <button
                     onClick={handleDeleteSelected}
-                    disabled={!selectedComapniess.length}
+                    disabled={!selectedCompanies.length}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     Delete
@@ -444,7 +444,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
                   <button
                     onClick={() => {
                       fetchMetrics();
-                      fetchComapniess(startDate, endDate);
+                      fetchCompaniess(startDate, endDate);
                     }}
                     className="px-3 py-1 border rounded"
                   >
@@ -453,11 +453,11 @@ export default function CompanyList({ handleAddCompany, onView }) {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Comapniess", ComapniesSummary.count],
-                    ["Credit Limit", ComapniesSummary.creditLimit],
-                    ["Paid Comapniess", ComapniesSummary.paidComapniess],
-                    ["Active Comapniess", ComapniesSummary.activeComapniess],
-                    ["On‑Hold Comapniess", ComapniesSummary.onHoldComapniess],
+                    ["Total Companiess", Companiessummary.count],
+                    ["Credit Limit", Companiessummary.creditLimit],
+                    ["Paid Companiess", Companiessummary.paidCompaniess],
+                    ["Active Companiess", Companiessummary.activeCompaniess],
+                    ["On‑Hold Companiess", Companiessummary.onHoldCompaniess],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -626,11 +626,8 @@ export default function CompanyList({ handleAddCompany, onView }) {
                             {c.contactNumber || "-"}
                           </td>
                           <td className="px-6 py-2">{c.email || "-"}</td>
-                          <td className="px-6 py-2">
-                            {c.gstNumber || "-"}
-                          </td>
-                          <td className="px-6 py-2">{c.tanNumber
-                           || "-"}</td>
+                          <td className="px-6 py-2">{c.gstNumber || "-"}</td>
+                          <td className="px-6 py-2">{c.tanNumber || "-"}</td>
                           <td className="px-6 py-2">
                             <span
                               className={`text-xs font-semibold rounded-full ${
