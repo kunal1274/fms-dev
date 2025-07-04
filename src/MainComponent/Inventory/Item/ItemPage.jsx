@@ -87,7 +87,7 @@ const ItemPage = () => {
   };
 
   return (
-    <div className="w-full bg-white rounded-lg p-4">
+    <div className="">
       {/* {renderHeader()} */}
       <h2 className="mt-2 text-lg">
         {/* Item Master - Selected Company: {form.company} */}

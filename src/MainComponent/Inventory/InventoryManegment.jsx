@@ -173,9 +173,9 @@ export default function ViewTogglePage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold">Dashboard</h1>
+    <div className="">
+      <div className="flex items-center justify-between mb-3">
+        <h1 className="text-xl font-semibold">Item Dashboard</h1>
         <div className="flex justify-end items-center space-x-4">
           <div className="flex bg-gray-100 rounded-lg overflow-hidden">
             {[VIEW_MODES.GRID, VIEW_MODES.ICON, VIEW_MODES.LIST].map(
@@ -253,7 +253,6 @@ export default function ViewTogglePage() {
                 ))}
         </div>
       ))}
-     
     </div>
   );
 }
