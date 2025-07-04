@@ -63,12 +63,7 @@ export const groups = [
         page: PAGE.PURCHASE_ORDER,
         icon: FaFileInvoiceDollar,
       },
-      {
-        id: "PurchaseReturns",
-        title: "Purchase Returns",
-        page: PAGE.PURCHASE_RETURNS,
-        icon: FaArrowCircleDown,
-      },
+
       {
         id: "PurchaseDebitNote",
         title: "Purchase Debit Note",
@@ -80,6 +75,12 @@ export const groups = [
         title: "Purchase Credit Note",
         page: PAGE.PURCHASE_CREDIT_NOTE,
         icon: FaArrowCircleUp,
+      },
+      {
+        id: "PurchaseReturns",
+        title: "Purchase Returns",
+        page: PAGE.PURCHASE_RETURNS,
+        icon: FaArrowCircleDown,
       },
     ],
   },
