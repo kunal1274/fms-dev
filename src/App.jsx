@@ -1,7 +1,7 @@
 import React from "react";
 
-import Dashbord from "./Component/Dashbord/Dashbord";
-// import Dashbord from "../src/MainComponent/Sale/Sale/SaleManegment";
+// import Dashbord from "./Component/Dashbord/Dashbord";
+import Dashbord from "../src/MainComponent/Sale/FreeTaxingInvoice/FreeTaxingInvoice";
 
 const App = () => {
   return (
@@ -12,5 +12,3 @@ const App = () => {
 };
 
 export default App;
-
-

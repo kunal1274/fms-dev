@@ -507,7 +507,7 @@ const noteOrderForm = ({ handleCancel }) => {
               </svg>
             </button>
           </div>
-          <h3 className="text-xl font-semibold">Credit Note Debit Note</h3>
+          <h3 className="text-xl font-semibold">Credit Note </h3>
         </div>
       </div>
 
@@ -520,7 +520,7 @@ const noteOrderForm = ({ handleCancel }) => {
         <section className="p-6">
           {/* Top Action Buttons */}
           <div className="flex flex-wrap w-full gap-2 mb-4">
-            <div className="p-2 bg-white w-full">
+            <div className=" bg-white w-full">
               <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-6">
                 <div className="flex gap-2">
                   {noteOrderNum ? (
@@ -603,7 +603,7 @@ const noteOrderForm = ({ handleCancel }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Customer Name
+                Customer Account
               </label>
               <select
                 value={selectedCustomer}
@@ -619,40 +619,53 @@ const noteOrderForm = ({ handleCancel }) => {
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Customer Account
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
-            </div>
+            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4 h-full">
+                {/* Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Customer Name
+                  </label>
+                  <input
+                    type="text"
+                    value={selectedCustomerDetails?.account || ""}
+                    placeholder="Customer Account"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
 
-            {selectedCustomerDetails && (
-              <>
+                {/* Currency */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Currency
                   </label>
                   <input
                     type="text"
-                    value={selectedCustomerDetails.currency}
-                    readOnly
+                    value={selectedCustomerDetails.email}
+                    placeholder="Contact Email"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
                   />
                 </div>
+              </div>
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Customer Address
+                </label>
+                <textarea
+                  rows="4"
+                  value={selectedCustomerDetails?.address || ""}
+                  readOnly
+                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Customer Address
-                  </label>
-                  <textarea
-                    name="address"
-                    rows="3"
-                    value={selectedCustomerDetails.address}
-                    readOnly
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                  />
-                </div>
-
+              {/* Name + Currency */}
+            </div>
+            {selectedCustomerDetails && (
+              <>
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Reason
@@ -674,43 +687,56 @@ const noteOrderForm = ({ handleCancel }) => {
               </>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Total Credit/Debit Amount
-              </label>
-              <input type="number" className="w-full p-2 border rounded" />
-            </div>
+           
 
-            <div>
+            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4 h-full">
+                {/* Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Total Credit/Debit Amount
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Customer Account"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
+
+                {/* Currency */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Order ID
+                  </label>
+                  <input
+                    type="text"
+                    value={selectedCustomerDetails.email}
+                    placeholder="Contact Email"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
+              </div>
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Remarks
+                </label>
+                <textarea
+                  rows="4"
+                  value={selectedCustomerDetails?.address || ""}
+                  readOnly
+                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+ <div>
               <label className="block text-sm font-medium text-gray-600">
                 Posted Ledger Account
               </label>
-              <input
-                type="text"
-                value={advance}
-                onChange={(e) =>
-                  setAdvance(Number(e.target.value.replace(/\D/g, "")) || 0)
-                }
-                className="w-full p-2 border rounded"
-              />
+              <input type="number" className="w-full p-2 border rounded" />
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Order ID
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-600">
-                Remarks
-              </label>
-              <textarea
-                rows={4}
-                placeholder="e.g. Any additional notes…"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
+              {/* Name + Currency */}
             </div>
           </div>
         </section>
@@ -876,14 +902,15 @@ const noteOrderForm = ({ handleCancel }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
                 <SummaryCard label="Advance" value={advance} />
                 <SummaryCard
-                  label="Amount"
+                  label="Subtotal /  line amount"
                   value={
                     isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
                   }
                 />
-                <SummaryCard label="Line Amt" value={lineAmt} />
+                <SummaryCard label="Discount" value={discount} />
+                <SummaryCard label="Total Tax" value={lineAmt} />
                 <SummaryCard
-                  label="Total TDS/TCS"
+                  label="Total Tds/ Tcs"
                   value={
                     isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
                   }
@@ -892,7 +919,6 @@ const noteOrderForm = ({ handleCancel }) => {
                   label="Grand Total"
                   value={isNaN(lineAmt) ? "0.00" : lineAmt}
                 />
-                <SummaryCard label="Discount" value={discount} />
               </div>
             </div>
           </div>

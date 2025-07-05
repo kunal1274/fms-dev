@@ -1,20 +1,23 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
-// import Invoice from "./Invoice"; // Uncomment if you have an Invoice component
-import { ToastContainer } from "react-toastify";
+// import Invoice from "./Invoice/Icopy";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import SaleorderViewPage from "./SaleOrderViewPage";
 const SummaryCard = ({ label, value }) => (
   <div className="flex flex-col">
     <span className="text-sm text-gray-600">{label}</span>
     <span className="text-lg font-semibold text-gray-800">{value}</span>
   </div>
 );
-const PurchaseOrderForm = ({ handleCancel }) => {
+const SaleOrderform = ({ handleCancel }) => {
+  const warehousesBaseUrl =
+    "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-  const CustomersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Customers";
-  const PurchasesOrderUrl =
-    "https://fms-qkmw.onrender.com/fms/api/v0/purchasesorders";
+  const siteBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
+  const customersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
+  const salesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
   const paymentTerms = [
     "COD",
     "Net30D",
@@ -25,16 +28,21 @@ const PurchaseOrderForm = ({ handleCancel }) => {
     "Net90D",
     "Advance",
   ];
-  const [goForInvoice, setGoPurchaseInvoice] = useState(null);
+  const [form, setForm] = useState({
+    site: "",
+    warehouse: "",
+    // Add other form fields if needed
+  });
+  const [goForInvoice, setGoSaleInvoice] = useState(null);
   const [advance, setAdvance] = useState(0);
-  const [Customer, setCustomer] = useState([]);
-  const [Customers, setCustomers] = useState([]);
-  const [viewingPurchaseId, setViewingPurchaseId] = useState(null);
-  const [selectedPurchaseOrderId, setSelectedPurchaseOrderId] = useState("");
+  const [customers, setCustomers] = useState([]);
+  const [viewingSaleId, setViewingSaleId] = useState(null);
+  const [warehouses, setWarehouses] = useState([]);
+  const [selectedSaleOrderId, setSelectedSaleOrderId] = useState("");
   const [items, setItems] = useState([]);
   const [remarks, setRemarks] = useState("");
-
-  const [purchaseOrderNum, setPurchaseOrderNum] = useState(null);
+  const [saleOrderNum, setSaleOrderNum] = useState(null);
+  const [sites, setSites] = useState([]);
   // Global form states (for a single order line)
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
@@ -45,7 +53,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   const [tcs, setTcs] = useState(0);
   const [charges, setCharges] = useState(0);
   const [lineAmt, setLineAmt] = useState("0.00");
-  const [purchasesAddress, setPurchasesAddress] = useState(null);
+  const [salesAddress, setSalesAddress] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Editing and status management states
@@ -59,14 +67,10 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
   // If coming back in edit mode, pre-populate form fields accordingly
   useEffect(() => {
-    if (
-      location.state &&
-      location.state.edit &&
-      location.state.purchaseOrderNum
-    ) {
-      setPurchaseOrderNum(location.state.purchaseOrderNum);
+    if (location.state && location.state.edit && location.state.saleOrderNum) {
+      setSaleOrderNum(location.state.saleOrderNum);
       setIsEdited(true);
-      // Optionally, fetch purchase order details here from your API.
+      // Optionally, fetch sale order details here from your API.
     }
   }, [location.state]);
 
@@ -108,33 +112,67 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   // -------------------------
   useEffect(() => {
     const fetchCustomers = async () => {
+      console.log("Fetching customers...");
       try {
-        const response = await axios.get(CustomersBaseUrl);
+        const response = await axios.get(customersBaseUrl);
+        console.log("Customers fetched:", response.data);
         setCustomers(response.data.data || []);
       } catch (error) {
-        console.error("Error fetching Customers:", error);
+        console.error("Error fetching customers:", error);
       }
     };
 
     const fetchItems = async () => {
+      console.log("Fetching items...");
       try {
         const response = await axios.get(itemsBaseUrl);
+        console.log("Items fetched:", response.data);
         setItems(response.data.data || []);
       } catch (error) {
         console.error("Error fetching items:", error);
       }
     };
 
+    const fetchWarehouses = async () => {
+      console.log("Fetching warehouses...");
+      try {
+        const response = await axios.get(warehousesBaseUrl);
+        console.log("Warehouses fetched:", response.data);
+        setItems(response.data.data || []); // <- likely a mistake, you probably meant `setWarehouses`
+      } catch (error) {
+        console.error("Error fetching warehouses:", error);
+      }
+    };
+
+    const fetchSiteBaseUrl = async () => {
+      console.log("Fetching site base data...");
+      try {
+        const response = await axios.get(siteBaseUrl);
+        console.log("Site base data fetched:", response.data);
+        setItems(response.data.data || []); // <- again, likely meant `setSites` or similar
+      } catch (error) {
+        console.error("Error fetching site base data:", error);
+      }
+    };
+
+    fetchSiteBaseUrl();
     fetchCustomers();
+    fetchWarehouses();
     fetchItems();
   }, []);
-
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
   // -------------------------
   // Basic Form Validation
   // -------------------------
   const validateForm = () => {
     if (!selectedCustomer) {
-      toast.warn("⚠️ No purchase order selected to delete.", {
+      toast.warn("⚠️ No sale order selected to delete.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -203,7 +241,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
     // Construct payload from global fields
     const payload = {
-      Customer: selectedCustomer,
+      customer: selectedCustomer,
       item: selectedItem._id || selectedItem.id || "",
       quantity: Number(quantity) || 1,
       price: Number(price) || 0,
@@ -213,23 +251,23 @@ const PurchaseOrderForm = ({ handleCancel }) => {
       withholdingTax: Number(tcs) || 0,
       charges: Number(charges) || 0,
       advance: Number(advance) || 0,
-      purchasesAddress: purchasesAddress,
+      salesAddress: salesAddress,
     };
 
     console.log("📌 Payload being sent:", payload);
 
     try {
       setLoading(true);
-      const { data } = await axios.post(purchasesOrderUrl, payload, {
+      const { data } = await axios.post(salesOrderUrl, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      // Set purchase order number and mark as created/editable.
-      setPurchaseOrderNum(data.data.orderNum);
+      // Set sale order number and mark as created/editable.
+      setSaleOrderNum(data.data.orderNum);
       set_id(data.data._id);
       console.log(data.data._id, "id");
       setIsEdited(true);
       toast.success(
-        `Purchases Order Created Successfully! Order Number: ${data.data.orderNum}`,
+        `Sales Order Created Successfully! Order Number: ${data.data.orderNum}`,
         {
           position: "top-right",
           autoClose: 3000,
@@ -244,7 +282,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
       console.error("🚨 Error response:", error.response);
       toast.error(
         `Error: ${
-          error.response?.data?.message || "Failed to create Purchases Order"
+          error.response?.data?.message || "Failed to create Sales Order"
         }`,
         {
           position: "top-right",
@@ -382,13 +420,13 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   });
   useEffect(() => {
     if (selectedCustomer) {
-      const Customer = Customers.find((c) => c._id === selectedCustomer);
-      if (Customer) {
+      const customer = customers.find((c) => c._id === selectedCustomer);
+      if (customer) {
         setSelectedCustomerDetails({
-          contactNum: Customer.contactNum || "",
-          currency: Customer.currency || "",
-          address: Customer.address || "",
-          email: Customer.email || "", // ← correct!
+          contactNum: customer.contactNum || "",
+          currency: customer.currency || "",
+          address: customer.address || "",
+          email: customer.email || "", // ← correct!
         });
       }
     } else {
@@ -399,7 +437,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
         email: "",
       });
     }
-  }, [selectedCustomer, Customers]);
+  }, [selectedCustomer, customers]);
 
   // -------------------------
   // Fetch Item Details on Global Item Selection
@@ -466,31 +504,22 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
   // -------------------------
   // Handle Edit button click:
-  // Navigate to the purchase Order View Page with the purchase order identifier.
+  // Navigate to the Sale Order View Page with the sale order identifier.
   // -------------------------
   const handleEdit = () => {
-    setViewingPurchaseId(_id);
+    setViewingSaleId(_id);
   };
-
   // -------------------------
   // Render Component
   // -------------------------
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
-        <p className="mt-4 text-blue-500 text-lg font-medium">Loading...</p>
-      </div>
-    );
-  }
   return (
     <div className="">
       <ToastContainer />
-
       {/* Header Buttons */}
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between ">
         <div className="flex items-center space-x-2">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
+            {" "}
             <button
               type="button"
               className="text-blue-600 mt-2 text-sm hover:underline"
@@ -509,246 +538,20 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                   strokeWidth={2}
                   d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
                 />
-              </svg>
+              </svg>{" "}
             </button>
           </div>
-          <h3 className="text-xl font-semibold"> Free Taxing Invoice</h3>
+          <h3 className="text-xl font-semibold">Sale Order Form</h3>
         </div>
       </div>
 
-      {/* Form */}
       <form
         onSubmit={handleCreate}
         className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
       >
         {/* Business Details */}
-        <section className="p-3">
-          <div className="flex flex-wrap w-full gap-2">
-            <div className="p-2 h-17 bg-white">
-              <div className="grid grid-cols-1 md:grid-cols-3 w-full">
-                <div className="flex flex-nowrap gap-2">
-                  {purchaseOrderNum ? (
-                    <>
-                      <button
-                        type="button"
-                        disabled
-                        className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-gray-200 cursor-not-allowed"
-                      >
-                        Create
-                      </button>
-                      <button
-                        onClick={handleEdit}
-                        type="button"
-                        className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
-                      >
-                        Edit
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      type="submit"
-                      className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
-                    >
-                      Create
-                    </button>
-                  )}
-                  <button
-                    onClick={handleCancel}
-                    className="px-3 py-2 w-36 text-xs font-medium text-red-600 bg-white border border-red-400 rounded-md hover:bg-red-50"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+   
 
-          <h2 className="text-lg font-medium text-gray-700 mb-4 mt-4">
-            Free Taxing Invoice
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Free Tax Invoice no/ ID
-              </label>
-              <input
-                type="text"
-                name="purchaseOrder"
-                value={purchaseOrderNum || ""}
-                placeholder="Purchase Order"
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                readOnly
-              />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Invoice ID
-              </label>
-              <input
-                type="text"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="mt-1 w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Creation Date & Time
-              </label>
-              <input
-                type="text"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="mt-1 w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Customer Account
-              </label>
-              <select
-                value={selectedCustomer}
-                onChange={(e) => setselectedCustomer(e.target.value)}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Customer</option>
-                {Customers.map((Customer) => (
-                  <option key={Customer._id} value={Customer._id}>
-                    {Customer.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-4 h-full">
-                {/* Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Customer Name
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedCustomerDetails?.account || ""}
-                    placeholder="Customer Account"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
-
-                {/* Currency */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Currency
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedCustomerDetails.email}
-                    placeholder=" Currency"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
-              </div>
-              {/* Address */}
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Customer Address
-                </label>
-                <textarea
-                  rows="4"
-                  value={selectedCustomerDetails?.address || ""}
-                  readOnly
-                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                />
-              </div>
-
-              {/* Name + Currency */}
-            </div>
-            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-4 h-full">
-                {/* Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Order Status
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedCustomerDetails?.account || ""}
-                    placeholder="Customer Account"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
-
-                {/* Currency */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Purchase Agreement No (if applicable)
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedCustomerDetails.email}
-                    placeholder=" Currency"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
-              </div>
-              {/* Address */}
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Remarks
-                </label>
-                <textarea
-                  rows="4"
-                  value={selectedCustomerDetails?.address || ""}
-                  readOnly
-                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                />
-              </div>
-
-              {/* Name + Currency */}
-            </div>
-            {selectedCustomerDetails && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Transaction type
-                  </label>
-                  <input type="text" className="w-full p-2 border rounded" />
-                </div>
-              </>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Total Invoice Amount
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Posted Ledger Account
-              </label>
-              <input
-                type="text"
-                value={advance}
-                onChange={(e) =>
-                  setAdvance(Number(e.target.value.replace(/\D/g, "")) || 0)
-                }
-                className="w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Invoice_date
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
-            </div>
-          </div>
-        </section>
-
-        {/* ...Line Items Table and Summary goes here (already provided) */}
         <section className="p-6">
           <div className="max-h-96 overflow-y-auto mt-4 border rounded-lg bg-white">
             <div className="space-y-6 p-4">
@@ -760,10 +563,8 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                       "Item Code",
                       "Item Name",
                       "Description",
-                      "Posting Account",
                       "Site",
                       "Warehouse",
-
                       "Qty",
                       "Unit",
                       "Price",
@@ -794,7 +595,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                     <td className="border px-2 py-1">
                       <select
                         value={selectedItem?._id || ""}
-                        disabled={!isEdited && purchaseOrderNum}
+                        disabled={!isEdited}
                         onChange={(e) => {
                           const sel = items.find(
                             (item) => item._id === e.target.value
@@ -911,15 +712,14 @@ const PurchaseOrderForm = ({ handleCancel }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
                 <SummaryCard label="Advance" value={advance} />
                 <SummaryCard
-                  label="Subtotal /  line amount"
+                  label="Amount"
                   value={
                     isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
                   }
                 />
-                <SummaryCard label="Discount" value={discount} />
-                <SummaryCard label="Total Tax" value={lineAmt} />
+                <SummaryCard label="Line Amt" value={lineAmt} />
                 <SummaryCard
-                  label="Total Tds/ Tcs"
+                  label="Total TDS/TCS"
                   value={
                     isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
                   }
@@ -928,13 +728,15 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                   label="Grand Total"
                   value={isNaN(lineAmt) ? "0.00" : lineAmt}
                 />
+                <SummaryCard label="Discount" value={discount} />
               </div>
             </div>
           </div>
         </section>
 
         {/* Action Buttons */}
-        <div className="py-6 flex items-center justify-between px-6">
+        <div className="py-6 flex items-center justify-between">
+          {/* Left side - Reset Button */}
           <div>
             <button
               type="button"
@@ -945,6 +747,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
             </button>
           </div>
 
+          {/* Right side - Go Back and Create Buttons */}
           <div className="flex gap-4">
             <button
               type="button"
@@ -966,4 +769,4 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   );
 };
 
-export default PurchaseOrderForm;
+export default SaleOrderform;
