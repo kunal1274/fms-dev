@@ -696,7 +696,14 @@ const ReturnForm = ({ handleCancel }) => {
                   <label className="block text-sm font-medium text-gray-600">
                     Return reason
                   </label>
-                  <input type="text" />
+                <input
+                    type="text"
+                    name="status"
+                    value={form.status || ""}
+                    onChange={handleChange}
+                    placeholder="e.g. NoT good"
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
                 </div>
 
                 <div>

@@ -197,7 +197,9 @@ const JournaRevenueOrderform = ({ handleCancel }) => {
         {/* Summary Section */}
         <section className="p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
-            <SummaryCard label="Order ID" value="ORD-101" />
+        
+            <SummaryCard label="  Tax_Code " value="  Order ID" />
+            <SummaryCard label="Total Tax Amount  " value="101" />
             <SummaryCard label="Invoice Number" value="INV-2025-01" />
             <SummaryCard label="Posted Date" value="2025-07-03" />
             <SummaryCard label="Approval Status" value="Pending" />
