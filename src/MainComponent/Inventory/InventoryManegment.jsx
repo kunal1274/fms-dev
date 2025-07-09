@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
-import CompanyDropdown from "./CompanyDropdown";
-import Footer from "./Footer";
+
 import {
   FaThLarge,
   FaListUl,

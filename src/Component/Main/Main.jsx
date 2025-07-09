@@ -1,10 +1,10 @@
 import React from "react";
 import CustomerList from "../../MainComponent/Customer/CustomerPage";
 import CompanyPage from "../../MainComponent/Company/CompanyPage";
-import SalePage from "../../MainComponent/Sale/Home.jsx/SaleHomePage";
+import SalePage from "../../MainComponent/Sale/Sale/SaleManegment";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
 import InventoryManegment from "../../MainComponent/Inventory/InventoryManegment";
-import PurchasePage from "../../MainComponent/Purchase/Purchase/Purchase Toggle";
+import PurchasePage from "../../MainComponent/Purchase/Purchase/PurchaseManegment";
 import TaxPage from "../../MainComponent/Tax/TaxPage";
 // import WarehousePage from "../../MainComponent/Inventory/Warehouse/WarehousePage";
 // import ItemPage from "../../MainComponent/Inventory/Item/ItemPage";

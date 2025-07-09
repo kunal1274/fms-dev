@@ -1,4 +1,7 @@
-  import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
+
 import {
   FaThLarge,
   FaListUl,
@@ -8,262 +11,50 @@ import {
   FaWarehouse,
   FaFilter,
   FaSortAmountDown,
-  FaMap,
   FaColumns,
-  FaArchive,
+  FaMap,
   FaMapMarkerAlt,
   FaPalette,
+  FaArchive,
 } from "react-icons/fa";
 
-// import your real pages:
-import WarehousePage from "./Warehouse/WarehousePage.jsx";
-import ItemMasterPage from "./Item/ItemPage.jsx";
-import SitePage from "./Site/SitePage.jsx";
-import Aisles from "./Aisles/AislesPage.jsx";
-import ShelvesPage from "./Shelves/ShelvesPage.jsx";
-import Serial from "./Serial/SerialPage.jsx";
-import BatchValuePage from "./BatchValue/BatchValuePage.jsx";
-import BinPage from "./Bin/BinPage.jsx";
-import RackPage from "./Rack/RackPage.jsx";
-import LocationPage from "./Location/LocationPage.jsx";
-import ZonePage from "./Zone/ZonePage.jsx";
-// placeholder imports (uncomment when available)
-import ConfigPage from "./ProductDimConf/ProductDimConfPage.jsx";
-import ColorPage from "./ProductDimColor/ProductDimColorPage.jsx";
+import ItemMasterPage from "./Item/ItemPage";
+import WarehousePage from "./Warehouse/WarehousePage";
+import SitePage from "./Site/SitePage";
+import ZonePage from "./Zone/ZonePage";
+import ShelvesPage from "./Shelves/ShelvesPage";
+import Aisles from "./Aisles/AislesPage";
+import BatchValuePage from "./BatchValue/BatchValuePage";
+import BinPage from "./Bin/BinPage";
+import LocationPage from "../../Location/LocationPage";
+import RackPage from "./Rack/RackPage";
+// import ConfigPage from "./ProductDimConf/ProductDimConfPage.jsx";
+// import ColorPage from "./ProductDimColor/ProductDimColorPage.jsx/index.js";
+import Serial from "./Serial/SerialPage";
 
-const PAGE = {
-  TOGGLE: "TOGGLE",
-  ITEM_MASTER: "ITEM_MASTER",
-  SITE: "SITE",
-  SHELVES: "SHELVES",
-  WAREHOUSE: "WAREHOUSE",
-  ZONE: "ZONE",
-  SHELVES: "SHELVES",
-  AISLES: "AISLES",
-  BATCHES: "BATCHES",
-  BIN: "BIN",
-  LOCATION: "LOCATION",
-  // RACKS: "RACKS",
-  INVENTORY_JOURNALS: "INVENTORY_JOURNALS",
-  INVENTORY_TRANSACTIONS: "INVENTORY_TRANSACTIONS",
-  ON_HAND_STOCK: "ON_HAND_STOCK",
-  INVENTORY_DASHBOARD: "INVENTORY_DASHBOARD",
-  MONTHLY_REPORT: "MONTHLY_REPORT",
-  BULK_UPDATE: "BULK_UPDATE",
-  UNIT_CONVERSIONS: "UNIT_CONVERSIONS",
-  CONFIG: "CONFIG",
-  COLOR: "COLOR",
-  SERIALS: "SERIALS",
-  productDimVersionForm: "productDimVersionForm",
-  productDimSize: "productDimSize",
-  ProductDimVersion: "ProductDimVersion",
-  productDimStyleForm: "productDimStyleForm",
-  PRODUCTPAGE: "PRODUCTPAGE",
-  LOCATIONPAGE: "PRODUCTPAGE",
-};
-
-const VIEW_MODES = { GRID: "GRID", ICON: "ICON", LIST: "LIST" };
-
-const groups = [
-  {
-    id: "master",
-    title: "Master List",
-    items: [
-      {
-        id: "itemMaster",
-        title: "Item Master",
-        icon: <FaBoxOpen />,
-        page: PAGE.ITEM_MASTER,
-      },
-    ],
-  },
-  { id: "setups", title: "Setups & Configurations" },
-  {
-    id: "transaction",
-    title: "Transactions",
-    subgroups: [
-      {
-        id: "journals-group",
-        title: "Journals",
-        items: [
-          {
-            id: "journals",
-            title: "Inventory Journals",
-            icon: <FaArchive />,
-            page: PAGE.INVENTORY_JOURNALS,
-          },
-          {
-            id: "bulkUpdate",
-            title: "Bulk Update",
-            icon: <FaSortAmountDown />,
-            page: PAGE.BULK_UPDATE,
-          },
-          {
-            id: "unitConv",
-            title: "Unit Conversions",
-            icon: <FaThLarge />,
-            page: PAGE.UNIT_CONVERSIONS,
-          },
-        ],
-      },
-      {
-        id: "onhand-group",
-        title: "On Hand",
-        items: [
-          {
-            id: "onHand",
-            title: "On Hand Stock",
-            icon: <FaTh />,
-            page: PAGE.ON_HAND_STOCK,
-          },
-          {
-            id: "monthly",
-            title: "Monthly Report",
-            icon: <FaFilter />,
-            page: PAGE.MONTHLY_REPORT,
-          },
-          {
-            id: "dashboard",
-            title: "Dashboard",
-            icon: <FaColumns />,
-            page: PAGE.INVENTORY_DASHBOARD,
-          },
-        ],
-      },
-    ],
-  },
-];
-
-// Setup sections with dynamic cols for grid
-const setupSections = [
-  {
-    id: "storage",
-    title: "1. Storage Dimensions",
-    cols: 3,
-    items: [
-      { id: "site", title: "Site", icon: <FaMap />, page: PAGE.SITE },
-      {
-        id: "warehouse",
-        title: "Warehouse",
-        icon: <FaWarehouse />,
-        page: PAGE.WAREHOUSE,
-      },
-      { id: "zone", title: "Zone", icon: <FaMapMarkerAlt />, page: PAGE.ZONE },
-      {
-        id: "Aisles",
-        title: "Aisles",
-        icon: <FaListUl />,
-        page: PAGE.AISLES,
-      },
-      {
-        id: "Bin",
-        title: "Bin",
-        icon: <FaListUl />,
-        page: PAGE.BIN,
-      },
-      {
-        id: "Location",
-        title: "Location",
-        icon: <FaListUl />,
-        page: PAGE.LOCATION,
-      },
-
-      {
-        id: "Serials",
-        title: "Serials",
-        icon: <FaListUl />,
-        page: PAGE.PRODUCTPAGE,
-      },
-      {
-        id: "Location",
-        title: "Location",
-        icon: <FaListUl />,
-        page: PAGE.LOCATION,
-      },
-      {
-        id: "Rack",
-        title: "Rack",
-        icon: <FaListUl />,
-        page: PAGE.LOCATION,
-      },
-      {
-        id: "Sheilf",
-        title: "Sheilf",
-        icon: <FaListUl />,
-        page: PAGE.LOCATION,
-      },
-     
-      {
-        id: "Pallet",
-        title: "Pallet",
-        icon: <FaListUl />,
-        page: PAGE.LOCATION,
-      },
-    ],
-  },
-  {
-    id: "product",
-    title: "2. Product Dimensions",
-    cols: 2,
-    items: [
-      {
-        id: "ProductColor ",
-        title: "Product Color",
-        icon: <FaFilter />,
-        page: PAGE.PRODUCTPAGE,
-      },
-      {
-        id: "ProductDimConf ",
-        title: "Product Conf ",
-        icon: <FaPalette />,
-        page: PAGE.PRODUCTPAGE,
-      },
-      {
-        id: "productDimStyle",
-        title: "Product Style",
-        icon: <FaListUl />,
-        page: PAGE.PRODUCTPAGE,
-      },
-    ],
-  },
-  {
-    id: "tracking",
-    title: "3. Tracking Dimensions",
-    cols: 2,
-    items: [
-      {
-        id: "batches",
-        title: "Batches",
-        icon: <FaArchive />,
-        page: PAGE.BATCHES,
-      },
-      {
-        id: "serials",
-        title: "Serials",
-        icon: <FaListUl />,
-        page: PAGE.SERIALS,
-      },
-    ],
-  },
-];
-
-const componentMap = {
-  [PAGE.ITEM_MASTER]: <ItemMasterPage />,
-  [PAGE.WAREHOUSE]: <WarehousePage />,
-  [PAGE.SITE]: <SitePage />,
-  [PAGE.ZONE]: <ZonePage />,
-  [PAGE.SHELVES]: <ShelvesPage />,
-  [PAGE.AISLES]: <Aisles />,
-  [PAGE.BATCHES]: <BatchValuePage />,
-  [PAGE.BIN]: <BinPage />,
-  [PAGE.LOCATION]: <LocationPage />,
-  [PAGE.RACKS]: <RackPage />,
-  [PAGE.CONFIG]: <ConfigPage />,
-  [PAGE.COLOR]: <ColorPage />,
-  [PAGE.SERIALS]: <Serial />,
+const initialForm = {
+  company: localStorage.getItem("selectedCompany") || "",
 };
 
 export default function ViewTogglePage() {
+  const [companies, setCompanies] = useState([]);
+
+  // ──────────────────────────────────────────────────────────
+  // 1. Load available companies once on mount  // ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const resp = await axios.get("/fms/api/v0/companies");
+        // adjust to match your payload shape:
+        setCompanies(Array.isArray(resp.data) ? resp.data : resp.data.data);
+      } catch (err) {
+        console.error("Failed to load companies:", err);
+      }
+    };
+    fetchCompanies();
+  }, []);
+  const [form, setForm] = useState(initialForm);
+
   const [page, setPage] = useState(PAGE.TOGGLE);
   const [viewMode, setViewMode] = useState(VIEW_MODES.GRID);
   const [hiddenGroups, setHiddenGroups] = useState({});
@@ -277,8 +68,11 @@ export default function ViewTogglePage() {
     setHiddenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   const toggleSubgroup = (id) =>
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
-
-  // generic item renderer respecting viewMode
+  const handleSaveCompany = () => {
+    console.log("Saving selected company:", form.company);
+    localStorage.setItem("selectedCompany", form.company);
+    // You can add a success message or API call here
+  };
   const renderItems = (items, cols) => {
     const containerClass =
       viewMode === VIEW_MODES.GRID
@@ -323,6 +117,46 @@ export default function ViewTogglePage() {
     );
   };
 
+  const componentMap = {
+    [PAGE.ITEM_MASTER]: (
+      <ItemMasterPage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.WAREHOUSE]: (
+      <WarehousePage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.SITE]: (
+      <SitePage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.ZONE]: (
+      <ZonePage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.SHELVES]: (
+      <ShelvesPage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.AISLES]: (
+      <Aisles companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.BATCHES]: (
+      <BatchValuePage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.BIN]: <BinPage companies={companies} form={form} setForm={setForm} />,
+    [PAGE.LOCATION]: (
+      <LocationPage companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.RACK]: (
+      <RackPage companies={companies} form={form} setForm={setForm} />
+    ),
+    // [PAGE.CONFIG]: (
+    //   <ConfigPage companies={companies} form={form} setForm={setForm} />
+    // ),
+    // [PAGE.COLOR]: (
+    //   <ColorPage companies={companies} form={form} setForm={setForm} />
+    // ),
+    [PAGE.SERIALS]: (
+      <Serial companies={companies} form={form} setForm={setForm} />
+    ),
+  };
+
   if (page !== PAGE.TOGGLE) {
     return (
       <div className="p-6">
@@ -338,25 +172,30 @@ export default function ViewTogglePage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold">Dashboard</h1>
-        <div className="flex bg-gray-100 rounded-lg overflow-hidden">
-          {[
-            { mode: VIEW_MODES.GRID, icon: <FaThLarge /> },
-            { mode: VIEW_MODES.ICON, icon: <FaTh /> },
-            { mode: VIEW_MODES.LIST, icon: <FaListUl /> },
-          ].map(({ mode, icon }) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className={`p-3 ${
-                viewMode === mode ? "bg-white shadow" : "hover:bg-gray-200"
-              } transition`}
-            >
-              {React.cloneElement(icon, { className: "text-lg" })}
-            </button>
-          ))}
+    <div className="">
+      <div className="flex items-center justify-between mb-3">
+        <h1 className="text-xl font-semibold">Item Dashboard</h1>
+        <div className="flex justify-end items-center space-x-4">
+          <div className="flex bg-gray-100 rounded-lg overflow-hidden">
+            {[VIEW_MODES.GRID, VIEW_MODES.ICON, VIEW_MODES.LIST].map(
+              (mode, index) => {
+                const icons = [<FaThLarge />, <FaTh />, <FaListUl />];
+                return (
+                  <button
+                    key={mode}
+                    onClick={() => setViewMode(mode)}
+                    className={`p-3 ${
+                      viewMode === mode
+                        ? "bg-white shadow"
+                        : "hover:bg-gray-200"
+                    } transition`}
+                  >
+                    {React.cloneElement(icons[index], { className: "text-lg" })}
+                  </button>
+                );
+              }
+            )}
+          </div>
         </div>
       </div>
 
@@ -371,7 +210,6 @@ export default function ViewTogglePage() {
               {hiddenGroups[grp.id] ? ">" : "^"}
             </button>
           </div>
-
           {!hiddenGroups[grp.id] &&
             (grp.id === "setups"
               ? setupSections.map((section) => (
@@ -404,21 +242,13 @@ export default function ViewTogglePage() {
                     {!hiddenSubgroups[sub.id] &&
                       renderItems(
                         sub.items,
-                        viewMode === VIEW_MODES.ICON
-                          ? sub.items.length
-                          : viewMode === VIEW_MODES.GRID
-                          ? 4
-                          : sub.items.length
+                        viewMode === VIEW_MODES.GRID ? 4 : sub.items.length
                       )}
                   </div>
                 ))
               : renderItems(
                   grp.items,
-                  viewMode === VIEW_MODES.ICON
-                    ? grp.items.length
-                    : viewMode === VIEW_MODES.GRID
-                    ? 4
-                    : grp.items.length
+                  viewMode === VIEW_MODES.GRID ? 4 : grp.items.length
                 ))}
         </div>
       ))}

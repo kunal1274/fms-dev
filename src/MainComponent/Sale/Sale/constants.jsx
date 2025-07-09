@@ -1,28 +1,30 @@
-// constants.js
 import {
-  FaBoxOpen,
-  FaFileInvoiceDollar,
-  FaFileAlt,
-  FaFileSignature,
-  FaReceipt,
-  FaUndo,
-  FaMoneyCheckAlt,
-  FaArrowCircleDown,
-  FaArrowCircleUp,
-  FaCashRegister,
-  FaCreditCard,
-  FaListAlt,
+  FaThLarge,
+  FaListUl,
+  FaTh,
+  FaWarehouse,
+  FaMap,
+  FaMapMarkerAlt,
+  FaSortAmountDown,
   FaArchive,
 } from "react-icons/fa";
 
+// Page Constants
 export const PAGE = {
   TOGGLE: "TOGGLE",
+  CUSTOMER: "CUSTOMER",
+  SALE_ORDER: "SALE_ORDER",
+  RETURN_ORDER: "RETURN_ORDER",
   CREDIT_NOTE: "CREDIT_NOTE",
   DEBIT_NOTE: "DEBIT_NOTE",
-  FREE_TAXING: "FREE_TAXING",
-  JOURNAL_REVENUE: "JOURNAL_REVENUE",
-  RETURN_ORDER: "RETURN_ORDER",
-  SALE_PAGE: "SALE_PAGE",
+  JOURNAL: "JOURNAL",
+  FREE_TAX_INVOICE: "FREE_TAX_INVOICE",
+  CUSTOMER_TRANSACTION: "CUSTOMER_TRANSACTION",
+  CUSTOMER_BALANCE: "CUSTOMER_BALANCE",
+  CUSTOMER_AGING_REPORT: "CUSTOMER_AGING_REPORT",
+  SALES_ACCOUNTING_TRANSACTION: "SALES_ACCOUNTING_TRANSACTION",
+  SALES_ACCOUNTING_BALANCE: "SALES_ACCOUNTING_BALANCE",
+  SALES_MARGIN_REPORT: "SALES_MARGIN_REPORT",
 };
 
 export const VIEW_MODES = {
@@ -33,142 +35,144 @@ export const VIEW_MODES = {
 
 export const groups = [
   {
-    id: "type",
-    name: "Type",
-    icon: FaBoxOpen,
-    pages: [
+    id: "master",
+    title: "Customer Master",
+    items: [
       {
-        id: "Sales",
-        title: "Sales",
-        page: PAGE.CREDIT_NOTE,
-        icon: FaFileInvoiceDollar,
-      },
-      {
-        id: "FreeTax",
-        title: "FreeTax",
-        page: PAGE.DEBIT_NOTE,
-        icon: FaFileAlt,
-      },
-      {
-        id: "Journal",
-        title: "Journal",
-        page: PAGE.FREE_TAXING,
-        icon: FaFileSignature,
-      },
-      {
-        id: "JournalRevenue",
-        title: "Journal/Revenue",
-        page: PAGE.JOURNAL_REVENUE,
-        icon: FaReceipt,
-      },
-      {
-        id: "Payment",
-        title: "Payment",
-        page: PAGE.RETURN_ORDER,
-        icon: FaUndo,
+        id: "Customer",
+        title: "Customer",
+        icon: <FaThLarge />,
+        page: PAGE.CUSTOMER,
       },
     ],
   },
   {
-    id: "sales",
-    name: "Sales",
-    icon: FaListAlt,
-    pages: [
-      {
-        id: "SalesOrder",
-        title: "Sales Order",
-        page: PAGE.CREDIT_NOTE,
-        icon: FaFileInvoiceDollar,
-      },
-      {
-        id: "SalesReturns",
-        title: "Sales Returns",
-        page: PAGE.DEBIT_NOTE,
-        icon: FaArrowCircleDown,
-      },
-      {
-        id: "SalesDebitNote",
-        title: "Sales Debit Note",
-        page: PAGE.FREE_TAXING,
-        icon: FaMoneyCheckAlt,
-      },
-      {
-        id: "SalesCreditNote",
-        title: "Sales Credit Note",
-        page: PAGE.JOURNAL_REVENUE,
-        icon: FaArrowCircleUp,
-      },
-      {
-        id: "SalesPayment",
-        title: "Payment",
-        page: PAGE.RETURN_ORDER,
-        icon: FaCashRegister,
-      },
-    ],
+    id: "setups",
+    title: "Order",
+    items: [], // handled in setupSections
   },
   {
-    id: "journal",
-    name: "Journal",
-    icon: FaFileSignature,
-    pages: [
+    id: "Invoice &  document",
+    title: "Invoice & Document",
+    subgroups: [
       {
-        id: "RevenueJournal",
-        title: "Revenue Journal",
-        page: PAGE.CREDIT_NOTE,
-        icon: FaFileSignature,
+        id: "Sales Proforma Confirmation",
+        title: "Sales Proforma Confirmation",
+        items: [
+          {
+            id: "Sales Proforma Confirmation",
+            title: "Sales Proforma Confirmation",
+            icon: <FaArchive />,
+          },
+          {
+            id: "Sales Confirmation",
+            title: "Sales Confirmation",
+            icon: <FaSortAmountDown />,
+          },
+          {
+            id: "sales invoice proforma",
+            title: "Sales Invoice Proforma",
+            icon: <FaThLarge />,
+          },
+          { id: "sales invoice", title: "Sales Invoice", icon: <FaThLarge /> },
+        ],
       },
       {
-        id: "ReverseRevenueJournal",
-        title: "Reverse Revenue Journal",
-        page: PAGE.DEBIT_NOTE,
-        icon: FaUndo,
-      },
-    ],
-  },
-  {
-    id: "other",
-    name: "Other",
-    icon: FaArchive,
-    pages: [
-      {
-        id: "CustomerReceipt",
-        title: "Customer Receipt",
-        page: PAGE.CREDIT_NOTE,
-        icon: FaReceipt,
-      },
-      {
-        id: "CustomerRefund",
-        title: "Customer Refund",
-        page: PAGE.DEBIT_NOTE,
-        icon: FaCreditCard,
+        id: "Setup and Configuration",
+        title: "Setup and Configuration",
+        items: [
+          { id: "Term of Payment", title: "Term of Payment", icon: <FaTh /> },
+        ],
       },
     ],
   },
 ];
 
-export const setupSections = {
-  [PAGE.CREDIT_NOTE]: {
-    title: "Credit Note",
-    group: "Type",
+export const setupSections = [
+  {
+    id: "Order",
+    title: "Sale Order",
+    cols: 3,
+    items: [
+      {
+        id: "Sale order",
+        title: "Sale order",
+        icon: <FaMap />,
+        page: PAGE.SALE_ORDER,
+      },
+      {
+        id: "Return order",
+        title: "Return order",
+        icon: <FaWarehouse />,
+        page: PAGE.RETURN_ORDER,
+      },
+      {
+        id: "Debit note",
+        title: "Debit note",
+        icon: <FaMapMarkerAlt />,
+        page: PAGE.DEBIT_NOTE,
+      },
+      {
+        id: "Credit note",
+        title: "Credit note",
+        icon: <FaListUl />,
+        page: PAGE.CREDIT_NOTE,
+      },
+      {
+        id: "Free Tax Invoicing",
+        title: "Free Tax Invoicing",
+        icon: <FaListUl />,
+        page: PAGE.FREE_TAX_INVOICE,
+      },
+      {
+        id: "Journal",
+        title: "Journal",
+        icon: <FaListUl />,
+        page: PAGE.JOURNAL,
+      },
+    ],
   },
-  [PAGE.DEBIT_NOTE]: {
-    title: "Debit Note",
-    group: "Type",
+  {
+    id: "TransactionReport",
+    title: "Transaction and Report",
+    cols: 3,
+    items: [
+      {
+        id: "Customer transaction",
+        title: "Customer transaction",
+        icon: <FaMap />,
+        page: PAGE.CUSTOMER_TRANSACTION,
+      },
+      {
+        id: "Customer balance",
+        title: "Customer balance",
+        icon: <FaWarehouse />,
+        page: PAGE.CUSTOMER_BALANCE,
+      },
+      {
+        id: "Customer aging report",
+        title: "Customer aging report",
+        icon: <FaMapMarkerAlt />,
+        page: PAGE.CUSTOMER_AGING_REPORT,
+      },
+      {
+        id: "Sales accounting transaction",
+        title: "Sales accounting transaction",
+        icon: <FaListUl />,
+        page: PAGE.SALES_ACCOUNTING_TRANSACTION,
+      },
+      {
+        id: "Sales accounting balance",
+        title: "Sales accounting balance",
+        icon: <FaListUl />,
+        page: PAGE.SALES_ACCOUNTING_BALANCE,
+      },
+      {
+        id: "Sales margin report",
+        title: "Sales margin report",
+        icon: <FaListUl />,
+        page: PAGE.SALES_MARGIN_REPORT,
+      },
+    ],
   },
-  [PAGE.FREE_TAXING]: {
-    title: "Free Taxing",
-    group: "Type",
-  },
-  [PAGE.JOURNAL_REVENUE]: {
-    title: "Journal/Revenue",
-    group: "Type",
-  },
-  [PAGE.RETURN_ORDER]: {
-    title: "Return Order",
-    group: "Type",
-  },
-  [PAGE.SALE_PAGE]: {
-    title: "Sale Page",
-    group: "Master Setup",
-  },
-};
+];

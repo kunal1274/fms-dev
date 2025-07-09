@@ -2,20 +2,19 @@ import React, { useState } from "react";
 import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
 import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
 
-// Dummy imports — replace with actual component imports
-import CustomerPage from "../../Customer/CustomerPage";
-import SaleOrderPage from "../../Sale/SaleMaster/SalePage";
-import ReturnOrder from "../../Sale/ReturnOrder/ReturnOrder";
-import CreditNote from "../../Sale/CreditNoteDebitNote/CreditNote";
-import DebitNote from "../../Sale/CreditNoteDebitNote/DebitNote";
-import JournalPage from "../../Sale/JournalRevenue/JournaRevenueOrderform";
-import FreeTaxInvoice from "../../Sale/FreeTaxingInvoice/FreeTaxingInvoice";
-import CustomerTransaction from "../../Transaction/CustomerTransaction";
-import CustomerBalance from "../../Transaction/CustomerBalance";
-import CustomerAgingReport from "../../Transaction/CustomerAgingReport";
-import SalesAccountingTransaction from "../../Transaction/SalesAccountingTransaction";
-import SalesAccountingBalance from "../../Transaction/CustomerBalance";
-import SalesMarginReport from "../../Transaction/CustomerTransactionPage";
+// Component Imports (Replace with actual files)
+import PurchaseOrderPage from "../../Purchase/PurchaseMaster/PurchasePage";
+import ReturnOrder from "../../Purchase/ReturnOrder/ReturnOrder";
+import CreditNote from "../../Purchase/CreditNoteDebitNote/CreditNote";
+import DebitNote from "../../Purchase/CreditNoteDebitNote/DebitNote";
+import JournalPage from "../../Purchase/JournalRevenue/JournaRevenueOrderform";
+import FreeTaxInvoice from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
+import PurchaseTransaction from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
+import PurchaseBalance from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
+import PurchaseAgingReport from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
+import PurchasesAccountingTransaction from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
+import PurchasesAccountingBalance from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
+import PurchasesMarginReport from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
 
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
@@ -38,19 +37,18 @@ export default function ViewTogglePage() {
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const componentMap = {
-    [PAGE.CUSTOMER]: <CustomerPage />,
-    [PAGE.SALE_ORDER]: <SaleOrderPage />,
+    [PAGE.PURCHASE_ORDER]: <PurchaseOrderPage />,
     [PAGE.RETURN_ORDER]: <ReturnOrder />,
     [PAGE.CREDIT_NOTE]: <CreditNote />,
     [PAGE.DEBIT_NOTE]: <DebitNote />,
     [PAGE.JOURNAL]: <JournalPage />,
     [PAGE.FREE_TAX_INVOICE]: <FreeTaxInvoice />,
-    [PAGE.CUSTOMER_TRANSACTION]: <CustomerTransaction />,
-    [PAGE.CUSTOMER_BALANCE]: <CustomerBalance />,
-    [PAGE.CUSTOMER_AGING_REPORT]: <CustomerAgingReport />,
-    [PAGE.SALES_ACCOUNTING_TRANSACTION]: <SalesAccountingTransaction />,
-    [PAGE.SALES_ACCOUNTING_BALANCE]: <SalesAccountingBalance />,
-    [PAGE.SALES_MARGIN_REPORT]: <SalesMarginReport />,
+    [PAGE.VENDOR_TRANSACTION]: <PurchaseTransaction />,
+    [PAGE.VENDOR_BALANCE]: <PurchaseBalance />,
+    [PAGE.VENDOR_AGING_REPORT]: <PurchaseAgingReport />,
+    [PAGE.PURCHASE_ACCOUNTING_TRANSACTION]: <PurchasesAccountingTransaction />,
+    [PAGE.PURCHASE_ACCOUNTING_BALANCE]: <PurchasesAccountingBalance />,
+    [PAGE.PURCHASE_MARGIN_REPORT]: <PurchasesMarginReport />,
   };
 
   const renderItems = (items, cols) => {
@@ -66,7 +64,9 @@ export default function ViewTogglePage() {
         {items.map((item) => (
           <div
             key={item.id}
-            onClick={() => item.page && setPage(item.page)}
+            onClick={() =>
+              setPage(item.page || PAGE[item.id.toUpperCase()] || item.id)
+            }
             className={
               viewMode === VIEW_MODES.LIST
                 ? "cursor-pointer flex items-center p-4 hover:bg-gray-50 transition"
@@ -106,7 +106,9 @@ export default function ViewTogglePage() {
         >
           <FaArrowLeft className="mr-2" /> Back to Dashboard
         </button>
-        {componentMap[page]}
+        {componentMap[page] || (
+          <div className="text-red-500">Page not found.</div>
+        )}
       </div>
     );
   }
@@ -114,7 +116,7 @@ export default function ViewTogglePage() {
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-3">
-        <h1 className="text-xl font-semibold">Customer Dashboard</h1>
+        <h1 className="text-xl font-semibold">Purchase Dashboard</h1>
         <div className="flex space-x-4">
           {[VIEW_MODES.GRID, VIEW_MODES.ICON, VIEW_MODES.LIST].map(
             (mode, i) => {
@@ -123,7 +125,7 @@ export default function ViewTogglePage() {
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`p-3 ${
+                  className={`p-3 rounded ${
                     viewMode === mode ? "bg-white shadow" : "hover:bg-gray-200"
                   } transition`}
                 >
@@ -143,9 +145,10 @@ export default function ViewTogglePage() {
               onClick={() => toggleGroup(grp.id)}
               className="text-gray-600 text-2xl hover:text-gray-800"
             >
-              {hiddenGroups[grp.id] ? ">" : "^"}
+              {hiddenGroups[grp.id] ? ">" : "˅"}
             </button>
           </div>
+
           {!hiddenGroups[grp.id] &&
             (grp.id === "setups"
               ? setupSections.map((section) => (
@@ -156,7 +159,7 @@ export default function ViewTogglePage() {
                         onClick={() => toggleSection(section.id)}
                         className="text-gray-600 hover:text-gray-800"
                       >
-                        {hiddenSections[section.id] ? ">" : "^"}
+                        {hiddenSections[section.id] ? ">" : "˅"}
                       </button>
                     </div>
                     {!hiddenSections[section.id] &&
@@ -172,7 +175,7 @@ export default function ViewTogglePage() {
                         onClick={() => toggleSubgroup(sub.id)}
                         className="text-gray-600 hover:text-gray-800"
                       >
-                        {hiddenSubgroups[sub.id] ? ">" : "^"}
+                        {hiddenSubgroups[sub.id] ? ">" : "˅"}
                       </button>
                     </div>
                     {!hiddenSubgroups[sub.id] && renderItems(sub.items, 3)}
