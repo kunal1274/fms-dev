@@ -558,20 +558,20 @@ const noteOrderForm = ({ handleCancel }) => {
 
           {/* Heading */}
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Credit Note Details
+            Debit Note Details
           </h2>
 
           {/* Form Fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Credit Note ID
+                Debit Note ID
               </label>
               <input
                 type="text"
                 name="noteOrder"
                 value={noteOrderNum || ""}
-                placeholder="Credit Note ID"
+                placeholder="Debit Note ID"
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
               />
@@ -689,7 +689,7 @@ const noteOrderForm = ({ handleCancel }) => {
                 {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Total Credit/Debit Amount
+                    Debit Amount
                   </label>
                   <input
                     type="text"

@@ -1,9 +1,9 @@
 // pages/CustomerTransactionPage.jsx
 import React from "react";
-import CustomerTransaction from "../components/CustomerTransaction";
-import CustomerBalance from "../components/CustomerBalance";
-import CustomerAgingReport from "../components/CustomerAgingReport";
-import SalesAccountingTransaction from "../components/SalesAccountingTransaction";
+import CustomerTransaction from "./CustomerTransaction";
+import CustomerBalance from "./CustomerBalance";
+import CustomerAgingReport from "./CustomerAgingReport";
+import SalesAccountingTransaction from "./SalesAccountingTransaction";
 
 const CustomerTransactionPage = () => {
   return (

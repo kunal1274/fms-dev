@@ -507,7 +507,7 @@ const noteOrderForm = ({ handleCancel }) => {
               </svg>
             </button>
           </div>
-          <h3 className="text-xl font-semibold">Credit Note Debit Note</h3>
+          <h3 className="text-xl font-semibold">Credit Note </h3>
         </div>
       </div>
 
@@ -601,9 +601,16 @@ const noteOrderForm = ({ handleCancel }) => {
               />
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Vendor Name
+              </label>
+             
+            </div> */}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Vendor Account
               </label>
               <select
                 value={selectedVendor}
@@ -618,41 +625,50 @@ const noteOrderForm = ({ handleCancel }) => {
                 ))}
               </select>
             </div>
+            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4 h-full">
+                {/* Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Vendor Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Vendor Account"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Vendor Account
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
-            </div>
-
-            {selectedVendorDetails && (
-              <>
+                {/* Currency */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Currency
                   </label>
                   <input
                     type="text"
-                    value={selectedVendorDetails.currency}
-                    readOnly
+                    placeholder="Contact Email"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
                   />
                 </div>
+              </div>
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Vendor Address
+                </label>
+                <textarea
+                  rows="4"
+                  readOnly
+                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Vendor Address
-                  </label>
-                  <textarea
-                    name="address"
-                    rows="3"
-                    value={selectedVendorDetails.address}
-                    readOnly
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                  />
-                </div>
-
+              {/* Name + Currency */}
+            </div>
+            {selectedVendorDetails && (
+              <>
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Reason
@@ -676,7 +692,7 @@ const noteOrderForm = ({ handleCancel }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Total Credit/Debit Amount
+                Total Credit
               </label>
               <input type="number" className="w-full p-2 border rounded" />
             </div>
@@ -695,22 +711,56 @@ const noteOrderForm = ({ handleCancel }) => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Order ID
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
-            </div>
+        
 
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-600">
-                Remarks
-              </label>
-              <textarea
-                rows={4}
-                placeholder="e.g. Any additional notes…"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
+            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4 h-full">
+                {/* Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Total Credit
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Customer Account"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
+
+                {/* Currency */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Order ID
+                  </label>
+                  <input
+                    type="text"
+                  
+                    placeholder="Contact Email"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
+              </div>
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Remarks
+                </label>
+                <textarea
+                  rows="4"
+                 
+                  readOnly
+                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Posted Ledger Account
+                </label>
+                <input type="number" className="w-full p-2 border rounded" />
+              </div>
+              {/* Name + Currency */}
             </div>
           </div>
         </section>

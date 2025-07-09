@@ -694,7 +694,7 @@ const noteOrderForm = ({ handleCancel }) => {
                 {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Total Credit/Debit Amount
+                    Total Credit
                   </label>
                   <input
                     type="text"

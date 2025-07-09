@@ -19,7 +19,7 @@ const JournaRevenueOrderform = ({ handleCancel }) => {
 
   const [saleOrderNum, setSaleOrderNum] = useState("JRNL-2025-001");
   const [advance, setAdvance] = useState("");
-  const [selectedCustomerDetails] = useState({
+  const [selectedVendorDetails] = useState({
     address: "123 Main Street",
     currency: "INR",
   });
@@ -98,7 +98,7 @@ const JournaRevenueOrderform = ({ handleCancel }) => {
                 Description
               </label>
               <textarea
-                value={selectedCustomerDetails.address}
+                value={selectedVendorDetails.address}
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500"
                 readOnly
               />
@@ -109,7 +109,7 @@ const JournaRevenueOrderform = ({ handleCancel }) => {
               </label>
               <input
                 type="text"
-                value={selectedCustomerDetails.currency}
+                value={selectedVendorDetails.currency}
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500"
                 readOnly
               />
@@ -197,7 +197,8 @@ const JournaRevenueOrderform = ({ handleCancel }) => {
         {/* Summary Section */}
         <section className="p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
-            <SummaryCard label="Order ID" value="ORD-101" />
+            <SummaryCard label="  Tax_Code " value="  Order ID" />
+            <SummaryCard label="Total Tax Amount  " value="101" />
             <SummaryCard label="Invoice Number" value="INV-2025-01" />
             <SummaryCard label="Posted Date" value="2025-07-03" />
             <SummaryCard label="Approval Status" value="Pending" />

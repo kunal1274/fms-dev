@@ -1,20 +1,23 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
-// import Invoice from "./Invoice"; // Uncomment if you have an Invoice component
-import { ToastContainer } from "react-toastify";
+// import Invoice from "./Invoice/Icopy";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import PurchaseorderViewPage from "./PurchaseOrderViewPage";
 const SummaryCard = ({ label, value }) => (
   <div className="flex flex-col">
     <span className="text-sm text-gray-600">{label}</span>
     <span className="text-lg font-semibold text-gray-800">{value}</span>
   </div>
 );
-const PurchaseOrderForm = ({ handleCancel }) => {
+const PurchaseOrderform = ({ handleCancel }) => {
+  const warehousesBaseUrl =
+    "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-  const VendorsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/vendors";
-  const PurchasesOrderUrl =
-    "https://fms-qkmw.onrender.com/fms/api/v0/purchasesorders";
+  const siteBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
+  const VendorsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Vendors";
+  const PurchasesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Purchasesorders";
   const paymentTerms = [
     "COD",
     "Net30D",
@@ -25,16 +28,21 @@ const PurchaseOrderForm = ({ handleCancel }) => {
     "Net90D",
     "Advance",
   ];
+  const [form, setForm] = useState({
+    site: "",
+    warehouse: "",
+    // Add other form fields if needed
+  });
   const [goForInvoice, setGoPurchaseInvoice] = useState(null);
   const [advance, setAdvance] = useState(0);
-  const [vendor, setVendor] = useState([]);
-  const [vendors, setVendors] = useState([]);
+  const [Vendors, setVendors] = useState([]);
   const [viewingPurchaseId, setViewingPurchaseId] = useState(null);
+  const [warehouses, setWarehouses] = useState([]);
   const [selectedPurchaseOrderId, setSelectedPurchaseOrderId] = useState("");
   const [items, setItems] = useState([]);
   const [remarks, setRemarks] = useState("");
-
-  const [purchaseOrderNum, setPurchaseOrderNum] = useState(null);
+  const [PurchaseOrderNum, setPurchaseOrderNum] = useState(null);
+  const [sites, setSites] = useState([]);
   // Global form states (for a single order line)
   const [selectedVendor, setSelectedVendor] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
@@ -45,7 +53,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   const [tcs, setTcs] = useState(0);
   const [charges, setCharges] = useState(0);
   const [lineAmt, setLineAmt] = useState("0.00");
-  const [purchasesAddress, setPurchasesAddress] = useState(null);
+  const [PurchasesAddress, setPurchasesAddress] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Editing and status management states
@@ -59,14 +67,10 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
   // If coming back in edit mode, pre-populate form fields accordingly
   useEffect(() => {
-    if (
-      location.state &&
-      location.state.edit &&
-      location.state.purchaseOrderNum
-    ) {
-      setPurchaseOrderNum(location.state.purchaseOrderNum);
+    if (location.state && location.state.edit && location.state.PurchaseOrderNum) {
+      setPurchaseOrderNum(location.state.PurchaseOrderNum);
       setIsEdited(true);
-      // Optionally, fetch purchase order details here from your API.
+      // Optionally, fetch Purchase order details here from your API.
     }
   }, [location.state]);
 
@@ -108,33 +112,67 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   // -------------------------
   useEffect(() => {
     const fetchVendors = async () => {
+      console.log("Fetching Vendors...");
       try {
         const response = await axios.get(VendorsBaseUrl);
+        console.log("Vendors fetched:", response.data);
         setVendors(response.data.data || []);
       } catch (error) {
-        console.error("Error fetching vendors:", error);
+        console.error("Error fetching Vendors:", error);
       }
     };
 
     const fetchItems = async () => {
+      console.log("Fetching items...");
       try {
         const response = await axios.get(itemsBaseUrl);
+        console.log("Items fetched:", response.data);
         setItems(response.data.data || []);
       } catch (error) {
         console.error("Error fetching items:", error);
       }
     };
 
+    const fetchWarehouses = async () => {
+      console.log("Fetching warehouses...");
+      try {
+        const response = await axios.get(warehousesBaseUrl);
+        console.log("Warehouses fetched:", response.data);
+        setItems(response.data.data || []); // <- likely a mistake, you probably meant `setWarehouses`
+      } catch (error) {
+        console.error("Error fetching warehouses:", error);
+      }
+    };
+
+    const fetchSiteBaseUrl = async () => {
+      console.log("Fetching site base data...");
+      try {
+        const response = await axios.get(siteBaseUrl);
+        console.log("Site base data fetched:", response.data);
+        setItems(response.data.data || []); // <- again, likely meant `setSites` or similar
+      } catch (error) {
+        console.error("Error fetching site base data:", error);
+      }
+    };
+
+    fetchSiteBaseUrl();
     fetchVendors();
+    fetchWarehouses();
     fetchItems();
   }, []);
-
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
   // -------------------------
   // Basic Form Validation
   // -------------------------
   const validateForm = () => {
     if (!selectedVendor) {
-      toast.warn("⚠️ No purchase order selected to delete.", {
+      toast.warn("⚠️ No Purchase order selected to delete.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -203,7 +241,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
     // Construct payload from global fields
     const payload = {
-      vendor: selectedVendor,
+      Vendor: selectedVendor,
       item: selectedItem._id || selectedItem.id || "",
       quantity: Number(quantity) || 1,
       price: Number(price) || 0,
@@ -213,17 +251,17 @@ const PurchaseOrderForm = ({ handleCancel }) => {
       withholdingTax: Number(tcs) || 0,
       charges: Number(charges) || 0,
       advance: Number(advance) || 0,
-      purchasesAddress: purchasesAddress,
+      PurchasesAddress: PurchasesAddress,
     };
 
     console.log("📌 Payload being sent:", payload);
 
     try {
       setLoading(true);
-      const { data } = await axios.post(purchasesOrderUrl, payload, {
+      const { data } = await axios.post(PurchasesOrderUrl, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      // Set purchase order number and mark as created/editable.
+      // Set Purchase order number and mark as created/editable.
       setPurchaseOrderNum(data.data.orderNum);
       set_id(data.data._id);
       console.log(data.data._id, "id");
@@ -382,13 +420,13 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   });
   useEffect(() => {
     if (selectedVendor) {
-      const vendor = vendors.find((c) => c._id === selectedVendor);
-      if (vendor) {
+      const Vendor = Vendors.find((c) => c._id === selectedVendor);
+      if (Vendor) {
         setSelectedVendorDetails({
-          contactNum: vendor.contactNum || "",
-          currency: vendor.currency || "",
-          address: vendor.address || "",
-          email: vendor.email || "", // ← correct!
+          contactNum: Vendor.contactNum || "",
+          currency: Vendor.currency || "",
+          address: Vendor.address || "",
+          email: Vendor.email || "", // ← correct!
         });
       }
     } else {
@@ -399,7 +437,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
         email: "",
       });
     }
-  }, [selectedVendor, vendors]);
+  }, [selectedVendor, Vendors]);
 
   // -------------------------
   // Fetch Item Details on Global Item Selection
@@ -466,31 +504,22 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
   // -------------------------
   // Handle Edit button click:
-  // Navigate to the purchase Order View Page with the purchase order identifier.
+  // Navigate to the Purchase Order View Page with the Purchase order identifier.
   // -------------------------
   const handleEdit = () => {
     setViewingPurchaseId(_id);
   };
-
   // -------------------------
   // Render Component
   // -------------------------
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
-        <p className="mt-4 text-blue-500 text-lg font-medium">Loading...</p>
-      </div>
-    );
-  }
   return (
     <div className="">
       <ToastContainer />
-
       {/* Header Buttons */}
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between ">
         <div className="flex items-center space-x-2">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
+            {" "}
             <button
               type="button"
               className="text-blue-600 mt-2 text-sm hover:underline"
@@ -509,14 +538,13 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                   strokeWidth={2}
                   d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
                 />
-              </svg>
+              </svg>{" "}
             </button>
           </div>
           <h3 className="text-xl font-semibold">Purchase Order Form</h3>
         </div>
       </div>
 
-      {/* Form */}
       <form
         onSubmit={handleCreate}
         className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
@@ -524,10 +552,11 @@ const PurchaseOrderForm = ({ handleCancel }) => {
         {/* Business Details */}
         <section className="p-6">
           <div className="flex flex-wrap w-full gap-2">
+            {/* Maintain Section */}
             <div className="p-2 h-17 bg-white">
               <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-6">
                 <div className="flex flex-nowrap gap-2">
-                  {purchaseOrderNum ? (
+                  {PurchaseOrderNum ? (
                     <>
                       <button
                         type="button"
@@ -546,6 +575,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                     </>
                   ) : (
                     <button
+                      onClick={handleCreate}
                       type="submit"
                       className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
                     >
@@ -562,118 +592,59 @@ const PurchaseOrderForm = ({ handleCancel }) => {
               </div>
             </div>
           </div>
-
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Purchase Details
           </h2>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Purchase Order */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Purchase Order
               </label>
               <input
                 type="text"
-                name="purchaseOrder"
-                value={purchaseOrderNum || ""}
+                name="PurchaseOrder"
+                value={PurchaseOrderNum || ""}
                 placeholder="Purchase Order"
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Vendor Name
+                Vendor Account
               </label>
               <select
                 value={selectedVendor}
-                onChange={(e) => setselectedVendor(e.target.value)}
+                onChange={(e) => setSelectedVendor(e.target.value)}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">Select Vendor</option>
-                {vendors.map((vendor) => (
-                  <option key={vendor._id} value={vendor._id}>
-                    {vendor.name}
+                {Vendors.map((Vendor) => (
+                  <option key={Vendor._id} value={Vendor._id}>
+                    {Vendor.name}
                   </option>
                 ))}
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Vendor Account
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Purchase Agreement No (if applicable)
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
-            </div>
-
-            {selectedVendorDetails && (
-              <>
+            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4 h-full">
+                {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Currency
+                    Vendor Name
                   </label>
                   <input
                     type="text"
-                    value={selectedVendorDetails.currency}
-                    placeholder="Currency"
+                    value={selectedVendorDetails?.account || ""}
+                    placeholder="Vendor Account"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Vendor Address
-                  </label>
-                  <textarea
-                    name="address"
-                    rows="4"
-                    value={selectedVendorDetails.address}
-                    placeholder="Vendor Address"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
-
-                {/* <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Purchase Address
-                  </label>
-                  <textarea
-                    name="purchasesAddress"
-                    rows="4"
-                    onChange={(e) => setPurchasesAddress(e.target.value)}
-                    placeholder="Purchase Address"
-                    className="mt-1 w-full p-2 border rounded"
-                  />
-                </div> */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Purchase Reference No
-                  </label>
-                  <input type="text" className="w-full p-2 border rounded" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Contact Details
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedVendorDetails.contactNum}
-                    placeholder="Contact Number"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
-
+                {/* Currency */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Contact Email
@@ -681,20 +652,183 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                   <input
                     type="text"
                     value={selectedVendorDetails.email}
-                    placeholder="Email"
+                    placeholder="Contact Email"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
                 </div>
+              </div>
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Vendor Address
+                </label>
+                <textarea
+                  rows="4"
+                  value={selectedVendorDetails?.address || ""}
+                  readOnly
+                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                />
+              </div>
 
+              {/* Name + Currency */}
+            </div>
+            {/* Order Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Contact Details
+              </label>
+              <input
+                type="text"
+                value={selectedVendorDetails.contactNum}
+                placeholder="Contact Number"
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                readOnly
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Currency
+              </label>
+              <input
+                type="text"
+                value={selectedVendorDetails?.currency || ""}
+                placeholder="Currency"
+                readOnly
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Order Date
+              </label>
+              <input
+                type="date"
+                name="orderDate"
+                value={form.orderDate}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div>
+
+            {/* Created On */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Created on
+              </label>
+              <input
+                type="text"
+                value={form.createdOn || ""}
+                readOnly
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
+            </div>
+
+            {/* Order Status */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Order Status
+              </label>
+              <input
+                type="text"
+                value={status}
+                placeholder="Selected Status"
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                readOnly
+              />
+            </div>
+
+            {/* Conditional Vendor Details */}
+            {selectedVendorDetails && (
+              <>
+                {/* Currency */}
+
+                {/* Email (User Editable) */}
+
+                {/* Purchase Agreement No */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Terms of Payment
+                    Purchase Agreement No (if applicable)
+                  </label>
+                  <input
+                    type="text"
+                    name="PurchaseAgreementNo"
+                    value={form.PurchaseAgreementNo}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded"
+                  />
+                </div>
+
+                {/* Purchase Reference No */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Purchase Reference No
+                  </label>
+                  <input
+                    type="text"
+                    name="purchaseRef"
+                    value={form.purchaseRef}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded"
+                  />
+                </div>
+
+                {/* Purchase Address */}
+
+                {/* Contact Details */}
+
+                {/* Contact Email */}
+
+                {/* Site */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Site
+                  </label>
+                  <select
+                    name="site"
+                    value={form.site}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded"
+                  >
+                    <option value="">Select</option>
+                    {sites.map((s) => (
+                      <option key={s._id} value={s._id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Warehouse */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Warehouse
+                  </label>
+                  <select
+                    name="warehouse"
+                    value={form.warehouse}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded"
+                  >
+                    <option value="">Select</option>
+                    {warehouses.map((w) => (
+                      <option key={w._id} value={w._id}>
+                        {w.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Payment Terms */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Terms of payment
                   </label>
                   <select
                     name="paymentTerms"
-                    required
-                    className="mt-1 w-full p-2 border rounded"
+                    value={form.paymentTerms}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                   >
                     <option value="">Select type</option>
                     {paymentTerms.map((type) => (
@@ -705,50 +839,70 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                   </select>
                 </div>
 
+                {/* Delivery Mode */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Order Status
+                    Delivery Mode
                   </label>
                   <input
                     type="text"
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
+                    name="deliveryMode"
+                    value={form.deliveryMode}
+                    onChange={handleChange}
                     className="mt-1 w-full p-2 border rounded"
+                  />
+                </div>
+
+                {/* Order ID */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Order Id
+                  </label>
+                  <input
+                    type="text"
+                    name="orderId"
+                    value={form.orderId}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border rounded"
+                  />
+                </div>
+
+                {/* Advance */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Advance Payment Amount
+                  </label>
+                  <input
+                    type="text"
+                    name="advance"
+                    value={advance}
+                    onChange={(e) => {
+                      const value =
+                        Number(e.target.value.replace(/\D/g, "")) || 0;
+                      setAdvance(value);
+                    }}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
               </>
             )}
 
+            {/* Remarks */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Delivery Mode
+                Remarks
               </label>
-              <input type="text" className="w-full p-2 border rounded" />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Advance Paid Amount
-              </label>
-              <input
-                type="text"
-                value={advance}
-                onChange={(e) =>
-                  setAdvance(Number(e.target.value.replace(/\D/g, "")) || 0)
-                }
-                className="w-full p-2 border rounded"
+              <textarea
+                name="remarks"
+                rows="4"
+                value={form.remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring focus:ring-blue-300"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Order Id
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
             </div>
           </div>
         </section>
 
-        {/* ...Line Items Table and Summary goes here (already provided) */}
         <section className="p-6">
           <div className="max-h-96 overflow-y-auto mt-4 border rounded-lg bg-white">
             <div className="space-y-6 p-4">
@@ -792,7 +946,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                     <td className="border px-2 py-1">
                       <select
                         value={selectedItem?._id || ""}
-                        disabled={!isEdited && purchaseOrderNum}
+                        disabled={!isEdited}
                         onChange={(e) => {
                           const sel = items.find(
                             (item) => item._id === e.target.value
@@ -909,14 +1063,15 @@ const PurchaseOrderForm = ({ handleCancel }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
                 <SummaryCard label="Advance" value={advance} />
                 <SummaryCard
-                  label="Amount"
+                  label="Subtotal /  line amount"
                   value={
                     isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
                   }
                 />
-                <SummaryCard label="Line Amt" value={lineAmt} />
+                <SummaryCard label="Discount" value={discount} />
+                <SummaryCard label="Total Tax" value={lineAmt} />
                 <SummaryCard
-                  label="Total TDS/TCS"
+                  label="Total Tds/ Tcs"
                   value={
                     isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
                   }
@@ -925,14 +1080,14 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                   label="Grand Total"
                   value={isNaN(lineAmt) ? "0.00" : lineAmt}
                 />
-                <SummaryCard label="Discount" value={discount} />
               </div>
             </div>
           </div>
         </section>
 
         {/* Action Buttons */}
-        <div className="py-6 flex items-center justify-between px-6">
+        <div className="py-6 flex items-center justify-between">
+          {/* Left side - Reset Button */}
           <div>
             <button
               type="button"
@@ -943,6 +1098,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
             </button>
           </div>
 
+          {/* Right side - Go Back and Create Buttons */}
           <div className="flex gap-4">
             <button
               type="button"
@@ -964,4 +1120,4 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   );
 };
 
-export default PurchaseOrderForm;
+export default PurchaseOrderform;

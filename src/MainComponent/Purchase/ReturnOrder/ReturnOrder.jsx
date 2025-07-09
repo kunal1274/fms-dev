@@ -12,13 +12,13 @@ const SummaryCard = ({ label, value }) => (
 );
 const ReturnForm = ({ handleCancel }) => {
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-  const VendorsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/vendors";
+  const VendorsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Vendors";
   const returnsOrderUrl =
     "https://fms-qkmw.onrender.com/fms/api/v0/returnsorders";
   const [form, setForm] = useState({
     returnOrderNo: "",
     returnDateTime: "",
-    vendorAccount: "",
+    VendorAccount: "",
     agreementNo: "",
     paymentTerms: "",
     status: "",
@@ -42,8 +42,8 @@ const ReturnForm = ({ handleCancel }) => {
   ];
   const [goForInvoice, setGoreturnInvoice] = useState(null);
   const [advance, setAdvance] = useState(0);
-  const [vendor, setVendor] = useState([]);
-  const [vendors, setVendors] = useState([]);
+  const [Vendor, setVendor] = useState([]);
+  const [Vendors, setVendors] = useState([]);
   const [viewingreturnId, setViewingreturnId] = useState(null);
   const [selectedreturnreturnId, setSelectedreturnreturnId] = useState("");
   const [items, setItems] = useState([]);
@@ -127,7 +127,7 @@ const ReturnForm = ({ handleCancel }) => {
         const response = await axios.get(VendorsBaseUrl);
         setVendors(response.data.data || []);
       } catch (error) {
-        console.error("Error fetching vendors:", error);
+        console.error("Error fetching Vendors:", error);
       }
     };
 
@@ -218,7 +218,7 @@ const ReturnForm = ({ handleCancel }) => {
 
     // Construct payload from global fields
     const payload = {
-      vendor: selectedVendor,
+      Vendor: selectedVendor,
       item: selectedItem._id || selectedItem.id || "",
       quantity: Number(quantity) || 1,
       price: Number(price) || 0,
@@ -397,13 +397,13 @@ const ReturnForm = ({ handleCancel }) => {
   });
   useEffect(() => {
     if (selectedVendor) {
-      const vendor = vendors.find((c) => c._id === selectedVendor);
-      if (vendor) {
+      const Vendor = Vendors.find((c) => c._id === selectedVendor);
+      if (Vendor) {
         setSelectedVendorDetails({
-          contactNum: vendor.contactNum || "",
-          currency: vendor.currency || "",
-          address: vendor.address || "",
-          email: vendor.email || "", // ← correct!
+          contactNum: Vendor.contactNum || "",
+          currency: Vendor.currency || "",
+          address: Vendor.address || "",
+          email: Vendor.email || "", // ← correct!
         });
       }
     } else {
@@ -414,7 +414,7 @@ const ReturnForm = ({ handleCancel }) => {
         email: "",
       });
     }
-  }, [selectedVendor, vendors]);
+  }, [selectedVendor, Vendors]);
 
   // -------------------------
   // Fetch Item Details on Global Item Selection
@@ -586,7 +586,7 @@ const ReturnForm = ({ handleCancel }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Return Order
+                Purchase Order
               </label>
               <input
                 type="text"
@@ -634,9 +634,9 @@ const ReturnForm = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">Select Vendor</option>
-                {vendors.map((vendor) => (
-                  <option key={vendor._id} value={vendor._id}>
-                    {vendor.name}
+                {Vendors.map((Vendor) => (
+                  <option key={Vendor._id} value={Vendor._id}>
+                    {Vendor.name}
                   </option>
                 ))}
               </select>
@@ -648,8 +648,8 @@ const ReturnForm = ({ handleCancel }) => {
               </label>
               <input
                 type="text"
-                name="vendorAccount"
-                value={form.vendorAccount || ""}
+                name="VendorAccount"
+                value={form.VendorAccount || ""}
                 onChange={handleChange}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
@@ -696,7 +696,14 @@ const ReturnForm = ({ handleCancel }) => {
                   <label className="block text-sm font-medium text-gray-600">
                     Return reason
                   </label>
-                  <input type="text" />
+                  <input
+                    type="text"
+                    name="status"
+                    value={form.status || ""}
+                    onChange={handleChange}
+                    placeholder="e.g. NoT good"
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  />
                 </div>
 
                 <div>

@@ -12,7 +12,7 @@ const SummaryCard = ({ label, value }) => (
 );
 const PurchaseOrderForm = ({ handleCancel }) => {
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-  const CustomersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Customers";
+  const VendorsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Vendors";
   const PurchasesOrderUrl =
     "https://fms-qkmw.onrender.com/fms/api/v0/purchasesorders";
   const paymentTerms = [
@@ -27,8 +27,8 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   ];
   const [goForInvoice, setGoPurchaseInvoice] = useState(null);
   const [advance, setAdvance] = useState(0);
-  const [Customer, setCustomer] = useState([]);
-  const [Customers, setCustomers] = useState([]);
+  const [Vendor, setVendor] = useState([]);
+  const [Vendors, setVendors] = useState([]);
   const [viewingPurchaseId, setViewingPurchaseId] = useState(null);
   const [selectedPurchaseOrderId, setSelectedPurchaseOrderId] = useState("");
   const [items, setItems] = useState([]);
@@ -36,7 +36,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
   const [purchaseOrderNum, setPurchaseOrderNum] = useState(null);
   // Global form states (for a single order line)
-  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [selectedVendor, setSelectedVendor] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState(0);
@@ -104,15 +104,15 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   });
 
   // -------------------------
-  // Fetch Customers & Items
+  // Fetch Vendors & Items
   // -------------------------
   useEffect(() => {
-    const fetchCustomers = async () => {
+    const fetchVendors = async () => {
       try {
-        const response = await axios.get(CustomersBaseUrl);
-        setCustomers(response.data.data || []);
+        const response = await axios.get(VendorsBaseUrl);
+        setVendors(response.data.data || []);
       } catch (error) {
-        console.error("Error fetching Customers:", error);
+        console.error("Error fetching Vendors:", error);
       }
     };
 
@@ -125,7 +125,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
       }
     };
 
-    fetchCustomers();
+    fetchVendors();
     fetchItems();
   }, []);
 
@@ -133,7 +133,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   // Basic Form Validation
   // -------------------------
   const validateForm = () => {
-    if (!selectedCustomer) {
+    if (!selectedVendor) {
       toast.warn("⚠️ No purchase order selected to delete.", {
         position: "top-right",
         autoClose: 3000,
@@ -143,7 +143,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
         draggable: true,
         theme: "colored",
       });
-      toast.warn("⚠️ Customer selection is required.", {
+      toast.warn("⚠️ Vendor selection is required.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -203,7 +203,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
 
     // Construct payload from global fields
     const payload = {
-      Customer: selectedCustomer,
+      Vendor: selectedVendor,
       item: selectedItem._id || selectedItem.id || "",
       quantity: Number(quantity) || 1,
       price: Number(price) || 0,
@@ -372,34 +372,34 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   }, [lineItems]);
 
   // -------------------------
-  // Fetch Customer Details on Customer Selection
+  // Fetch Vendor Details on Vendor Selection
   // -------------------------
-  const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
+  const [selectedVendorDetails, setSelectedVendorDetails] = useState({
     contactNum: "",
     currency: "",
     address: "",
     email: "",
   });
   useEffect(() => {
-    if (selectedCustomer) {
-      const Customer = Customers.find((c) => c._id === selectedCustomer);
-      if (Customer) {
-        setSelectedCustomerDetails({
-          contactNum: Customer.contactNum || "",
-          currency: Customer.currency || "",
-          address: Customer.address || "",
-          email: Customer.email || "", // ← correct!
+    if (selectedVendor) {
+      const Vendor = Vendors.find((c) => c._id === selectedVendor);
+      if (Vendor) {
+        setSelectedVendorDetails({
+          contactNum: Vendor.contactNum || "",
+          currency: Vendor.currency || "",
+          address: Vendor.address || "",
+          email: Vendor.email || "", // ← correct!
         });
       }
     } else {
-      setSelectedCustomerDetails({
+      setSelectedVendorDetails({
         contactNum: "",
         currency: "",
         address: "",
         email: "",
       });
     }
-  }, [selectedCustomer, Customers]);
+  }, [selectedVendor, Vendors]);
 
   // -------------------------
   // Fetch Item Details on Global Item Selection
@@ -512,7 +512,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
               </svg>
             </button>
           </div>
-          <h3 className="text-xl font-semibold">Free taxing invoice</h3>
+          <h3 className="text-xl font-semibold"> Free Taxing Invoice</h3>
         </div>
       </div>
 
@@ -522,10 +522,10 @@ const PurchaseOrderForm = ({ handleCancel }) => {
         className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
       >
         {/* Business Details */}
-        <section className="p-6">
+        <section className="p-3">
           <div className="flex flex-wrap w-full gap-2">
             <div className="p-2 h-17 bg-white">
-              <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 w-full">
                 <div className="flex flex-nowrap gap-2">
                   {purchaseOrderNum ? (
                     <>
@@ -563,8 +563,8 @@ const PurchaseOrderForm = ({ handleCancel }) => {
             </div>
           </div>
 
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Purchase Details
+          <h2 className="text-lg font-medium text-gray-700 mb-4 mt-4">
+            Free Taxing Invoice
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -583,7 +583,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                InvoiceID
+                Invoice ID
               </label>
               <input
                 type="text"
@@ -605,86 +605,118 @@ const PurchaseOrderForm = ({ handleCancel }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Customer Name
+                Vendor Account
               </label>
               <select
-                value={selectedCustomer}
-                onChange={(e) => setselectedCustomer(e.target.value)}
+                value={selectedVendor}
+                onChange={(e) => setselectedVendor(e.target.value)}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
-                <option value="">Select Customer</option>
-                {Customers.map((Customer) => (
-                  <option key={Customer._id} value={Customer._id}>
-                    {Customer.name}
+                <option value="">Select Vendor</option>
+                {Vendors.map((Vendor) => (
+                  <option key={Vendor._id} value={Vendor._id}>
+                    {Vendor.name}
                   </option>
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Customer Account
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Purchase Agreement No (if applicable)
-              </label>
-              <input type="text" className="w-full p-2 border rounded" />
-            </div>
-            {selectedCustomerDetails && (
-              <>
+            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4 h-full">
+                {/* Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Vendor Name
+                  </label>
+                  <input
+                    type="text"
+                    value={selectedVendorDetails?.account || ""}
+                    placeholder="Vendor Account"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
+
+                {/* Currency */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Currency
                   </label>
                   <input
                     type="text"
-                    value={selectedCustomerDetails.currency}
-                    placeholder="Currency"
+                    value={selectedVendorDetails.email}
+                    placeholder=" Currency"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Customer Address
-                  </label>
-                  <textarea
-                    name="address"
-                    rows="4"
-                    value={selectedCustomerDetails.address}
-                    placeholder="Customer Address"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Transaction type
-                  </label>
-                  <input type="text" className="w-full p-2 border rounded" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Remarks
-                  </label>
-                  <textarea
-                    placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
-                    rows={4}
-                    className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>{" "}
+              </div>
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Vendor Address
+                </label>
+                <textarea
+                  rows="4"
+                  value={selectedVendorDetails?.address || ""}
+                  readOnly
+                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
+              {/* Name + Currency */}
+            </div>
+            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4 h-full">
+                {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Order Status
                   </label>
                   <input
                     type="text"
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="mt-1 w-full p-2 border rounded"
+                    value={selectedVendorDetails?.account || ""}
+                    placeholder="Vendor Account"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
                   />
+                </div>
+
+                {/* Currency */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Purchase Agreement No (if applicable)
+                  </label>
+                  <input
+                    type="text"
+                    value={selectedVendorDetails.email}
+                    placeholder=" Currency"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
+              </div>
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Remarks
+                </label>
+                <textarea
+                  rows="4"
+                  value={selectedVendorDetails?.address || ""}
+                  readOnly
+                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
+              {/* Name + Currency */}
+            </div>
+            {selectedVendorDetails && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Transaction type
+                  </label>
+                  <input type="text" className="w-full p-2 border rounded" />
                 </div>
               </>
             )}
@@ -879,14 +911,15 @@ const PurchaseOrderForm = ({ handleCancel }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
                 <SummaryCard label="Advance" value={advance} />
                 <SummaryCard
-                  label="Amount"
+                  label="Subtotal /  line amount"
                   value={
                     isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
                   }
                 />
-                <SummaryCard label="Line Amt" value={lineAmt} />
+                <SummaryCard label="Discount" value={discount} />
+                <SummaryCard label="Total Tax" value={lineAmt} />
                 <SummaryCard
-                  label="Total TDS/TCS"
+                  label="Total Tds/ Tcs"
                   value={
                     isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
                   }
@@ -895,7 +928,6 @@ const PurchaseOrderForm = ({ handleCancel }) => {
                   label="Grand Total"
                   value={isNaN(lineAmt) ? "0.00" : lineAmt}
                 />
-                <SummaryCard label="Discount" value={discount} />
               </div>
             </div>
           </div>

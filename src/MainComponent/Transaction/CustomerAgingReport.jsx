@@ -1,24 +1,30 @@
-// components/CustomerAgingReport.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 const CustomerAgingReport = () => {
-  const data = [
-    {
-      id: "CUST002",
-      name: "Jane Smith",
-      invoiceNumber: "INV-1002",
-      invoiceDate: "02-06-2025",
-      dueDate: "02-07-2025",
-      invoiceAmount: "$892.50",
-      paymentReceived: "$500.00",
-      balanceDue: "$392.50",
-      "0–30": "$392.50",
-      "31–60": "$0.00",
-      "61–90": "$0.00",
-      "90+": "$0.00",
-      status: "Partial",
-    },
-  ];
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const salesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(`${salesOrderUrl}`);
+        setData(res.data?.data || []);
+      } catch (err) {
+        setError("Failed to load aging report.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) return <div className="mt-4 text-sm">Loading...</div>;
+  if (error) return <div className="mt-4 text-sm text-red-600">{error}</div>;
 
   return (
     <div className="mt-8">
@@ -27,6 +33,7 @@ const CustomerAgingReport = () => {
         <thead className="bg-gray-100 text-gray-700">
           <tr>
             {[
+              "S/N",
               "Customer ID",
               "Customer Name",
               "Invoice Number",
@@ -50,11 +57,20 @@ const CustomerAgingReport = () => {
         <tbody>
           {data.map((row, idx) => (
             <tr key={idx}>
-              {Object.values(row).map((val, i) => (
-                <td key={i} className="border px-2 py-1">
-                  {val}
-                </td>
-              ))}
+              <td className="border px-2 py-1">{idx + 1}</td>
+              <td className="border px-2 py-1">{row.customer?.code}</td>
+              <td className="border px-2 py-1">{row.customer?.name}</td>
+              <td className="border px-2 py-1">{row.invoiceNumber}</td>
+              <td className="border px-2 py-1">{row.invoiceDate}</td>
+              <td className="border px-2 py-1">{row.dueDate}</td>
+              <td className="border px-2 py-1">{row.invoiceAmount}</td>
+              <td className="border px-2 py-1">{row.paymentReceived}</td>
+              <td className="border px-2 py-1">{row.balanceDue}</td>
+              <td className="border px-2 py-1">{row.days_0_30}</td>
+              <td className="border px-2 py-1">{row.days_31_60}</td>
+              <td className="border px-2 py-1">{row.days_61_90}</td>
+              <td className="border px-2 py-1">{row.days_90_plus}</td>
+              <td className="border px-2 py-1">{row.status}</td>
             </tr>
           ))}
         </tbody>
@@ -64,4 +80,3 @@ const CustomerAgingReport = () => {
 };
 
 export default CustomerAgingReport;
-
