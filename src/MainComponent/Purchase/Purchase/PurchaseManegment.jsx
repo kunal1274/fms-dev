@@ -15,7 +15,7 @@ import PurchaseAgingReport from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvo
 import PurchasesAccountingTransaction from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
 import PurchasesAccountingBalance from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
 import PurchasesMarginReport from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
-
+import Vendor from "../../Vendor/VendorPage";
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
 };
@@ -37,6 +37,7 @@ export default function ViewTogglePage() {
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const componentMap = {
+        [PAGE.VENDOR]: <Vendor/>,
     [PAGE.PURCHASE_ORDER]: <PurchaseOrderPage />,
     [PAGE.RETURN_ORDER]: <ReturnOrder />,
     [PAGE.CREDIT_NOTE]: <CreditNote />,
