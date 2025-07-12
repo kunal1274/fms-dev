@@ -9,11 +9,11 @@ import CreditNote from "../../Purchase/CreditNoteDebitNote/CreditNote";
 import DebitNote from "../../Purchase/CreditNoteDebitNote/DebitNote";
 import JournalPage from "../../Purchase/JournalRevenue/JournaRevenueOrderform";
 import FreeTaxInvoice from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
-import PurchaseTransaction from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
-import PurchaseBalance from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
-import PurchaseAgingReport from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
-import PurchasesAccountingTransaction from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
-import PurchasesAccountingBalance from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
+import PurchaseTransaction from "../../Purchase/Purchase/Tracastion/Purchasetransaction";
+import PurchaseBalance from "../../Purchase/Purchase/Tracastion/Vendorbalance";
+import PurchaseAgingReport from "../../Purchase/Purchase/Tracastion/VendorAgingReport";
+import PurchasesAccountingTransaction from "../../Purchase/Purchase/Tracastion/VendorAccountingTransaction";
+import PurchasesAccountingBalance from "../../Purchase/Purchase/Tracastion/Vendorbalance";
 import PurchasesMarginReport from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
 import Vendor from "../../Vendor/VendorPage";
 const initialForm = {
@@ -37,7 +37,7 @@ export default function ViewTogglePage() {
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const componentMap = {
-        [PAGE.VENDOR]: <Vendor/>,
+    [PAGE.VENDOR]: <Vendor />,
     [PAGE.PURCHASE_ORDER]: <PurchaseOrderPage />,
     [PAGE.RETURN_ORDER]: <ReturnOrder />,
     [PAGE.CREDIT_NOTE]: <CreditNote />,
