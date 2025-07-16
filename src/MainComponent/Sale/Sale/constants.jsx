@@ -25,6 +25,10 @@ export const PAGE = {
   SALES_ACCOUNTING_TRANSACTION: "SALES_ACCOUNTING_TRANSACTION",
   SALES_ACCOUNTING_BALANCE: "SALES_ACCOUNTING_BALANCE",
   SALES_MARGIN_REPORT: "SALES_MARGIN_REPORT",
+  SALES_CONFIRMATION_INVOICE: "SALES_CONFIRMATION_INVOICE",
+  SALES_PROFORMA_INVOICE_ALT: "SALES_PROFORMA_INVOICE_ALT",
+  SALES_INVOICE: "SALES_INVOICE",
+  SALES_PROFORMA_CONFIRMATION_INVOICE: "SALES_PROFORMA_CONFIRMATION_INVOICE",
 };
 
 export const VIEW_MODES = {
@@ -60,28 +64,41 @@ export const groups = [
         title: "Sales Proforma Confirmation",
         items: [
           {
-            id: "Sales Proforma Confirmation",
-            title: "Sales Proforma Confirmation",
+            id: "Sales Proforma Confirmation Invoice",
+            title: "Sales Proforma Confirmation Invoice",
             icon: <FaArchive />,
+            page: PAGE.SALES_PROFORMA_CONFIRMATION_INVOICE,
           },
           {
-            id: "Sales Confirmation",
-            title: "Sales Confirmation",
+            id: "Sales Confirmation Invoice",
+            title: "Sales Confirmation Invoice",
+            icon: <FaArchive />,
+            page: PAGE.SALES_CONFIRMATION_INVOICE,
+          },
+          {
+            id: "Sales Proforma Invoice",
+            title: "Sales Proforma Invoice",
             icon: <FaSortAmountDown />,
+            page: PAGE.SALES_PROFORMA_INVOICE_ALT,
           },
           {
-            id: "sales invoice proforma",
-            title: "Sales Invoice Proforma",
-            icon: <FaThLarge />,
+            id: "SalesInvoice",
+            title: "Sales Invoice",
+            icon: <FaListUl />,
+            page: PAGE.SALES_INVOICE,
           },
-          { id: "sales invoice", title: "Sales Invoice", icon: <FaThLarge /> },
         ],
       },
       {
         id: "Setup and Configuration",
         title: "Setup and Configuration",
         items: [
-          { id: "Term of Payment", title: "Term of Payment", icon: <FaTh /> },
+          {
+            id: "Term of Payment",
+            title: "Term of Payment",
+            icon: <FaTh />,
+            // You may optionally add a `page:` key here if needed
+          },
         ],
       },
     ],

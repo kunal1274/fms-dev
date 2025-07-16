@@ -2,20 +2,24 @@ import React, { useState } from "react";
 import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
 import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
 
-// Dummy imports — replace with actual component imports
+// Actual imports for each page component
 import CustomerPage from "../../Customer/CustomerPage";
 import SaleOrderPage from "../../Sale/SaleMaster/SalePage";
+import SalesProformaInvoice from "../../Sale/Transaction/SalesProformaInvoice";
 import ReturnOrder from "../../Sale/ReturnOrder/ReturnOrder";
 import CreditNote from "../../Sale/CreditNoteDebitNote/CreditNote";
 import DebitNote from "../../Sale/CreditNoteDebitNote/DebitNote";
 import JournalPage from "../../Sale/JournalRevenue/JournaRevenueOrderform";
 import FreeTaxInvoice from "../../Sale/FreeTaxingInvoice/FreeTaxingInvoice";
-import CustomerTransaction from "../../Transaction/CustomerTransaction";
-import CustomerBalance from "../../Transaction/CustomerBalance";
-import CustomerAgingReport from "../../Transaction/CustomerAgingReport";
-import SalesAccountingTransaction from "../../Transaction/SalesAccountingTransaction";
-import SalesAccountingBalance from "../../Transaction/CustomerBalance";
-import SalesMarginReport from "../../Transaction/CustomerTransactionPage";
+import CustomerTransaction from "../Transaction/CustomerTransaction";
+import CustomerBalance from "../../Sale/Transaction/CustomerBalance";
+import CustomerAgingReport from "../Transaction/CustomerAgingReport";
+import SalesAccountingTransaction from "../../Sale/Transaction/SalesAccountingTransaction";
+import SalesAccountingBalance from "../Transaction/SalesAccountingTransaction";
+import SalesMarginReport from "../../Sale/Transaction/CustomerTransactionPage";
+import SalesInvoice from "../Transaction/SalesInvoice";
+import SalesConfirmationInvoice from "../Transaction/SalesConfirmationInvoice";
+import SalesProformaConfirmationInvoice from "../Transaction/SalesProformaConfirmationInvoice ";
 
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
@@ -51,9 +55,15 @@ export default function ViewTogglePage() {
     [PAGE.SALES_ACCOUNTING_TRANSACTION]: <SalesAccountingTransaction />,
     [PAGE.SALES_ACCOUNTING_BALANCE]: <SalesAccountingBalance />,
     [PAGE.SALES_MARGIN_REPORT]: <SalesMarginReport />,
+    [PAGE.SALES_CONFIRMATION_INVOICE]: <SalesConfirmationInvoice />,
+    [PAGE.SALES_PROFORMA_INVOICE_ALT]: <SalesProformaInvoice />,
+    [PAGE.SALES_INVOICE]: <SalesInvoice />,
+    [PAGE.SALES_PROFORMA_CONFIRMATION_INVOICE]: (
+      <SalesProformaConfirmationInvoice />
+    ),
   };
 
-  const renderItems = (items, cols) => {
+  const renderItems = (items = [], cols) => {
     const containerClass =
       viewMode === VIEW_MODES.GRID
         ? `grid grid-cols-${cols} gap-6`
@@ -106,7 +116,9 @@ export default function ViewTogglePage() {
         >
           <FaArrowLeft className="mr-2" /> Back to Dashboard
         </button>
-        {componentMap[page]}
+        {componentMap[page] || (
+          <div className="text-red-600">Page not found</div>
+        )}
       </div>
     );
   }
@@ -123,7 +135,7 @@ export default function ViewTogglePage() {
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`p-3 ${
+                  className={`p-3 rounded ${
                     viewMode === mode ? "bg-white shadow" : "hover:bg-gray-200"
                   } transition`}
                 >
@@ -141,9 +153,9 @@ export default function ViewTogglePage() {
             <h2 className="text-lg font-semibold">{grp.title}</h2>
             <button
               onClick={() => toggleGroup(grp.id)}
-              className="text-gray-600 text-2xl hover:text-gray-800"
+              className="text-gray-600 text-xl hover:text-gray-800"
             >
-              {hiddenGroups[grp.id] ? ">" : "^"}
+              {hiddenGroups[grp.id] ? "►" : "▼"}
             </button>
           </div>
           {!hiddenGroups[grp.id] &&
@@ -156,7 +168,7 @@ export default function ViewTogglePage() {
                         onClick={() => toggleSection(section.id)}
                         className="text-gray-600 hover:text-gray-800"
                       >
-                        {hiddenSections[section.id] ? ">" : "^"}
+                        {hiddenSections[section.id] ? "►" : "▼"}
                       </button>
                     </div>
                     {!hiddenSections[section.id] &&
@@ -172,7 +184,7 @@ export default function ViewTogglePage() {
                         onClick={() => toggleSubgroup(sub.id)}
                         className="text-gray-600 hover:text-gray-800"
                       >
-                        {hiddenSubgroups[sub.id] ? ">" : "^"}
+                        {hiddenSubgroups[sub.id] ? "►" : "▼"}
                       </button>
                     </div>
                     {!hiddenSubgroups[sub.id] && renderItems(sub.items, 3)}
