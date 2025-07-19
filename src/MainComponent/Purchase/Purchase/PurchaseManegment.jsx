@@ -1,21 +1,23 @@
 import React, { useState } from "react";
 import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
+
 import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
 
-// Component Imports (Replace with actual files)
+// Component Imports
+import Vendor from "../../Vendor/VendorPage";
 import PurchaseOrderPage from "../../Purchase/PurchaseMaster/PurchasePage";
 import ReturnOrder from "../../Purchase/ReturnOrder/ReturnOrder";
 import CreditNote from "../../Purchase/CreditNoteDebitNote/CreditNote";
 import DebitNote from "../../Purchase/CreditNoteDebitNote/DebitNote";
 import JournalPage from "../../Purchase/JournalRevenue/JournaRevenueOrderform";
 import FreeTaxInvoice from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
-import PurchaseTransaction from "../../Purchase/Purchase/Tracastion/Purchasetransaction";
-import PurchaseBalance from "../../Purchase/Purchase/Tracastion/Vendorbalance";
-import PurchaseAgingReport from "../../Purchase/Purchase/Tracastion/VendorAgingReport";
-import PurchasesAccountingTransaction from "../../Purchase/Purchase/Tracastion/VendorAccountingTransaction";
-import PurchasesAccountingBalance from "../../Purchase/Purchase/Tracastion/Vendorbalance";
-import PurchasesMarginReport from "../../Purchase/FreeTaxingInvoice/FreeTaxingInvoice";
-import Vendor from "../../Vendor/VendorPage";
+import PurchaseTransaction from "../../Purchase/Purchase/Transaction/Purchasetransaction";
+import PurchaseBalance from "../../Purchase/Purchase/Transaction/Vendorbalance";
+import PurchaseAgingReport from "../../Purchase/Purchase/Transaction/VendorAgingReport";
+import PurchasesAccountingTransaction from "../../Purchase/Purchase/Transaction/VendorAccountingTransaction";
+import PurchasesAccountingBalance from "../../Purchase/Purchase/Transaction/VendorAccountingTransaction";
+import ProformaConfirmationInvoice from "../../Purchase/Purchase/Transaction/ProformaConfirmationInvoice";
+
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
 };
@@ -29,6 +31,7 @@ export default function ViewTogglePage() {
   const [hiddenSubgroups, setHiddenSubgroups] = useState({});
 
   const goBack = () => setPage(PAGE.TOGGLE);
+
   const toggleGroup = (id) =>
     setHiddenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
   const toggleSection = (id) =>
@@ -49,16 +52,21 @@ export default function ViewTogglePage() {
     [PAGE.VENDOR_AGING_REPORT]: <PurchaseAgingReport />,
     [PAGE.PURCHASE_ACCOUNTING_TRANSACTION]: <PurchasesAccountingTransaction />,
     [PAGE.PURCHASE_ACCOUNTING_BALANCE]: <PurchasesAccountingBalance />,
-    [PAGE.PURCHASE_MARGIN_REPORT]: <PurchasesMarginReport />,
+    [PAGE.PROFORMA_CONFIRMATION_INVOICE]: <ProformaConfirmationInvoice />,
   };
 
-  const renderItems = (items, cols) => {
-    const containerClass =
+  const renderItems = (items = [], cols = 3) => {
+    const colClass =
       viewMode === VIEW_MODES.GRID
-        ? `grid grid-cols-${cols} gap-6`
+        ? `grid-cols-${cols}`
         : viewMode === VIEW_MODES.ICON
-        ? `grid grid-cols-${cols * 2} gap-6`
-        : "flex flex-col gap-4";
+        ? `grid-cols-${cols * 2}`
+        : "";
+
+    const containerClass =
+      viewMode === VIEW_MODES.LIST
+        ? "flex flex-col gap-4"
+        : `grid ${colClass} gap-6`;
 
     return (
       <div className={containerClass}>

@@ -51,7 +51,7 @@ const ProformaConfirmationInvoice = () => {
   return (
     <div className="p-6 text-sm text-gray-700">
       <h2 className="text-lg font-bold mb-4">
-        Sales Proforma Confirmation Invoice
+        PURCHASEs Proforma Confirmation Invoice
       </h2>
 
       {/* Header Form Section */}
@@ -72,15 +72,15 @@ const ProformaConfirmationInvoice = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {[
             {
-              label: "Sale Proforma confirmation No.",
+              label: "PURCHASE Proforma confirmation No.",
               placeholder: "Auto-generated",
             },
             {
-              label: "Sale Proforma Confirmation Date",
+              label: "PURCHASE Proforma Confirmation Date",
               placeholder: "DD-MM-YYYY",
             },
             {
-              label: "Sales Order No:",
+              label: "PURCHASEs Order No:",
               placeholder: "Auto-generated",
             },
             { label: "Customer Account:", isSelect: true },
