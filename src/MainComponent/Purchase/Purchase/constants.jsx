@@ -76,25 +76,25 @@ export const groups = [
         items: [
           {
             id: PAGE.PURCHASE_PROFORMA_CONFIRMATION_INVOICE,
-            title: "Proforma Confirmation Invoice",
+            title: "Purchase Proforma Confirmation Invoice",
             icon: <FaArchive />,
             page: PAGE.PURCHASE_PROFORMA_CONFIRMATION_INVOICE,
           },
           {
             id: PAGE.PURCHASE_CONFIRMATION_INVOICE,
-            title: "Confirmation Invoice",
+            title: "Purchase Confirmation Invoice",
             icon: <FaSortAmountDown />,
             page: PAGE.PURCHASE_CONFIRMATION_INVOICE,
           },
           {
             id: PAGE.PURCHASE_PROFORMA_INVOICE,
-            title: "Proforma Invoice",
+            title: "Purchase Proforma Invoice  ",
             icon: <FaThLarge />,
             page: PAGE.PURCHASE_PROFORMA_INVOICE,
           },
           {
             id: PAGE.PURCHASE_INVOICE,
-            title: "Invoice",
+            title: "Purchase Invoice",
             icon: <FaListUl />,
             page: PAGE.PURCHASE_INVOICE,
           },

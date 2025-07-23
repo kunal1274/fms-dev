@@ -16,7 +16,11 @@ import PurchaseBalance from "../../Purchase/Purchase/Transaction/Vendorbalance";
 import PurchaseAgingReport from "../../Purchase/Purchase/Transaction/VendorAgingReport";
 import PurchasesAccountingTransaction from "../../Purchase/Purchase/Transaction/VendorAccountingTransaction";
 import PurchasesAccountingBalance from "../../Purchase/Purchase/Transaction/VendorAccountingTransaction";
-import ProformaConfirmationInvoice from "../../Purchase/Purchase/Transaction/ProformaConfirmationInvoice";
+
+import PurchaseConfirmationInvoice from "../Purchase/Transaction/p/PurchaseConfirmationInvoice";
+import PurchaseInvoice from "../Purchase/Transaction/p/PurchaseInvoice";
+import PurchaseProformaConfirmationInvoice from "../Purchase/Transaction/p/PurchaseProformaConfirmationInvoice";
+import PurchaseProformaInvoice from "../Purchase/Transaction/p/PurchaseProformaInvoice ";
 
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
@@ -39,21 +43,25 @@ export default function ViewTogglePage() {
   const toggleSubgroup = (id) =>
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const componentMap = {
-    [PAGE.VENDOR]: <Vendor />,
-    [PAGE.PURCHASE_ORDER]: <PurchaseOrderPage />,
-    [PAGE.RETURN_ORDER]: <ReturnOrder />,
-    [PAGE.CREDIT_NOTE]: <CreditNote />,
-    [PAGE.DEBIT_NOTE]: <DebitNote />,
-    [PAGE.JOURNAL]: <JournalPage />,
-    [PAGE.FREE_TAX_INVOICE]: <FreeTaxInvoice />,
-    [PAGE.VENDOR_TRANSACTION]: <PurchaseTransaction />,
-    [PAGE.VENDOR_BALANCE]: <PurchaseBalance />,
-    [PAGE.VENDOR_AGING_REPORT]: <PurchaseAgingReport />,
-    [PAGE.PURCHASE_ACCOUNTING_TRANSACTION]: <PurchasesAccountingTransaction />,
-    [PAGE.PURCHASE_ACCOUNTING_BALANCE]: <PurchasesAccountingBalance />,
-    [PAGE.PROFORMA_CONFIRMATION_INVOICE]: <ProformaConfirmationInvoice />,
-  };
+const componentMap = {
+  [PAGE.VENDOR]: <Vendor />,
+  [PAGE.PURCHASE_ORDER]: <PurchaseOrderPage />,
+  [PAGE.RETURN_ORDER]: <ReturnOrder />,
+  [PAGE.CREDIT_NOTE]: <CreditNote />,
+  [PAGE.DEBIT_NOTE]: <DebitNote />,
+  [PAGE.JOURNAL]: <JournalPage />,
+  [PAGE.FREE_TAX_INVOICE]: <FreeTaxInvoice />,
+  [PAGE.VENDOR_TRANSACTION]: <PurchaseTransaction />,
+  [PAGE.VENDOR_BALANCE]: <PurchaseBalance />,
+  [PAGE.VENDOR_AGING_REPORT]: <PurchaseAgingReport />,
+  [PAGE.PURCHASE_ACCOUNTING_TRANSACTION]: <PurchasesAccountingTransaction />,
+  [PAGE.PURCHASE_ACCOUNTING_BALANCE]: <PurchasesAccountingBalance />,
+  [PAGE.PURCHASE_PROFORMA_CONFIRMATION_INVOICE]: <PurchaseProformaConfirmationInvoice />,
+  [PAGE.PURCHASE_PROFORMA_INVOICE]: <PurchaseProformaInvoice />,
+  [PAGE.PURCHASE_INVOICE]: <PurchaseInvoice />,
+ [PAGE.PURCHASE_CONFIRMATION_INVOICE]: <PurchaseConfirmationInvoice/>,
+};
+
 
   const renderItems = (items = [], cols = 3) => {
     const colClass =
