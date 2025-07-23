@@ -72,6 +72,12 @@ export const groups = [
         id: "journals-group",
         title: "Inventory Journal",
         items: [
+           {
+            id: "jornal",
+            title: " Journal Creation Form",
+            icon: <FaArchive />,
+            page: PAGE.INVENTORY_JOURNALS,
+          },
           {
             id: "inout",
             title: "Inout Journal",

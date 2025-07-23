@@ -31,6 +31,7 @@ import RackPage from "./Rack/RackPage";
 // import ConfigPage from "./ProductDimConf/ProductDimConfPage.jsx";
 // import ColorPage from "./ProductDimColor/ProductDimColorPage.jsx/index.js";
 import Serial from "./Serial/SerialPage";
+import JournalCreationForm from "./jornal/Jornal";
 
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
@@ -154,6 +155,8 @@ export default function ViewTogglePage() {
     // ),
     [PAGE.SERIALS]: (
       <Serial companies={companies} form={form} setForm={setForm} />
+    ),   [PAGE.INVENTORY_JOURNALS]: (
+      <JournalCreationForm/>
     ),
   };
 
