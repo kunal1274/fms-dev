@@ -78,6 +78,7 @@ export const groups = [
             icon: <FaArchive />,
             page: PAGE.INVENTORY_JOURNALS,
           },
+          
           {
             id: "inout",
             title: "Inout Journal",
