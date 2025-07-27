@@ -1,7 +1,7 @@
 import React from "react";
 
 import Dashbord from "./Component/Dashbord/Dashbord";
-// import Dashbord from "./MainComponent/Purchase/Purchase/Transaction/p/PurchaseProformaInvoice ";
+// import Dashbord from "./MainComponent/Inventory/";
 
 const App = () => {
   return (

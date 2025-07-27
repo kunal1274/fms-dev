@@ -18,20 +18,20 @@ import {
   FaArchive,
 } from "react-icons/fa";
 
-import ItemMasterPage from "./Item/ItemPage";
-import WarehousePage from "./Warehouse/WarehousePage";
-import SitePage from "./Site/SitePage";
-import ZonePage from "./Zone/ZonePage";
-import ShelvesPage from "./Shelves/ShelvesPage";
-import Aisles from "./Aisles/AislesPage";
-import BatchValuePage from "./BatchValue/BatchValuePage";
-import BinPage from "./Bin/BinPage";
-import LocationPage from "../../Location/LocationPage";
-import RackPage from "./Rack/RackPage";
+import ItemMasterPage from "./Item Master/Item/ItemPage";
+import WarehousePage from "./Storage Dimension/Warehouse/WarehousePage";
+import SitePage from "./Storage Dimension/Site/SitePage";
+import ZonePage from "./Storage Dimension/Zone/ZonePage";
+import ShelvesPage from "./Storage Dimension/Shelves/ShelvesPage";
+import Aisles from "./Storage Dimension/Aisles/AislesPage";
+import BatchValuePage from "./Tracking Dimension/BatchValue/BatchValueViewPagee";
+import BinPage from "./Storage Dimension/Bin/BinPage";
+import LocationPage from "./Storage Dimension/Location/LocationPage";
+import RackPage from "./Storage Dimension/Rack/RackPage";
 // import ConfigPage from "./ProductDimConf/ProductDimConfPage.jsx";
 // import ColorPage from "./ProductDimColor/ProductDimColorPage.jsx/index.js";
-import Serial from "./Serial/SerialPage";
-import JournalCreationForm from "./jornal/Jornal";
+import Serial from "./Tracking Dimension/Serial/SerialPage";
+import JournalCreationForm from "./Inventory Jornal/Jornal/Jornal";
 
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
