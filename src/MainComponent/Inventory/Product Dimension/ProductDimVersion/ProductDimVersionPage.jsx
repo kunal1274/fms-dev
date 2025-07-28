@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import ProductVersionList from "./ProductVersionList";
-import ProductVersionForm from "./ProductVersionForm";
-import ProductVersionViewPage from "./ProductVersionViewPagee";
+import ProductVersionList from "./ProductDimVersionList";
+import ProductVersionForm from "./productDimVersionForm";
+// import ProductVersionViewPage from "./ProductDimVersionViewPage";
 
 export default function ProductVersionPage() {
   const [view, setView] = useState("list"); // "list" | "form" | "details"
   const [selectedId, setSelectedId] = useState(null); // Mongo _id of the ProductVersion
 
   // Handlers to switch views
-  const handleAddProductVersion = () => {
+  const handleAddProductProduct = () => {
     setSelectedId(null);
     setView("form");
   };
@@ -32,7 +32,7 @@ export default function ProductVersionPage() {
     <div className="w-full p-6 bg-white rounded-lg">
       {view === "list" && (
         <ProductVersionList
-          handleAddProductVersion={handleAddProductVersion}
+         handleAddProductProduct={handleAddProductProduct}
           onView={handleViewProductVersion}
         />
       )}

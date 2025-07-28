@@ -147,12 +147,7 @@ export default function ViewTogglePage() {
     [PAGE.RACK]: (
       <RackPage companies={companies} form={form} setForm={setForm} />
     ),
-    // [PAGE.CONFIG]: (
-    //   <ConfigPage companies={companies} form={form} setForm={setForm} />
-    // ),
-    // [PAGE.COLOR]: (
-    //   <ColorPage companies={companies} form={form} setForm={setForm} />
-    // ),
+   
     [PAGE.SERIALS]: (
       <Serial companies={companies} form={form} setForm={setForm} />
     ),   [PAGE.INVENTORY_JOURNALS]: (

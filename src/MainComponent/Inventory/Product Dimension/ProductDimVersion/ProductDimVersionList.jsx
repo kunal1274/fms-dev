@@ -7,58 +7,47 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
-import ProductVersionViewPage from "./ProductVersionViewPagee";
+import ProductDimVersionViewPage from "./ProductDimVersionViewPage";
 
-export default function ProductVersionList({ handleAddProductVersion }) {
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/ProductVersions";
-  const metricsUrl = `${baseUrl}/metrics`;
+export default function ProductDimVersionList({ handleAddProductProduct }) {
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/versions";
 
-  const tabNames = ["All ProductVersions", "Active", "Archived"];
-
+  const tabNames = ["All ProductVersion", "Active", "Archived"];
   const [activeTab, setActiveTab] = useState(tabNames[0]);
-  const [ProductVersions, setProductVersions] = useState([]);
-  const [filteredProductVersions, setFilteredProductVersions] = useState([]);
+  const [ProductVersion, setProductVersion] = useState([]);
+  const [filteredProductVersion, setFilteredProductVersion] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState("");
   const [summary, setSummary] = useState({ total: 0, active: 0, archived: 0 });
   const [loading, setLoading] = useState(false);
-  const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
   const [viewingId, setViewingId] = useState(null);
 
-  // Table column headers
   const columns = [
     "Code",
     "Name",
     "Description",
     "Type",
-    "Warehouse",
-    "ProductVersion Address",
-    "Remarks",
-    "Archived",
-    "Company",
-    "Groups",
-    "Created By",
-    "Updated By",
-    "Active",
+    "Values",
+
+    "Created At",
+    "Updated At",
   ];
 
-  // Fetch ProductVersions list
-  const fetchProductVersions = useCallback(async () => {
+  // Fetch ProductVersion
+  const fetchProductVersion = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await axios.get(baseUrl, {
         params: { search: searchTerm, sort: sortOption },
       });
-      // Normalize response into array
       const list = Array.isArray(res.data)
         ? res.data
-        : res.data.ProductVersions ?? res.data.data ?? [];
-      setProductVersions(list);
-      // Set initial filtered list and summary
-      setFilteredProductVersions(list);
+        : res.data.ProductVersion ?? res.data.data ?? [];
+      setProductVersion(list);
+      setFilteredProductVersion(list);
       setSummary({
         total: list.length,
         active: list.filter((z) => z.active).length,
@@ -66,38 +55,19 @@ export default function ProductVersionList({ handleAddProductVersion }) {
       });
     } catch (err) {
       console.error(err);
-      setError("Unable to load ProductVersions.");
+      setError("Unable to load ProductVersion.");
     } finally {
       setLoading(false);
     }
   }, [searchTerm, sortOption]);
 
-  // Fetch metrics counts
-  const fetchMetrics = useCallback(async () => {
-    setLoadingMetrics(true);
-    try {
-      const { data } = await axios.get(metricsUrl);
-      setSummary({
-        total: data.totalProductVersions,
-        active: data.activeProductVersions,
-        archived: data.archivedProductVersions,
-      });
-    } catch {
-      // ignore
-    } finally {
-      setLoadingMetrics(false);
-    }
-  }, []);
-
-  // On mount/update: fetch data
   useEffect(() => {
-    fetchProductVersions();
-    fetchMetrics();
-  }, [fetchProductVersions, fetchMetrics]);
+    fetchProductVersion();
+  }, [fetchProductVersion]);
 
-  // Apply filters (tab, search, sort)
+  // Apply filters
   useEffect(() => {
-    let list = [...ProductVersions];
+    let list = [...ProductVersion];
     if (activeTab === "Active") list = list.filter((z) => z.active);
     else if (activeTab === "Archived") list = list.filter((z) => z.archived);
 
@@ -105,7 +75,9 @@ export default function ProductVersionList({ handleAddProductVersion }) {
       const t = searchTerm.toLowerCase();
       list = list.filter(
         (z) =>
-          z.code.toLowerCase().includes(t) || z.name.toLowerCase().includes(t)
+          z.code.toLowerCase().includes(t) ||
+          z.name.toLowerCase().includes(t) ||
+          (z.description || "").toLowerCase().includes(t)
       );
     }
 
@@ -114,20 +86,22 @@ export default function ProductVersionList({ handleAddProductVersion }) {
     else if (sortOption === "code-desc")
       list.sort((a, b) => b.code.localeCompare(a.code));
 
-    setFilteredProductVersions(list);
-  }, [ProductVersions, activeTab, searchTerm, sortOption]);
+    setFilteredProductVersion(list);
+  }, [ProductVersion, activeTab, searchTerm, sortOption]);
 
   // Toggle select all
   const toggleSelectAll = (e) =>
-    setSelectedIds(e.target.checked ? filteredProductVersions.map((z) => z._id) : []);
+    setSelectedIds(
+      e.target.checked ? filteredProductVersion.map((z) => z._id) : []
+    );
 
-  // Delete selected ProductVersions
+  // Delete selected
   const handleDeleteSelected = async () => {
     if (!selectedIds.length) {
-      toast.info("No ProductVersions selected");
+      toast.info("No ProductVersion selected");
       return;
     }
-    if (!window.confirm("Delete selected ProductVersions?")) return;
+    if (!window.confirm("Delete selected ProductVersion?")) return;
     try {
       const results = await Promise.allSettled(
         selectedIds.map((id) => axios.delete(`${baseUrl}/${id}`))
@@ -135,109 +109,90 @@ export default function ProductVersionList({ handleAddProductVersion }) {
       const ok = results.filter((r) => r.status === "fulfilled").length;
       toast.success(`${ok} deleted`);
       setSelectedIds([]);
-      fetchProductVersions();
+      fetchProductVersion();
     } catch {
       toast.error("Delete failed");
     }
   };
 
-  // Loading or error states
+  // Export Excel
+  const exportToExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(filteredProductVersion);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "ProductVersions");
+    XLSX.writeFile(wb, "ProductVersions.xlsx");
+  };
+
+  // Export PDF
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    doc.text("Product Versions", 14, 10);
+    autoTable(doc, {
+      head: [columns],
+      body: filteredProductVersion.map((z) => [
+        z.code,
+        z.name,
+        z.description,
+        z.type,
+   
+        z.createdAt ? new Date(z.createdAt).toLocaleString() : "—",
+        z.updatedAt ? new Date(z.updatedAt).toLocaleString() : "—",
+        z.active ? "Yes" : "No",
+      ]),
+    });
+    doc.save("ProductVersions.pdf");
+  };
+
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
   if (viewingId)
     return (
-      <ProductVersionViewPage ProductVersionId={viewingId} goBack={() => setViewingId(null)} />
+      <ProductDimVersionViewPage
+        ProductVersionId={viewingId}
+        goBack={() => setViewingId(null)}
+      />
     );
 
-  // Render main table
   return (
     <div>
       <ToastContainer />
 
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold">ProductVersions</h3>
-        <div className="space-x-2">
-          <button onClick={handleAddProductVersion} className="btn">
+        <h3 className="text-xl font-semibold">Product Versions</h3>
+        <div className="flex gap-3 items-center">
+          <button
+            onClick={handleAddProductProduct}
+            className="h-8 px-3 border border-green-500 rounded hover:bg-green-100"
+          >
             + Add
           </button>
           <button
             onClick={handleDeleteSelected}
-            className="btn"
             disabled={!selectedIds.length}
+            className="h-8 px-3 border border-red-500 rounded hover:bg-red-100"
           >
-            Delete
+            Delete ({selectedIds.length})
+          </button>
+          <button
+            onClick={generatePDF}
+            className="h-8 px-3 border border-blue-500 rounded hover:bg-blue-100"
+          >
+            PDF
+          </button>
+          <button
+            onClick={exportToExcel}
+            className="h-8 px-3 border border-yellow-500 rounded hover:bg-yellow-100"
+          >
+            Export
           </button>
         </div>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        {["total", "active", "archived"].map((key, idx) => (
-          <div key={key} className="p-4 bg-gray-50 rounded">
-            <div className="text-2xl">{summary[key]}</div>
-            <div>{key.charAt(0).toUpperCase() + key.slice(1)} ProductVersions</div>
-          </div>
-        ))}
-      </div>
+      {/* Tabs */}
+      <div className="flex gap-4 mb-4"></div>
 
-      {/* Filters */}
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex space-x-4">
-          <ul className="flex space-x-4">
-            {tabNames.map((tab) => (
-              <li
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`cursor-pointer pb-1 ${
-                  activeTab === tab
-                    ? "border-b-2 border-green-600 text-green-600"
-                    : "text-gray-600"
-                }`}
-              >
-                {tab}
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex items-center space-x-2">
-            <FaSortAmountDown />
-            <select
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-              className="border px-2 py-1 rounded"
-            >
-              <option value="">Sort</option>
-              <option value="code-asc">Code ↑</option>
-              <option value="code-desc">Code ↓</option>
-            </select>
-          </div>
-
-          <div className="relative">
-            <FaFilter className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search…"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 pr-2 py-1 border rounded"
-            />
-          </div>
-        </div>
-
-        <button
-          onClick={() => {
-            setSearchTerm("");
-            setSortOption("");
-            setActiveTab(tabNames[0]);
-          }}
-          className="text-red-500"
-        >
-          Reset
-        </button>
-      </div>
-
-      {/* Data table */}
+      {/* Table */}
       <div className="overflow-auto bg-white rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -247,8 +202,8 @@ export default function ProductVersionList({ handleAddProductVersion }) {
                   type="checkbox"
                   onChange={toggleSelectAll}
                   checked={
-                    selectedIds.length === filteredProductVersions.length &&
-                    !!filteredProductVersions.length
+                    selectedIds.length === filteredProductVersion.length &&
+                    !!filteredProductVersion.length
                   }
                 />
               </th>
@@ -263,8 +218,8 @@ export default function ProductVersionList({ handleAddProductVersion }) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredProductVersions.length ? (
-              filteredProductVersions.map((z) => (
+            {filteredProductVersion.length ? (
+              filteredProductVersion.map((z) => (
                 <tr key={z._id} className="hover:bg-gray-100">
                   <td className="px-4 py-2">
                     <input
@@ -290,15 +245,16 @@ export default function ProductVersionList({ handleAddProductVersion }) {
                   <td className="px-4 py-2">{z.name}</td>
                   <td className="px-4 py-2">{z.description || "—"}</td>
                   <td className="px-4 py-2">{z.type}</td>
-                  <td className="px-4 py-2">{z.warehouse?.name || "—"}</td>
-                  <td className="px-4 py-2">{z.ProductVersionAddress || "—"}</td>
-                  <td className="px-4 py-2">{z.remarks || "—"}</td>
-                  <td className="px-4 py-2">{z.archived ? "Yes" : "No"}</td>
-                  <td className="px-4 py-2">{z.company?.name || "—"}</td>
-                  <td className="px-4 py-2">{(z.groups || []).length}</td>
-                  <td className="px-4 py-2">{z.createdBy || "—"}</td>
-                  <td className="px-4 py-2">{z.updatedBy || "—"}</td>
-                  <td className="px-4 py-2">{z.active ? "Yes" : "No"}</td>
+                  <td className="px-4 py-2">
+                    {(z.values || []).length ? z.values.join(", ") : "—"}
+                  </td>
+
+                  <td className="px-4 py-2">
+                    {z.createdAt ? new Date(z.createdAt).toLocaleString() : "—"}
+                  </td>
+                  <td className="px-4 py-2">
+                    {z.updatedAt ? new Date(z.updatedAt).toLocaleString() : "—"}
+                  </td>
                 </tr>
               ))
             ) : (
@@ -307,7 +263,7 @@ export default function ProductVersionList({ handleAddProductVersion }) {
                   colSpan={columns.length + 1}
                   className="px-4 py-6 text-center text-gray-500"
                 >
-                  No ProductVersions found.
+                  No Product Version found.
                 </td>
               </tr>
             )}

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import ProductStyleList from "./ProductStyleList";
-import ProductStyleForm from "./ProductStyleForm";
-import ProductStyleViewPage from "./ProductStyleViewPagee";
+import ProductStyleList from "./ProductDimStyleList";
+import ProductStyleForm from "./productDimStyleForm";
+import ProductStyleViewPage from "./ProductDimStyleViewPage";
 
 export default function ProductStylePage() {
   const [view, setView] = useState("list"); // "list" | "form" | "details"
@@ -31,27 +31,24 @@ export default function ProductStylePage() {
   return (
     <div className="w-full p-6 bg-white rounded-lg">
       {view === "list" && (
-        <ProductStyleList handleAddProductStyle={handleAddProductStyle} onView={handleViewProductStyle} />
+        <ProductStyleList
+          handleAddProductStyle={handleAddProductStyle}
+          onView={handleViewProductStyle}
+        />
       )}
 
       {view === "form" && (
         <ProductStyleForm
           ProductStyleId={selectedId}
           onSave={handleSaved}
-           handleCancel
-           
-           
-           ={handleCancel}
+          handleCancel={handleCancel}
         />
       )}
 
       {view === "details" && (
         <ProductStyleViewPage
           ProductStyleId={selectedId}
-          onEdit={handleEditProductStyle
-
-            
-          }
+          onEdit={handleEditProductStyle}
           onBack={handleCancel}
         />
       )}

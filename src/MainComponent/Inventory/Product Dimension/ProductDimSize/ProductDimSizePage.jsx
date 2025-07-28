@@ -1,8 +1,8 @@
 
 
 import React, { useState } from "react";
-import ProductSizeList from "./ProductSizeList";
-import ProductSizeForm from "./ProductSizeForm";
+import ProductSizeList from "./ProductDimSizeList";
+import ProductSizeForm from "./Size";
 import ProductSizeViewPage from "./ProductSizeViewPagee";
 
 export default function ProductSizePage() {

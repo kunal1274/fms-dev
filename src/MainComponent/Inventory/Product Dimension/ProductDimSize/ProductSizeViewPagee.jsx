@@ -5,15 +5,15 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
 
-const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/versions";
+const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sizes";
 
-const ProductDimVersionViewPage = ({
-  ProductVersionId: propProductVersionId,
+const ProductSizeViewPage = ({
+  ProductSizeId: propProductSizeId,
   toggleView,
   goBack,
 }) => {
   const { id } = useParams();
-  const ProductVersionId = propProductVersionId || id;
+  const ProductSizeId = propProductSizeId || id;
 
   const [form, setForm] = useState({
     code: "",
@@ -29,35 +29,35 @@ const ProductDimVersionViewPage = ({
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch Product Version data
+  // Fetch Product Size data
   useEffect(() => {
-    const fetchVersion = async () => {
+    const fetchSize = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/${ProductVersionId}`);
+        const res = await axios.get(`${baseUrl}/${ProductSizeId}`);
         if (res.status === 200) {
           const data = res.data.data;
-          setForm({
+          setForm((prev) => ({
+            ...prev,
             ...data,
             values: data.values && data.values.length > 0 ? data.values : [""],
-          });
+          }));
         } else {
           setError(`Unexpected response status: ${res.status}`);
         }
       } catch (err) {
         setError(
-          err.response?.data?.message || "Failed to fetch Product Version data."
+          err.response?.data?.message || "Failed to fetch Product Size data."
         );
       } finally {
         setLoading(false);
       }
     };
-    fetchVersion();
-  }, [ProductVersionId]);
+    fetchSize();
+  }, [ProductSizeId]);
 
-  // Handle input changes
+  // Input field change handler
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
     if (type === "file") {
@@ -67,15 +67,16 @@ const ProductDimVersionViewPage = ({
     }
   };
 
-  // Handle version value changes
+  // Handle Product Size value updates
   const handleValueChange = (index, value) => {
     const updated = [...form.values];
     updated[index] = value;
     setForm((prev) => ({ ...prev, values: updated }));
   };
 
-  const addValueField = () =>
+  const addValueField = () => {
     setForm((prev) => ({ ...prev, values: [...prev.values, ""] }));
+  };
 
   const removeValueField = (index) => {
     const updated = form.values.filter((_, i) => i !== index);
@@ -97,17 +98,14 @@ const ProductDimVersionViewPage = ({
     }
 
     try {
-      setUpdating(true);
       const payload = { ...form, values: cleanValues };
-      const res = await axios.put(`${baseUrl}/${ProductVersionId}`, payload);
+      const res = await axios.put(`${baseUrl}/${ProductSizeId}`, payload);
       if (res.status === 200) {
-        toast.success("Product Version updated successfully!");
+        toast.success("Product Size updated successfully!");
         setIsEditing(false);
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed.");
-    } finally {
-      setUpdating(false);
     }
   };
 
@@ -116,17 +114,17 @@ const ProductDimVersionViewPage = ({
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
         <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin" />
         <p className="mt-4 text-gray-600 text-lg">
-          Loading Product Version data...
+          Loading Product Size data...
         </p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-white rounded shadow-md">
+    <div className="p-6 bg-white">
       <ToastContainer />
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Product Version Details</h2>
+        <h2 className="text-xl font-semibold">Product Size View Page</h2>
       </div>
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -134,7 +132,7 @@ const ProductDimVersionViewPage = ({
       <form className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Version Code
+            Size Code
           </label>
           <input
             name="code"
@@ -146,7 +144,7 @@ const ProductDimVersionViewPage = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Version Name *
+            Size Name
           </label>
           <input
             name="name"
@@ -170,23 +168,6 @@ const ProductDimVersionViewPage = ({
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-600">
-            Type
-          </label>
-          <select
-            name="type"
-            value={form.type}
-            onChange={handleChange}
-            disabled={!isEditing}
-            className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-          >
-            <option value="Physical">Physical</option>
-            <option value="Virtual">Virtual</option>
-          </select>
-        </div>
-
-        {/* Values section */}
         <div className="sm:col-span-2">
           <label className="block text-sm font-medium text-gray-700">
             Values *
@@ -221,34 +202,27 @@ const ProductDimVersionViewPage = ({
           )}
         </div>
 
-        {/* Action buttons */}
         <div className="sm:col-span-2 flex justify-end gap-4 mt-6">
-          {!isEditing ? (
-            <button
-              type="button"
-              onClick={handleEdit}
-              className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
-            >
-              Edit
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleUpdate}
-              disabled={updating}
-              className={`px-6 py-2 text-white rounded transition ${
-                updating ? "bg-blue-300" : "bg-blue-600 hover:bg-blue-700"
-              }`}
-            >
-              {updating ? "Updating..." : "Update"}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleEdit}
+            className="px-6 py-2 bg-green-200 rounded hover:bg-gray-300 transition"
+          >
+            Edit
+          </button>
           <button
             type="button"
             onClick={goBack}
-            className="px-6 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
+            className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
           >
             Go Back
+          </button>
+          <button
+            type="button"
+            onClick={handleUpdate}
+            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          >
+            Update
           </button>
         </div>
       </form>
@@ -256,4 +230,4 @@ const ProductDimVersionViewPage = ({
   );
 };
 
-export default ProductDimVersionViewPage;
+export default ProductSizeViewPage;

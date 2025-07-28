@@ -38,6 +38,9 @@ export const PAGE = {
   CONFIG: "CONFIG",
   COLOR: "COLOR",
   SERIALS: "SERIALS",
+  DIMVERSION: "DIMVERSION", // Added
+  STYLE: "STYLE", // Added
+  SIZE: "SIZE", // Added
 };
 
 export const VIEW_MODES = {
@@ -62,7 +65,7 @@ export const groups = [
   {
     id: "setups",
     title: "Inventory Master",
-    items: [], // You can populate this dynamically if needed
+    items: [],
   },
   {
     id: "transaction",
@@ -72,13 +75,12 @@ export const groups = [
         id: "journals-group",
         title: "Inventory Journal",
         items: [
-           {
+          {
             id: "jornal",
-            title: " Journal Creation Form",
+            title: "Journal Creation Form",
             icon: <FaArchive />,
             page: PAGE.INVENTORY_JOURNALS,
           },
-          
           {
             id: "inout",
             title: "Inout Journal",
@@ -182,6 +184,14 @@ export const setupSections = [
         icon: <FaFilter />,
         page: PAGE.CONFIG,
       },
+      {
+        id: "dimversion",
+        title: "Product Dim Version",
+        icon: <FaFilter />,
+        page: PAGE.DIMVERSION,
+      },
+      { id: "style", title: "Style", icon: <FaFilter />, page: PAGE.STYLE },
+      { id: "size", title: "Size", icon: <FaFilter />, page: PAGE.SIZE },
     ],
   },
   {

@@ -7,7 +7,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
-import ProductStyleViewPage from "./ProductStyleViewPagee";
+import ProductStyleViewPage from "./ProductStyleViewPagee.jsx";
 
 export default function ProductStyleList({ handleAddProductStyle }) {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/ProductStyles";
