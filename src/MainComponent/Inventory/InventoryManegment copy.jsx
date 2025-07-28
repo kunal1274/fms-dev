@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
+
 import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
 
 import ItemMasterPage from "./Item Master/Item/ItemPage";
@@ -22,13 +23,8 @@ const initialForm = {
 
 export default function ViewTogglePage() {
   const [companies, setCompanies] = useState([]);
-  const [form, setForm] = useState(initialForm);
-  const [page, setPage] = useState(PAGE.TOGGLE);
-  const [viewMode, setViewMode] = useState(VIEW_MODES.GRID);
-  const [hiddenGroups, setHiddenGroups] = useState({});
-  const [hiddenSections, setHiddenSections] = useState({});
-  const [hiddenSubgroups, setHiddenSubgroups] = useState({});
 
+  // Fetch companies once
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
@@ -41,6 +37,13 @@ export default function ViewTogglePage() {
     fetchCompanies();
   }, []);
 
+  const [form, setForm] = useState(initialForm);
+  const [page, setPage] = useState(PAGE.TOGGLE);
+  const [viewMode, setViewMode] = useState(VIEW_MODES.GRID);
+  const [hiddenGroups, setHiddenGroups] = useState({});
+  const [hiddenSections, setHiddenSections] = useState({});
+  const [hiddenSubgroups, setHiddenSubgroups] = useState({});
+
   const goBack = () => setPage(PAGE.TOGGLE);
   const toggleGroup = (id) =>
     setHiddenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -48,50 +51,6 @@ export default function ViewTogglePage() {
     setHiddenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   const toggleSubgroup = (id) =>
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
-
-  const renderItems = (items, cols) => {
-    const containerClass =
-      viewMode === VIEW_MODES.GRID
-        ? `grid grid-cols-${cols} gap-4`
-        : viewMode === VIEW_MODES.ICON
-        ? `grid grid-cols-${cols * 2} gap-4`
-        : "flex flex-col gap-3";
-
-    return (
-      <div className={containerClass}>
-        {items.map((item) => (
-          <div
-            key={item.id}
-            onClick={() => item.page && setPage(item.page)}
-            className={
-              viewMode === VIEW_MODES.LIST
-                ? "cursor-pointer flex items-center p-2 hover:bg-gray-50 transition rounded"
-                : "cursor-pointer bg-white rounded shadow hover:shadow-md transition p-3 flex flex-col items-center"
-            }
-          >
-            <div
-              className={
-                viewMode === VIEW_MODES.LIST
-                  ? "text-xl text-gray-500 mr-3"
-                  : "text-lg text-gray-600 mb-2"
-              }
-            >
-              {item.icon}
-            </div>
-            <h5
-              className={
-                viewMode === VIEW_MODES.LIST
-                  ? "text-sm font-medium"
-                  : "text-base font-medium text-center"
-              }
-            >
-              {item.title}
-            </h5>
-          </div>
-        ))}
-      </div>
-    );
-  };
 
   const componentMap = {
     [PAGE.ITEM_MASTER]: (
@@ -128,6 +87,50 @@ export default function ViewTogglePage() {
     [PAGE.INVENTORY_JOURNALS]: <JournalCreationForm />,
   };
 
+  const renderItems = (items, cols) => {
+    const containerClass =
+      viewMode === VIEW_MODES.GRID
+        ? `grid grid-cols-${cols} gap-6`
+        : viewMode === VIEW_MODES.ICON
+        ? `grid grid-cols-${cols * 2} gap-6`
+        : "flex flex-col gap-4";
+
+    return (
+      <div className={containerClass}>
+        {items.map((item) => (
+          <div
+            key={item.id}
+            onClick={() => item.page && setPage(item.page)}
+            className={
+              viewMode === VIEW_MODES.LIST
+                ? "cursor-pointer flex justify-between items-center p-4 hover:bg-gray-50 transition"
+                : "cursor-pointer bg-white rounded-lg shadow hover:shadow-lg transform hover:scale-105 transition p-6 flex justify-between items-center"
+            }
+          >
+            <h5
+              className={
+                viewMode === VIEW_MODES.LIST
+                  ? "text-md font-medium"
+                  : "text-lg font-medium"
+              }
+            >
+              {item.title}
+            </h5>
+            <div
+              className={
+                viewMode === VIEW_MODES.LIST
+                  ? "text-2xl text-gray-500 ml-4"
+                  : "text-xl text-gray-600"
+              }
+            >
+              {item.icon}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   if (page !== PAGE.TOGGLE) {
     return (
       <div className="p-6">
@@ -143,55 +146,47 @@ export default function ViewTogglePage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-xl font-semibold">Item Dashboard</h2>
-        <div className="flex justify-end items-center space-x-4">
-          <div className="flex bg-gray-100 rounded-lg overflow-hidden">
-            {[VIEW_MODES.GRID, VIEW_MODES.ICON, VIEW_MODES.LIST].map(
-              (mode, index) => {
-                const icons = [<FaThLarge />, <FaTh />, <FaListUl />];
-                return (
-                  <button
-                    key={mode}
-                    onClick={() => setViewMode(mode)}
-                    className={`p-2 w-10 h-10 flex items-center justify-center ${
-                      viewMode === mode
-                        ? "bg-white shadow"
-                        : "hover:bg-gray-200"
-                    } transition`}
-                  >
-                    {React.cloneElement(icons[index], {
-                      className: "text-base",
-                    })}
-                  </button>
-                );
-              }
-            )}
-          </div>
-        </div>
-      </div>
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Item Dashboard</h2>
+   <div className="flex justify-end mb-4">
+  <div className="flex space-x-2">
+    {[VIEW_MODES.GRID, VIEW_MODES.ICON, VIEW_MODES.LIST].map(
+      (mode, index) => {
+        const icons = [<FaThLarge />, <FaTh />, <FaListUl />];
+        return (
+          <button
+            key={mode}
+            onClick={() => setViewMode(mode)}
+            className={`p-3 w-12 h-12 flex items-center justify-center ${
+              viewMode === mode ? "bg-white shadow" : "hover:bg-gray-200"
+            } transition`}
+          >
+            {React.cloneElement(icons[index], { className: "text-lg" })}
+          </button>
+        );
+      }
+    )}
+  </div>
+</div>
+
 
       {groups.map((grp) => (
-        <div key={grp.id} className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">{grp.title}</h3>
-            <button
-              onClick={() => toggleGroup(grp.id)}
-              className="text-gray-600 text-xl hover:text-gray-800"
-            >
+        <div key={grp.id} className="mb-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-semibold">{grp.title}</h3>
+            <button onClick={() => toggleGroup(grp.id)} className="">
               {hiddenGroups[grp.id] ? ">" : "^"}
             </button>
           </div>
           {!hiddenGroups[grp.id] &&
             (grp.id === "setups"
               ? setupSections.map((section) => (
-                  <div key={section.id} className="mb-6">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-md font-medium">{section.title}</h4>
+                  <div key={section.id} className="ml-4 mt-4">
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-lg font-medium">{section.title}</h4>
                       <button
                         onClick={() => toggleSection(section.id)}
-                        className="text-gray-600 hover:text-gray-800"
+                        className=""
                       >
                         {hiddenSections[section.id] ? ">" : "^"}
                       </button>
@@ -202,12 +197,12 @@ export default function ViewTogglePage() {
                 ))
               : grp.subgroups
               ? grp.subgroups.map((sub) => (
-                  <div key={sub.id} className="mb-6">
-                    <div className="flex justify-between items-center mb-2">
-                      <h5 className="text-md font-medium">{sub.title}</h5>
+                  <div key={sub.id} className="ml-4 mt-4">
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-lg font-medium">{sub.title}</h4>
                       <button
                         onClick={() => toggleSubgroup(sub.id)}
-                        className="text-gray-600 hover:text-gray-800"
+                        className=""
                       >
                         {hiddenSubgroups[sub.id] ? ">" : "^"}
                       </button>
