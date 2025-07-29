@@ -622,7 +622,7 @@ const SaleOrderform = ({ handleCancel }) => {
                 <option value="">Select Customer</option>
                 {customers.map((customer) => (
                   <option key={customer._id} value={customer._id}>
-                    {customer.name}
+                    {`${customer.code} ${customer.name}`}
                   </option>
                 ))}
               </select>
@@ -637,7 +637,7 @@ const SaleOrderform = ({ handleCancel }) => {
                   </label>
                   <input
                     type="text"
-                    value={selectedCustomerDetails?.account || ""}
+                    value={selectedCustomerDetails.name}
                     placeholder="Customer Account"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly

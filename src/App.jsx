@@ -1,12 +1,12 @@
 import React from "react";
 
-import Dashbord from "./Component/Dashbord/Dashbord";
-// import Dashbord from "./MainComponent/Inventory/Product Dimension/ProductDimVersion/ProductDimVersionPage";
+// import Dashbord from "./Component/Dashbord/Dashbord";
+import Dashbord from "./MainComponent/Sale/SaleMaster/SaleOrderViewPage";
 
 const App = () => {
   return (
     <div>
-      <Dashbord/>
+      <Dashbord />
     </div>
   );
 };
