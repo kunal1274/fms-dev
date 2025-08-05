@@ -41,6 +41,7 @@ export const PAGE = {
   DIMVERSION: "DIMVERSION", // Added
   STYLE: "STYLE", // Added
   SIZE: "SIZE", // Added
+  INOUT: "INOUT",
 };
 
 export const VIEW_MODES = {
@@ -83,9 +84,9 @@ export const groups = [
           },
           {
             id: "inout",
-            title: "Inout Journal",
+            title: "Inuout Journal",
             icon: <FaArchive />,
-            page: PAGE.INVENTORY_JOURNALS,
+            page: PAGE.INVENTORY_INOUT,
           },
           {
             id: "adjustment",

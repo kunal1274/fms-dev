@@ -15,7 +15,8 @@ import LocationPage from "./Storage Dimension/Location/LocationPage";
 import RackPage from "./Storage Dimension/Rack/RackPage";
 import Serial from "./Tracking Dimension/Serial/SerialPage";
 import JournalCreationForm from "./Inventory Jornal/Jornal/Jornal";
-
+import Inout from "../Sale/JournalRevenue/InoutJornal";
+import InoutJournal from "../Sale/JournalRevenue/InoutJornal";
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
 };
@@ -125,7 +126,10 @@ export default function ViewTogglePage() {
     [PAGE.SERIALS]: (
       <Serial companies={companies} form={form} setForm={setForm} />
     ),
-    [PAGE.INVENTORY_JOURNALS]: <JournalCreationForm />,
+    [PAGE.INVENTORY_INOUT]: (
+      <InoutJournal companies={companies} form={form} setForm={setForm} />
+    ),
+    // [PAGE.INVENTORY_JOURNALS]: <JournalCreationForm />,
   };
 
   if (page !== PAGE.TOGGLE) {

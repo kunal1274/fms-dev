@@ -5,7 +5,10 @@ import "react-toastify/dist/ReactToastify.css";
 
 const API_URL = "https://your-api-url.com/journal"; // Replace with your real endpoint
 
-const JournalCreationForm = () => {
+const 
+
+
+JournalCreationForm = () => {
   const [form, setForm] = useState({});
   const [items, setItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);

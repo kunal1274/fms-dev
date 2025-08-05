@@ -5,21 +5,21 @@ import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
 // Actual imports for each page component
 import CustomerPage from "../../Customer/CustomerPage";
 import SaleOrderPage from "../../Sale/SaleMaster/SalePage";
-import SalesProformaInvoice from "../../Sale/Transaction/SalesProformaInvoice";
+import SalesProformaInvoice from "../../Sale/Transaction/SalesProformaInvoice/SalesProformaInvoice";
 import ReturnOrder from "../../Sale/ReturnOrder/ReturnOrder";
 import CreditNote from "../../Sale/CreditNoteDebitNote/CreditNote";
 import DebitNote from "../../Sale/CreditNoteDebitNote/DebitNote";
 import JournalPage from "../../Sale/JournalRevenue/JournaRevenueOrderform";
 import FreeTaxInvoice from "../../Sale/FreeTaxingInvoice/FreeTaxingInvoice";
-import CustomerTransaction from "../Transaction/CustomerTransaction";
-import CustomerBalance from "../../Sale/Transaction/CustomerBalance";
-import CustomerAgingReport from "../Transaction/CustomerAgingReport";
-import SalesAccountingTransaction from "../../Sale/Transaction/SalesAccountingTransaction";
-import SalesAccountingBalance from "../Transaction/SalesAccountingTransaction";
-import SalesMarginReport from "../../Sale/Transaction/CustomerTransactionPage";
-import SalesInvoice from "../Transaction/SalesInvoice";
-import SalesConfirmationInvoice from "../Transaction/SalesConfirmationInvoice";
-import SalesProformaConfirmationInvoice from "../Transaction/SalesProformaConfirmationInvoice ";
+import CustomerTransaction from "../Transaction/Customer transaction/CustomerTransaction";
+import CustomerBalance from "../../Sale/Transaction/Customer balance/CustomerBalance";
+import CustomerAgingReport from "../Transaction/Customer Aging Report/CustomerAgingReport";
+import SalesAccountingTransaction from "../../Sale/Transaction/Sales Accounting Transaction/SalesAccountingTransaction";
+import SalesAccountingBalance from "../Transaction/Sales Accounting Balance/SalesAccountingBalance";
+import SalesMarginReport from "../../Sale/Transaction/Sale margine  report/Salemarginereport";
+import SalesInvoice from "../Transaction/SalesInvoice/SalesInvoice";
+import SalesConfirmationInvoice from "../Transaction/SalesConfirmationInvoice/SalesConfirmationInvoice";
+import SalesProformaConfirmationInvoice from "../Transaction/SalesProformaConfirmationInvoice/SalesProformaConfirmationInvoice";
 
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",

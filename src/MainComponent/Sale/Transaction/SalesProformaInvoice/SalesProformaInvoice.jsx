@@ -50,45 +50,46 @@ const ProformaConfirmationInvoice = () => {
 
   return (
     <div className="p-6 text-sm text-gray-700">
-      <h2 className="text-lg font-bold mb-4">Sales Invoice</h2>
+      <h2 className="text-lg font-bold mb-4">Sales Proforma Invoice</h2>
 
       {/* Header Form Section */}
-      <section
-        className="p-6 bg-white rounded dd
-      
-      "
-      >
+      <section className="p-6 bg-white rounded dd">
         <h2 className="text-lg font-medium text-gray-700 mb-4">Details</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {[
             {
-              label: "Sale Proforma confirmation No.",
+              label: "Proforma Invoice No",
               placeholder: "Auto-generated",
             },
             {
-              label: "Invoice Date",
+              label: "Sale Invoice Date",
+
+
+
+              
               placeholder: "DD-MM-YYYY",
             },
             {
               label: "Sales Order No:",
               placeholder: "Auto-generated",
             },
-            { label: "Customer account:", isSelect: true },
-            { label: "Customer Name:", isSelect: true }, { label: "Contact Person:", placeholder: "e.g. John Doe" },
+            { label: "Customer Account:", isSelect: true },
+            { label: "Customer Name:", isSelect: true },
+
+            { label: "Contact Person:", placeholder: "e.g. John Doe" },
             { label: "Customer Address", isTextarea: true, rows: 4 },
-            { label: "Delivery Address", isTextarea: true, rows: 4 },
-
-           
-            { label: "Currency:", placeholder: "e.g. John Doe" },
-            { label: "Currency:", placeholder: "e.g. John Doe" },
-
-            { label: "Validity Date", isTextarea: true, rows: 4 },  { label: "Remarks", isTextarea: true, rows: 4 },
+            { label: "Delivery Address", isTextarea: true, rows: 4 },    { label: "Payment Terms:", placeholder: "Enter address" },{ label: "Current:", placeholder: "Enter address" },
+            { label: "Proforma Validity date"},
+        
             {
               label: "Delivery Mode:",
               placeholder: "e.g. Courier",
             },
             { label: "Order Status:", placeholder: "Pending" },
-          
+            {
+              label: "Estimated Delivery Date:",
+              placeholder: "DD-MM-YYYY",
+            },   { label: "Remarks", isTextarea: true, rows: 4 },
           ].map((field, index) => (
             <div key={index}>
               <label className="block text-sm font-medium text-gray-600">
