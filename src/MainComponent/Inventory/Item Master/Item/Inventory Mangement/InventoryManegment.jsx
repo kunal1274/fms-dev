@@ -3,20 +3,28 @@ import axios from "axios";
 import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
 import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
 
-import ItemMasterPage from "./Item Master/Item/ItemPage";
-import WarehousePage from "./Storage Dimension/Warehouse/WarehousePage";
-import SitePage from "./Storage Dimension/Site/SitePage";
-import ZonePage from "./Storage Dimension/Zone/ZonePage";
-import ShelvesPage from "./Storage Dimension/Shelves/ShelvesPage";
-import Aisles from "./Storage Dimension/Aisles/AislesPage";
-import BatchValuePage from "./Tracking Dimension/BatchValue/BatchValueViewPagee";
-import BinPage from "./Storage Dimension/Bin/BinPage";
-import LocationPage from "./Storage Dimension/Location/LocationPage";
-import RackPage from "./Storage Dimension/Rack/RackPage";
-import Serial from "./Tracking Dimension/Serial/SerialPage";
-import JournalCreationForm from "./Inventory Jornal/Jornal/Jornal";
-import Inout from "../Sale/JournalRevenue/InoutJornal";
-import InoutJournal from "../Sale/JournalRevenue/InoutJornal";
+// === Page Components ===
+import ItemMasterPage from "../ItemPage";
+import WarehousePage from "../../../Storage Dimension/Warehouse/WarehousePage";
+import SitePage from "../../../Storage Dimension/Site/SitePage";
+import ZonePage from "../../../Storage Dimension/Zone/ZonePage";
+import ShelvesPage from "../../../Storage Dimension/Shelves/ShelvesPage";
+import AislesPage from "../../../Storage Dimension/Aisles/AislesPage";
+import BatchValuePage from "../../../Tracking Dimension/BatchValue/BatchValueViewPagee";
+import BinPage from "../../../Storage Dimension/Bin/BinPage";
+import LocationPage from "../../../Storage Dimension/Location/LocationPage";
+import RackPage from "../../../Storage Dimension/Rack/RackPage";
+import SerialPage from "../../../Tracking Dimension/Serial/SerialPage";
+import JournalCreationForm from "../../../Inventory Jornal/Jornal/Jornal";
+import InoutJournal from "../../../../Sale/JournalRevenue/InoutJornal";
+
+// === Product Dimensions ===
+import ProductDimColor from "../../../Product Dimension/Color/ProductDimColorPage";
+import ProductDimConfig from "../../../Product Dimension/Configuration/ProductDimConfPage";
+import ProductDimVersion from "../../../Product Dimension/ProductDimVersion/ProductDimVersionPage";
+import Style from "../../../Product Dimension/Style/ProductDimStylePage";
+import Size from "../../../Product Dimension/ProductDimSize/ProductDimSizePage";
+
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
 };
@@ -34,7 +42,8 @@ export default function ViewTogglePage() {
     const fetchCompanies = async () => {
       try {
         const resp = await axios.get("/fms/api/v0/companies");
-        setCompanies(Array.isArray(resp.data) ? resp.data : resp.data.data);
+        const data = Array.isArray(resp.data) ? resp.data : resp.data.data;
+        setCompanies(data);
       } catch (err) {
         console.error("Failed to load companies:", err);
       }
@@ -50,7 +59,8 @@ export default function ViewTogglePage() {
   const toggleSubgroup = (id) =>
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const renderItems = (items, cols) => {
+  const renderItems = (items = [], cols) => {
+    const safeItems = Array.isArray(items) ? items : [];
     const containerClass =
       viewMode === VIEW_MODES.GRID
         ? `grid grid-cols-${cols} gap-4`
@@ -60,7 +70,7 @@ export default function ViewTogglePage() {
 
     return (
       <div className={containerClass}>
-        {items.map((item) => (
+        {safeItems.map((item) => (
           <div
             key={item.id}
             onClick={() => item.page && setPage(item.page)}
@@ -94,6 +104,7 @@ export default function ViewTogglePage() {
     );
   };
 
+  // === FIXED componentMap with all correct PAGE keys ===
   const componentMap = {
     [PAGE.ITEM_MASTER]: (
       <ItemMasterPage companies={companies} form={form} setForm={setForm} />
@@ -111,7 +122,7 @@ export default function ViewTogglePage() {
       <ShelvesPage companies={companies} form={form} setForm={setForm} />
     ),
     [PAGE.AISLES]: (
-      <Aisles companies={companies} form={form} setForm={setForm} />
+      <AislesPage companies={companies} form={form} setForm={setForm} />
     ),
     [PAGE.BATCHES]: (
       <BatchValuePage companies={companies} form={form} setForm={setForm} />
@@ -124,12 +135,29 @@ export default function ViewTogglePage() {
       <RackPage companies={companies} form={form} setForm={setForm} />
     ),
     [PAGE.SERIALS]: (
-      <Serial companies={companies} form={form} setForm={setForm} />
+      <SerialPage companies={companies} form={form} setForm={setForm} />
     ),
-    [PAGE.INVENTORY_INOUT]: (
+    [PAGE.INVENTORY_JOURNALS]: (
+      <JournalCreationForm
+        companies={companies}
+        form={form}
+        setForm={setForm}
+      />
+    ),
+    [PAGE.INOUT]: (
       <InoutJournal companies={companies} form={form} setForm={setForm} />
     ),
-    // [PAGE.INVENTORY_JOURNALS]: <JournalCreationForm />,
+    [PAGE.COLOR]: (
+      <ProductDimColor companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.CONFIG]: (
+      <ProductDimConfig companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.DIMVERSION]: (
+      <ProductDimVersion companies={companies} form={form} setForm={setForm} />
+    ),
+    [PAGE.STYLE]: <Style companies={companies} form={form} setForm={setForm} />,
+    [PAGE.SIZE]: <Size companies={companies} form={form} setForm={setForm} />,
   };
 
   if (page !== PAGE.TOGGLE) {
@@ -141,7 +169,7 @@ export default function ViewTogglePage() {
         >
           <FaArrowLeft className="mr-2" /> Back to Dashboard
         </button>
-        {componentMap[page]}
+        {componentMap[page] || null}
       </div>
     );
   }
@@ -223,10 +251,12 @@ export default function ViewTogglePage() {
                       )}
                   </div>
                 ))
-              : renderItems(
+              : grp.items
+              ? renderItems(
                   grp.items,
                   viewMode === VIEW_MODES.GRID ? 4 : grp.items.length
-                ))}
+                )
+              : null)}
         </div>
       ))}
     </div>

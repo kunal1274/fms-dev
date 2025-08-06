@@ -177,8 +177,8 @@ export default function ProductSizeList({ handleAddProductSize }) {
      
 
       {/* Table */}
-      <div className="overflow-auto bg-white rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
+     <div className="overflow-auto max-h-[600px] bg-white rounded-lg">
+  <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-2">

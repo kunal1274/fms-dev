@@ -19,7 +19,7 @@ import SalesAccountingBalance from "../Transaction/Sales Accounting Balance/Sale
 import SalesMarginReport from "../../Sale/Transaction/Sale margine  report/Salemarginereport";
 import SalesInvoice from "../Transaction/SalesInvoice/SalesInvoice";
 import SalesConfirmationInvoice from "../Transaction/SalesConfirmationInvoice/SalesConfirmationInvoice";
-import SalesProformaConfirmationInvoice from "../Transaction/SalesProformaConfirmationInvoice/SalesProformaConfirmationInvoice";
+import SalesProformaConfirmationInvoice from "../Transaction/SalesProformaConfirmationInvoice/SalesProformaConfirmationInvoice.jsx";
 
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",

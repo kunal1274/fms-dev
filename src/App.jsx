@@ -2,10 +2,7 @@ import React from "react";
 
 import Dashbord from "./Component/Dashbord/Dashbord"
 
-
-
-;
-// import Dashbord from "./MainComponent/Sale/Transaction/Sales Accounting Balance/SalesAccountingBalance";
+// import Dashbord from "./MainComponent/Inventory/Product Dimension/Configuration/ProductDimConfList";
 
 const App = () => {
   return (

@@ -6,45 +6,45 @@ import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
-import ConfViewPage from "./ConfViewPage.jsx";
+import ColorViewPage from "./ConfViewPage";
 
-export default function ConfList({ handleAddConf }) {
+export default function ColorList({ handleAddColor }) {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Configurations";
 
   // States
-  const [ConfList, setConfList] = useState([]);
-  const [filteredCompanies, setFilteredCompanies] = useState([]);
+  const [colorList, setColorList] = useState([]);
+  const [filteredConf, setFilteredConf] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
-  const [selectedCompanies, setSelectedCompanies] = useState([]);
-  const [viewingConfId, setViewingConfId] = useState(null);
+  const [selectedConf, setSelectedConf] = useState([]);
+  const [viewingColorId, setViewingColorId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch configurations
-  const fetchCompaniess = useCallback(async () => {
+  // Fetch Conf
+  const fetchConf = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const { data: resp } = await axios.get(baseUrl);
       const list = resp.data || resp;
-      setConfList(list);
-      setFilteredCompanies(list);
+      setColorList(list);
+      setFilteredConf(list);
     } catch (err) {
       console.error(err);
-      setError("Unable to load configurations.");
+      setError("Unable to load Conf.");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchCompaniess();
-  }, [fetchCompaniess]);
+    fetchConf();
+  }, [fetchConf]);
 
   // Filtering & Searching
   useEffect(() => {
-    let list = [...ConfList];
+    let list = [...colorList];
 
     if (selectedOption === "yes") list = list.filter((c) => c.active);
     else if (selectedOption === "no") list = list.filter((c) => !c.active);
@@ -64,50 +64,47 @@ export default function ConfList({ handleAddConf }) {
       );
     }
 
-    setFilteredCompanies(list);
-  }, [ConfList, searchTerm, selectedOption]);
+    setFilteredConf(list);
+  }, [colorList, searchTerm, selectedOption]);
 
   // Handlers
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
   const handleFilterChange = (e) => setSelectedOption(e.target.value);
   const toggleSelectAll = (e) => {
-    setSelectedCompanies(
-      e.target.checked ? filteredCompanies.map((c) => c._id) : []
-    );
+    setSelectedConf(e.target.checked ? filteredConf.map((c) => c._id) : []);
   };
   const handleCheckboxChange = (id) => {
-    setSelectedCompanies((prev) =>
+    setSelectedConf((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     );
   };
   const handleDeleteSelected = async () => {
-    if (selectedCompanies.length === 0) {
-      toast.info("No configurations selected to delete");
+    if (selectedConf.length === 0) {
+      toast.info("No Conf selected to delete");
       return;
     }
-    if (!window.confirm(`Delete ${selectedCompanies.length} configuration(s)?`))
-      return;
+    if (!window.confirm(`Delete ${selectedConf.length} color(s)?`)) return;
 
     try {
       await Promise.all(
-        selectedCompanies.map((id) => axios.delete(`${baseUrl}/${id}`))
+        selectedConf.map((id) => axios.delete(`${baseUrl}/${id}`))
       );
       toast.success("Deleted successfully");
-      fetchCompaniess();
-      setSelectedCompanies([]);
+      fetchConf();
+      setSelectedConf([]);
     } catch (err) {
       console.error(err);
-      toast.error("Error deleting configurations");
+      toast.error("Error deleting Conf");
     }
   };
 
   // Export
   const exportToExcel = () => {
-    if (!ConfList.length) return toast.info("No data to export.");
-    const ws = XLSX.utils.json_to_sheet(ConfList);
+    if (!colorList.length) return toast.info("No data to export.");
+    const ws = XLSX.utils.json_to_sheet(colorList);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Configurations");
-    XLSX.writeFile(wb, "Configurations_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Conf");
+    XLSX.writeFile(wb, "Conf_list.xlsx");
   };
   const generatePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
@@ -125,7 +122,7 @@ export default function ConfList({ handleAddConf }) {
           "Updated At",
         ],
       ],
-      body: filteredCompanies.map((c, i) => [
+      body: filteredConf.map((c, i) => [
         i + 1,
         c.code,
         c.name,
@@ -137,21 +134,21 @@ export default function ConfList({ handleAddConf }) {
         new Date(c.updatedAt).toLocaleDateString(),
       ]),
     });
-    doc.save("Configurations_list.pdf");
+    doc.save("Conf_list.pdf");
   };
 
   const resetFilters = () => {
     setSearchTerm("");
     setSelectedOption("");
   };
-  const handleComapniesClick = (id) => setViewingConfId(id);
-  const goBack = () => setViewingConfId(null);
+  const handleColorClick = (id) => setViewingColorId(id);
+  const goBack = () => setViewingColorId(null);
 
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingConfId) {
-    return <ConfViewPage ConfId={viewingConfId} goBack={goBack} />;
+  if (viewingColorId) {
+    return <ColorViewPage ColorId={viewingColorId} goBack={goBack} />;
   }
 
   return (
@@ -161,14 +158,14 @@ export default function ConfList({ handleAddConf }) {
         <h3 className="text-xl font-semibold">Configurations</h3>
         <div className="flex gap-3">
           <button
-            onClick={handleAddConf}
+            onClick={handleAddColor}
             className="px-3 py-1 border rounded hover:bg-green-100"
           >
             + Add
           </button>
           <button
             onClick={handleDeleteSelected}
-            disabled={!selectedCompanies.length}
+            disabled={!selectedConf.length}
             className="px-3 py-1 border rounded hover:bg-red-100"
           >
             Delete
@@ -188,50 +185,18 @@ export default function ConfList({ handleAddConf }) {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative">
-          <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <select
-            value={selectedOption}
-            onChange={handleFilterChange}
-            className="pl-10 pr-4 py-2 border rounded"
-          >
-            <option value="">Sort/Filter</option>
-            <option value="name">By Name</option>
-            <option value="code-asc">By Code Asc</option>
-            <option value="code-desc">By Code Desc</option>
-            <option value="yes">Active</option>
-            <option value="no">Inactive</option>
-          </select>
-        </div>
-        <div className="relative">
-          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="pl-10 pr-3 py-2 border rounded"
-          />
-        </div>
-        <button onClick={resetFilters} className="text-red-500">
-          Reset
-        </button>
-      </div>
-
       {/* Table */}
       <div className="table-scroll-container h-[400px] overflow-auto bg-white rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               <th className="px-4 py-2">
                 <input
                   type="checkbox"
                   onChange={toggleSelectAll}
                   checked={
-                    selectedCompanies.length === filteredCompanies.length &&
-                    filteredCompanies.length > 0
+                    selectedConf.length === filteredConf.length &&
+                    filteredConf.length > 0
                   }
                 />
               </th>
@@ -255,20 +220,20 @@ export default function ConfList({ handleAddConf }) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredCompanies.length ? (
-              filteredCompanies.map((c) => (
+            {filteredConf.length ? (
+              filteredConf.map((c) => (
                 <tr key={c._id} className="hover:bg-gray-100">
                   <td className="px-4 py-2">
                     <input
                       type="checkbox"
-                      checked={selectedCompanies.includes(c._id)}
+                      checked={selectedConf.includes(c._id)}
                       onChange={() => handleCheckboxChange(c._id)}
                     />
                   </td>
                   <td className="px-6 py-2">{c.code}</td>
                   <td className="px-6 py-2">
                     <button
-                      onClick={() => handleComapniesClick(c._id)}
+                      onClick={() => handleColorClick(c._id)}
                       className="text-blue-600 hover:underline"
                     >
                       {c.name}

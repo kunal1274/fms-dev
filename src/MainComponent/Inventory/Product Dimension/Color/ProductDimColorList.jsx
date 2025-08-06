@@ -185,42 +185,10 @@ export default function ColorList({ handleAddColor }) {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative">
-          <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <select
-            value={selectedOption}
-            onChange={handleFilterChange}
-            className="pl-10 pr-4 py-2 border rounded"
-          >
-            <option value="">Sort/Filter</option>
-            <option value="name">By Name</option>
-            <option value="code-asc">By Code Asc</option>
-            <option value="code-desc">By Code Desc</option>
-            <option value="yes">Active</option>
-            <option value="no">Inactive</option>
-          </select>
-        </div>
-        <div className="relative">
-          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="pl-10 pr-3 py-2 border rounded"
-          />
-        </div>
-        <button onClick={resetFilters} className="text-red-500">
-          Reset
-        </button>
-      </div>
-
       {/* Table */}
       <div className="table-scroll-container h-[400px] overflow-auto bg-white rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               <th className="px-4 py-2">
                 <input
