@@ -1,8 +1,8 @@
 import React from "react";
 
-import Dashbord from "./Component/Dashbord/Dashbord"
+// import Dashbord from "./Component/Dashbord/Dashbord"
 
-// import Dashbord from "./MainComponent/Inventory/Product Dimension/Configuration/ProductDimConfList";
+import Dashbord from "./MainComponent/Inventory/Product Dimension/Color/ProductDimColorList";
 
 const App = () => {
   return (

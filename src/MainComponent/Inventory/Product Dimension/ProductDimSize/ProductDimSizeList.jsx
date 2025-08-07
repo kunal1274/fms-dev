@@ -170,13 +170,68 @@ export default function ProductSizeList({ handleAddProductSize }) {
         </div>
       </div>
 
-      {/* Summary */}
-    
-
-      {/* Filters */}
-     
-
-      {/* Table */}
+    <div className="flex flex-wrap items-center text-sm justify-between p-2 bg-white rounded-md mb-2 space-y-3 md:space-y-0 md:space-x-4">
+         <div className="flex items-center space-x-4">
+           {/* Sort By */}
+           <div className="relative">
+             <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+             <select
+               // value={sortOption}
+               // onChange={handleSortChange}
+               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+             >
+               <option value="">Sort By</option>
+               <option value="Company Name">Company Name</option>
+               <option value="Account Ascending">
+                 Company Account Ascending
+               </option>
+               <option value="Account Descending">
+                 Company Account Descending
+               </option>
+             </select>
+           </div>
+ 
+           {/* Filter By Status */}
+           <div className="relative">
+             <FaFilter className="text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+             <select
+               // value={filterStatus}
+               // onChange={handleFilterChange}
+               className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+             >
+               <option value="All">Filter By Status</option>
+               <option value="yes">Active</option>
+               <option value="no">Inactive</option>
+             </select>
+           </div>
+ 
+           {/* Search */}
+           <div className="relative">
+             <input
+               type="text"
+               placeholder="Search..."
+               value={searchTerm}
+               onChange={handleSearchChange}
+               className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+             />
+             <button
+               type="button"
+               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+               aria-label="Search"
+             >
+               <FaSearch className="w-5 h-5" />
+             </button>
+           </div>
+         </div>
+ 
+         {/* Reset Filter */}
+         <button
+           onClick={resetFilters}
+           className="text-red-500 hover:text-red-600 font-medium"
+         >
+           Reset Filter
+         </button>
+       </div>
      <div className="overflow-auto max-h-[600px] bg-white rounded-lg">
   <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">

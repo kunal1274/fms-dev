@@ -1,174 +1,265 @@
-/* components/Navbar.jsx */
-import React from 'react';
+import React, { useState } from "react";
+import { ToastContainer } from "react-toastify";
+import { FaSortAmountDown, FaFilter, FaSearch } from "react-icons/fa";
 
-export default function Navbar() {
+const A = ({
+  viewingCompaniesId,
+  toggleView,
+  goBack,
+  handleAddCompany,
+  handleDeleteSelected,
+  generatePDF,
+  exportToExcel,
+  selectedCompanies = [],
+  toggleSelectAll,
+  filteredCompanies = [],
+  handleCheckboxChange,
+  handleCompaniesClick,
+  resetFilters,
+  handleSearchChange,
+  searchTerm = "",
+}) => {
+  const [sortOption, setSortOption] = useState("");
+  const [filterStatus, setFilterStatus] = useState("All");
+
+  const handleSortChange = (e) => setSortOption(e.target.value);
+  const handleFilterChange = (e) => setFilterStatus(e.target.value);
+
   return (
-    <nav className="w-full bg-white shadow-md fixed top-0 left-0 z-50">
-      <div className="container mx-auto flex items-center justify-between p-4">
-        <div className="text-2xl font-bold text-blue-600">YourSaaS</div>
-        <div className="hidden md:flex space-x-6">
-          <a href="#features" className="hover:text-blue-600 transition">Features</a>
-          <a href="#pricing" className="hover:text-blue-600 transition">Pricing</a>
-          <a href="#testimonial" className="hover:text-blue-600 transition">Testimonials</a>
-        </div>
-        <div className="flex space-x-4">
-          <button className="hidden md:inline px-4 py-2 font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
-            Sign In
-          </button>
-          <button className="px-4 py-2 font-medium rounded-md bg-white border border-blue-600 text-blue-600 hover:bg-blue-50 transition">
-            Sign Up
-          </button>
-        </div>
-        <button className="md:hidden focus:outline-none">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
-    </nav>
-  );
-}
+    <div>
+      <ToastContainer />
+      <div>
+        {viewingCompaniesId ? (
+          <CompanyViewPage
+            toggleView={toggleView}
+            CompaniesId={viewingCompaniesId}
+            goBack={goBack}
+          />
+        ) : (
+          <div>
+            {/* Header Buttons */}
+            <div className="flex justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
+                  <button
+                    type="button"
+                    className="text-blue-600 mt-2 text-sm hover:underline"
+                  >
+                    Upload Photo
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-8 w-8 text-gray-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <h3 className="text-xl mb-4 font-semibold">Company List</h3>
+              </div>
 
-/* components/Hero.jsx */
-import React from 'react';
-
-export default function Hero() {
-  return (
-    <section className="pt-24 bg-gradient-to-r from-blue-50 to-white">
-      <div className="container mx-auto text-center py-20">
-        <h1 className="text-5xl md:text-6xl font-extrabold mb-6">
-          Empower Your Business with YourSaaS
-        </h1>
-        <p className="text-lg md:text-xl text-gray-600 mb-8">
-          The all-in-one platform to manage, analyze, and grow effortlessly.
-        </p>
-        <div className="space-x-4">
-          <button className="px-8 py-3 font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
-            Get Started
-          </button>
-          <a href="#features" className="px-8 py-3 font-semibold rounded-md border border-gray-300 hover:bg-gray-100 transition">
-            Learn More
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* components/Features.jsx */
-import React from 'react';
-
-const features = [
-  { title: 'Real-time Analytics', desc: 'Make data-driven decisions with live dashboards.' },
-  { title: 'Team Collaboration', desc: 'Connect your team with secure, shared workspaces.' },
-  { title: 'Automated Reports', desc: 'Schedule and deliver insights directly to your inbox.' },
-];
-
-export default function Features() {
-  return (
-    <section id="features" className="container mx-auto py-20">
-      <h2 className="text-3xl font-bold text-center mb-12">Features</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {features.map(({ title, desc }) => (
-          <div key={title} className="p-6 bg-white rounded-2xl shadow-lg hover:shadow-xl transition">
-            <h3 className="text-2xl font-semibold mb-4">{title}</h3>
-            <p className="text-gray-600">{desc}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* components/Testimonials.jsx */
-import React from 'react';
-
-const testimonials = [
-  { name: 'Alice Johnson', quote: 'YourSaaS transformed our workflow overnight!' },
-  { name: 'Mark Stevens', quote: 'Incredible features and top-notch support.' },
-  { name: 'Lisa Wong', quote: 'We saw a 50% boost in productivity.' },
-];
-
-export default function Testimonials() {
-  return (
-    <section id="testimonial" className="bg-blue-50 py-20">
-      <div className="container mx-auto text-center">
-        <h2 className="text-3xl font-bold mb-12">What Our Users Say</h2>
-        <div className="space-y-8 md:space-y-0 md:flex md:space-x-6">
-          {testimonials.map(({ name, quote }) => (
-            <div key={name} className="p-6 bg-white rounded-2xl shadow-md">
-              <p className="italic mb-4">"{quote}"</p>
-              <div className="font-semibold">— {name}</div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleAddCompany}
+                  className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                >
+                  + Add
+                </button>
+                <button
+                  onClick={handleDeleteSelected}
+                  disabled={!selectedCompanies.length}
+                  className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={generatePDF}
+                  className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                >
+                  PDF
+                </button>
+                <button
+                  onClick={exportToExcel}
+                  className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                >
+                  Export
+                </button>
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
-/* components/Pricing.jsx */
-import React from 'react';
+            {/* Filters & Search */}
+            <div className="flex flex-wrap items-center text-sm justify-between p-2 bg-white rounded-md mb-2 space-y-3 md:space-y-0 md:space-x-4">
+              <div className="flex items-center space-x-4">
+                {/* Sort By */}
+                <div className="relative">
+                  <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <select
+                    value={sortOption}
+                    onChange={handleSortChange}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                  >
+                    <option value="">Sort By</option>
+                    <option value="Company Name">Company Name</option>
+                    <option value="Account Ascending">
+                      Company Account Ascending
+                    </option>
+                    <option value="Account Descending">
+                      Company Account Descending
+                    </option>
+                  </select>
+                </div>
 
-const plans = [
-  { name: 'Basic', price: '$19/mo', features: ['Up to 5 users', 'Basic analytics', 'Email support'] },
-  { name: 'Pro', price: '$49/mo', features: ['Unlimited users', 'Advanced analytics', 'Priority support'] },
-  { name: 'Enterprise', price: '$99/mo', features: ['Custom solutions', 'Dedicated manager', '24/7 support'] },
-];
+                {/* Filter By Status */}
+                <div className="relative">
+                  <FaFilter className="text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <select
+                    value={filterStatus}
+                    onChange={handleFilterChange}
+                    className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                  >
+                    <option value="All">Filter By Status</option>
+                    <option value="yes">Active</option>
+                    <option value="no">Inactive</option>
+                  </select>
+                </div>
 
-export default function Pricing() {
-  return (
-    <section id="pricing" className="container mx-auto py-20">
-      <h2 className="text-3xl font-bold text-center mb-12">Pricing</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {plans.map(({ name, price, features }) => (
-          <div key={name} className="p-6 bg-white rounded-2xl shadow-lg hover:shadow-xl transition flex flex-col">
-            <h3 className="text-2xl font-semibold mb-4">{name}</h3>
-            <div className="text-4xl font-bold mb-4">{price}</div>
-            <ul className="flex-1 space-y-2 mb-6">
-              {features.map(f => <li key={f}>• {f}</li>)}
-            </ul>
-            <button className="mt-auto px-4 py-2 font-semibold rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
-              Choose
-            </button>
+                {/* Search */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                    aria-label="Search"
+                  >
+                    <FaSearch className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Reset Filter */}
+              <button
+                onClick={resetFilters}
+                className="text-red-500 hover:text-red-600 font-medium"
+              >
+                Reset Filter
+              </button>
+            </div>
+
+            {/* Data Table */}
+            <div className="table-scroll-container h-[400px] overflow-auto bg-white rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="sticky top-0 z-10 px-4 py-2 bg-gray-50">
+                      <input
+                        type="checkbox"
+                        onChange={toggleSelectAll}
+                        checked={
+                          selectedCompanies.length ===
+                            filteredCompanies.length &&
+                          filteredCompanies.length > 0
+                        }
+                        className="form-checkbox"
+                      />
+                    </th>
+                    {[
+                      "Code",
+                      "Business Type",
+                      "Name",
+                      "Currency",
+                      "Address",
+                      "Contact",
+                      "Email",
+                      "Registration Number",
+                      "Tax ID / GST No",
+                      "Status",
+                    ].map((header) => (
+                      <th
+                        key={header}
+                        className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                      >
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredCompanies.length ? (
+                    filteredCompanies.map((c) => (
+                      <tr
+                        key={c._id}
+                        className="hover:bg-gray-100 transition-colors"
+                      >
+                        <td className="px-4 py-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedCompanies.includes(c._id)}
+                            onChange={() => handleCheckboxChange(c._id)}
+                            className="form-checkbox"
+                          />
+                        </td>
+                        <td className="px-6 py-2">
+                          <button
+                            className="text-blue-600 hover:underline focus:outline-none"
+                            onClick={() => handleCompaniesClick(c._id)}
+                          >
+                            {c.companyCode}
+                          </button>
+                        </td>
+                        <td className="px-6 py-2">{c.businessType || "-"}</td>
+                        <td className="px-6 py-2">{c.companyName || "-"}</td>
+                        <td className="px-6 py-2">{c.currency || "-"}</td>
+                        <td className="px-6 py-2 truncate">
+                          {c.primaryGSTAddress || "-"}
+                        </td>
+                        <td className="px-6 py-2">{c.contactNumber || "-"}</td>
+                        <td className="px-6 py-2">{c.email || "-"}</td>
+                        <td className="px-6 py-2">{c.gstNumber || "-"}</td>
+                        <td className="px-6 py-2">{c.tanNumber || "-"}</td>
+                        <td className="px-6 py-2">
+                          <span
+                            className={`text-xs font-semibold rounded-full ${
+                              c.active
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {c.active ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={11}
+                        className="px-6 py-4 text-center text-sm text-gray-500"
+                      >
+                        No data
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        ))}
+        )}
       </div>
-    </section>
-  );
-}
-
-/* components/Footer.jsx */
-import React from 'react';
-
-export default function Footer() {
-  return (
-    <footer className="bg-white border-t py-8">
-      <div className="container mx-auto text-center text-gray-600">
-        <p>&copy; {new Date().getFullYear()} YourSaaS. All rights reserved.</p>
-      </div>
-    </footer>
-  );
-}
-
-/* pages/LandingPage.jsx */
-import React from 'react';
-import Navbar from '../components/Navbar';
-import Hero from '../components/Hero';
-import Features from '../components/Features';
-import Testimonials from '../components/Testimonials';
-import Pricing from '../components/Pricing';
-import Footer from '../components/Footer';
-
-export default function LandingPage() {
-  return (
-    <div className="font-sans antialiased text-gray-800">
-      <Navbar />
-      <Hero />
-      <Features />
-      <Testimonials />
-      <Pricing />
-      <Footer />
     </div>
   );
-}
+};
+
+export default A;

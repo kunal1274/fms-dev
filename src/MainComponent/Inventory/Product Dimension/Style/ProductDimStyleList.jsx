@@ -119,7 +119,9 @@ export default function ProductStyleList({ handleAddProductStyle }) {
 
   // Toggle select all
   const toggleSelectAll = (e) =>
-    setSelectedIds(e.target.checked ? filteredProductStyles.map((z) => z._id) : []);
+    setSelectedIds(
+      e.target.checked ? filteredProductStyles.map((z) => z._id) : []
+    );
 
   // Delete selected ProductStyles
   const handleDeleteSelected = async () => {
@@ -146,7 +148,10 @@ export default function ProductStyleList({ handleAddProductStyle }) {
   if (error) return <div className="text-red-600">{error}</div>;
   if (viewingId)
     return (
-      <ProductStyleViewPage ProductStyleId={viewingId} goBack={() => setViewingId(null)} />
+      <ProductStyleViewPage
+        ProductStyleId={viewingId}
+        goBack={() => setViewingId(null)}
+      />
     );
 
   // Render main table
@@ -171,71 +176,81 @@ export default function ProductStyleList({ handleAddProductStyle }) {
         </div>
       </div>
 
-      {/* Summary cards */}
+      <div className="flex flex-wrap items-center text-sm justify-between p-2 bg-white rounded-md mb-2 space-y-3 md:space-y-0 md:space-x-4">
+        <div className="flex items-center space-x-4">
+          {/* Sort By */}
+          <div className="relative">
+            <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <select
+              // value={sortOption}
+              // onChange={handleSortChange}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+            >
+              <option value="">Sort By</option>
+              <option value="Company Name">Company Name</option>
+              <option value="Account Ascending">
+                Company Account Ascending
+              </option>
+              <option value="Account Descending">
+                Company Account Descending
+              </option>
+            </select>
+          </div>
+
+          {/* Filter By Status */}
+          <div className="relative">
+            <FaFilter className="text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <select
+              // value={filterStatus}
+              // onChange={handleFilterChange}
+              className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+            >
+              <option value="All">Filter By Status</option>
+              <option value="yes">Active</option>
+              <option value="no">Inactive</option>
+            </select>
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+              aria-label="Search"
+            >
+              <FaSearch className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Reset Filter */}
+        <button
+          onClick={resetFilters}
+          className="text-red-500 hover:text-red-600 font-medium"
+        >
+          Reset Filter
+        </button>
+      </div>
       <div className="grid grid-cols-3 gap-4 mb-4">
         {["total", "active", "archived"].map((key, idx) => (
           <div key={key} className="p-4 bg-gray-50 rounded">
             <div className="text-2xl">{summary[key]}</div>
-            <div>{key.charAt(0).toUpperCase() + key.slice(1)} ProductStyles</div>
+            <div>
+              {key.charAt(0).toUpperCase() + key.slice(1)} ProductStyles
+            </div>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex space-x-4">
-          <ul className="flex space-x-4">
-            {tabNames.map((tab) => (
-              <li
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`cursor-pointer pb-1 ${
-                  activeTab === tab
-                    ? "border-b-2 border-green-600 text-green-600"
-                    : "text-gray-600"
-                }`}
-              >
-                {tab}
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex items-center space-x-2">
-            <FaSortAmountDown />
-            <select
-              value={sortOption}
-              onChange={(e) => setSortOption(e.target.value)}
-              className="border px-2 py-1 rounded"
-            >
-              <option value="">Sort</option>
-              <option value="code-asc">Code ↑</option>
-              <option value="code-desc">Code ↓</option>
-            </select>
-          </div>
-
-          <div className="relative">
-            <FaFilter className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search…"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 pr-2 py-1 border rounded"
-            />
-          </div>
-        </div>
-
-        <button
-          onClick={() => {
-            setSearchTerm("");
-            setSortOption("");
-            setActiveTab(tabNames[0]);
-          }}
-          className="text-red-500"
-        >
-          Reset
-        </button>
-      </div>
+    
 
       {/* Data table */}
       <div className="overflow-auto bg-white rounded-lg">

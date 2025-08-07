@@ -31,7 +31,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex h-screen bg-white ">
       <Sidebar
         isOpen={sidebarOpen}
         selectedMenu={selectedMenu}
