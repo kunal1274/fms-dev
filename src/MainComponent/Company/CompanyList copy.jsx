@@ -363,7 +363,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
               goBack={goBack}
             />
           ) : (
-            <div className="space-y-6">
+          <div className="space-y-6">
               <ToastContainer />
               {/* Header Buttons */}
               <div className="flex justify-between ">

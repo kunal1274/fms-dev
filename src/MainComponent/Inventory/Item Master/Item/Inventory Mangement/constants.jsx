@@ -223,6 +223,7 @@ export const setupSections = [
         page: PAGE.LOCATION,
       },
       { id: "rack", title: "Rack", icon: <FaListUl />, page: PAGE.RACK },
+      { id: "pallet", title: "Pallet", icon: <FaListUl />, page: PAGE.PAlLLET },
     ],
   },
   {

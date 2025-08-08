@@ -7,28 +7,29 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react";
 import "./c.css";
+
 import CompanyViewPage from "./CompanyViewPage";
 
-export default function CompanyList({ handleAddCompany, onView }) {
+export default function CompaniesList({ handleAddCompany, onView }) {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
   const metricsUrl = `${baseUrl}/metrics`;
 
   const tabNames = [
-    "Comapnies List",
-    "Paid Comapnies",
-    "Active Comapnies",
-    "Hold Comapnies",
-    "Outstanding Comapnies",
+    "Companies List",
+    "Paid Companies",
+    "Active Companies",
+    "Hold Companies",
+    "Outstanding Companies",
   ];
 
   // States
   const [activeTab, setActiveTab] = useState(tabNames[0]);
-  const [deleting, setDeleting] = useState(false);
-  const [companyList, setCompanyList] = useState([]);
+
+  const [CompaniesList, setCompaniesList] = useState([]);
   const [selectedOption, setSelectedOption] = useState("All");
-  const [filteredCompanies, setfilteredCompanies] = useState([]);
-  const [selectedCompanies, setselectedCompanies] = useState([]);
-  const [viewingComapniesId, setViewingComapniesId] = useState(null);
+  const [filteredCompaniess, setFilteredCompaniess] = useState([]);
+  const [selectedCompaniess, setSelectedCompaniess] = useState([]);
+  const [viewingCompaniesId, setViewingCompaniesId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState(
     new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -36,7 +37,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortOption, setSortOption] = useState("");
 
-  const [Companiessummary, setCompaniessummary] = useState({
+  const [CompaniesSummary, setCompaniesSummary] = useState({
     count: 0,
     creditLimit: 0,
     paidCompaniess: 0,
@@ -95,27 +96,27 @@ export default function CompanyList({ handleAddCompany, onView }) {
     const value = e.target.value;
     setSelectedOption(value);
 
-    let filtered = [...CompanyList];
+    let filtered = [...CompaniesList];
 
     if (value === "All") {
-      setfilteredCompanies(filtered);
+      setFilteredCompaniess(filtered);
     } else if (value === "yes") {
-      setfilteredCompanies(
-        filtered.filter((Comapnies) => Comapnies.active === true)
+      setFilteredCompaniess(
+        filtered.filter((Companies) => Companies.active === true)
       );
     } else if (value === "no") {
-      setfilteredCompanies(
-        filtered.filter((Comapnies) => Comapnies.active === false)
+      setFilteredCompaniess(
+        filtered.filter((Companies) => Companies.active === false)
       );
-    } else if (value === "Comapnies Name") {
+    } else if (value === "Companies Name") {
       filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
-      setfilteredCompanies(filtered);
-    } else if (value === "Comapnies Account no") {
+      setFilteredCompaniess(filtered);
+    } else if (value === "Companies Account no") {
       filtered = filtered.sort((a, b) => a.code.localeCompare(b.code));
-      setfilteredCompanies(filtered);
-    } else if (value === "Comapnies Account no descending") {
+      setFilteredCompaniess(filtered);
+    } else if (value === "Companies Account no descending") {
       filtered = filtered.sort((a, b) => b.code.localeCompare(a.code));
-      setfilteredCompanies(filtered);
+      setFilteredCompaniess(filtered);
     }
   };
   // Fetch Companiess
@@ -128,11 +129,11 @@ export default function CompanyList({ handleAddCompany, onView }) {
           params: { from: fromDate, to: toDate },
         });
         const list = resp.data || resp;
-        setCompanyList(list);
+        setCompaniesList(list);
 
-        +setfilteredCompanies(list); // ← Add this line to update the visible Companiess immediately
+        +setFilteredCompaniess(list); // ← Add this line to update the visible Companiess immediately
 
-        setCompaniessummary({
+        setCompaniesSummary({
           count: list.length,
           creditLimit: list.reduce((s, c) => s + (c.creditLimit || 0), 0),
           paidCompaniess: list.filter((c) => c.status === "Paid").length,
@@ -141,7 +142,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
         });
       } catch (err) {
         console.error(err);
-        setError("Unable to load Comapnies data.");
+        setError("Unable to load Companies data.");
       } finally {
         setLoading(false);
       }
@@ -158,7 +159,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
       });
 
       const m = (resp.metrics && resp.metrics[0]) || {};
-      setCompaniessummary((prev) => ({
+      setCompaniesSummary((prev) => ({
         ...prev,
         count: m.totalCompaniess ?? prev.count,
         creditLimit: m.creditLimit ?? prev.creditLimit,
@@ -178,7 +179,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
 
   // Filtering, Search, Sorting
   useEffect(() => {
-    let list = [...companyList];
+    let list = [...CompaniesList];
 
     switch (activeTab) {
       case tabNames[1]:
@@ -216,119 +217,103 @@ export default function CompanyList({ handleAddCompany, onView }) {
     else if (sortOption === "code-desc")
       list.sort((a, b) => b.code.localeCompare(a.code));
 
-    setfilteredCompanies(list);
-  }, [CompanyList, activeTab, statusFilter, searchTerm, sortOption]);
+    setFilteredCompaniess(list);
+  }, [CompaniesList, activeTab, statusFilter, searchTerm, sortOption]);
 
   // Handlers
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
   const handleStatusChange = (e) => setStatusFilter(e.target.value);
   const handleSortChange = (e) => setSortOption(e.target.value);
   const onTabClick = (tab) => setActiveTab(tab);
-  useEffect(() => {
-    const onFocus = () => {
-      fetchCompaniess();
-      fetchMetrics();
-    };
 
-    // when the window regains focus...
-    window.addEventListener("focus", onFocus);
-    // ...and also when the page becomes visible again (optional)
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) onFocus();
-    });
-
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onFocus);
-    };
-  }, [fetchCompaniess, fetchMetrics]);
   const toggleSelectAll = (e) => {
-    setselectedCompanies(
-      e.target.checked ? filteredCompanies.map((c) => c._id) : []
+    setSelectedCompaniess(
+      e.target.checked ? filteredCompaniess.map((c) => c._id) : []
     );
   };
 
   const handleCheckboxChange = (id) => {
-    setselectedCompanies((prev) =>
+    setSelectedCompaniess((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     );
   };
 
   const handleDeleteSelected = async () => {
-    console.log("🗑️ Deleting these IDs:", selectedCompanies);
-
-    if (selectedCompanies.length === 0) {
-      toast.info("No companies selected to delete");
+    if (!selectedCompaniess.length) {
+      toast.info("No Companiess selected to delete");
       return;
     }
 
-    if (!window.confirm(`Delete ${selectedCompanies.length} company(ies)?`)) {
-      console.log("❌ Delete cancelled by user");
-      return;
-    }
+    if (!window.confirm("Delete selected Companiess?")) return;
 
-    setDeleting(true);
     try {
       const results = await Promise.allSettled(
-        selectedCompanies.map((id) => {
-          console.log(`→ sending DELETE ${baseUrl}/${id}`);
-          return axios.delete(`${baseUrl}/${id}`);
-        })
+        selectedCompaniess.map((id) => axios.delete(`${baseUrl}/${id}`))
       );
-      console.log("✅ Delete results:", results);
 
       const succeeded = results.filter((r) => r.status === "fulfilled").length;
       const failed = results.filter((r) => r.status === "rejected").length;
-      console.log(`   ✓ succeeded: ${succeeded}, ✗ failed: ${failed}`);
 
       if (succeeded) {
-        toast.success(`${succeeded} deleted successfully`);
-        await fetchCompaniess(); // re-load from API
-        setselectedCompanies([]); // clear your selection
+        toast.success(`${succeeded} deleted`);
+        await fetchCompaniess();
+        setSelectedCompaniess([]);
       }
-      if (failed) {
-        toast.error(`${failed} failed — see console for details`);
-        results
-          .filter((r) => r.status === "rejected")
-          .forEach((r, i) => console.error(`Error ${i}:`, r.reason));
-      }
+      if (failed) toast.error(`${failed} failed — check console`);
     } catch (err) {
-      console.error("🚨 Unexpected error in deletion:", err);
-      toast.error("Unexpected error while deleting. See console.");
-    } finally {
-      setDeleting(false);
+      console.error(err);
+      toast.error("Unexpected error while deleting");
     }
   };
 
   const exportToExcel = () => {
-    if (!CompanyList.length) {
+    if (!CompaniesList.length) {
       toast.info("No data to export.");
       return;
     }
-    const ws = XLSX.utils.json_to_sheet(CompanyList);
+    const ws = XLSX.utils.json_to_sheet(CompaniesList);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Companiess");
-    XLSX.writeFile(wb, "Comapnies_list.xlsx");
+    XLSX.writeFile(wb, "Companies_list.xlsx");
   };
 
   const generatePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
+
     autoTable(doc, {
-      head: [["#", "Code", "Name", "Contact", "Address", "Status"]],
-      body: filteredCompanies.map((c, i) => [
+      head: [
+        [
+          "#",
+          "Code",
+          "Name",
+          "Contact",
+          "Email",
+          "Registration Number",
+          "Business Type",
+          "Currency",
+          "Address",
+          "Status",
+        ],
+      ],
+      body: filteredCompaniess.map((c, i) => [
         i + 1,
-        c.code,
-        c.name,
-        c.contactNum,
-        c.address,
+        c.companyCode || "",
+        c.companyName || "",
+        c.contactNum || "",
+        c.email || "",
+        c.taxInfo?.gstNumber || "",
+        c.businessType || "",
+        c.currency || "",
+        c.primaryGSTAddress || "",
         c.active ? "Active" : "Inactive",
       ]),
     });
-    doc.save("Comapnies_list.pdf");
+
+    doc.save("Companies_list.pdf");
   };
 
-  const handleComapniesClick = (ComapniesId) => {
-    setViewingComapniesId(ComapniesId);
+  const handleCompaniesClick = (CompaniesId) => {
+    setViewingCompaniesId(CompaniesId);
   };
 
   const resetFilters = () => {
@@ -337,15 +322,15 @@ export default function CompanyList({ handleAddCompany, onView }) {
     setSortOption("");
   };
 
-  const goBack = () => setViewingComapniesId(null);
+  const goBack = () => setViewingCompaniesId(null);
 
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingComapniesId) {
+  if (viewingCompaniesId) {
     return (
       <div className="p-4">
-        <CompanyViewPage ComapniesId={viewingComapniesId} goBack={goBack} />
+        <CompanyViewPage CompaniesId={viewingCompaniesId} goBack={goBack} />
       </div>
     );
   }
@@ -353,15 +338,10 @@ export default function CompanyList({ handleAddCompany, onView }) {
 
   return (
     <div>
-      <ToastContainer />
       <div>
         <div>
-          {viewingComapniesId ? (
-            <CompanyViewPage
-              toggleView={toggleView}
-              ComapniesId={viewingComapniesId}
-              goBack={goBack}
-            />
+          {viewingCompaniesId ? (
+            <CompanyViewPage ComapniesId={viewingCompaniesId} goBack={goBack} />
           ) : (
             <div className="space-y-6">
               <ToastContainer />
@@ -393,7 +373,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
                   </div>
 
                   {/* </div> */}
-                  <h3 className="text-xl mb-4 font-semibold">Company List</h3>
+                  <h3 className="text-xl font-semibold">Companies List</h3>
                 </div>
                 <div className="flex items-center gap-3 ">
                   <button
@@ -402,10 +382,9 @@ export default function CompanyList({ handleAddCompany, onView }) {
                   >
                     + Add
                   </button>
-
                   <button
                     onClick={handleDeleteSelected}
-                    disabled={!selectedCompanies.length}
+                    disabled={!selectedCompaniess.length}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     Delete
@@ -453,11 +432,11 @@ export default function CompanyList({ handleAddCompany, onView }) {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Companiess", Companiessummary.count],
-                    ["Credit Limit", Companiessummary.creditLimit],
-                    ["Paid Companiess", Companiessummary.paidCompaniess],
-                    ["Active Companiess", Companiessummary.activeCompaniess],
-                    ["On‑Hold Companiess", Companiessummary.onHoldCompaniess],
+                    ["Total Companiess", CompaniesSummary.count],
+                    ["Credit Limit", CompaniesSummary.creditLimit],
+                    ["Paid Companiess", CompaniesSummary.paidCompaniess],
+                    ["Active Companiess", CompaniesSummary.activeCompaniess],
+                    ["On‑Hold Companiess", CompaniesSummary.onHoldCompaniess],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -484,12 +463,12 @@ export default function CompanyList({ handleAddCompany, onView }) {
                       className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="Comapnies Name">Comapnies Name</option>
-                      <option value="Comapnies Account no">
-                        Comapnies Account in Ascending
+                      <option value="Companies Name">Companies Name</option>
+                      <option value="Companies Account no">
+                        Companies Account in Ascending
                       </option>
-                      <option value="Comapnies Account no descending">
-                        Comapnies Account in descending
+                      <option value="Companies Account no descending">
+                        Companies Account in descending
                       </option>
                     </select>
                   </div>
@@ -565,9 +544,9 @@ export default function CompanyList({ handleAddCompany, onView }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedCompanies.length ===
-                              filteredCompanies.length &&
-                            filteredCompanies.length > 0
+                            selectedCompaniess.length ===
+                              filteredCompaniess.length &&
+                            filteredCompaniess.length > 0
                           }
                           className="form-checkbox"
                         />
@@ -581,7 +560,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
                         "Contact",
                         "Email",
                         "Registration Number",
-                        "Tax ID / GST No",
+
                         "Status",
                       ].map((h) => (
                         <th
@@ -594,43 +573,44 @@ export default function CompanyList({ handleAddCompany, onView }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredCompanies.length ? (
-                      filteredCompanies.map((c) => (
+                    {filteredCompaniess.length ? (
+                      filteredCompaniess.map((c) => (
                         <tr
-                          key={c._id}
+                          key={c.code}
                           className="hover:bg-gray-100 transition-colors"
                         >
                           <td className="px-4 py-2">
                             <input
                               type="checkbox"
-                              checked={selectedCompanies.includes(c._id)}
+                              checked={selectedCompaniess.includes(c._id)}
                               onChange={() => handleCheckboxChange(c._id)}
                               className="form-checkbox"
                             />
                           </td>
-                          <td className="px-6 py-2">
+                          <td
+                          // onClick={() => handleCompaniesClick(Companies._id)}
+                          // className="px-6 py-4 cursor-pointer text-blue-600 hover:underline"
+                          >
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleComapniesClick(c._id)}
+                              onClick={() => handleCompaniesClick(c._id)}
                             >
                               {c.companyCode}
                             </button>
                           </td>
-                          <td className="px-6 py-2">{c.businessType || "-"}</td>
-                          <td className="px-6 py-2">{c.companyName || "-"}</td>
-                          <td className="px-6 py-2">{c.currency || "-"}</td>
-                          <td className="px-6 py-2 truncate">
-                            {c.primaryGSTAddress || "-"}
-                          </td>
-                          <td className="px-6 py-2">
-                            {c.contactNumber || "-"}
-                          </td>
-                          <td className="px-6 py-2">{c.email || "-"}</td>
-                          <td className="px-6 py-2">{c.gstNumber || "-"}</td>
-                          <td className="px-6 py-2">{c.tanNumber || "-"}</td>
-                          <td className="px-6 py-2">
+                          <td className="px-6 py-4"> {c.businessType} </td>
+                          <td className="px-6 py-4">{c.companyName}</td>{" "}
+                          <td className="px-6 py-3 truncate">{c.currency}</td>
+                          {/* {new Date(c.createdAt).toLocaleString()} */}
+                          <td className="px-6 py-4">
+                            {c.primaryGSTAddress}
+                          </td>{" "}
+                          <td className="px-6 py-4">{c.contactNum}</td>{" "}
+                          <td className="px-6 py-4">{c.email}</td>{" "}
+                          <td className="px-6 py-4">{c.taxInfo?.gstNumber}</td>{" "}
+                          <td className="px-6 py-4">
                             <span
-                              className={`text-xs font-semibold rounded-full ${
+                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                 c.active
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
@@ -644,7 +624,7 @@ export default function CompanyList({ handleAddCompany, onView }) {
                     ) : (
                       <tr>
                         <td
-                          colSpan={11}
+                          colSpan={6}
                           className="px-6 py-4 text-center text-sm text-gray-500"
                         >
                           No data

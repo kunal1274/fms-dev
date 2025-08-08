@@ -82,26 +82,28 @@ const CompanyPage = () => {
 
   return (
     <div className="w-full bg-white rounded-lg ">
-      {view === "list" && (
-        <CompanyList
-          companies={companies}
-          handleAddCompany={handleAddCompany}
-          onView={handleViewCompany}
-          onDelete={handleDeleteCompany}
-        />
-      )}
+      <div>
+        {view === "list" && (
+          <CompanyList
+            companies={companies}
+            handleAddCompany={handleAddCompany}
+            onView={handleViewCompany}
+            onDelete={handleDeleteCompany}
+          />
+        )}
 
-      {view === "form" && (
-        <CompanyForm company={selectedCompany} handleCancel={handleCancel} />
-      )}
+        {view === "form" && (
+          <CompanyForm company={selectedCompany} handleCancel={handleCancel} />
+        )}
 
-      {view === "details" && selectedCompany && (
-        <CompanyViewPage
-          company={selectedCompany}
-          onEdit={() => setView("form")}
-          onBack={handleCancel}
-        />
-      )}
+        {view === "details" && selectedCompany && (
+          <CompanyViewPage
+            company={selectedCompany}
+            onEdit={() => setView("form")}
+            onBack={handleCancel}
+          />
+        )}
+      </div>
     </div>
   );
 };

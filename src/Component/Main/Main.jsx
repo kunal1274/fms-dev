@@ -1,6 +1,6 @@
 import React from "react";
 import CustomerList from "../../MainComponent/Customer/CustomerPage";
-import CompanyPage from "../../MainComponent/Company/CompanyPage";
+import CompanyPage from "../../MainComponent/Company copy/CompanyPage";
 import SalePage from "../../MainComponent/Sale/Sale/SaleManegment";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
 import InventoryManegment from "../../MainComponent/Inventory/Item Master/Item/Inventory Mangement/InventoryManegment";
