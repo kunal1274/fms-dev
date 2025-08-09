@@ -193,37 +193,36 @@ export const setupSections = [
       { id: "size", title: "Size", icon: <FaFilter />, page: PAGE.SIZE },
     ],
   },
-  {
-    id: "storage",
-    title: "Storage Dimensions",
-    cols: 3,
-    items: [
-      { id: "site", title: "Site", icon: <FaMap />, page: PAGE.SITE },
-      {
-        id: "warehouse",
-        title: "Warehouse",
-        icon: <FaWarehouse />,
-        page: PAGE.WAREHOUSE,
-      },
-      { id: "zone", title: "Zone", icon: <FaMapMarkerAlt />, page: PAGE.ZONE },
-      { id: "aisles", title: "Aisles", icon: <FaListUl />, page: PAGE.AISLES },
-      {
-        id: "shelves",
-        title: "Shelves",
-        icon: <FaListUl />,
-        page: PAGE.SHELVES,
-      },
-      { id: "bin", title: "Bin", icon: <FaListUl />, page: PAGE.BIN },
-      {
-        id: "location",
-        title: "Location",
-        icon: <FaListUl />,
-        page: PAGE.LOCATION,
-      },
-      { id: "rack", title: "Rack", icon: <FaListUl />, page: PAGE.RACK },
-      // { id: "pallet", title: "Pallet", icon: <FaListUl />, page: PAGE.PAlLLET },
-    ],
-  },
+{
+  id: "storage",
+  title: "Storage Dimensions",
+  cols: 3, // ← controls number of boxes per row
+  items: [
+    { id: "site", title: "Site", icon: <FaMap />, page: PAGE.SITE },
+    {
+      id: "warehouse",
+      title: "Warehouse",
+      icon: <FaWarehouse />,
+      page: PAGE.WAREHOUSE,
+    },
+    { id: "zone", title: "Zone", icon: <FaMapMarkerAlt />, page: PAGE.ZONE },
+    { id: "aisles", title: "Aisles", icon: <FaListUl />, page: PAGE.AISLES },
+    {
+      id: "shelves",
+      title: "Shelves",
+      icon: <FaListUl />,
+      page: PAGE.SHELVES,
+    },
+    { id: "bin", title: "Bin", icon: <FaListUl />, page: PAGE.BIN },
+    {
+      id: "location",
+      title: "Location",
+      icon: <FaListUl />,
+      page: PAGE.LOCATION,
+    },
+    { id: "rack", title: "Rack", icon: <FaListUl />, page: PAGE.RACK },
+  ],
+},
   {
     id: "tracking",
     title: "Tracking Dimensions",

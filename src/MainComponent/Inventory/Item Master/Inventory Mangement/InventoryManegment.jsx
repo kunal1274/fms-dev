@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
 import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
@@ -17,7 +17,7 @@ import RackPage from "../../Storage Dimension/Rack/RackPage";
 import SerialPage from "../../Tracking Dimension/Serial/SerialPage";
 import JournalCreationForm from "../../Inventory Jornal/Jornal/Jornal";
 import InoutJournal from "../../../Sale/JournalRevenue/InoutJornal";
-import InventoryTransction from "../../Transcation Report/InventoryTransaction/InventoryTransaction"
+import InventoryTransction from "../../Transcation Report/InventoryTransaction/InventoryTransaction";
 // === Product Dimensions ===
 import ProductDimColor from "../../Product Dimension/Color/ProductDimColorPage";
 import ProductDimConfig from "../../Product Dimension/Configuration/ProductDimConfPage";
@@ -42,7 +42,9 @@ export default function InventoryManegment() {
     const fetchCompanies = async () => {
       try {
         const resp = await axios.get("/fms/api/v0/companies");
-        const data = Array.isArray(resp.data) ? resp.data : resp.data.data;
+        const data = Array.isArray(resp.data)
+          ? resp.data
+          : resp.data?.data || [];
         setCompanies(data);
       } catch (err) {
         console.error("Failed to load companies:", err);
@@ -52,6 +54,7 @@ export default function InventoryManegment() {
   }, []);
 
   const goBack = () => setPage(PAGE.TOGGLE);
+
   const toggleGroup = (id) =>
     setHiddenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
   const toggleSection = (id) =>
@@ -59,116 +62,175 @@ export default function InventoryManegment() {
   const toggleSubgroup = (id) =>
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const renderItems = (items = [], cols) => {
-    const safeItems = Array.isArray(items) ? items : [];
-    const containerClass =
-      viewMode === VIEW_MODES.GRID
-        ? `grid grid-cols-${cols} gap-4`
-        : viewMode === VIEW_MODES.ICON
-        ? `grid grid-cols-${cols * 2} gap-4`
-        : "flex flex-col gap-3";
+  // Nice card styles used in GRID and ICON views
+  const baseCard =
+    "cursor-pointer select-none bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm hover:shadow-lg hover:ring-gray-200 transition-all duration-200";
+  const baseRow =
+    "cursor-pointer flex items-center w-full rounded-xl ring-1 ring-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-200";
 
+  // === Renderers
+  const renderItems = (items = [], cols = 4) => {
+    const safeItems = Array.isArray(items) ? items : [];
+
+    // LIST MODE: full-width rows
+    if (viewMode === VIEW_MODES.LIST) {
+      return (
+        <div className="flex flex-col gap-2">
+          {safeItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => item.page && setPage(item.page)}
+              className={`${baseRow} p-3 text-left`}
+              title={item.title}
+            >
+              <div className="text-gray-500 mr-3">{item.icon}</div>
+              <div className="flex-1">
+                <div className="text-sm font-medium text-gray-900">
+                  {item.title}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    // ICON MODE: tiny square tiles, many columns
+    if (viewMode === VIEW_MODES.ICON) {
+      const iconCols = Math.max(cols * 2, 4);
+      return (
+        <div
+          className="grid gap-2"
+          style={{ gridTemplateColumns: `repeat(${iconCols}, minmax(0,1fr))` }}
+        >
+          {safeItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => item.page && setPage(item.page)}
+              className={`${baseCard} flex flex-col items-center justify-center`}
+              style={{
+                width: 76,
+                height: 76,
+                padding: 8,
+              }}
+              title={item.title}
+            >
+              <div className="text-gray-600 text-base mb-1">{item.icon}</div>
+              <div className="text-[10px] font-medium text-gray-800 text-center leading-tight line-clamp-2">
+                {item.title}
+              </div>
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    // GRID MODE: compact cards, responsive count + explicit fallback via cols
+    const gridCols = Math.max(cols, 3);
     return (
-      <div className={containerClass}>
+      <div
+        className="grid gap-3 sm:gap-4"
+        style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0,1fr))` }}
+      >
         {safeItems.map((item) => (
-          <div
+          <button
             key={item.id}
             onClick={() => item.page && setPage(item.page)}
-            className={
-              viewMode === VIEW_MODES.LIST
-                ? "cursor-pointer flex items-center p-2 hover:bg-gray-50 transition rounded"
-                : "cursor-pointer bg-white rounded shadow hover:shadow-md transition p-3 flex flex-col items-center"
-            }
+            className={`${baseCard} flex flex-col items-center justify-center text-sm`}
+            style={{ minHeight: 104, padding: 10 }}
+            title={item.title}
           >
-            <div
-              className={
-                viewMode === VIEW_MODES.LIST
-                  ? "text-xl text-gray-500 mr-3"
-                  : "text-lg text-gray-600 mb-2"
-              }
-            >
-              {item.icon}
-            </div>
-            <h5
-              className={
-                viewMode === VIEW_MODES.LIST
-                  ? "text-sm font-medium"
-                  : "text-base font-medium text-center"
-              }
-            >
+            <div className="text-gray-600 text-lg mb-1.5">{item.icon}</div>
+            <div className="text-xs font-medium text-gray-900 text-center leading-tight">
               {item.title}
-            </h5>
-          </div>
+            </div>
+          </button>
         ))}
       </div>
     );
   };
 
-  // === FIXED componentMap with all correct PAGE keys ===
-  const componentMap = {
-    [PAGE.ITEM_MASTER]: (
-      <ItemMasterPage companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.WAREHOUSE]: (
-      <WarehousePage companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.SITE]: (
-      <SitePage companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.ZONE]: (
-      <ZonePage companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.SHELVES]: (
-      <ShelvesPage companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.AISLES]: (
-      <AislesPage companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.BATCHES]: (
-      <BatchValuePage companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.BIN]: <BinPage companies={companies} form={form} setForm={setForm} />,
-    [PAGE.LOCATION]: (
-      <LocationPage companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.RACK]: (
-      <RackPage companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.SERIALS]: (
-      <SerialPage companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.INVENTORY_JOURNALS]: (
-      <JournalCreationForm
-        companies={companies}
-        form={form}
-        setForm={setForm}
-      />
-    ),
-    [PAGE.INOUT]: (
-      <InoutJournal companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.COLOR]: (
-      <ProductDimColor companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.CONFIG]: (
-      <ProductDimConfig companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.DIMVERSION]: (
-      <ProductDimVersion companies={companies} form={form} setForm={setForm} />
-    ),
-    [PAGE.STYLE]: <Style companies={companies} form={form} setForm={setForm} />,
-    [PAGE.SIZE]: <Size companies={companies} form={form} setForm={setForm} />,
+  // === Page map
+  const componentMap = useMemo(
+    () => ({
+      [PAGE.ITEM_MASTER]: (
+        <ItemMasterPage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.WAREHOUSE]: (
+        <WarehousePage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.SITE]: (
+        <SitePage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.ZONE]: (
+        <ZonePage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.SHELVES]: (
+        <ShelvesPage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.AISLES]: (
+        <AislesPage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.BATCHES]: (
+        <BatchValuePage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.BIN]: (
+        <BinPage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.LOCATION]: (
+        <LocationPage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.RACK]: (
+        <RackPage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.SERIALS]: (
+        <SerialPage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.INVENTORY_JOURNALS]: (
+        <JournalCreationForm
+          companies={companies}
+          form={form}
+          setForm={setForm}
+        />
+      ),
+      [PAGE.INOUT]: (
+        <InoutJournal companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.COLOR]: (
+        <ProductDimColor companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.CONFIG]: (
+        <ProductDimConfig companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.DIMVERSION]: (
+        <ProductDimVersion
+          companies={companies}
+          form={form}
+          setForm={setForm}
+        />
+      ),
+      [PAGE.STYLE]: (
+        <Style companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.SIZE]: <Size companies={companies} form={form} setForm={setForm} />,
+      [PAGE.INVENTORY_TRANSACTIONS]: (
+        <InventoryTransction
+          companies={companies}
+          form={form}
+          setForm={setForm}
+        />
+      ),
+    }),
+    [companies, form]
+  );
 
-[PAGE.INVENTORY_TRANSACTIONS]: < InventoryTransction companies={companies} form={form} setForm={setForm} />,
-    
-  };
-
+  // === Page switch
   if (page !== PAGE.TOGGLE) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <button
           onClick={goBack}
-          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
+          className="inline-flex items-center mb-4 text-gray-700 hover:text-gray-900"
         >
           <FaArrowLeft className="mr-2" /> Back to Dashboard
         </button>
@@ -177,47 +239,54 @@ export default function InventoryManegment() {
     );
   }
 
+  // === Top bar icons for view modes
+  const viewIcons = [
+    <FaThLarge key="grid" />,
+    <FaTh key="icon" />,
+    <FaListUl key="list" />,
+  ];
+  const modes = [VIEW_MODES.GRID, VIEW_MODES.ICON, VIEW_MODES.LIST];
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
+    <div className="p-3 sm:p-4">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Item Dashboard</h2>
-        <div className="flex justify-end items-center space-x-4">
-          <div className="flex bg-gray-100 rounded-lg overflow-hidden">
-            {[VIEW_MODES.GRID, VIEW_MODES.ICON, VIEW_MODES.LIST].map(
-              (mode, index) => {
-                const icons = [<FaThLarge />, <FaTh />, <FaListUl />];
-                return (
-                  <button
-                    key={mode}
-                    onClick={() => setViewMode(mode)}
-                    className={`p-2 w-10 h-10 flex items-center justify-center ${
-                      viewMode === mode
-                        ? "bg-white shadow"
-                        : "hover:bg-gray-200"
-                    } transition`}
-                  >
-                    {React.cloneElement(icons[index], {
-                      className: "text-base",
-                    })}
-                  </button>
-                );
-              }
-            )}
+        <div className="flex items-center space-x-3">
+          <div className="flex bg-gray-100 rounded-xl overflow-hidden ring-1 ring-gray-200">
+            {modes.map((mode, index) => (
+              <button
+                key={mode}
+                aria-label={`${mode} view`}
+                onClick={() => setViewMode(mode)}
+                className={`p-2 w-10 h-10 flex items-center justify-center transition ${
+                  viewMode === mode
+                    ? "bg-white shadow ring-1 ring-gray-200"
+                    : "hover:bg-gray-200"
+                }`}
+              >
+                {React.cloneElement(viewIcons[index], {
+                  className: "text-base text-gray-700",
+                })}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
       {groups.map((grp) => (
-        <div key={grp.id} className="mb-8">
-          <div className="flex justify-between items-center mb-4">
+        <section key={grp.id} className="mb-8">
+          <div className="flex justify-between items-center mb-3">
             <h3 className="text-lg font-semibold">{grp.title}</h3>
             <button
               onClick={() => toggleGroup(grp.id)}
               className="text-gray-600 text-xl hover:text-gray-800"
+              aria-label={`Toggle ${grp.title}`}
+              title={hiddenGroups[grp.id] ? "Expand" : "Collapse"}
             >
-              {hiddenGroups[grp.id] ? ">" : "^"}
+              {hiddenGroups[grp.id] ? "▸" : "▾"}
             </button>
           </div>
+
           {!hiddenGroups[grp.id] &&
             (grp.id === "setups"
               ? setupSections.map((section) => (
@@ -227,8 +296,12 @@ export default function InventoryManegment() {
                       <button
                         onClick={() => toggleSection(section.id)}
                         className="text-gray-600 hover:text-gray-800"
+                        aria-label={`Toggle ${section.title}`}
+                        title={
+                          hiddenSections[section.id] ? "Expand" : "Collapse"
+                        }
                       >
-                        {hiddenSections[section.id] ? ">" : "^"}
+                        {hiddenSections[section.id] ? "▸" : "▾"}
                       </button>
                     </div>
                     {!hiddenSections[section.id] &&
@@ -243,24 +316,28 @@ export default function InventoryManegment() {
                       <button
                         onClick={() => toggleSubgroup(sub.id)}
                         className="text-gray-600 hover:text-gray-800"
+                        aria-label={`Toggle ${sub.title}`}
+                        title={hiddenSubgroups[sub.id] ? "Expand" : "Collapse"}
                       >
-                        {hiddenSubgroups[sub.id] ? ">" : "^"}
+                        {hiddenSubgroups[sub.id] ? "▸" : "▾"}
                       </button>
                     </div>
                     {!hiddenSubgroups[sub.id] &&
                       renderItems(
                         sub.items,
-                        viewMode === VIEW_MODES.GRID ? 4 : sub.items.length
+                        viewMode === VIEW_MODES.GRID
+                          ? 4
+                          : sub.items?.length || 4
                       )}
                   </div>
                 ))
               : grp.items
               ? renderItems(
                   grp.items,
-                  viewMode === VIEW_MODES.GRID ? 4 : grp.items.length
+                  viewMode === VIEW_MODES.GRID ? 4 : grp.items?.length || 4
                 )
               : null)}
-        </div>
+        </section>
       ))}
     </div>
   );
