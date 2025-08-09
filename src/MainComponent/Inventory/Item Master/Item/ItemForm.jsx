@@ -383,7 +383,6 @@ const ItemForm = () => {
               onChange={handleChange}
               list={bins}
             />
-          
           </div>
         </section>
 
@@ -393,20 +392,14 @@ const ItemForm = () => {
             Product Dimensions
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <FormSelectMeta
+            <FormSelectMeta
               name="colour"
               label="Colour"
               value={form.colour}
               onChange={handleChange}
               list={colours}
             />
-            <FormSelectMeta
-              name="pallet"
-              label="Pallet"
-              value={form.pallet}
-              onChange={handleChange}
-              list={pallets}
-            />
+
             <FormSelectMeta
               name="size"
               label="Size"

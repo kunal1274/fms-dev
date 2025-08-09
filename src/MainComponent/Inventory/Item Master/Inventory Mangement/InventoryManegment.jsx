@@ -4,26 +4,26 @@ import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
 import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
 
 // === Page Components ===
-import ItemMasterPage from "../ItemPage";
-import WarehousePage from "../../../Storage Dimension/Warehouse/WarehousePage";
-import SitePage from "../../../Storage Dimension/Site/SitePage";
-import ZonePage from "../../../Storage Dimension/Zone/ZonePage";
-import ShelvesPage from "../../../Storage Dimension/Shelves/ShelvesPage";
-import AislesPage from "../../../Storage Dimension/Aisles/AislesPage";
-import BatchValuePage from "../../../Tracking Dimension/BatchValue/BatchValueViewPagee";
-import BinPage from "../../../Storage Dimension/Bin/BinPage";
-import LocationPage from "../../../Storage Dimension/Location/LocationPage";
-import RackPage from "../../../Storage Dimension/Rack/RackPage";
-import SerialPage from "../../../Tracking Dimension/Serial/SerialPage";
-import JournalCreationForm from "../../../Inventory Jornal/Jornal/Jornal";
-import InoutJournal from "../../../../Sale/JournalRevenue/InoutJornal";
+import ItemMasterPage from "../Item/ItemPage";
+import WarehousePage from "../../Storage Dimension/Warehouse/WarehousePage";
+import SitePage from "../../Storage Dimension/Site/SitePage";
+import ZonePage from "../../Storage Dimension/Zone/ZonePage";
+import ShelvesPage from "../../Storage Dimension/Shelves/ShelvesPage";
+import AislesPage from "../../Storage Dimension/Aisles/AislesPage";
+import BatchValuePage from "../../Tracking Dimension/BatchValue/BatchValueViewPagee";
+import BinPage from "../../Storage Dimension/Bin/BinPage";
+import LocationPage from "../../Storage Dimension/Location/LocationPage";
+import RackPage from "../../Storage Dimension/Rack/RackPage";
+import SerialPage from "../../Tracking Dimension/Serial/SerialPage";
+import JournalCreationForm from "../../Inventory Jornal/Jornal/Jornal";
+import InoutJournal from "../../../Sale/JournalRevenue/InoutJornal";
 
 // === Product Dimensions ===
-import ProductDimColor from "../../../Product Dimension/Color/ProductDimColorPage";
-import ProductDimConfig from "../../../Product Dimension/Configuration/ProductDimConfPage";
-import ProductDimVersion from "../../../Product Dimension/ProductDimVersion/ProductDimVersionPage";
-import Style from "../../../Product Dimension/Style/ProductDimStylePage";
-import Size from "../../../Product Dimension/ProductDimSize/ProductDimSizePage";
+import ProductDimColor from "../../Product Dimension/Color/ProductDimColorPage";
+import ProductDimConfig from "../../Product Dimension/Configuration/ProductDimConfPage";
+import ProductDimVersion from "../../Product Dimension/ProductDimVersion/ProductDimVersionPage";
+import Style from "../../Product Dimension/Style/ProductDimStylePage";
+import Size from "../../Product Dimension/ProductDimSize/ProductDimSizePage";
 
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",

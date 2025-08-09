@@ -184,7 +184,7 @@ export default function ColorList({ handleAddColor }) {
           </button>
         </div>
       </div>
-   <div className="flex flex-wrap items-center text-sm justify-between p-2 bg-white rounded-md mb-2 space-y-3 md:space-y-0 md:space-x-4">
+      <div className="flex flex-wrap items-center text-sm justify-between p-2 bg-white rounded-md mb-2 space-y-3 md:space-y-0 md:space-x-4">
         <div className="flex items-center space-x-4">
           {/* Sort By */}
           <div className="relative">
@@ -233,7 +233,7 @@ export default function ColorList({ handleAddColor }) {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
               aria-label="Search"
             >
-              <FaSearch className="w-5 h-5" />
+              {/* <FaSearch className="w-5 h-5" /> */}
             </button>
           </div>
         </div>

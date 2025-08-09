@@ -39,7 +39,9 @@ export default function ProductSizeList({ handleAddProductSize }) {
     "Updated At",
     "Active",
   ];
-
+const handleSearchChange = e => {
+  setSearchTerm(e.target.value);
+};
   // Fetch ProductSizes
   const fetchProductSizes = useCallback(async () => {
     setLoading(true);

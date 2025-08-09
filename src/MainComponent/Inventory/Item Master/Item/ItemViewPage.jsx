@@ -477,17 +477,7 @@ const ItemviewPage = ({ item, itemId, goBack, handleSaveItem, toggleView }) => {
                 className="mt-1 w-full p-2 border rounded"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Pallet
-              </label>
-              <input
-                name="pallet"
-                value={form.pallet}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
-              />
-            </div>
+          
           </div>
         </section>
 

@@ -7,7 +7,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
-import ProductDimVersionViewPage from "./ProductDimVersionViewPage";
+import ProductDimVersionViewPage from "./ProductDimVersionViewPage";import { FaSortAmountDown, FaFilter } from "react-icons/fa";
 
 export default function ProductDimVersionList({ handleAddProductProduct }) {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/versions";
@@ -122,6 +122,9 @@ export default function ProductDimVersionList({ handleAddProductProduct }) {
     XLSX.utils.book_append_sheet(wb, ws, "ProductVersions");
     XLSX.writeFile(wb, "ProductVersions.xlsx");
   };
+const handleSearchChange = e => {
+  setSearchTerm(e.target.value);
+};
 
   // Export PDF
   const generatePDF = () => {
