@@ -191,7 +191,7 @@ export default function SiteList({ handleAddSite }) {
   const generatePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
-      head: [["#", "Code", "Name", "Contact", "Address", "Status"]],
+      head: [["#", "Code", "Name", "type", "Description", "Status"]],
       body: filteredSites.map((c, i) => [
         i + 1,
         c.code,

@@ -31,7 +31,7 @@ export default function ProductSizePage() {
   };
 
   return (
-    <div className="w-full p-6 bg-white rounded-lg">
+    <div className="">
       {view === "list" && (
         <ProductSizeList handleAddProductSize={handleAddProductSize} onView={handleViewProductSize} />
       )}

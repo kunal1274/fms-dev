@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { FaSortAmountDown, FaFilter } from "react-icons/fa";
+import { FaSearch, FaSortAmountDown, FaFilter } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
@@ -10,7 +10,7 @@ import "./c.css";
 import ProductStyleViewPage from "./ProductStyleViewPagee.jsx";
 
 export default function ProductStyleList({ handleAddProductStyle }) {
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/ProductStyles";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/styles";
   const metricsUrl = `${baseUrl}/metrics`;
 
   const tabNames = ["All ProductStyles", "Active", "Archived"];
@@ -122,7 +122,7 @@ export default function ProductStyleList({ handleAddProductStyle }) {
     setSelectedIds(
       e.target.checked ? filteredProductStyles.map((z) => z._id) : []
     );
-
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
   // Delete selected ProductStyles
   const handleDeleteSelected = async () => {
     if (!selectedIds.length) {
@@ -142,7 +142,42 @@ export default function ProductStyleList({ handleAddProductStyle }) {
       toast.error("Delete failed");
     }
   };
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSelectedOption("");
+  };
+  const generatePDF = () => {
+    const doc = new jsPDF({ orientation: "landscape" });
+    autoTable(doc, {
+      head: [
+        [
+          "#",
+          "Code",
+          "Name",
+          "Description",
+          "Type",
+          "Values",
+          "Status",
+          "Created At",
+          "Updated At",
+        ],
+      ],
+      body: filteredColors.map((c, i) => [
+        i + 1,
+        c.code,
+        c.name,
+        c.description,
+        c.type,
+        (c.values || []).join(", "),
+        c.active ? "Active" : "Inactive",
+        new Date(c.createdAt).toLocaleDateString(),
+        new Date(c.updatedAt).toLocaleDateString(),
+      ]),
+    });
+    doc.save("ProductDimStyleList.pdf");
+  };
 
+  const exportToExcel = () => toast.info("Excel export not implemented yet.");
   // Loading or error states
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
@@ -161,17 +196,32 @@ export default function ProductStyleList({ handleAddProductStyle }) {
 
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold">ProductStyles</h3>
-        <div className="space-x-2">
-          <button onClick={handleAddProductStyle} className="btn">
+        <h3 className="text-xl font-semibold">Product Sizes</h3>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleAddProductStyle}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+          >
             + Add
           </button>
           <button
             onClick={handleDeleteSelected}
-            className="btn"
             disabled={!selectedIds.length}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
           >
             Delete
+          </button>
+          <button
+            onClick={generatePDF}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+          >
+            PDF
+          </button>
+          <button
+            onClick={exportToExcel}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+          >
+            Export
           </button>
         </div>
       </div>
@@ -238,19 +288,8 @@ export default function ProductStyleList({ handleAddProductStyle }) {
           Reset Filter
         </button>
       </div>
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        {["total", "active", "archived"].map((key, idx) => (
-          <div key={key} className="p-4 bg-gray-50 rounded">
-            <div className="text-2xl">{summary[key]}</div>
-            <div>
-              {key.charAt(0).toUpperCase() + key.slice(1)} ProductStyles
-            </div>
-          </div>
-        ))}
-      </div>
 
       {/* Filters */}
-    
 
       {/* Data table */}
       <div className="overflow-auto bg-white rounded-lg">

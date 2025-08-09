@@ -31,7 +31,7 @@ export default function ProductConfPage() {
   };
 
   return (
-    <div className="w-full p-6 bg-white rounded-lg">
+    <div>
       {view === "list" && (
         <ProductConfList
           handleAddConf={handleAddConf}

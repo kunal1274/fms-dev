@@ -6,8 +6,7 @@ const InventoryTransaction = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // TODO: update this to your real transactions endpoint if it's not /items
-  const transactionsUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
+
 
   // keep headers and accessors in sync here
   const columns = [
@@ -43,7 +42,7 @@ const InventoryTransaction = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get(transactionsUrl);
+        const res = await axios.get();
         setData(res.data?.data || []);
       } catch (err) {
         setError("Failed to load inventory transactions.");

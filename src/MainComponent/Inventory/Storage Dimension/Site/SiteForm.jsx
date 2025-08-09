@@ -9,7 +9,7 @@ export default function SiteForm({ handleCancel, onSaved, companyId }) {
     type: "Physical",
     company: "",
     description: "",
-    active: false,
+  
     archived: false,
     groups: [],
     name: "",

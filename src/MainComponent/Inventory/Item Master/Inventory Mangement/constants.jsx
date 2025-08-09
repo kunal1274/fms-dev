@@ -17,13 +17,37 @@ import {
 
 // Page Constants
 
-
 export const VIEW_MODES = {
   GRID: "GRID",
   ICON: "ICON",
   LIST: "LIST",
 };
-
+export const PAGE = {
+  TOGGLE: "TOGGLE",
+  ITEM_MASTER: "ITEM_MASTER",
+  WAREHOUSE: "WAREHOUSE",
+  SITE: "SITE",
+  ZONE: "ZONE",
+  SHELVES: "SHELVES",
+  AISLES: "AISLES",
+  BATCHES: "BATCHES",
+  BIN: "BIN",
+  LOCATION: "LOCATION",
+  RACK: "RACK",
+  PAlLLET: "PAlLLET", // looks like this is spelled oddly, maybe PALLET?
+  SERIALS: "SERIALS",
+  INVENTORY_JOURNALS: "INVENTORY_JOURNALS",
+  INVENTORY_INOUT: "INVENTORY_INOUT",
+  BULK_UPDATE: "BULK_UPDATE",
+  UNIT_CONVERSIONS: "UNIT_CONVERSIONS",
+  INVENTORY_TRANSACTIONS: "INVENTORY_TRANSACTIONS",
+  ON_HAND_STOCK: "ON_HAND_STOCK",
+  COLOR: "COLOR",
+  CONFIG: "CONFIG",
+  DIMVERSION: "DIMVERSION",
+  STYLE: "STYLE",
+  SIZE: "SIZE",
+};
 // Group Pages for Sidebar Navigation
 export const groups = [
   {
@@ -197,7 +221,7 @@ export const setupSections = [
         page: PAGE.LOCATION,
       },
       { id: "rack", title: "Rack", icon: <FaListUl />, page: PAGE.RACK },
-      { id: "pallet", title: "Pallet", icon: <FaListUl />, page: PAGE.PAlLLET },
+      // { id: "pallet", title: "Pallet", icon: <FaListUl />, page: PAGE.PAlLLET },
     ],
   },
   {

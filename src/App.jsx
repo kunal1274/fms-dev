@@ -2,7 +2,7 @@ import React from "react";
 //
 import Dashbord from "./Component/Dashbord/Dashbord";
 
-// import Dashbord from "./MainComponent/Purchase/T/Purchase register by Line report/PurchaseregisterbyLinereport";
+// import Dashbord from "./MainComponent/Inventory/Transcation Report/InventoryTransaction/InventoryTransaction";
 
 const App = () => {
   return (

@@ -9,8 +9,8 @@ import { Tabs } from "flowbite-react";
 import "./c.css";
 import ItemViewPage from "./ItemViewPage";
 
-const List = ({handleAddItem }) => {
-     const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
+const List = ({ handleAddItem }) => {
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const metricsUrl = `${baseUrl}/metrics`;
 
   const tabNames = [
@@ -100,13 +100,9 @@ const List = ({handleAddItem }) => {
     if (value === "All") {
       setFilteredItems(filtered);
     } else if (value === "yes") {
-      setFilteredItems(
-        filtered.filter((item) => item.active === true)
-      );
+      setFilteredItems(filtered.filter((item) => item.active === true));
     } else if (value === "no") {
-      setFilteredItems(
-        filtered.filter((item) => item.active === false)
-      );
+      setFilteredItems(filtered.filter((item) => item.active === false));
     } else if (value === "Item Name") {
       filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
       setFilteredItems(filtered);
@@ -226,9 +222,7 @@ const List = ({handleAddItem }) => {
   const onTabClick = (tab) => setActiveTab(tab);
 
   const toggleSelectAll = (e) => {
-    setSelectedItems(
-      e.target.checked ? filteredItems.map((c) => c._id) : []
-    );
+    setSelectedItems(e.target.checked ? filteredItems.map((c) => c._id) : []);
   };
 
   const handleCheckboxChange = (id) => {
@@ -278,20 +272,27 @@ const List = ({handleAddItem }) => {
 
   const generatePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
+
+    // Table header
+    const head = [["#", "Code", "Item Name", "Description", "Unit", "Price"]];
+
+    // Table body
+    const body = filteredItems.map((item, index) => [
+      index + 1, // Row number
+      item.code || "", // Code
+      item.name || "", // Item Name
+      item.description || "", // Description
+      item.unit || "", // Unit
+      item.price || "", // Price
+    ]);
+
     autoTable(doc, {
-      head: [["#", "Code", "Name", "Contact", "Address", "Status"]],
-      body: filteredItems.map((c, i) => [
-        i + 1,
-        c.code,
-        c.name,
-        c.contactNum,
-        c.address,
-        c.active ? "Active" : "Inactive",
-      ]),
+      head,
+      body,
     });
+
     doc.save("Item_list.pdf");
   };
-
   const handleItemClick = (itemId) => {
     setViewingItemId(itemId);
   };
@@ -310,7 +311,7 @@ const List = ({handleAddItem }) => {
   // ─── Render ─────────────────────────────────────────────────────
 
   return (
-      <div>
+    <div>
       <ToastContainer />
       <div>
         <div>
@@ -523,23 +524,26 @@ const List = ({handleAddItem }) => {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedItems.length ===
-                              filteredItems.length &&
+                            selectedItems.length === filteredItems.length &&
                             filteredItems.length > 0
                           }
                           className="form-checkbox"
                         />
                       </th>
-                      {["Code", "Item Name", " Description", "Unit", "Price"].map(
-                        (h) => (
-                          <th
-                            key={h}
-                            className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
-                          >
-                            {h}
-                          </th>
-                        )
-                      )}
+                      {[
+                        "Code",
+                        "Item Name",
+                        " Description",
+                        "Unit",
+                        "Price",
+                      ].map((h) => (
+                        <th
+                          key={h}
+                          className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
+                        >
+                          {h}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -605,7 +609,7 @@ const List = ({handleAddItem }) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default List
+export default List;

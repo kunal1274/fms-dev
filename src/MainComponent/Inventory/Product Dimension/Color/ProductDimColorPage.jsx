@@ -31,7 +31,7 @@ export default function ProductColorPage() {
   };
 
   return (
-    <div className="w-full p-6 bg-white rounded-lg">
+    <div className="">
       {view === "list" && (
         <ProductColorList
           handleAddColor={handleAddColor}

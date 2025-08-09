@@ -10,14 +10,14 @@ import SitePage from "../../Storage Dimension/Site/SitePage";
 import ZonePage from "../../Storage Dimension/Zone/ZonePage";
 import ShelvesPage from "../../Storage Dimension/Shelves/ShelvesPage";
 import AislesPage from "../../Storage Dimension/Aisles/AislesPage";
-import BatchValuePage from "../../Tracking Dimension/BatchValue/BatchValueViewPagee";
+import BatchValuePage from "../../Tracking Dimension/BatchValue/BatchValuePage";
 import BinPage from "../../Storage Dimension/Bin/BinPage";
 import LocationPage from "../../Storage Dimension/Location/LocationPage";
 import RackPage from "../../Storage Dimension/Rack/RackPage";
 import SerialPage from "../../Tracking Dimension/Serial/SerialPage";
 import JournalCreationForm from "../../Inventory Jornal/Jornal/Jornal";
 import InoutJournal from "../../../Sale/JournalRevenue/InoutJornal";
-
+import InventoryTransction from "../../Transcation Report/InventoryTransaction/InventoryTransaction"
 // === Product Dimensions ===
 import ProductDimColor from "../../Product Dimension/Color/ProductDimColorPage";
 import ProductDimConfig from "../../Product Dimension/Configuration/ProductDimConfPage";
@@ -29,7 +29,7 @@ const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
 };
 
-export default function ViewTogglePage() {
+export default function InventoryManegment() {
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [page, setPage] = useState(PAGE.TOGGLE);
@@ -158,6 +158,9 @@ export default function ViewTogglePage() {
     ),
     [PAGE.STYLE]: <Style companies={companies} form={form} setForm={setForm} />,
     [PAGE.SIZE]: <Size companies={companies} form={form} setForm={setForm} />,
+
+[PAGE.INVENTORY_TRANSACTIONS]: < InventoryTransction companies={companies} form={form} setForm={setForm} />,
+    
   };
 
   if (page !== PAGE.TOGGLE) {
