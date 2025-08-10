@@ -39,7 +39,7 @@ export default function InventoryManegment() {
   const [hiddenSubgroups, setHiddenSubgroups] = useState({});
 
   useEffect(() => {
-    const fetchCompanies = async () => {
+    (async () => {
       try {
         const resp = await axios.get("/fms/api/v0/companies");
         const data = Array.isArray(resp.data)
@@ -49,12 +49,10 @@ export default function InventoryManegment() {
       } catch (err) {
         console.error("Failed to load companies:", err);
       }
-    };
-    fetchCompanies();
+    })();
   }, []);
 
   const goBack = () => setPage(PAGE.TOGGLE);
-
   const toggleGroup = (id) =>
     setHiddenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
   const toggleSection = (id) =>
@@ -62,95 +60,7 @@ export default function InventoryManegment() {
   const toggleSubgroup = (id) =>
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  // Nice card styles used in GRID and ICON views
-  const baseCard =
-    "cursor-pointer select-none bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm hover:shadow-lg hover:ring-gray-200 transition-all duration-200";
-  const baseRow =
-    "cursor-pointer flex items-center w-full rounded-xl ring-1 ring-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-200";
-
-  // === Renderers
-  const renderItems = (items = [], cols = 4) => {
-    const safeItems = Array.isArray(items) ? items : [];
-
-    // LIST MODE: full-width rows
-    if (viewMode === VIEW_MODES.LIST) {
-      return (
-        <div className="flex flex-col gap-2">
-          {safeItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => item.page && setPage(item.page)}
-              className={`${baseRow} p-3 text-left`}
-              title={item.title}
-            >
-              <div className="text-gray-500 mr-3">{item.icon}</div>
-              <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900">
-                  {item.title}
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      );
-    }
-
-    // ICON MODE: tiny square tiles, many columns
-    if (viewMode === VIEW_MODES.ICON) {
-      const iconCols = Math.max(cols * 2, 4);
-      return (
-        <div
-          className="grid gap-2"
-          style={{ gridTemplateColumns: `repeat(${iconCols}, minmax(0,1fr))` }}
-        >
-          {safeItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => item.page && setPage(item.page)}
-              className={`${baseCard} flex flex-col items-center justify-center`}
-              style={{
-                width: 76,
-                height: 76,
-                padding: 8,
-              }}
-              title={item.title}
-            >
-              <div className="text-gray-600 text-base mb-1">{item.icon}</div>
-              <div className="text-[10px] font-medium text-gray-800 text-center leading-tight line-clamp-2">
-                {item.title}
-              </div>
-            </button>
-          ))}
-        </div>
-      );
-    }
-
-    // GRID MODE: compact cards, responsive count + explicit fallback via cols
-    const gridCols = Math.max(cols, 3);
-    return (
-      <div
-        className="grid gap-3 sm:gap-4"
-        style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0,1fr))` }}
-      >
-        {safeItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => item.page && setPage(item.page)}
-            className={`${baseCard} flex flex-col items-center justify-center text-sm`}
-            style={{ minHeight: 104, padding: 10 }}
-            title={item.title}
-          >
-            <div className="text-gray-600 text-lg mb-1.5">{item.icon}</div>
-            <div className="text-xs font-medium text-gray-900 text-center leading-tight">
-              {item.title}
-            </div>
-          </button>
-        ))}
-      </div>
-    );
-  };
-
-  // === Page map
+  // ---------- Page map ----------
   const componentMap = useMemo(
     () => ({
       [PAGE.ITEM_MASTER]: (
@@ -224,7 +134,104 @@ export default function InventoryManegment() {
     [companies, form]
   );
 
-  // === Page switch
+  // ---------- Render helpers (single source of truth) ----------
+  const Card = ({ item }) => (
+    <button
+      onClick={() => item.page && setPage(item.page)}
+      className="group w-full h-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition text-left"
+      title={item.title}
+    >
+      <div className="flex items-center gap-3">
+        <div className="text-xl text-gray-700 group-hover:scale-110 transition">
+          {item.icon || <FaTh />}
+        </div>
+        <div>
+          <div className="font-medium text-gray-900">{item.title}</div>
+          {item.subtitle ? (
+            <div className="text-xs text-gray-500">{item.subtitle}</div>
+          ) : null}
+        </div>
+      </div>
+    </button>
+  );
+
+  const IconTile = ({ item }) => (
+    <button
+      onClick={() => item.page && setPage(item.page)}
+      className="group rounded-xl border border-gray-200 bg-white p-3 shadow-sm hover:shadow transition flex flex-col items-center justify-center"
+      title={item.title}
+    >
+      <div className="text-2xl text-gray-700 mb-1 group-hover:scale-110 transition">
+        {item.icon || <FaTh />}
+      </div>
+      <div className="text-xs font-medium text-gray-800 text-center line-clamp-2">
+        {item.title}
+      </div>
+    </button>
+  );
+
+  const ListRow = ({ item, idx }) => (
+    <button
+      onClick={() => item.page && setPage(item.page)}
+      className="w-full text-left grid grid-cols-[2rem,1fr,10rem] items-center px-3 py-2 hover:bg-gray-50 border-b last:border-b-0"
+      title={item.title}
+    >
+      <div className="text-gray-500">{idx + 1}.</div>
+      <div className="flex items-center gap-3">
+        <span className="text-lg text-gray-700">{item.icon || <FaTh />}</span>
+        <span className="font-medium text-gray-900">{item.title}</span>
+      </div>
+      <div className="justify-self-end">
+        <span className="text-xs text-gray-500">Open</span>
+      </div>
+    </button>
+  );
+
+  const renderItems = (items = [], colsOverride) => {
+    if (!items?.length) return null;
+
+    if (viewMode === VIEW_MODES.LIST) {
+      return (
+        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+          {items.map((it, i) => (
+            <ListRow key={it.id || it.title || i} item={it} idx={i} />
+          ))}
+        </div>
+      );
+    }
+
+    if (viewMode === VIEW_MODES.ICON) {
+      return (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3">
+          {items.map((it, i) => (
+            <IconTile key={it.id || it.title || i} item={it} />
+          ))}
+        </div>
+      );
+    }
+
+    // GRID
+    const cols = colsOverride || 4;
+    const gridClass =
+      cols === 1
+        ? "grid-cols-1"
+        : cols === 2
+        ? "grid-cols-1 sm:grid-cols-2"
+        : cols === 3
+        ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+        : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+
+    return (
+      <div className={`grid ${gridClass} gap-4`}>
+        {items.map((it, i) => (
+          <Card key={it.id || it.title || i} item={it} />
+        ))}
+      </div>
+    );
+  };
+  // ------------------------------------------------------------
+
+  // === Page switch ===
   if (page !== PAGE.TOGGLE) {
     return (
       <div className="p-4 sm:p-6">
@@ -239,7 +246,6 @@ export default function InventoryManegment() {
     );
   }
 
-  // === Top bar icons for view modes
   const viewIcons = [
     <FaThLarge key="grid" />,
     <FaTh key="icon" />,
@@ -250,7 +256,7 @@ export default function InventoryManegment() {
   return (
     <div className="p-3 sm:p-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Item Dashboard</h2>
+        <h2 className="text-xl font-semibold">Inventory Dashboard</h2>
         <div className="flex items-center space-x-3">
           <div className="flex bg-gray-100 rounded-xl overflow-hidden ring-1 ring-gray-200">
             {modes.map((mode, index) => (
@@ -305,7 +311,13 @@ export default function InventoryManegment() {
                       </button>
                     </div>
                     {!hiddenSections[section.id] &&
-                      renderItems(section.items, section.cols)}
+                      renderItems(
+                        section.items,
+                        section.cols ||
+                          (viewMode === VIEW_MODES.GRID
+                            ? 4
+                            : section.items?.length || 4)
+                      )}
                   </div>
                 ))
               : grp.subgroups

@@ -286,7 +286,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
           "#",
           "Code",
           "Name",
-          "Contact",
+       
           "Email",
           "Registration Number",
           "Business Type",
@@ -557,7 +557,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                         "Name",
                         "Currency",
                         "Address",
-                        "Contact",
+                    
                         "Email",
                         "Registration Number",
 
@@ -605,7 +605,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                           <td className="px-6 py-4">
                             {c.primaryGSTAddress}
                           </td>{" "}
-                          <td className="px-6 py-4">{c.contactNum}</td>{" "}
+                       
                           <td className="px-6 py-4">{c.email}</td>{" "}
                           <td className="px-6 py-4">{c.taxInfo?.gstNumber}</td>{" "}
                           <td className="px-6 py-4">
