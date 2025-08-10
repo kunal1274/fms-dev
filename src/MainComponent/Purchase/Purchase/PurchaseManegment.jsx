@@ -27,7 +27,8 @@ const initialForm = {
 };
 
 export default function ViewTogglePage() {
-  const [form, setForm] = useState(initialForm);
+  // State (JSX-safe: no TypeScript generics)
+  const [form] = useState(initialForm);
   const [page, setPage] = useState(PAGE.TOGGLE);
   const [viewMode, setViewMode] = useState(VIEW_MODES.GRID);
   const [hiddenGroups, setHiddenGroups] = useState({});
@@ -35,7 +36,6 @@ export default function ViewTogglePage() {
   const [hiddenSubgroups, setHiddenSubgroups] = useState({});
 
   const goBack = () => setPage(PAGE.TOGGLE);
-
   const toggleGroup = (id) =>
     setHiddenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
   const toggleSection = (id) =>
@@ -43,72 +43,106 @@ export default function ViewTogglePage() {
   const toggleSubgroup = (id) =>
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
-const componentMap = {
-  [PAGE.VENDOR]: <Vendor />,
-  [PAGE.PURCHASE_ORDER]: <PurchaseOrderPage />,
-  [PAGE.RETURN_ORDER]: <ReturnOrder />,
-  [PAGE.CREDIT_NOTE]: <CreditNote />,
-  [PAGE.DEBIT_NOTE]: <DebitNote />,
-  [PAGE.JOURNAL]: <JournalPage />,
-  [PAGE.FREE_TAX_INVOICE]: <FreeTaxInvoice />,
-  [PAGE.VENDOR_TRANSACTION]: <PurchaseTransaction />,
-  [PAGE.VENDOR_BALANCE]: <PurchaseBalance />,
-  [PAGE.VENDOR_AGING_REPORT]: <PurchaseAgingReport />,
-  [PAGE.PURCHASE_ACCOUNTING_TRANSACTION]: <PurchasesAccountingTransaction />,
-  [PAGE.PURCHASE_ACCOUNTING_BALANCE]: <PurchasesAccountingBalance />,
-  [PAGE.PURCHASE_PROFORMA_CONFIRMATION_INVOICE]: <PurchaseProformaConfirmationInvoice />,
-  [PAGE.PURCHASE_PROFORMA_INVOICE]: <PurchaseProformaInvoice />,
-  [PAGE.PURCHASE_INVOICE]: <PurchaseInvoice />,
- [PAGE.PURCHASE_CONFIRMATION_INVOICE]: <PurchaseConfirmationInvoice/>,
-};
+  const componentMap = {
+    [PAGE.VENDOR]: <Vendor />,
+    [PAGE.PURCHASE_ORDER]: <PurchaseOrderPage />,
+    [PAGE.RETURN_ORDER]: <ReturnOrder />,
+    [PAGE.CREDIT_NOTE]: <CreditNote />,
+    [PAGE.DEBIT_NOTE]: <DebitNote />,
+    [PAGE.JOURNAL]: <JournalPage />,
+    [PAGE.FREE_TAX_INVOICE]: <FreeTaxInvoice />,
+    [PAGE.VENDOR_TRANSACTION]: <PurchaseTransaction />,
+    [PAGE.VENDOR_BALANCE]: <PurchaseBalance />,
+    [PAGE.VENDOR_AGING_REPORT]: <PurchaseAgingReport />,
+    [PAGE.PURCHASE_ACCOUNTING_TRANSACTION]: <PurchasesAccountingTransaction />,
+    [PAGE.PURCHASE_ACCOUNTING_BALANCE]: <PurchasesAccountingBalance />,
+    [PAGE.PURCHASE_PROFORMA_CONFIRMATION_INVOICE]: (
+      <PurchaseProformaConfirmationInvoice />
+    ),
+    [PAGE.PURCHASE_PROFORMA_INVOICE]: <PurchaseProformaInvoice />,
+    [PAGE.PURCHASE_INVOICE]: <PurchaseInvoice />,
+    [PAGE.PURCHASE_CONFIRMATION_INVOICE]: <PurchaseConfirmationInvoice />,
+  };
 
+  const baseCard =
+    "cursor-pointer select-none bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm hover:shadow-lg hover:ring-gray-200 transition-all duration-200";
+  const baseRow =
+    "cursor-pointer flex items-center w-full rounded-xl ring-1 ring-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-200";
 
-  const renderItems = (items = [], cols = 3) => {
-    const colClass =
-      viewMode === VIEW_MODES.GRID
-        ? `grid-cols-${cols}`
-        : viewMode === VIEW_MODES.ICON
-        ? `grid-cols-${cols * 2}`
-        : "";
+  const renderItems = (items = [], cols = 4) => {
+    const safeItems = Array.isArray(items) ? items : [];
 
-    const containerClass =
-      viewMode === VIEW_MODES.LIST
-        ? "flex flex-col gap-4"
-        : `grid ${colClass} gap-6`;
+    if (viewMode === VIEW_MODES.LIST) {
+      return (
+        <div className="flex flex-col gap-2">
+          {safeItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => item.page && setPage(item.page)}
+              className={`${baseRow} p-3 text-left`}
+              title={item.title}
+            >
+              <div className="text-gray-500 mr-3 text-lg">{item.icon}</div>
+              <div className="flex-1">
+                <div className="text-sm font-medium text-gray-900">
+                  {item.title}
+                </div>
+                {item.subtitle ? (
+                  <div className="text-xs text-gray-500">{item.subtitle}</div>
+                ) : null}
+              </div>
+            </button>
+          ))}
+        </div>
+      );
+    }
 
+    if (viewMode === VIEW_MODES.ICON) {
+      const iconCols = Math.max(cols * 2, 4);
+      return (
+        <div
+          className="grid gap-2"
+          style={{ gridTemplateColumns: `repeat(${iconCols}, minmax(0,1fr))` }}
+        >
+          {safeItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => item.page && setPage(item.page)}
+              className={`${baseCard} flex flex-col items-center justify-center`}
+              style={{ width: 76, height: 76, padding: 8 }}
+              title={item.title}
+              aria-label={item.title}
+            >
+              <div className="text-gray-600 text-base mb-1">{item.icon}</div>
+              <div className="text-[10px] font-medium text-gray-800 text-center leading-tight line-clamp-2">
+                {item.title}
+              </div>
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    const gridCols = Math.max(cols, 3);
     return (
-      <div className={containerClass}>
-        {items.map((item) => (
-          <div
+      <div
+        className="grid gap-3 sm:gap-4"
+        style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0,1fr))` }}
+      >
+        {safeItems.map((item) => (
+          <button
             key={item.id}
-            onClick={() =>
-              setPage(item.page || PAGE[item.id.toUpperCase()] || item.id)
-            }
-            className={
-              viewMode === VIEW_MODES.LIST
-                ? "cursor-pointer flex items-center p-4 hover:bg-gray-50 transition"
-                : "cursor-pointer bg-white rounded-lg shadow hover:shadow-lg transform hover:scale-105 transition p-6 flex flex-col items-center"
-            }
+            onClick={() => item.page && setPage(item.page)}
+            className={`${baseCard} flex flex-col items-center justify-center text-sm`}
+            style={{ minHeight: 104, padding: 10 }}
+            title={item.title}
+            aria-label={item.title}
           >
-            <div
-              className={
-                viewMode === VIEW_MODES.LIST
-                  ? "text-2xl text-gray-500 mr-4"
-                  : "text-xl text-gray-600 mb-4"
-              }
-            >
-              {item.icon}
-            </div>
-            <span
-              className={
-                viewMode === VIEW_MODES.LIST
-                  ? "text-md font-medium"
-                  : "text-lg font-medium mb-2"
-              }
-            >
+            <div className="text-gray-600 text-lg mb-1.5">{item.icon}</div>
+            <div className="text-xs font-medium text-gray-900 text-center leading-tight">
               {item.title}
-            </span>
-          </div>
+            </div>
+          </button>
         ))}
       </div>
     );
@@ -119,12 +153,12 @@ const componentMap = {
       <div className="p-6">
         <button
           onClick={goBack}
-          className="flex items-center mb-4 text-gray-700 hover:text-gray-900"
+          className="inline-flex items-center mb-4 text-gray-700 hover:text-gray-900"
         >
           <FaArrowLeft className="mr-2" /> Back to Dashboard
         </button>
         {componentMap[page] || (
-          <div className="text-red-500">Page not found.</div>
+          <div className="text-red-600">Page not found</div>
         )}
       </div>
     );
@@ -132,74 +166,97 @@ const componentMap = {
 
   return (
     <div className="p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h1 className="text-xl font-semibold">Purchase Dashboard</h1>
-        <div className="flex space-x-4">
-          {[VIEW_MODES.GRID, VIEW_MODES.ICON, VIEW_MODES.LIST].map(
-            (mode, i) => {
-              const icons = [<FaThLarge />, <FaTh />, <FaListUl />];
-              return (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  className={`p-3 rounded ${
-                    viewMode === mode ? "bg-white shadow" : "hover:bg-gray-200"
-                  } transition`}
-                >
-                  {icons[i]}
-                </button>
-              );
-            }
-          )}
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-semibold">Customer Dashboard</h1>
+        <div className="flex space-x-2">
+          {[
+            { mode: VIEW_MODES.GRID, Icon: FaThLarge, label: "Grid" },
+            { mode: VIEW_MODES.ICON, Icon: FaTh, label: "Icon" },
+            { mode: VIEW_MODES.LIST, Icon: FaListUl, label: "List" },
+          ].map(({ mode, Icon, label }) => {
+            const active = viewMode === mode;
+            return (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`inline-flex items-center px-3 py-2 rounded-lg text-sm transition ${
+                  active
+                    ? "bg-white shadow ring-1 ring-gray-200"
+                    : "hover:bg-gray-100"
+                }`}
+                aria-pressed={active}
+                title={label}
+              >
+                <Icon className="mr-2" />
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {groups.map((grp) => (
-        <div key={grp.id} className="mb-8">
-          <div className="flex justify-between items-center mb-4">
+        <section key={grp.id} className="mb-8">
+          <div className="flex justify-between items-center mb-3">
             <h2 className="text-lg font-semibold">{grp.title}</h2>
             <button
               onClick={() => toggleGroup(grp.id)}
-              className="text-gray-600 text-2xl hover:text-gray-800"
+              className="text-gray-600 text-sm hover:text-gray-800"
+              aria-expanded={!hiddenGroups[grp.id]}
+              aria-controls={`group-${grp.id}`}
             >
-              {hiddenGroups[grp.id] ? ">" : "˅"}
+              {hiddenGroups[grp.id] ? "Show" : "Hide"}
             </button>
           </div>
 
-          {!hiddenGroups[grp.id] &&
-            (grp.id === "setups"
-              ? setupSections.map((section) => (
-                  <div key={section.id} className="mb-6">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="text-md font-medium">{section.title}</h3>
-                      <button
-                        onClick={() => toggleSection(section.id)}
-                        className="text-gray-600 hover:text-gray-800"
-                      >
-                        {hiddenSections[section.id] ? ">" : "˅"}
-                      </button>
+          {!hiddenGroups[grp.id] && (
+            <div id={`group-${grp.id}`} className="space-y-4">
+              {grp.id === "setups"
+                ? setupSections.map((section) => (
+                    <div key={section.id} className="mb-2">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-md font-medium">{section.title}</h3>
+                        <button
+                          onClick={() => toggleSection(section.id)}
+                          className="text-gray-600 text-sm hover:text-gray-800"
+                          aria-expanded={!hiddenSections[section.id]}
+                          aria-controls={`section-${section.id}`}
+                        >
+                          {hiddenSections[section.id] ? "Show" : "Hide"}
+                        </button>
+                      </div>
+                      {!hiddenSections[section.id] && (
+                        <div id={`section-${section.id}`}>
+                          {renderItems(section.items, section.cols || 4)}
+                        </div>
+                      )}
                     </div>
-                    {!hiddenSections[section.id] &&
-                      renderItems(section.items, section.cols)}
-                  </div>
-                ))
-              : grp.subgroups
-              ? grp.subgroups.map((sub) => (
-                  <div key={sub.id} className="mb-6">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="text-md font-medium">{sub.title}</h3>
+                  ))
+                : grp.subgroups
+                ? grp.subgroups.map((sub) => (
+                    <div key={sub.id} className="mb-2">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-md font-medium">{sub.title}</h3>
                       <button
                         onClick={() => toggleSubgroup(sub.id)}
                         className="text-gray-600 hover:text-gray-800"
+                        aria-label={`Toggle ${sub.title}`}
+                        title={hiddenSubgroups[sub.id] ? "Expand" : "Collapse"}
                       >
-                        {hiddenSubgroups[sub.id] ? ">" : "˅"}
+                        {hiddenSubgroups[sub.id] ? "▸" : "▾"}
                       </button>
+                      </div>
+                      {!hiddenSubgroups[sub.id] && (
+                        <div id={`sub-${sub.id}`}>
+                          {renderItems(sub.items, 3)}
+                        </div>
+                      )}
                     </div>
-                    {!hiddenSubgroups[sub.id] && renderItems(sub.items, 3)}
-                  </div>
-                ))
-              : renderItems(grp.items, 4))}
-        </div>
+                  ))
+                : renderItems(grp.items, 4)}
+            </div>
+          )}
+        </section>
       ))}
     </div>
   );

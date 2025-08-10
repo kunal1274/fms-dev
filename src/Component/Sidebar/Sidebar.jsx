@@ -20,6 +20,7 @@ const navItems = [
   },
   { label: "Sale", icon: FaShoppingCart },
   { label: "Purchase", icon: FaCartPlus },
+   { label: "Bank", icon: FaCartPlus },
   { label: "User", icon: FaUser },
   { label: "Tax", icon: FaUser },
 ];
