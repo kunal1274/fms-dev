@@ -24,7 +24,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
 
   // States
   const [activeTab, setActiveTab] = useState(tabNames[0]);
-
   const [CompaniesList, setCompaniesList] = useState([]);
   const [selectedOption, setSelectedOption] = useState("All");
   const [filteredCompaniess, setFilteredCompaniess] = useState([]);
@@ -51,7 +50,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
 
   // Upload Logo
   const fileInputRef = useRef(null);
-
   const [logoUploading, setLogoUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({});
   const [currentUploadFile, setCurrentUploadFile] = useState("");
@@ -83,7 +81,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
       console.error(error);
       toast.error("Error uploading logo!");
     } finally {
-      // Hide spinner & progress a bit after success/failure
       setTimeout(() => {
         setLogoUploading(false);
         setUploadProgress({});
@@ -119,6 +116,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
       setFilteredCompaniess(filtered);
     }
   };
+
   // Fetch Companiess
   const fetchCompaniess = useCallback(
     async (fromDate = startDate, toDate = endDate) => {
@@ -130,8 +128,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
         });
         const list = resp.data || resp;
         setCompaniesList(list);
-
-        +setFilteredCompaniess(list); // ← Add this line to update the visible Companiess immediately
+        +setFilteredCompaniess(list);
 
         setCompaniesSummary({
           count: list.length,
@@ -151,7 +148,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
   );
 
   // Fetch Metrics
-
   const fetchMetrics = useCallback(async () => {
     try {
       const { data: resp } = await axios.get(metricsUrl, {
@@ -286,7 +282,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
           "#",
           "Code",
           "Name",
-       
           "Email",
           "Registration Number",
           "Business Type",
@@ -334,8 +329,8 @@ export default function CompaniesList({ handleAddCompany, onView }) {
       </div>
     );
   }
-  // ─── Render ─────────────────────────────────────────────────────
 
+  // ─── Render ─────────────────────────────────────────────────────
   return (
     <div>
       <div>
@@ -345,11 +340,11 @@ export default function CompaniesList({ handleAddCompany, onView }) {
           ) : (
             <div className="space-y-6">
               <ToastContainer />
-              {/* Header Buttons */}
-              <div className="flex justify-between ">
+
+              {/* Header Buttons (stack on small) */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-                    {" "}
                     <button
                       type="button"
                       className="text-blue-600 mt-2 text-sm hover:underline"
@@ -368,75 +363,76 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                           strokeWidth={2}
                           d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
                         />
-                      </svg>{" "}
+                      </svg>
                     </button>
                   </div>
-
-                  {/* </div> */}
                   <h3 className="text-xl font-semibold">Companies List</h3>
                 </div>
-                <div className="flex items-center gap-3 ">
+
+                {/* Buttons wrap on small */}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <button
                     onClick={handleAddCompany}
-                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     + Add
                   </button>
                   <button
                     onClick={handleDeleteSelected}
                     disabled={!selectedCompaniess.length}
-                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     Delete
                   </button>
                   <button
                     onClick={generatePDF}
-                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     PDF
                   </button>
                   <button
                     onClick={exportToExcel}
-                    c
-                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     Export
                   </button>
                 </div>
               </div>
 
-              {/* Metrics */}
+              {/* Metrics (unchanged grid but already responsive) */}
               <div className=" bg-white rounded-lg ">
-                <div className="flex gap-2">
+                {/* Date filters wrap on small */}
+                <div className="flex flex-wrap gap-2">
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="border rounded px-2 py-1"
+                    className="border rounded px-2 py-1 w-full sm:w-auto"
                   />
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="border rounded px-2 py-1"
+                    className="border rounded px-2 py-1 w-full sm:w-auto"
                   />
                   <button
                     onClick={() => {
                       fetchMetrics();
                       fetchCompaniess(startDate, endDate);
                     }}
-                    className="px-3 py-1 border rounded"
+                    className="px-3 py-1 border rounded w-full sm:w-auto"
                   >
                     {loadingMetrics ? "Applying…" : "Apply"}
                   </button>
                 </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
                     ["Total Companiess", CompaniesSummary.count],
                     ["Credit Limit", CompaniesSummary.creditLimit],
                     ["Paid Companiess", CompaniesSummary.paidCompaniess],
                     ["Active Companiess", CompaniesSummary.activeCompaniess],
-                    ["On‑Hold Companiess", CompaniesSummary.onHoldCompaniess],
+                    ["On-Hold Companiess", CompaniesSummary.onHoldCompaniess],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -449,10 +445,9 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                 </div>
               </div>
 
-              {/* Filters & Search */}
+              {/* Filters & Search (already flex-wrap; make inputs responsive widths) */}
               <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md  mb-2 space-y-3 md:space-y-0 md:space-x-4">
-                {/* Left group: Sort By, Filter By Status, Search */}
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-wrap items-center gap-3 md:gap-4">
                   {/* Sort By */}
                   <div className="relative">
                     <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -460,7 +455,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                       defaultValue=""
                       value={selectedOption}
                       onChange={handleFilterChange}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                      className="w-full sm:w-56 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
                       <option value="Companies Name">Companies Name</option>
@@ -478,7 +473,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                     <FaFilter className=" text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <select
                       defaultValue="All"
-                      className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                      className="w-full sm:w-56 pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                       value={selectedOption}
                       onChange={handleFilterChange}
                     >
@@ -489,13 +484,13 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                   </div>
 
                   {/* Search */}
-                  <div className="relative">
+                  <div className="relative w-full sm:w-60">
                     <input
                       type="text"
                       placeholder="Search..."
                       value={searchTerm}
                       onChange={handleSearchChange}
-                      className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                     <button
                       value={searchTerm}
@@ -508,17 +503,17 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                   </div>
                 </div>
 
-                {/* Right side: Reset Filter */}
                 <button
                   onClick={resetFilters}
-                  className="text-red-500 hover:text-red-600 font-medium"
+                  className="text-red-500 hover:text-red-600 font-medium w-full sm:w-auto"
                 >
                   Reset Filter
                 </button>
               </div>
-              <div className="flex">
-                {" "}
-                <ul className="flex space-x-6 list-none p-0 m-0">
+
+              {/* Tabs (make horizontally scrollable on mobile) */}
+              <div className="flex overflow-x-auto">
+                <ul className="flex space-x-6 list-none p-0 m-0 whitespace-nowrap px-1">
                   {tabNames.map((tab) => (
                     <li
                       key={tab}
@@ -534,9 +529,10 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                   ))}
                 </ul>
               </div>
-              {/* Data Table */}
-              <div className="table-scroll-container h-[400px] overflow-auto bg-white rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
+
+              {/* Data Table (taller on mobile; horizontal scroll with min width) */}
+              <div className="table-scroll-container h-[60vh] md:h-[400px] overflow-auto bg-white rounded-lg">
+                <table className="min-w-[900px] md:min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="sticky top-0 z-10 px-4 py-2 bg-gray-50">
@@ -557,10 +553,8 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                         "Name",
                         "Currency",
                         "Address",
-                    
                         "Email",
                         "Registration Number",
-
                         "Status",
                       ].map((h) => (
                         <th
@@ -587,10 +581,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                               className="form-checkbox"
                             />
                           </td>
-                          <td
-                          // onClick={() => handleCompaniesClick(Companies._id)}
-                          // className="px-6 py-4 cursor-pointer text-blue-600 hover:underline"
-                          >
+                          <td>
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
                               onClick={() => handleCompaniesClick(c._id)}
@@ -599,15 +590,11 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                             </button>
                           </td>
                           <td className="px-6 py-4"> {c.businessType} </td>
-                          <td className="px-6 py-4">{c.companyName}</td>{" "}
+                          <td className="px-6 py-4">{c.companyName}</td>
                           <td className="px-6 py-3 truncate">{c.currency}</td>
-                          {/* {new Date(c.createdAt).toLocaleString()} */}
-                          <td className="px-6 py-4">
-                            {c.primaryGSTAddress}
-                          </td>{" "}
-                       
-                          <td className="px-6 py-4">{c.email}</td>{" "}
-                          <td className="px-6 py-4">{c.taxInfo?.gstNumber}</td>{" "}
+                          <td className="px-6 py-4">{c.primaryGSTAddress}</td>
+                          <td className="px-6 py-4">{c.email}</td>
+                          <td className="px-6 py-4">{c.taxInfo?.gstNumber}</td>
                           <td className="px-6 py-4">
                             <span
                               className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
