@@ -267,10 +267,8 @@ export default function CompanyForm({ handleCancel }) {
 
   // ─── Save ────────────────────────────────────────────────
 
-  
   // ─── Reset / Cancel ──────────────────────────────────────
   const resetForm = () => {
-    
     setForm({
       companyCode: "",
       companyName: "",

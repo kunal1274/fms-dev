@@ -10,10 +10,11 @@ const baseUrl = "https://fms-qkmw.onrender.com";
 const secondUrl = "/fms/api/v0";
 const thirdUrl = "/companies";
 const mergedUrl = `${baseUrl}${secondUrl}${thirdUrl}`;
+
 const businessTypes = [
   "Individual",
   "Manufacturing",
-  "ServiceProviderr",
+  "ServiceProvider",
   "Trading",
   "Distributor",
   "Retailer",
@@ -21,174 +22,65 @@ const businessTypes = [
   "Others",
 ];
 const currency = ["INR", "USD", "EUR", "GBP"];
-const paymentTerms = [
-  "COD",
-  "Net30D",
-  "Net7D",
-  "Net15D",
-  "Net45D",
-  "Net60D",
-  "Net90D",
-  "Advance",
-];
-const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", " UPI"];
-const CompanyViewPage = ({
-  ComapniesId,
-  company,
-  goBack,
-  handleSavecompany,
-  toggleView,
-}) => {
-  const [formData, setFormData] = useState({ bankDetails: [], ...company });
-  const [isEditing, setIsEditing] = useState(false);
-  const [isEdited, setIsEdited] = useState(false);
-  const [name, setName] = useState(0);
-  const [bankAccount, setBankAccount] = useState(0);
-  const [logoUploading, setLogoUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({});
-  const handleFileUpload = async (file) => {
-    if (!file) {
-      toast.error("No file selected!");
-      return;
-    }
-    setLogoUploading(true);
+const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", "UPI"];
 
-    try {
-      const formData = new FormData();
-      formData.append("logoImage", file);
-
-      await axios.post(
-        "https://fms-qkmw.onrender.com/fms/api/v0/companies/supload-logo",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            setUploadProgress({ [file.name]: percentCompleted });
-          },
-        }
-      );
-
-      toast.success("File uploaded successfully! ✅");
-      await fetchcompanys(); // If you want to refresh after upload
-    } catch (error) {
-      console.error(error);
-      toast.error("Error uploading logo!");
-    } finally {
-      // Delay a little to let user feel "100% uploaded"
-      setTimeout(() => {
-        setLogoUploading(false); // 👈 this will hide the circle after success
-        setUploadProgress({});
-      }, 500); // 0.5 second delay
-    }
-  };
-  const handleAddBank = () => {
-    const newBankDetail = {
-      bankType: "",
-      bankName: "",
-      bankAccNum: "",
-      accountHolderName: "",
-      ifsc: "",
-      swift: "",
-      qrDetails: "",
-    };
-
-    setFormData((prev) => ({
-      ...prev,
-      bankDetails: [...(prev.bankDetails || []), newBankDetail],
-    }));
-  };
-
-  const [error, setError] = useState(null);
-  const [form, setForm] = useState({
-    code: "",
-    name: "",
+const CompanyViewPage = ({ CompaniesId, goBack }) => {
+  const [formData, setFormData] = useState({
+    companyCode: "",
+    companyName: "",
     businessType: "",
-    address: "",
+    primaryGSTAddress: "",
+    secondaryOfficeAddress: "",
+    tertiaryShippingAddress: "",
+    website: "",
     contactNum: "",
     email: "",
-    contactNumber: "",
-    group: "",
+    currency: "",
     remarks: "",
-    employeeName: "",
-    employeePhone: "",
-    employeeEmail: "",
-    bankType: "",
-    bankName: "",
-    qrDetails: "",
-    bankAccNum: "",
-    bankHolder: "",
-    ifsc: "",
-    swift: "",
-    upi: "",
-    bankDetails: {
-      type: "",
-      bankAccNum: "",
-      bankName: "",
-      ifsc: "",
-      swift: "",
-      active: "",
-    },
-    taxInfo: {
-      gstNumber: "",
-      tanNumber: "",
-      panNumber: "",
-    },
-    globalPartyId: {
-      code: "",
-      _id: "",
-    }, // ← add this
     active: true,
+    taxInfo: { panNumber: "", gstNumber: "", tanNumber: "" },
+    globalPartyId: { code: "" },
+    bankDetails: [],
   });
-  const disableBankFields =
-    formData.bankType === "Cash" ||
-    formData.bankType === "Barter" ||
-    formData.bankType === "UPI" || // Make sure this is trimmed — not " UPI"
-    formData.bankType === "Crypto";
-  const [companyDetail, setCompanyDetail] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({});
 
-  const { id } = useParams();
-  // Use id from URL if needed
+  useEffect(() => {
+    const fetchCompany = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(`${mergedUrl}/${CompaniesId}`);
+        const data = res.data.data || res.data;
+        setFormData({
+          ...formData,
+          ...data,
+          taxInfo: data.taxInfo || {
+            panNumber: "",
+            gstNumber: "",
+            tanNumber: "",
+          },
+          globalPartyId: data.globalPartyId || { code: "" },
+          bankDetails: data.bankDetails || [],
+        });
+      } catch (err) {
+        toast.error("Error loading company details");
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (CompaniesId) fetchCompany();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [CompaniesId]);
 
-  const handleBankDetailChange = (i, field, rawValue) => {
-    let val = rawValue;
-    // numeric only
-    if (field === "bankAccNum" && !/^\d{0,15}$/.test(val)) return;
-    // uppercase codes
-    if (["bankName", "ifsc", "swift"].includes(field)) {
-      val = val.toUpperCase();
-      // optional: field-specific regex
-      const partialRx = {
-        bankName: /^[A-Z0-9\s]{0,50}$/,
-        ifsc: /^[A-Z0-9]{0,11}$/, // allow 0 to 11 chars
-        swift: /^[A-Z0-9]{0,11}$/, // allow 0 to 11 chars
-      }[field];
-      if (partialRx && !partialRx.test(val)) return;
-    }
-    setFormData((prev) => {
-      const updated = [...(prev.bankDetails || [])];
-      updated[i] = { ...updated[i], [field]: val };
-      return { ...prev, bankDetails: updated };
-    });
-  };
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let val = type === "checkbox" ? checked : value;
 
-    //
-    // 1) Tax fields → uppercase, validate, then update nested taxInfo
-    //
-    const taxValidators = {
-      panNumber: /^[A-Z0-9]{0,10}$/,
-      gstNumber: /^[A-Z0-9]{0,15}$/,
-      tanNumber: /^[A-Z0-9]{0,10}$/,
-    };
-    if (taxValidators[name]) {
+    // example: uppercase tax codes
+    if (["panNumber", "gstNumber", "tanNumber"].includes(name)) {
       val = val.toUpperCase();
-      if (!taxValidators[name].test(val)) return;
       setFormData((prev) => ({
         ...prev,
         taxInfo: { ...prev.taxInfo, [name]: val },
@@ -196,214 +88,87 @@ const CompanyViewPage = ({
       return;
     }
 
-    //
-    // 2) Phone numbers → 0–10 digits only
-    //
-    if (
-      ["contactNum", "contactPersonPhone", "contactNumber"].includes(name) &&
-      !/^\d{0,10}$/.test(val)
-    ) {
-      return;
-    }
+    // default
+    setFormData((prev) => ({ ...prev, [name]: val }));
+  };
 
-    //
-    // 3) Email → basic format + max 100 chars
-    //
-    if (["email", "employeeEmail"].includes(name)) {
-      if (val.length > 100) return;
-      if (val && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) return;
-    }
-
-    //
-    // 4) Always uppercase these codes
-    //
-    if (["ifsc", "swift", "upi"].includes(name)) {
-      val = val.toUpperCase();
-    }
-
-    //
-    // 5) Name‐style fields → letters & spaces only, capitalize first letter
-    //
-    if (["name", "employeeName", "bankName", "bankHolder"].includes(name)) {
-      if (val && !/^[A-Za-z\s]*$/.test(val)) return;
-      if (val) val = val.charAt(0).toUpperCase() + val.slice(1);
-    }
-
-    //
-    // 6) Group → letters & spaces only
-    //
-    if (name === "group" && val && !/^[A-Za-z\s]*$/.test(val)) {
-      return;
-    }
-
-    //
-    // 7) Free‐text areas → bypass all other checks
-    //
-    const freeTextFields = [
-      "website",
-      "primaryGSTAddress",
-      "secondaryOfficeAddress",
-      "tertiaryShippingAddress",
-      "remarks",
-    ];
-    if (freeTextFields.includes(name)) {
-      setFormData((prev) => ({ ...prev, [name]: val }));
-      return;
-    }
-
-    //
-    // 9) Bank field validators → enforce your specific patterns
-    //
-    const bankValidators = {
-      bankAccNum: /^[0-9]{0,15}$/,
-      bankName: /^[A-Z0-9\s]{0,50}$/,
-      ifsc: /^[A-Z0-9]{0,12}$/,
-      swift: /^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{10}$/,
-    };
-    if (bankValidators[name]) {
-      // uppercase everything for consistency
-      val = val.toUpperCase();
-      // if it doesn’t match, ignore
-      if (!bankValidators[name].test(val)) return;
-      // commit to top‐level if you’re storing these at root
-      setFormData((prev) => ({ ...prev, [name]: val }));
-      return;
-    }
-
-    //
-    // 8) Default case → catch‐all
-    //
+  const handleAddBank = () => {
     setFormData((prev) => ({
       ...prev,
-      [name]: val,
+      bankDetails: [
+        ...prev.bankDetails,
+        {
+          bankType: "",
+          bankName: "",
+          bankAccNum: "",
+          accountHolderName: "",
+          ifsc: "",
+          swift: "",
+          qrDetails: "",
+        },
+      ],
     }));
   };
 
-  const handleUpdate = async () => {
-    if (window.confirm("Are you sure you want to update this company?")) {
-      setLoading(true);
+  const handleBankDetailChange = (idx, field, raw) => {
+    const updated = [...formData.bankDetails];
+    updated[idx] = { ...updated[idx], [field]: raw };
+    setFormData((prev) => ({ ...prev, bankDetails: updated }));
+  };
 
-      // Create a custom green spinner icon for the toast
-      const loaderIcon = (
-        <div
-          style={{
-            display: "inline-block",
-            width: "20px",
-            height: "20px",
-            border: "3px solid #4CAF50",
-            borderTop: "3px solid transparent",
-            borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-          }}
-        ></div>
-      );
-
-      // Show a loading toast with our custom icon
-      const toastId = toast.loading("Updating...", {
-        icon: loaderIcon,
-        position: "top-right",
-        autoClose: false,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: false,
-        draggable: false,
-        progress: undefined,
+  const handleFileUpload = async (file) => {
+    if (!file) return toast.error("No file selected!");
+    setLogoUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("logoImage", file);
+      await axios.post(`${mergedUrl}/${CompaniesId}/upload-logo`, fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (ev) => {
+          const pct = Math.round((ev.loaded * 100) / ev.total);
+          setUploadProgress({ [file.name]: pct });
+        },
       });
-
-      try {
-        const response = await axios.put(
-          `${mergedUrl}/${ComapniesId}`,
-          formData,
-          { withCredentials: false }
-        );
-
-        if (response.status === 200) {
-          setCompanyDetail(response.data);
-          setIsEditing(false);
-          toast.update(toastId, {
-            render: "Company updated successfully!",
-            type: "success",
-            isLoading: false,
-            autoClose: 3000,
-            progress: undefined,
-          });
-        } else {
-          console.error(`Unexpected response status: ${response.status}`);
-          toast.update(toastId, {
-            render: "Failed to update Company. Please try again.",
-            type: "error",
-            isLoading: false,
-            autoClose: 3000,
-            progress: undefined,
-          });
-        }
-      } catch (err) {
-        const errorMessage =
-          err.response?.data?.message || "An unexpected error occurred.";
-        console.error("Error updating Company:", err);
-        toast.update(toastId, {
-          render: errorMessage,
-          type: "error",
-          isLoading: false,
-          autoClose: 3000,
-          progress: undefined,
-        });
-      } finally {
-        setLoading(false);
-        // toggleView();
-      }
+      toast.success("Logo uploaded!");
+      // re-fetch details
+      const { data } = await axios.get(`${mergedUrl}/${CompaniesId}`);
+      setFormData((prev) => ({ ...prev, ...data.data }));
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setTimeout(() => {
+        setLogoUploading(false);
+        setUploadProgress({});
+      }, 500);
     }
   };
 
-  useEffect(() => {
-    async function fetchCompanyDetail() {
-      console.log("▶️ fetchCompanyDetail start", { ComapniesId, id });
-      try {
-        console.log("🔄 About to call axios.get");
-        const response = await axios.get(
-          `https://fms-qkmw.onrender.com/fms/api/v0/companies/${
-            ComapniesId || id
-          }`
-        );
-        console.log("✅ axios.get returned", response);
-
-        if (response.status === 200) {
-          console.log("✅ Status 200, data:", response.data);
-          console.log("➡️ Calling setCompanyDetail");
-          setCompanyDetail(response.data.data);
-          console.log("➡️ Calling setFormData");
-          // setFormData(response.data.data);
-          setFormData({
-            ...form,
-            ...response.data.data, // spread fetched Company data
-          });
-          console.log("✅ State updated with CompanyDetail and formData");
-        } else {
-          console.log(
-            "⚠️ Unexpected status",
-            response.status,
-            response.statusText
-          );
-          setError(`Unexpected response status: ${response.status}`);
-        }
-      } catch (error) {
-        console.error("❌ Error fetching Company details", error);
-        const errorMessage =
-          error.response?.data?.message ||
-          "An unexpected error occurred. Please try again.";
-        console.log("❗ Resolved errorMessage:", errorMessage);
-        setError(errorMessage);
-      } finally {
-        console.log(
-          "🔚 fetchCompanyDetail finally block – setting loading to false"
-        );
-        setLoading(false);
-      }
+  const handleUpdate = async () => {
+    if (!window.confirm("Update this company?")) return;
+    setLoading(true);
+    const toastId = toast.loading("Updating…");
+    try {
+      await axios.put(`${mergedUrl}/${CompaniesId}`, formData);
+      toast.update(toastId, {
+        render: "Updated!",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+      });
+      setIsEditing(false);
+    } catch (err) {
+      toast.update(toastId, {
+        render: err.response?.data?.message || "Update failed",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    } finally {
+      setLoading(false);
     }
+  };
 
-    console.log("🔄 useEffect triggered");
-    fetchCompanyDetail();
-  }, [ComapniesId, id]);
+  if (loading) return <div>Loading…</div>;
 
   const handleEdit = () => {
     setIsEdited(true);
