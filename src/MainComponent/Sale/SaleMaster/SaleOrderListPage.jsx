@@ -127,7 +127,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
       "Sale No.",
       "Customer Name",
       "Item Name",
-      "Quantity",
+
       "Price",
       "Discount",
       "Line Amount",
@@ -245,7 +245,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
 
     setFilteredSales(filtered);
   };
-  
+
   const handleSortChange = (e) => {
     const value = e.target.value;
     setSelectedSortOption(value);
@@ -564,7 +564,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                         " Sale Order No",
                         "Customer Name",
                         "Item Name",
-                        "Qty",
+
                         "Price",
                         "Discount",
                         "Advance",
@@ -610,7 +610,6 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                           </td>
                           <td className="px-6 py-4"> {sale.customer?.name}</td>{" "}
                           <td className="px-6 py-4"> {sale.item?.name}</td>{" "}
-                          <td className="px-6 py-4"> {sale.quantity}</td>{" "}
                           <td className="px-6 py-4">{sale.discount}</td>{" "}
                           <td className="px-6 py-4"> {sale.advance}</td>{" "}
                           <td className="px-6 py-4">{sale.currency}</td>{" "}
