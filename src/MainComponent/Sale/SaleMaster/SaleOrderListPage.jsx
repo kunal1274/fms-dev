@@ -561,17 +561,14 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                         />
                       </th>
                       {[
-                        " Sale Order No",
+                        "Sale Order No",
+                        "Created At",
                         "Customer Name",
                         "Item Name",
-
-                        "Price",
                         "Discount",
                         "Advance",
-                        "currency",
-                        "Amount before tax",
-                        "Line Amount",
-                        " Status",
+                        "Currency",
+                        "Status",
                       ].map((h) => (
                         <th
                           key={h}
@@ -582,11 +579,11 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divside-gray-200">
+                  <tbody className="bg-white divide-y divide-gray-200">
                     {filteredSales.length ? (
                       filteredSales.map((sale) => (
                         <tr
-                          key={sale.code}
+                          key={sale._id}
                           className="hover:bg-gray-100 transition-colors"
                         >
                           <td className="px-4 py-2">
@@ -597,7 +594,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                               className="form-checkbox"
                             />
                           </td>
-                          <td>
+                          <td className="px-6 py-4">
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
                               onClick={() => handleSaleClick(sale._id)}
@@ -605,23 +602,25 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                               {sale.orderNum}
                             </button>
                           </td>
-                          <td className="px-6 py-3 truncate">
+                          <td className="px-6 py-4 truncate">
                             {new Date(sale.createdAt).toLocaleString()}
                           </td>
-                          <td className="px-6 py-4"> {sale.customer?.name}</td>{" "}
-                          <td className="px-6 py-4"> {sale.item?.name}</td>{" "}
-                          <td className="px-6 py-4">{sale.discount}</td>{" "}
-                          <td className="px-6 py-4"> {sale.advance}</td>{" "}
-                          <td className="px-6 py-4">{sale.currency}</td>{" "}
-                          <td className="px-6 py-4">{sale.netAR}</td>{" "}
-                          <td className="px-6 py-4"> {sale.lineAmt}</td>
-                          <td className="px-6 py-4">{sale.status}</td>
+                          <td className="px-6 py-4">
+                            {sale.customer?.name || "-"}
+                          </td>
+                          <td className="px-6 py-4">
+                            {sale.item?.name || "-"}
+                          </td>
+                          <td className="px-6 py-4">{sale.discount ?? 0}</td>
+                          <td className="px-6 py-4">{sale.advance ?? 0}</td>
+                          <td className="px-6 py-4">{sale.currency || "-"}</td>
+                          <td className="px-6 py-4">{sale.status || "-"}</td>
                         </tr>
                       ))
                     ) : (
                       <tr>
                         <td
-                          colSpan={6}
+                          colSpan={9}
                           className="px-6 py-4 text-center text-sm text-gray-500"
                         >
                           No data
