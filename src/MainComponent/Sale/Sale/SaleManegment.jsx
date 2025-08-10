@@ -20,13 +20,11 @@ import SalesMarginReport from "../../Sale/Transaction/Sale margine  report/Salem
 import SalesInvoice from "../Transaction/SalesInvoice/SalesInvoice";
 import SalesConfirmationInvoice from "../Transaction/SalesConfirmationInvoice/SalesConfirmationInvoice";
 import SalesProformaConfirmationInvoice from "../Transaction/SalesProformaConfirmationInvoice/SalesProformaConfirmationInvoice.jsx";
-
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
 };
 
 export default function ViewTogglePage() {
-  // State (JSX-safe: no TypeScript generics)
   const [form] = useState(initialForm);
   const [page, setPage] = useState(PAGE.TOGGLE);
   const [viewMode, setViewMode] = useState(VIEW_MODES.GRID);
@@ -67,181 +65,198 @@ export default function ViewTogglePage() {
     []
   );
 
-  // Shared classes
-  const baseCard =
-    "cursor-pointer select-none bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm hover:shadow-lg hover:ring-gray-200 transition-all duration-200";
-  const baseRow =
-    "cursor-pointer flex items-center w-full rounded-xl ring-1 ring-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-200";
+  // ---- Render helpers -------------------------------------------------------
+  const Card = ({ item }) => (
+    <button
+      onClick={() => item.page && setPage(item.page)}
+      className="group w-full h-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition text-left"
+      title={item.title}
+    >
+      <div className="flex items-center gap-3">
+        <div className="text-xl text-gray-700 group-hover:scale-110 transition">
+          {item.icon || <FaTh />}
+        </div>
+        <div>
+          <div className="font-medium text-gray-900">{item.title}</div>
+          {item.subtitle ? (
+            <div className="text-xs text-gray-500">{item.subtitle}</div>
+          ) : null}
+        </div>
+      </div>
+    </button>
+  );
 
-  const renderItems = (items = [], cols = 4) => {
-    const safeItems = Array.isArray(items) ? items : [];
+  const IconTile = ({ item }) => (
+    <button
+      onClick={() => item.page && setPage(item.page)}
+      className="group rounded-xl border border-gray-200 bg-white p-3 shadow-sm hover:shadow transition flex flex-col items-center justify-center"
+      title={item.title}
+    >
+      <div className="text-2xl text-gray-700 mb-1 group-hover:scale-110 transition">
+        {item.icon || <FaTh />}
+      </div>
+      <div className="text-xs font-medium text-gray-800 text-center line-clamp-2">
+        {item.title}
+      </div>
+    </button>
+  );
+
+  const ListRow = ({ item, idx }) => (
+    <button
+      onClick={() => item.page && setPage(item.page)}
+      className="w-full text-left grid grid-cols-[2rem,1fr,10rem] items-center px-3 py-2 hover:bg-gray-50 border-b last:border-b-0"
+      title={item.title}
+    >
+      <div className="text-gray-500">{idx + 1}.</div>
+      <div className="flex items-center gap-3">
+        <span className="text-lg text-gray-700">{item.icon || <FaTh />}</span>
+        <span className="font-medium text-gray-900">{item.title}</span>
+      </div>
+      <div className="justify-self-end">
+        <span className="text-xs text-gray-500">Open</span>
+      </div>
+    </button>
+  );
+
+  const renderItems = (items = [], colsOverride) => {
+    if (!items?.length) return null;
 
     if (viewMode === VIEW_MODES.LIST) {
       return (
-        <div className="flex flex-col gap-2">
-          {safeItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => item.page && setPage(item.page)}
-              className={`${baseRow} p-3 text-left`}
-              title={item.title}
-            >
-              <div className="text-gray-500 mr-3 text-lg">{item.icon}</div>
-              <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900">
-                  {item.title}
-                </div>
-                {item.subtitle ? (
-                  <div className="text-xs text-gray-500">{item.subtitle}</div>
-                ) : null}
-              </div>
-            </button>
+        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+          {items.map((it, i) => (
+            <ListRow key={it.id || it.title || i} item={it} idx={i} />
           ))}
         </div>
       );
     }
 
     if (viewMode === VIEW_MODES.ICON) {
-      const iconCols = Math.max(cols * 2, 4);
       return (
-        <div
-          className="grid gap-2"
-          style={{ gridTemplateColumns: `repeat(${iconCols}, minmax(0,1fr))` }}
-        >
-          {safeItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => item.page && setPage(item.page)}
-              className={`${baseCard} flex flex-col items-center justify-center`}
-              style={{ width: 76, height: 76, padding: 8 }}
-              title={item.title}
-              aria-label={item.title}
-            >
-              <div className="text-gray-600 text-base mb-1">{item.icon}</div>
-              <div className="text-[10px] font-medium text-gray-800 text-center leading-tight line-clamp-2">
-                {item.title}
-              </div>
-            </button>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3">
+          {items.map((it, i) => (
+            <IconTile key={it.id || it.title || i} item={it} />
           ))}
         </div>
       );
     }
 
-    const gridCols = Math.max(cols, 3);
+    // GRID
+    const cols = colsOverride || 4; // default 4, caller can override for subgroups/sections
+    const gridClass =
+      cols === 1
+        ? "grid-cols-1"
+        : cols === 2
+        ? "grid-cols-1 sm:grid-cols-2"
+        : cols === 3
+        ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+        : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+
     return (
-      <div
-        className="grid gap-3 sm:gap-4"
-        style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0,1fr))` }}
-      >
-        {safeItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => item.page && setPage(item.page)}
-            className={`${baseCard} flex flex-col items-center justify-center text-sm`}
-            style={{ minHeight: 104, padding: 10 }}
-            title={item.title}
-            aria-label={item.title}
-          >
-            <div className="text-gray-600 text-lg mb-1.5">{item.icon}</div>
-            <div className="text-xs font-medium text-gray-900 text-center leading-tight">
-              {item.title}
-            </div>
-          </button>
+      <div className={`grid ${gridClass} gap-4`}>
+        {items.map((it, i) => (
+          <Card key={it.id || it.title || i} item={it} />
         ))}
       </div>
     );
   };
+  // ---------------------------------------------------------------------------
 
+  // === Page switch
   if (page !== PAGE.TOGGLE) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <button
           onClick={goBack}
           className="inline-flex items-center mb-4 text-gray-700 hover:text-gray-900"
         >
           <FaArrowLeft className="mr-2" /> Back to Dashboard
         </button>
-        {componentMap[page] || (
-          <div className="text-red-600">Page not found</div>
-        )}
+        {componentMap[page] || null}
       </div>
     );
   }
 
+  const viewIcons = [
+    <FaThLarge key="grid" />,
+    <FaTh key="icon" />,
+    <FaListUl key="list" />,
+  ];
+  const modes = [VIEW_MODES.GRID, VIEW_MODES.ICON, VIEW_MODES.LIST];
+
   return (
-    <div className="p-4">
+    <div className="p-3 sm:p-4">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-semibold">Customer Dashboard</h1>
-        <div className="flex space-x-2">
-          {[
-            { mode: VIEW_MODES.GRID, Icon: FaThLarge, label: "Grid" },
-            { mode: VIEW_MODES.ICON, Icon: FaTh, label: "Icon" },
-            { mode: VIEW_MODES.LIST, Icon: FaListUl, label: "List" },
-          ].map(({ mode, Icon, label }) => {
-            const active = viewMode === mode;
-            return (
+        <h2 className="text-xl font-semibold">Item Dashboard</h2>
+        <div className="flex items-center space-x-3">
+          <div className="flex bg-gray-100 rounded-xl overflow-hidden ring-1 ring-gray-200">
+            {modes.map((mode, index) => (
               <button
                 key={mode}
+                aria-label={`${mode} view`}
                 onClick={() => setViewMode(mode)}
-                className={`inline-flex items-center px-3 py-2 rounded-lg text-sm transition ${
-                  active
+                className={`p-2 w-10 h-10 flex items-center justify-center transition ${
+                  viewMode === mode
                     ? "bg-white shadow ring-1 ring-gray-200"
-                    : "hover:bg-gray-100"
+                    : "hover:bg-gray-200"
                 }`}
-                aria-pressed={active}
-                title={label}
               >
-                <Icon className="mr-2" />
-                {label}
+                {React.cloneElement(viewIcons[index], {
+                  className: "text-base text-gray-700",
+                })}
               </button>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </div>
 
       {groups.map((grp) => (
         <section key={grp.id} className="mb-8">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold">{grp.title}</h2>
+            <h3 className="text-lg font-semibold">{grp.title}</h3>
             <button
               onClick={() => toggleGroup(grp.id)}
-              className="text-gray-600 text-sm hover:text-gray-800"
-              aria-expanded={!hiddenGroups[grp.id]}
-              aria-controls={`group-${grp.id}`}
+              className="text-gray-600 text-xl hover:text-gray-800"
+              aria-label={`Toggle ${grp.title}`}
+              title={hiddenGroups[grp.id] ? "Expand" : "Collapse"}
             >
-              {hiddenGroups[grp.id] ? "Show" : "Hide"}
+              {hiddenGroups[grp.id] ? "▸" : "▾"}
             </button>
           </div>
 
-          {!hiddenGroups[grp.id] && (
-            <div id={`group-${grp.id}`} className="space-y-4">
-              {grp.id === "setups"
-                ? setupSections.map((section) => (
-                    <div key={section.id} className="mb-2">
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-md font-medium">{section.title}</h3>
-                        <button
-                          onClick={() => toggleSection(section.id)}
-                          className="text-gray-600 text-sm hover:text-gray-800"
-                          aria-expanded={!hiddenSections[section.id]}
-                          aria-controls={`section-${section.id}`}
-                        >
-                          {hiddenSections[section.id] ? "Show" : "Hide"}
-                        </button>
-                      </div>
-                      {!hiddenSections[section.id] && (
-                        <div id={`section-${section.id}`}>
-                          {renderItems(section.items, section.cols || 4)}
-                        </div>
-                      )}
+          {!hiddenGroups[grp.id] &&
+            (grp.id === "setups"
+              ? setupSections.map((section) => (
+                  <div key={section.id} className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="text-md font-medium">{section.title}</h4>
+                      <button
+                        onClick={() => toggleSection(section.id)}
+                        className="text-gray-600 hover:text-gray-800"
+                        aria-label={`Toggle ${section.title}`}
+                        title={
+                          hiddenSections[section.id] ? "Expand" : "Collapse"
+                        }
+                      >
+                        {hiddenSections[section.id] ? "▸" : "▾"}
+                      </button>
                     </div>
-                  ))
-                : grp.subgroups
-                ? grp.subgroups.map((sub) => (
-                    <div key={sub.id} className="mb-2">
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-md font-medium">{sub.title}</h3>
-                        <button
+                    {!hiddenSections[section.id] &&
+                      renderItems(
+                        section.items,
+                        section.cols ||
+                          (viewMode === VIEW_MODES.GRID
+                            ? 4
+                            : section.items?.length || 4)
+                      )}
+                  </div>
+                ))
+              : grp.subgroups
+              ? grp.subgroups.map((sub) => (
+                  <div key={sub.id} className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <h5 className="text-md font-medium">{sub.title}</h5>
+                      <button
                         onClick={() => toggleSubgroup(sub.id)}
                         className="text-gray-600 hover:text-gray-800"
                         aria-label={`Toggle ${sub.title}`}
@@ -249,17 +264,22 @@ export default function ViewTogglePage() {
                       >
                         {hiddenSubgroups[sub.id] ? "▸" : "▾"}
                       </button>
-                      </div>
-                      {!hiddenSubgroups[sub.id] && (
-                        <div id={`sub-${sub.id}`}>
-                          {renderItems(sub.items, 3)}
-                        </div>
-                      )}
                     </div>
-                  ))
-                : renderItems(grp.items, 4)}
-            </div>
-          )}
+                    {!hiddenSubgroups[sub.id] &&
+                      renderItems(
+                        sub.items,
+                        viewMode === VIEW_MODES.GRID
+                          ? 4
+                          : sub.items?.length || 4
+                      )}
+                  </div>
+                ))
+              : grp.items
+              ? renderItems(
+                  grp.items,
+                  viewMode === VIEW_MODES.GRID ? 4 : grp.items?.length || 4
+                )
+              : null)}
         </section>
       ))}
     </div>
