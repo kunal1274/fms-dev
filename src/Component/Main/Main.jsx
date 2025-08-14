@@ -5,10 +5,8 @@ import SalePage from "../../MainComponent/Sale/Sale/SaleManegment";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
 import InventoryManegment from "../../MainComponent/Inventory/Item Master/Inventory Mangement/InventoryManegment";
 import PurchasePage from "../../MainComponent/Purchase/Purchase/PurchaseManegment";
-import TaxPage from "../../MainComponent/Tax/TaxPage";
+import TaxManegment from "../../MainComponent/Tax/TaxMangement/TaxManegment";
 import BankManegment from "../../MainComponent/Bank/BankMangement/BankManegment";
-// import WarehousePage from "../../MainComponent/Inventory/Warehouse/WarehousePage";
-// import ItemPage from "../../MainComponent/Inventory/Item/ItemPage";
 
 export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
   return (
@@ -45,8 +43,8 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
       {selectedMenu === "itemPage" && (
         <ItemPage onAddNew={onAddNew} onView={onView} />
       )}
-      {selectedMenu === "TaxPage" && (
-        <TaxPage onAddNew={onAddNew} onView={onView} />
+      {selectedMenu === "Accounting And Tax" && (
+        <TaxManegment onAddNew={onAddNew} onView={onView} />
       )}
       {selectedMenu === "Bank" && (
         <BankManegment onAddNew={onAddNew} onView={onView} />

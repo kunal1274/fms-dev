@@ -22,7 +22,7 @@ const navItems = [
   { label: "Purchase", icon: FaCartPlus },
    { label: "Bank", icon: FaCartPlus },
   { label: "User", icon: FaUser },
-  { label: "Tax", icon: FaUser },
+  { label: "Accounting And Tax", icon: FaUser },
 ];
 
 export default function Sidebar({

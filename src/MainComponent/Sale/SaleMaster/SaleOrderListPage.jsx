@@ -2,71 +2,93 @@ import { Select } from "flowbite-react";
 import { toast, ToastContainer } from "react-toastify";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 
-import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-
+// import InvoiceComp from "../Invoice/Icopy"
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-// import Invoice from "./Invoice/Icopy";
+import Invoice from "../Invoice/Icopy";
 import SaleorderViewPage from "./SaleOrderViewPage";
 
 const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const customersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
-  const [saleList, setSaleList] = useState([]);
+
+  const [sales, setSales] = useState([]);
+  const [filteredSales, setFilteredSales] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [selectedSales, setSelectedSales] = useState([]);
+  const [selectedSaleForInvoice, setSelectedSaleForInvoice] = useState(null);
+  const [viewingSaleId, setViewingSaleId] = useState(null);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState("All");
+  const [selectedSortOption, setSelectedSortOption] = useState("");
+
   const [startDate, setStartDate] = useState(
     new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
   );
-  const [sales, setSales] = useState([]);
-  const [view, setView] = useState([]);
-  const [selectedSaleForInvoice, setSelectedSaleForInvoice] = useState(null);
-  const [selectedSales, setSelectedSales] = useState([]);
-  const [selectedOption, setSelectedOption] = useState("All");
-  const [viewingSaleId, setViewingSaleId] = useState(null); // States
-
-  const tabNames = ["Sale List"];
-  const [activeTab, setActiveTab] = useState(tabNames[0]);
-  const [loading, setLoading] = useState(true);
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [SaleSummary, setSaleSummary] = useState({
     count: 0,
     creditLimit: 0,
-    paidCustomers: 0,
-    activeCustomers: 0,
-    onHoldCustomers: 0,
+    paidSales: 0,
+    activeSales: 0,
+    onHoldSales: 0,
   });
-  const [loadingMetrics, setLoadingMetrics] = useState(false);
-  const [selectedType, setSelectedType] = useState("All");
-  // const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState("All");
-  const [sortOption, setSortOption] = useState("");
-  const [filteredSales, setFilteredSales] = useState(sales);
 
-  const handleInvoice = () => {
-    if (selectedSales.length === 1) {
-      setSelectedSaleForInvoice(selectedSales[0]); // Set the selected sale for invoice
-    } else {
-      alert("Please select exactly one sale order to generate an invoice.");
+  const { id } = useParams();
+
+  const handleDeleteSelected = async () => {
+    if (!selectedSales.length) {
+      toast.info("No sales selected");
+      return;
+    }
+    const ok = window.confirm(
+      `Delete ${selectedSales.length} selected sale(s)?`
+    );
+    if (!ok) return;
+
+    try {
+      toast.info("Deleting selected sale(s)...");
+      await Promise.all(
+        selectedSales.map((sid) => axios.delete(`${baseUrl}/${sid}`))
+      );
+
+      // Remove deleted rows from state
+      setSales((prev) => prev.filter((s) => !selectedSales.includes(s._id)));
+      setFilteredSales((prev) =>
+        prev.filter((s) => !selectedSales.includes(s._id))
+      );
+      setSelectedSales([]);
+
+      toast.success("Deleted successfully");
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast.error("Failed to delete selected sale(s)");
     }
   };
-  const { id } = useParams();
-  const [selectedSortOption, setSelectedSortOption] = useState("All");
-  // Fetch all sales from the API
+  // ===== Fetch all sales =====
   const fetchSales = useCallback(async () => {
     setLoading(true);
+    // toast.info("Fetching sales…", { autoClose: 1200 });
     try {
       const response = await axios.get(baseUrl);
-      setSales(response.data.data);
-      console.log(response.data.data);
-      setFilteredSales(response.data.data);
+      const data = Array.isArray(response?.data?.data)
+        ? response.data.data
+        : [];
+      setSales(data);
+      setFilteredSales(data);
+      // toast.success(`Loaded ${data.length} sales`, { autoClose: 1500 });
     } catch (error) {
       console.error("Failed to load Sales:", error);
+      toast.error("Failed to load sales");
     } finally {
       setLoading(false);
     }
@@ -76,81 +98,216 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
     fetchSales();
   }, [fetchSales]);
 
-  const handleCheckboxChange = (id) => {
-    setSelectedSales((prevSelected) =>
-      prevSelected.includes(id)
-        ? prevSelected.filter((saleId) => saleId !== id)
-        : [...prevSelected, id]
+  // ===== Compute summary (from current filtered list & date range) =====
+  const computeSummary = useCallback(
+    (rows) => {
+      const summary = {
+        count: rows.length,
+        creditLimit: rows.reduce(
+          (sum, r) => sum + Number(r?.creditLimit || 0),
+          0
+        ),
+        paidSales: rows.filter((r) =>
+          String(r?.status || "")
+            .toLowerCase()
+            .includes("paid")
+        ).length,
+        activeSales: rows.filter((r) => r?.active === true).length,
+        onHoldSales: rows.filter((r) =>
+          String(r?.status || "")
+            .toLowerCase()
+            .includes("hold")
+        ).length,
+      };
+      setSaleSummary(summary);
+    },
+    [setSaleSummary]
+  );
+
+  useEffect(() => {
+    computeSummary(filteredSales);
+  }, [filteredSales, computeSummary]);
+
+  // ===== Selection =====
+  const handleCheckboxChange = (sid) => {
+    setSelectedSales((prev) =>
+      prev.includes(sid) ? prev.filter((x) => x !== sid) : [...prev, sid]
     );
   };
 
-  const handleSaleClick = (id) => {
-    // alert(`Sale clicked: ${id}`);
-    setViewingSaleId(id);
+  const toggleSelectAll = () => {
+    if (selectedSales.length === filteredSales.length) {
+      setSelectedSales([]);
+    } else {
+      setSelectedSales(filteredSales.map((s) => s._id));
+    }
   };
-  // Handle filtering logic
+
+  // ===== View / Invoice =====
+  const handleSaleClick = (sid) => setViewingSaleId(sid);
+
+  const handleInvoice = () => {
+    if (selectedSales.length === 1) {
+      setSelectedSaleForInvoice(selectedSales[0]);
+    } else {
+      alert("Please select exactly one sale order to generate an invoice.");
+    }
+  };
+
+  const goBack = () => {
+    setViewingSaleId(null);
+    setSelectedSaleForInvoice(null);
+  };
+
+  // ===== Filters & Search =====
   const applyFilters = useCallback(() => {
-    let filtered = [...sales];
+    let rows = [...sales];
 
-    if (selectedFilter === "yes") {
-      filtered = filtered.filter((sale) => sale.active);
-    } else if (selectedFilter === "no") {
-      filtered = filtered.filter((sale) => !sale.active);
-    }
+    // Active / inactive filter
+    if (selectedFilter === "yes") rows = rows.filter((r) => r.active === true);
+    if (selectedFilter === "no") rows = rows.filter((r) => r.active === false);
 
+    // Text search across common fields
     if (searchTerm.trim()) {
-      filtered = filtered.filter(
-        (sale) =>
-          sale.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          sale.code.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const q = searchTerm.toLowerCase();
+      rows = rows.filter((r) => {
+        const customerName =
+          r?.customer?.name || r?.customerName || r?.name || "";
+        const itemName = r?.item?.name || r?.itemName || "";
+        const code = r?.code || "";
+        const orderNum = String(r?.orderNum || "");
+        return (
+          customerName.toLowerCase().includes(q) ||
+          itemName.toLowerCase().includes(q) ||
+          code.toLowerCase().includes(q) ||
+          orderNum.toLowerCase().includes(q)
+        );
+      });
     }
 
-    setFilteredSales(filtered);
+    setFilteredSales(rows);
   }, [sales, searchTerm, selectedFilter]);
 
   useEffect(() => {
     applyFilters();
   }, [applyFilters]);
 
-  // Handle individual Sale selection
+  const handleFilterChange = (e) => {
+    const value = e.target.value;
+    setSelectedFilter(value);
+  };
 
+  const handleSortChange = (e) => {
+    const value = e.target.value;
+    setSelectedSortOption(value);
+
+    let sorted = [...filteredSales];
+    switch (value) {
+      case "customerName":
+        sorted.sort((a, b) =>
+          (a?.customer?.name || a?.customerName || "").localeCompare(
+            b?.customer?.name || b?.customerName || ""
+          )
+        );
+        break;
+      case "saleNumber":
+        sorted.sort(
+          (a, b) => Number(a?.orderNum || 0) - Number(b?.orderNum || 0)
+        );
+        break;
+      case "saleNumberDesc":
+        sorted.sort(
+          (a, b) => Number(b?.orderNum || 0) - Number(a?.orderNum || 0)
+        );
+        break;
+      case "itemName":
+        sorted.sort((a, b) =>
+          (a?.item?.name || a?.itemName || "").localeCompare(
+            b?.item?.name || b?.itemName || ""
+          )
+        );
+        break;
+      case "unit":
+        sorted.sort((a, b) =>
+          (a?.uom || a?.unit || "").localeCompare(b?.uom || b?.unit || "")
+        );
+        break;
+      default:
+        break;
+    }
+    setFilteredSales(sorted);
+  };
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSelectedFilter("All");
+    setSelectedSortOption("");
+    setFilteredSales([...sales]);
+    toast.info("Filters reset");
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    if (!e.target.value) setFilteredSales(sales);
+  };
+
+  const handleSearchSubmit = () => {
+    if (!searchTerm.trim()) return setFilteredSales(sales);
+    applyFilters();
+  };
+
+  // ===== Date range "Apply" button actions =====
+  // Simulates fetching metrics & applies date range filter locally
+  const fetchMetrics = async () => {
+    setLoadingMetrics(true);
+    try {
+      // filter by createdAt/orderDate between startDate & endDate (inclusive)
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const inRange = sales.filter((r) => {
+        const d = r?.orderDate ? new Date(r.orderDate) : new Date(r?.createdAt);
+        if (Number.isNaN(d.getTime())) return false;
+        return d >= start && d <= new Date(end.getTime() + 24 * 60 * 60 * 1000);
+      });
+      setFilteredSales(inRange);
+      toast.success(`Applied date range: ${inRange.length} records`, {
+        autoClose: 1500,
+      });
+    } catch (e) {
+      toast.error("Failed to apply date range");
+    } finally {
+      setLoadingMetrics(false);
+    }
+  };
+
+  // Back-compat for your existing onClick which called fetchCustomers(...)
+  const fetchCustomers = async () => {
+    await fetchMetrics();
+  };
+
+  // ===== PDF / Excel =====
   const generatePDF = useCallback(() => {
     if (!selectedSales || selectedSales.length === 0) {
       alert("No sales selected to generate PDF!");
       return;
     }
-
     const doc = new jsPDF();
-    const tableColumn = [
-      "#",
-      "Sale No.",
-      "Customer Name",
-      "Item Name",
+    const tableColumn = [];
 
-      "Price",
-      "Discount",
-      "Line Amount",
-      "Created At",
-      "Status",
-    ];
-
-    // Filter the data for selected sales
-    const selectedData = filteredSales.filter((sale) =>
-      selectedSales.includes(sale.id)
+    const selectedData = filteredSales.filter((s) =>
+      selectedSales.includes(s._id)
     );
 
     const tableRows = selectedData.map((sale, index) => [
       index + 1,
-      sale.orderNum || 0,
-      sale.customer?.name || 0,
-      sale.item?.name || 0,
-      sale.quantity || 0,
-      sale.price || 0,
-      sale.discount || 0,
-      sale.lineAmt || 0,
-      new Date(sale.createdAt).toLocaleDateString() || 0,
-      sale.status || 0,
+      sale?.orderNum ?? "",
+      sale?.customer?.name || sale?.customerName || "",
+      sale?.item?.name || sale?.itemName || "",
+      sale?.price ?? "",
+      sale?.discount ?? "",
+      sale?.lineAmt ?? sale?.subtotal ?? "",
+      sale?.createdAt ? new Date(sale.createdAt).toLocaleDateString() : "",
+      sale?.status ?? "",
     ]);
 
     doc.text("Selected Sales Order List", 14, 20);
@@ -164,57 +321,29 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
   }, [filteredSales, selectedSales]);
 
   const exportToExcel = useCallback(() => {
-    const worksheet = XLSX.utils.json_to_sheet(filteredSales);
+    // Export only visible columns for clarity
+    const rows = filteredSales.map((r) => ({
+      saleOrderNo: r?.orderNum ?? "",
+      customerAccount: r?.customer?.code || r?.customer?.accountNo || "",
+      customerName: r?.customer?.name || r?.customerName || "",
+      orderStatus: r?.status ?? "",
+      orderDate: r?.orderDate || r?.createdAt || "",
+      itemCode: r?.item?.code || r?.itemCode || "",
+      itemName: r?.item?.name || r?.itemName || "",
+      orderQty: r?.quantity || r?.qty || "",
+      uom: r?.uom || r?.unit || "",
+      lineAmount: r?.lineAmt || r?.subtotal || "",
+      grandTotal: r?.total || r?.grandTotal || "",
+      currency: r?.currency || "",
+      orderId: r?._id || "",
+      site: r?.site?.name || r?.siteName || "",
+      warehouse: r?.warehouse?.name || r?.warehouseName || "",
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sales");
     XLSX.writeFile(workbook, "Sale_list.xlsx");
   }, [filteredSales]);
-
-  const importFromExcel = () => {};
-
-  // Handle "select all" functionality
-
-  // Handle deleting selected Sales
-
-  // Reset filters
-
-  const handleFilterChange = (e) => {
-    const value = e.target.value; // Get the selected filter value
-    setSelectedFilter(value); // Update the selected filter state
-
-    let filtered = [...sales]; // Clone the original sales array
-
-    switch (value) {
-      case "yes": // Show only active sales
-        filtered = filtered.filter((sale) => sale.active === true);
-        break;
-
-      case "no": // Show only inactive sales
-        filtered = filtered.filter((sale) => sale.active === false);
-        break;
-
-      case "All": // Show all sales
-      default:
-        filtered = [...sales];
-        break;
-    }
-
-    setFilteredSales(filtered); // Update the filteredSales state
-  };
-
-  const resetFilters = () => {
-    // Reset all relevant states
-    setSearchTerm(""); // Clear search term if any
-    setSelectedFilter("All"); // Reset to default option
-    setSortOption(""); // Reset sorting to default
-    setFilteredSales([...sales]); // Restore the original sales array
-
-    console.log("Filters reset to default.");
-  };
-  const goBack = () => {
-    setViewingSaleId(null);
-    window.location.reload();
-  };
 
   if (loading) {
     return (
@@ -226,121 +355,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
       </div>
     );
   }
-  const handleTypeFilterChange = (e) => {
-    const value = e.target.value;
-    let filtered;
 
-    switch (value) {
-      case "Confirm":
-        filtered = sales.filter((sale) => sale.status === "Confirm");
-        break;
-      case "Draft":
-        filtered = sales.filter((sale) => sale.status === "Draft");
-        break;
-      case "All":
-      default:
-        filtered = sales; // No filter applied, show all sales
-        break;
-    }
-
-    setFilteredSales(filtered);
-  };
-
-  const handleSortChange = (e) => {
-    const value = e.target.value;
-    setSelectedSortOption(value);
-
-    let sorted = [...filteredSales];
-
-    switch (value) {
-      case "customerName":
-        // Assuming "name" is the customer's name
-        sorted = sorted.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "saleNumber":
-        // Sort by sale account number (ascending)
-        sorted = sorted.sort((a, b) => a.code.localeCompare(b.code));
-        break;
-      case "saleNumberDesc":
-        // Sort by sale account number (descending)
-        sorted = sorted.sort((a, b) => b.code.localeCompare(a.code));
-        break;
-      case "itemName":
-        // Assuming each sale has an "itemName" property
-        sorted = sorted.sort((a, b) => a.itemName.localeCompare(b.itemName));
-        break;
-      case "unit":
-        // Sort by unit if applicable
-        sorted = sorted.sort((a, b) => a.unit.localeCompare(b.unit));
-        break;
-      default:
-        break;
-    }
-
-    setFilteredSales(sorted);
-  };
-
-  // Function to handle search input change
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-
-    // If search term is empty, reset to filtered sales
-    if (!value) {
-      setFilteredSales(sales);
-    }
-  };
-
-  // Function to handle search submission (filter sales based on search term)
-  const handleSearchSubmit = () => {
-    if (!searchTerm.trim()) {
-      setFilteredSales(sales); // Reset if search is empty
-      return;
-    }
-
-    // Assuming you want to search by customer name and item name
-    const filtered = sales.filter(
-      (sale) =>
-        sale.name.toLowerCase().includes(searchTerm.toLowerCase()) || // Search by customer name
-        sale.itemName.toLowerCase().includes(searchTerm.toLowerCase()) // Search by item name
-    );
-
-    setFilteredSales(filtered);
-  };
-  const toggleSelectAll = () => {
-    if (selectedSales.length === filteredSales.length) {
-      setSelectedSales([]);
-    } else {
-      setSelectedSales(filteredSales.map((sale) => sale._id));
-    }
-  };
-  const handleDeleteSelected = async () => {
-    if (selectedSales.length === 0) {
-      alert("No sale order selected to delete.");
-      return;
-    }
-
-    try {
-      // Perform deletion API calls
-      await Promise.all(
-        selectedSales.map((itemId) => axios.delete(`${baseUrl}/${itemId}`))
-      );
-
-      // Update the state to remove deleted sales
-      setFilteredSales((prev) =>
-        prev.filter((sale) => !selectedSales.includes(sale._id))
-      );
-      setSales((prev) =>
-        prev.filter((sale) => !selectedSales.includes(sale._id))
-      );
-
-      setSelectedSales([]); // Clear selected items after deletion
-      alert("Selected items deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting items:", error);
-      alert("Failed to delete selected items.");
-    }
-  };
   return (
     <div>
       <ToastContainer />
@@ -348,7 +363,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
         <div>
           {viewingSaleId ? (
             <SaleorderViewPage saleId={viewingSaleId} goBack={goBack} />
-          ) : selectedSaleForInvoice ? (
+          ) : selectedSaleForInvoice && InvoiceComp ? (
             <Invoice saleId={selectedSaleForInvoice} goBack={goBack} />
           ) : (
             <div className="space-y-6">
@@ -357,7 +372,6 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
               <div className="flex justify-between ">
                 <div className="flex items-center space-x-2">
                   <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-                    {" "}
                     <button
                       type="button"
                       className="text-blue-600 mt-2 text-sm hover:underline"
@@ -379,8 +393,6 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                       </svg>{" "}
                     </button>
                   </div>
-
-                  {/* </div> */}
                   <h3 className="text-xl font-semibold">
                     Sale Order List Page
                   </h3>
@@ -392,12 +404,21 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                   >
                     + Add
                   </button>
+
                   <button
                     onClick={handleDeleteSelected}
-                    disabled={selectedSales.length === 0}
+                    disabled={!selectedSales.length}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     Delete
+                  </button>
+
+                  <button
+                    onClick={handleInvoice}
+                    disabled={selectedSales.length !== 1}
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                  >
+                    Invoice
                   </button>
                   <button
                     onClick={generatePDF}
@@ -407,7 +428,6 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                   </button>
                   <button
                     onClick={exportToExcel}
-                    c
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
                   >
                     Export
@@ -426,7 +446,6 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                   />
                   <input
                     type="date"
-                    // value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="border rounded px-2 py-1"
                   />
@@ -446,7 +465,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                     ["Credit Limit", SaleSummary.creditLimit],
                     ["Paid Sales", SaleSummary.paidSales],
                     ["Active Sales", SaleSummary.activeSales],
-                    ["On‑Hold Sales", SaleSummary.onHoldSales],
+                    ["On-Hold Sales", SaleSummary.onHoldSales],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -468,18 +487,20 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                     <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <select
                       defaultValue=""
-                      value={selectedOption}
-                      onChange={handleFilterChange}
+                      value={selectedSortOption}
+                      onChange={handleSortChange}
                       className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="Customer Name">Customer Name</option>
-                      <option value="Customer Account no">
+                      <option value="customerName">Customer Name</option>
+                      <option value="saleNumber">
                         Customer Account in Ascending
                       </option>
-                      <option value="Customer Account no descending">
+                      <option value="saleNumberDesc">
                         Customer Account in descending
                       </option>
+                      <option value="itemName">Item Name</option>
+                      <option value="unit">Unit</option>
                     </select>
                   </div>
 
@@ -489,7 +510,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                     <select
                       defaultValue="All"
                       className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                      value={selectedOption}
+                      value={selectedFilter}
                       onChange={handleFilterChange}
                     >
                       <option value="All">Filter By Status</option>
@@ -508,9 +529,8 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                       className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                     <button
-                      value={searchTerm}
-                      onChange={handleSearchChange}
                       type="button"
+                      onClick={handleSearchSubmit}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
                     >
                       <FaSearch className="w-5 h-5" />
@@ -526,109 +546,162 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                   Reset Filter
                 </button>
               </div>
-              <div className="flex">
-                {" "}
-                <ul className="flex space-x-6 list-none p-0 m-0">
-                  {tabNames.map((tab) => (
-                    <li
-                      key={tab}
-                      onClick={() => onTabClick(tab)}
-                      className={`cursor-pointer pb-2 transition-colors ${
-                        activeTab === tab
-                          ? "text-green-600 border-b-2 border-green-600"
-                          : "text-gray-600 hover:text-gray-800"
-                      }`}
-                    >
-                      {tab}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+
               {/* Data Table */}
-              <div className="mx-auto w-[85vw] max-w-full h-[400px]  bg-white rounded-lg">
-                <table className="w-full min-w-[400px] divide-y divide-gray-200 border-green-500">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="sticky top-0 z-10 px-4 py-2 bg-gray-50">
-                        <input
-                          type="checkbox"
-                          onChange={toggleSelectAll}
-                          checked={
-                            filteredSales.length > 0 &&
-                            selectedSales.length === filteredSales.length
-                          }
-                          className="form-checkbox"
-                        />
-                      </th>
-                      {[
-                        "Sale Order No",
-                        "Created At",
-                        "Customer Name",
-                        "Item Name",
-                        "Discount",
-                        "Advance",
-                        "Currency",
-                        "Status",
-                      ].map((h) => (
-                        <th
-                          key={h}
-                          className="sticky top-0 z-10 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50"
-                        >
-                          {h}
+              <div className="mx-auto w-[82vw] max-w-[1500px] rounded-lg border bg-white ">
+                {/* Scroll area */}
+                <div className="h-[400px] overflow-x-auto overflow-y-auto">
+                  <table className="w-full min-w-[1200px] table-auto divide-y divide-gray-200">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="sticky top-0 z-20 px-4 py-2 bg-gray-50">
+                          <input
+                            type="checkbox"
+                            onChange={toggleSelectAll}
+                            checked={
+                              filteredSales.length > 0 &&
+                              selectedSales.length === filteredSales.length
+                            }
+                            className="form-checkbox"
+                          />
                         </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredSales.length ? (
-                      filteredSales.map((sale) => (
-                        <tr
-                          key={sale._id}
-                          className="hover:bg-gray-100 transition-colors"
-                        >
-                          <td className="px-4 py-2">
-                            <input
-                              type="checkbox"
-                              checked={selectedSales.includes(sale._id)}
-                              onChange={() => handleCheckboxChange(sale._id)}
-                              className="form-checkbox"
-                            />
-                          </td>
-                          <td className="px-6 py-4">
-                            <button
-                              className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleSaleClick(sale._id)}
-                            >
-                              {sale.orderNum}
-                            </button>
-                          </td>
-                          <td className="px-6 py-4 truncate">
-                            {new Date(sale.createdAt).toLocaleString()}
-                          </td>
-                          <td className="px-6 py-4">
-                            {sale.customer?.name || "-"}
-                          </td>
-                          <td className="px-6 py-4">
-                            {sale.item?.name || "-"}
-                          </td>
-                          <td className="px-6 py-4">{sale.discount ?? 0}</td>
-                          <td className="px-6 py-4">{sale.advance ?? 0}</td>
-                          <td className="px-6 py-4">{sale.currency || "-"}</td>
-                          <td className="px-6 py-4">{sale.status || "-"}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={9}
-                          className="px-6 py-4 text-center text-sm text-gray-500"
-                        >
-                          No data
-                        </td>
+
+                        {[
+                          "Sale Order No",
+                          "Customer Account",
+                          "Customer Name",
+                          "Order Status",
+                          "Order date",
+                          "Item Code",
+                          "Item Name",
+                          "Order Qty",
+                          "Unit of Measure (UOM)",
+                          "Subtotal /  line amount",
+                          "Grand Total",
+                          "Order Qty",
+                          "Currency",
+                          "Order Id",
+                          "Site",
+                          "Warehouse",
+                        ].map((h) => (
+                          <th
+                            key={h}
+                            className="sticky top-0 z-20 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 whitespace-nowrap"
+                          >
+                            {h}
+                          </th>
+                        ))}
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredSales.length ? (
+                        filteredSales.map((sale) => (
+                          <tr
+                            key={sale._id}
+                            className="hover:bg-gray-100 transition-colors"
+                          >
+                            <td className="px-4 py-2 align-middle">
+                              <input
+                                type="checkbox"
+                                checked={selectedSales.includes(sale._id)}
+                                onChange={() => handleCheckboxChange(sale._id)}
+                                className="form-checkbox"
+                              />
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              <button
+                                className="text-blue-600 hover:underline focus:outline-none"
+                                onClick={() => handleSaleClick(sale._id)}
+                              >
+                                {sale?.orderNum ?? ""}
+                              </button>
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.customer?.code ||
+                                sale?.customer?.accountNo ||
+                                ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.customer?.name || sale?.customerName || ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.status ?? ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.orderDate
+                                ? new Date(sale.orderDate).toLocaleDateString()
+                                : sale?.createdAt
+                                ? new Date(sale.createdAt).toLocaleDateString()
+                                : ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.item?.code || sale?.itemCode || ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.item?.name || sale?.itemName || ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.quantity || sale?.qty || ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.uom || sale?.unit || ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.lineAmt || sale?.subtotal || ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.total || sale?.grandTotal || ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.quantity || sale?.qty || ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.currency || ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?._id || ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.site?.name || sale?.siteName || ""}
+                            </td>
+
+                            <td className="px-6 py-4 align-middle whitespace-nowrap">
+                              {sale?.warehouse?.name ||
+                                sale?.warehouseName ||
+                                ""}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          {/* 1 (checkbox) + 16 headers = 17 */}
+                          <td
+                            colSpan={17}
+                            className="px-6 py-4 text-center text-sm text-gray-500"
+                          >
+                            No data
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

@@ -1,14 +1,58 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
-// const { saleId } = useParams();
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-const baseUrl = "https://befr8n.vercel.app";
-const secondUrl = "/fms/api/v0";
-const thirdUrl = "/salesorders";
-const mergedUrl = `${baseUrl}${secondUrl}${thirdUrl}`;
+// Keep if you navigate to invoice pages that render this:
+import Invoice from "../Invoice/Icopy";
+
+const API_ROOT = "https://befr8n.vercel.app/fms/api/v0";
+const SALES_URL = `${API_ROOT}/salesorders`;
+const META_URL = API_ROOT; // items, sites, warehouses, customers
+
+const PaymentHistoryModal = ({ onClose, payments }) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white p-4 rounded shadow-md max-w-lg w-full">
+        <h2 className="text-xl font-bold mb-4">Payment History</h2>
+        {payments && payments.length > 0 ? (
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr>
+                <th className="border p-2">Amount</th>
+                <th className="border p-2">Date</th>
+                <th className="border p-2">Transaction ID</th>
+                <th className="border p-2">Payment Mode</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map((payment, index) => (
+                <tr key={index}>
+                  <td className="border p-2">{payment.amount.toFixed(2)}</td>
+                  <td className="border p-2">
+                    {new Date(payment.date).toLocaleString()}
+                  </td>
+                  <td className="border p-2">{payment.transactionId || 0}</td>
+                  <td className="border p-2">{payment.paymentMode}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>No payments found.</p>
+        )}
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={onClose}
+            className="px-3 py-2 border rounded text-sm bg-gray-100 hover:bg-gray-200"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const PaymentModal = ({ onClose, onSubmit, loading }) => {
   const [amount, setAmount] = useState("");
@@ -132,109 +176,197 @@ const PaymentModal = ({ onClose, onSubmit, loading }) => {
   );
 };
 
-// Payment History Modal Component (View Payments)
-const PaymentHistoryModal = ({ onClose, payments }) => {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-4 rounded shadow-md max-w-lg w-full">
-        <h2 className="text-xl font-bold mb-4">Payment History</h2>
-        {payments && payments.length > 0 ? (
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr>
-                <th className="border p-2">Amount</th>
-                <th className="border p-2">Date</th>
-                <th className="border p-2">Transaction ID</th>
-                <th className="border p-2">Payment Mode</th>
-              </tr>
-            </thead>
-            <tbody>
-              {payments.map((payment, index) => (
-                <tr key={index}>
-                  <td className="border p-2">{payment.amount.toFixed(2)}</td>
-                  <td className="border p-2">
-                    {new Date(payment.date).toLocaleString()}
-                  </td>
-                  <td className="border p-2">{payment.transactionId || 0}</td>
-                  <td className="border p-2">{payment.paymentMode}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>No payments found.</p>
-        )}
-        <div className="flex justify-end mt-4">
-          <button
-            onClick={onClose}
-            className="px-3 py-2 border rounded text-sm bg-gray-100 hover:bg-gray-200"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+const SaleorderViewPage = ({ saleId, goBack }) => {
+  // API constants (safe defaults; keep if not already defined higher up)
+  const API_BASE = "https://fms-qkmw.onrender.com/fms/api/v0";
+  const SALES_URL = `${API_BASE}/salesorders`;
+  const META_URL = API_BASE;
 
-const SaleorderViewPage = ({ goBack, saleId }) => {
-  console.log(saleId, "saleId");
+  // Payment terms: ensure we include the current one if it's not in list
+  const defaultTerms = [
+    "Immediate",
+    "Net 7",
+    "Net 15",
+    "Net 30",
+    "Net 45",
+    "Net 60",
+  ];
+
+  // State
   const [inputSaleId, setInputSaleId] = useState("");
   const [saleData, setSaleData] = useState(null);
   const [isEdited, setIsEdited] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  // isDraft is used to conditionally allow editing for some fields.
   const [isDraft, setIsDraft] = useState(false);
+
+  // Header form + extras (for fields not in base JSON)
   const [form, setForm] = useState({
-    createdOn: "",
+    orderId: "",
+    deliveryMode: "",
+    paymentTerms: "",
     site: "",
     warehouse: "",
-    paymentTerms: "",
-    deliveryMode: "",
-    orderId: "",
+    purchaseRef: "",
+    createdOn: "",
+    orderDate: "",
   });
-  // States to control modal visibility
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showPaymentHistoryModal, setShowPaymentHistoryModal] = useState(false);
+  // Alias so your earlier snippet `setFormData(...)` keeps working
+  const setFormData = setForm;
 
-  // const navigate = useNavigate();
-  const handleInputChange = (e, field, nested = false) => {
-    const { value } = e.target;
-    setSaleData((prev) => ({
-      ...prev,
-      item: nested
-        ? {
-            ...(prev.item || {}), // Ensure prev.item exists
-            [field]: value,
-          }
-        : prev.item,
-      ...(nested ? {} : { [field]: value }), // Update top-level fields if not nested
-    }));
-  };
+  const [extras, setExtras] = useState({
+    saleAgreementNo: "",
+    contactEmail: "",
+    purchaseRef: "", // mirror for safety
+  });
 
-  // Fetch sale detail by ID
-  const fetchSaleDetail = useCallback(async (id) => {
+  // Meta lists
+  const [sites, setSites] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [items, setItems] = useState([]);
+
+  const [loadingSites, setLoadingSites] = useState(false);
+  const [loadingWarehouses, setLoadingWarehouses] = useState(false);
+  const [loadingItems, setLoadingItems] = useState(false);
+
+  // Selected master data
+  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedSite, setSelectedSite] = useState("");
+
+  // Line/edit values
+  const [quantity, setQuantity] = useState(0);
+  const [price, setPrice] = useState(0);
+  const [discount, setDiscount] = useState(0); // %
+  const [tax, setTax] = useState(0); // %
+  const [tcs, setTcs] = useState(0); // %
+  const [advance, setAdvance] = useState(0);
+  const [itemCode, setItemCode] = useState("");
+  const [itemDesc, setItemDesc] = useState("");
+  const [itemUnit, setItemUnit] = useState("");
+
+  const navigate = useNavigate();
+  const { id: urlId } = useParams();
+
+  // Map variables so your logging snippet can use SaleId || id
+  const SaleId = saleId;
+  const id = urlId;
+
+  // Accept either prop or URL param
+  const finalId = useMemo(() => saleId || urlId, [saleId, urlId]);
+
+  /** =========================
+   *  HELPERS
+   *  ========================= */
+  const normalizeData = (res) => res?.data?.data ?? res?.data ?? res;
+
+  const safeDateTime = (d) => (d ? new Date(d).toLocaleString() : "");
+
+  const getOrderDate = (data) => data?.orderDate || data?.createdAt || "";
+
+  // Site/Warehouse label helpers (defensive with id/string/object)
+  const getSiteId = (s) =>
+    typeof s === "object" ? s._id || s.id || "" : String(s || "");
+  const getSiteLabel = (s) =>
+    typeof s === "object" ? s.name || s.code || getSiteId(s) : String(s || "");
+
+  const getWhId = (w) =>
+    typeof w === "object" ? w._id || w.id || "" : String(w || "");
+  const getWhLabel = (w) =>
+    typeof w === "object" ? w.name || w.code || getWhId(w) : String(w || "");
+
+  // Derived amounts
+  const amountBeforeTax = useMemo(() => {
+    const qty = Number(quantity) || 0;
+    const pr = Number(price) || 0;
+    const discPct = Math.min(Math.max(Number(discount) || 0, 0), 100);
+    const gross = qty * pr;
+    return gross - (gross * discPct) / 100;
+  }, [quantity, price, discount]);
+
+  const lineAmt = useMemo(() => {
+    const base = amountBeforeTax;
+    const taxAmt = (base * (Number(tax) || 0)) / 100;
+    const tcsAmt = (base * (Number(tcs) || 0)) / 100;
+    return (base + taxAmt + tcsAmt).toFixed(2);
+  }, [amountBeforeTax, tax, tcs]);
+
+  const paidTotal = useMemo(() => {
+    const arr = saleData?.paidAmt;
+    if (!Array.isArray(arr)) return 0;
+    return arr.reduce((sum, v) => {
+      if (typeof v === "number") return sum + v;
+      if (v && typeof v === "object") return sum + Number(v.amount || 0);
+      return sum;
+    }, 0);
+  }, [saleData?.paidAmt]);
+
+  /** =========================
+   *  FETCHERS
+   *  ========================= */
+  const fetchSaleDetail = useCallback(async (saleOrderId) => {
+    if (!saleOrderId) {
+      toast.error("No Sale ID provided in props or URL.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(
-        `https://befr8n.vercel.app/fms/api/v0/salesorders/${id}`
-      );
-
-      if (response.status === 200) {
-        const data = response.data.data || {};
-        setSaleData(data);
-        console.log(data, "Fetched Sale Data");
-      } else {
+      const response = await axios.get(`${SALES_URL}/${saleOrderId}`, {
+        withCredentials: false,
+      });
+      if (response.status !== 200) {
         const msg = `Unexpected response status: ${response.status}`;
         setError(msg);
         toast.error(msg);
+        return;
       }
-    } catch (error) {
+      const data = normalizeData(response) || {};
+      setSaleData(data);
+
+      // Prime header form and extras
+      setForm((prev) => ({
+        ...prev,
+        orderId: data?.orderId || "",
+        deliveryMode: data?.deliveryMode || "",
+        paymentTerms: data?.paymentTerms || "",
+        site: data?.site?._id || data?.site || "",
+        warehouse: data?.warehouse?._id || data?.warehouse || "",
+        purchaseRef: data?.purchaseRef || data?.extras?.purchaseRef || "",
+        createdOn: safeDateTime(data?.createdAt),
+        orderDate: safeDateTime(getOrderDate(data)),
+      }));
+      setExtras((ex) => ({
+        ...ex,
+        saleAgreementNo: data?.extras?.saleAgreementNo || "",
+        contactEmail: data?.extras?.contactEmail || "",
+        purchaseRef: data?.extras?.purchaseRef || "",
+      }));
+
+      // Prime customer/item/line
+      setSelectedCustomer(data?.customer?._id || "");
+      setAdvance(Number(data?.advance ?? 0) || 0);
+
+      const it = data?.item || {};
+      setSelectedItem(it?._id ? it : null);
+      setItemCode(it?.code || "");
+      setItemDesc(it?.name || "");
+      setItemUnit(it?.unit || "");
+      setPrice(Number(it?.price || data?.price || 0) || 0);
+
+      setQuantity(Number(data?.quantity || 0) || 0);
+      setDiscount(Number(data?.discount || 0) || 0);
+      setTax(Number(data?.tax || 0) || 0);
+      setTcs(Number(data?.withholdingTax || 0) || 0);
+
+      toast.success("Sale loaded successfully");
+    } catch (err) {
+      const serverData = err?.response?.data;
       const errorMessage =
-        error.response?.data?.message ||
+        (typeof serverData === "string" && serverData) ||
+        serverData?.message ||
         "An unexpected error occurred. Please try again.";
       setError(errorMessage);
       toast.error(errorMessage);
@@ -243,41 +375,259 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
     }
   }, []);
 
-  // Automatically fetch sale details if saleId is provided
-  useEffect(() => {
-    if (saleId) {
-      setInputSaleId(saleId);
-      fetchSaleDetail(saleId);
+  const fetchSites = useCallback(async () => {
+    setLoadingSites(true);
+    try {
+      const res = await axios.get(`${META_URL}/sites`, {
+        withCredentials: false,
+      });
+      const list = normalizeData(res) || [];
+      setSites(Array.isArray(list) ? list : []);
+      toast.success("Sites loaded");
+    } catch {
+      toast.error("Failed to load sites");
+    } finally {
+      setLoadingSites(false);
     }
-  }, [saleId, fetchSaleDetail]);
+  }, []);
 
-  // Update isDraft based on the saleData status (if available)
+  const fetchWarehouses = useCallback(async () => {
+    setLoadingWarehouses(true);
+    try {
+      const res = await axios.get(`${META_URL}/warehouses`, {
+        withCredentials: false,
+      });
+      const list = normalizeData(res) || [];
+      setWarehouses(Array.isArray(list) ? list : []);
+      toast.success("Warehouses loaded");
+    } catch {
+      toast.error("Failed to load warehouses");
+    } finally {
+      setLoadingWarehouses(false);
+    }
+  }, []);
+
+  const fetchCustomers = useCallback(async () => {
+    try {
+      const res = await axios.get(`${META_URL}/customers`, {
+        withCredentials: false,
+      });
+      const list = normalizeData(res) || [];
+      setCustomers(Array.isArray(list) ? list : []);
+      toast.success("Customers loaded");
+    } catch {
+      toast.error("Failed to load customers");
+    }
+  }, []);
+
+  const fetchItems = useCallback(async () => {
+    setLoadingItems(true);
+    try {
+      const res = await axios.get(`${META_URL}/items`, {
+        withCredentials: false,
+      });
+      const list = normalizeData(res) || [];
+      setItems(Array.isArray(list) ? list : []);
+      toast.success("Items loaded");
+    } catch {
+      toast.error("Failed to load items");
+    } finally {
+      setLoadingItems(false);
+    }
+  }, []);
+
+  /** =========================
+   *  EFFECTS
+   *  ========================= */
+  // Your exact logging-style effect, but endpoint fixed to /salesorders/:id
   useEffect(() => {
-    if (saleData?.status === "Draft") {
-      setIsDraft(true);
+    async function fetchSaleDetailOnce() {
+      console.log("▶️ fetchSaleDetail start", { SaleId, id });
+      setLoading(true);
+      try {
+        console.log("🔄 About to call axios.get");
+        const response = await axios.get(`${SALES_URL}/${SaleId || id}`);
+        console.log("✅ axios.get returned", response);
+
+        if (response.status === 200) {
+          console.log("✅ Status 200, data:", response.data);
+          console.log("➡️ Calling setSaleDetail");
+          // normalize in case backend returns {data: {...}} vs direct object
+          const data = response?.data?.data ?? response?.data;
+          setSaleData(data);
+
+          console.log("➡️ Calling setFormData");
+          setFormData({
+            ...form,
+            ...data, // spread fetched Saledata
+            createdOn: safeDateTime(data?.createdAt),
+            orderDate: safeDateTime(data?.orderDate || data?.createdAt),
+          });
+          console.log("✅ State updated with SaleDetail and formData");
+
+          // Prime some local edit states for the line
+          const it = data?.item || {};
+          setSelectedItem(it?._id ? it : null);
+          setItemCode(it?.code || "");
+          setItemDesc(it?.name || "");
+          setItemUnit(it?.unit || "");
+          setPrice(Number(it?.price || data?.price || 0) || 0);
+
+          setQuantity(Number(data?.quantity || 0) || 0);
+          setDiscount(Number(data?.discount || 0) || 0);
+          setTax(Number(data?.tax || 0) || 0);
+          setTcs(Number(data?.withholdingTax || 0) || 0);
+          setAdvance(Number(data?.advance ?? 0) || 0);
+
+          setInputSaleId(String(SaleId || id || ""));
+        } else {
+          console.log(
+            "⚠️ Unexpected status",
+            response.status,
+            response.statusText
+          );
+          setError(`Unexpected response status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching Saledetails", error);
+        const serverData = error?.response?.data;
+        const errorMessage =
+          (typeof serverData === "string" && serverData) ||
+          serverData?.message ||
+          "An unexpected error occurred. Please try again.";
+        console.log("❗ Resolved errorMessage:", errorMessage);
+        setError(errorMessage);
+      } finally {
+        console.log(
+          "🔚 fetchSaleDetail finally block – setting loading to false"
+        );
+        setLoading(false);
+      }
+    }
+
+    console.log("🔄 useEffect triggered");
+    if (SaleId || id) {
+      fetchSaleDetailOnce();
     } else {
-      setIsDraft(false);
+      toast.error("No Sale ID provided in props or URL.");
     }
-  }, [saleData]);
+  }, [SaleId, id]); // <= keep exactly as you asked
 
-  // Handle search (if you need to search by a new Sale ID)
+  // Load meta lists (sites, warehouses, customers, items)
+  useEffect(() => {
+    fetchSites();
+    fetchWarehouses();
+    fetchCustomers();
+    fetchItems();
+  }, [fetchSites, fetchWarehouses, fetchCustomers, fetchItems]);
+
+  useEffect(() => {
+    setIsDraft(saleData?.status === "Draft");
+  }, [saleData?.status]);
+
+  /** =========================
+   *  UI ACTIONS
+   *  ========================= */
   const handleSearch = () => {
     if (!inputSaleId.trim()) {
       toast.warn("Please enter a Sale ID.");
       return;
     }
-    fetchSaleDetail(inputSaleId);
+    fetchSaleDetail(inputSaleId.trim());
   };
 
-  // Handle edit: set flags so that fields become editable
   const handleEdit = () => {
     setIsEdited(true);
     setIsEditing(true);
   };
 
-  // Modified handleUpdate to ch  isButtonEnabled(eck if the sale order was edited before proceeding.
+  // Persist changes
+  const handleUpdate = async () => {
+    const idToUse = finalId || inputSaleId;
+    if (!idToUse) {
+      toast.error("No Sale ID available for update.");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to update this sale?")) return;
 
-  // Button labels for status change
+    setLoading(true);
+    try {
+      // Compose payload based on current edits
+      const payload = {
+        ...saleData,
+        // header
+        orderId: form.orderId || saleData?.orderId,
+        deliveryMode: form.deliveryMode ?? saleData?.deliveryMode,
+        paymentTerms: form.paymentTerms || saleData?.paymentTerms,
+        site: form.site || saleData?.site,
+        warehouse: form.warehouse || saleData?.warehouse,
+        purchaseRef: form.purchaseRef || saleData?.purchaseRef,
+        extras: {
+          ...(saleData?.extras || {}),
+          saleAgreementNo:
+            extras.saleAgreementNo ||
+            (saleData?.extras || {}).saleAgreementNo ||
+            "",
+          contactEmail:
+            extras.contactEmail || (saleData?.extras || {}).contactEmail || "",
+          purchaseRef:
+            extras.purchaseRef || (saleData?.extras || {}).purchaseRef || "",
+        },
+
+        // customer
+        customer:
+          selectedCustomer || saleData?.customer?._id || saleData?.customer,
+
+        salesAddress:
+          saleData?.salesAddress || saleData?.customer?.address || "",
+
+        // numeric/lines
+        advance: Number(advance) || 0,
+        quantity: Number(quantity) || 0,
+        discount: Number(discount) || 0,
+        tax: Number(tax) || 0,
+        withholdingTax: Number(tcs) || 0,
+        lineAmt: Number(lineAmt) || 0,
+        netAR: Number(lineAmt) || 0,
+        netAmtAfterTax: Number(lineAmt) || 0,
+        netPaymentDue: Number(lineAmt) || 0,
+
+        // item object
+        item: {
+          ...(saleData?.item || {}),
+          _id: selectedItem?._id || saleData?.item?.id || saleData?.item?._id,
+          code: itemCode || saleData?.item?.code,
+          name: itemDesc || saleData?.item?.name,
+          unit: itemUnit || saleData?.item?.unit,
+          price: Number(price) || Number(saleData?.item?.price) || 0,
+          type: selectedItem?.type || saleData?.item?.type || "",
+        },
+      };
+
+      const response = await axios.put(`${SALES_URL}/${idToUse}`, payload, {
+        withCredentials: false,
+      });
+
+      const updated = normalizeData(response);
+      setSaleData(updated);
+
+      // Resync UI with updated record
+      await fetchSaleDetail(idToUse);
+      toast.success("Sale updated successfully!");
+      setIsEditing(false);
+    } catch (err) {
+      const serverData = err?.response?.data;
+      const errorMessage =
+        (typeof serverData === "string" && serverData) ||
+        serverData?.message ||
+        "An unexpected error occurred.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const buttonLabels = [
     { id: "Confirm", label: "Confirmed" },
     { id: "Cancel", label: "Cancelled" },
@@ -289,7 +639,6 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
     { id: "Any Mode", label: "AnyMode" },
   ];
 
-  // Define which buttons are enabled for which statuses.
   const enabledButtons = {
     Draft: ["Confirmed", "Cancelled", "AdminMode", "AnyMode"],
     Confirmed: ["Shipped", "Cancelled", "AdminMode", "AnyMode"],
@@ -300,7 +649,7 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
     AdminMode: ["Draft", "AnyMode"],
     AnyMode: [
       "Draft",
-      "Confirmed", // if that’s the intended label
+      "Confirmed",
       "Shipped",
       "Delivered",
       "Invoiced",
@@ -308,174 +657,172 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
       "AdminMode",
     ],
   };
-  const handleUpdate = async () => {
-    if (window.confirm("Are you sure you want to update this sale?")) {
-      setLoading(true);
-      try {
-        // Prepare your updated data from saleData
-        const updatedData = { ...saleData };
 
-        // Send the PUT request with the updated data
-        const response = await axios.put(
-          `${mergedUrl}/${saleId}`,
-          updatedData,
-          { withCredentials: false }
-        );
-
-        // Update the saleData state with the response from the server
-        setSaleData(response.data);
-        setSaleData(response.data.data);
-
-        // Optionally show a success message
-        toast.success("Sale updated successfully!");
-
-        // Exit edit mode
-        setIsEditing(false);
-      } catch (err) {
-        const errorMessage =
-          err.response?.data?.message || "An unexpected error occurred.";
-        setError(errorMessage);
-        toast.error(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-  // isButtonEnabled now uses saleData.status instead of an undefined variable.
-  const isButtonEnabled = (button) => {
-    return enabledButtons[saleData?.status]?.includes(button) ?? false;
-  };
-
-  // Define a simple handler for status button clicks.
+  const isButtonEnabled = (button) =>
+    enabledButtons[saleData?.status]?.includes(button) ?? false;
 
   const handleStatusUpdate = async (newStatus) => {
-    console.log("handleStatusUpdate called with newStatus:", newStatus);
-
-    // Check if the button for the new status is enabled
+    const idToUse = finalId || inputSaleId;
+    if (!idToUse) {
+      toast.error("No Sale ID available for status update.");
+      return;
+    }
     if (!isButtonEnabled(newStatus)) {
-      console.error(
-        "Status change not allowed in current state for status:",
-        newStatus
-      );
       toast.error("Status change not allowed in current state.");
-      return; // Exit if status change is not allowed
+      return;
     }
-    console.log("Status change allowed. Proceeding with user confirmation...");
+    if (!window.confirm(`Change status to ${newStatus}?`)) return;
 
-    // Ask user confirmation to proceed
-    if (
-      window.confirm(`Are you sure you want to change status to ${newStatus}?`)
-    ) {
-      console.log("User confirmed status change to:", newStatus);
-      setLoading(true);
-      try {
-        // Build the URL for the PATCH request
-        const patchUrl = `${mergedUrl}/${saleId}/status`;
-        console.log("Sending PATCH request to URL:", patchUrl, "with data:", {
-          newStatus: newStatus,
-        });
-
-        // Send the PATCH request
-        const response = await axios.patch(
-          patchUrl,
-          { newStatus: newStatus },
-          { withCredentials: false }
-        );
-        console.log("Received response: 185", response);
-
-        // Check for success response status
-        if (response.status === 200) {
-          console.log(
-            "Status update successful. Updating saleData with: 189",
-            response.data
-          );
-          // Assuming API returns the updated sale data under response.data.data
-          setSaleData(response.data);
-          toast.success(`Status updated to ${newStatus}`);
-        } else {
-          console.error("Unexpected response status:", response.status);
-          toast.error(`Error: Unexpected response status ${response.status}`);
-        }
-      } catch (err) {
-        console.error("Error occurred during PATCH request:", err);
-        const errorMessage =
-          err.response?.data?.message ||
-          "An unexpected error occurred while updating status.";
-        toast.error(errorMessage);
-      } finally {
-        setLoading(false);
-        console.log("Loading state set to false.");
-      }
-    } else {
-      console.log("User cancelled the status update.");
-    }
-  };
-  // Navigate to the invoice page.
-  const handleInvoice = () => {
-    navigate(`/invoice/${saleId}`);
-  };
-
-  // Function to handle submitting the payment to the backend
-  const handlePaymentSubmit = async (paymentData) => {
     setLoading(true);
     try {
-      // Adjust the endpoint as needed for your backend
+      const patchUrl = `${SALES_URL}/${idToUse}/status`;
+      const response = await axios.patch(
+        patchUrl,
+        { newStatus },
+        { withCredentials: false }
+      );
+      if (response.status === 200) {
+        const updated = normalizeData(response);
+        setSaleData(updated);
+        toast.success(`Status updated to ${newStatus}`);
+      } else {
+        toast.error(`Unexpected response status ${response.status}`);
+      }
+    } catch (err) {
+      const serverData = err?.response?.data;
+      const errorMessage =
+        (typeof serverData === "string" && serverData) ||
+        serverData?.message ||
+        "An unexpected error occurred while updating status.";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInvoice = () => {
+    const idToUse = finalId || inputSaleId;
+    if (!idToUse) {
+      toast.error("No Sale ID available to open invoice.");
+      return;
+    }
+    navigate(`/invoice/${idToUse}`);
+  };
+
+  const handlePaymentSubmit = async (paymentData) => {
+    const idToUse = finalId || inputSaleId;
+    if (!idToUse) {
+      toast.error("No Sale ID available to create payment.");
+      return;
+    }
+    setLoading(true);
+    try {
       const response = await axios.post(
-        `${mergedUrl}/${saleId}/payment`,
+        `${SALES_URL}/${idToUse}/payment`,
         paymentData,
         { withCredentials: false }
       );
-      console.log("Payment response:", response.data);
-      setSaleData(response.data);
+      const updated = normalizeData(response);
+      setSaleData(updated);
       toast.success("Payment created successfully!");
-      // Optionally update saleData with the new payment info (e.g., response.data.data)
-      // For example, if your backend returns updated sale data including the paidAmt array:
-      // setSaleData(response.data.data);
       setShowPaymentModal(false);
     } catch (error) {
-      console.error("Error submitting payment:", error);
+      const serverData = error?.response?.data;
       const errorMessage =
-        error.response?.data?.message ||
+        (typeof serverData === "string" && serverData) ||
+        serverData?.message ||
         "An error occurred while submitting payment.";
       toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
-  if (loading) {
+
+  // Line selection handlers
+  const onSelectItem = (itemId) => {
+    const found = items.find((it) => String(it._id) === String(itemId));
+    setSelectedItem(found || null);
+    setItemCode(found?.code || "");
+    setItemDesc(found?.name || "");
+    setItemUnit(found?.unit || "");
+    setPrice(Number(found?.price || 0));
+  };
+
+  const onSelectSite = (val) => {
+    setSelectedSite(val);
+    setForm((f) => ({ ...f, site: val }));
+  };
+
+  const onSelectWarehouse = (val) => {
+    setForm((f) => ({ ...f, warehouse: val }));
+  };
+
+  // Modals
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showPaymentHistoryModal, setShowPaymentHistoryModal] = useState(false);
+
+  /** =========================
+   *  RENDER
+   *  ========================= */
+  if (loading && !saleData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <div className="w-16 h-16 border-4 border-zinc-500 border-t-transparent border-solid rounded-full animate-spin"></div>
-        <p className="mt-4 text-zinc-500 text-lg font-medium">Loading...</p>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100">
+        <div className="h-16 w-16 animate-spin rounded-full border-4 border-zinc-500 border-t-transparent"></div>
+        <p className="mt-4 text-lg font-medium text-zinc-500">Loading...</p>
       </div>
     );
   }
+
+  // Build payment terms list including current value (e.g., Net30D)
+  const paymentTermsOptions = useMemo(() => {
+    const current = (form.paymentTerms || saleData?.paymentTerms || "").trim();
+    const base = [...defaultTerms];
+    if (current && !base.includes(current)) base.unshift(current);
+    return base;
+  }, [form.paymentTerms, saleData?.paymentTerms]);
+
   return (
     <div className="container mx-auto p-2">
-      {/* Page Header */}
-      <h1 className="text-xl font-bold mb-4">Sales Order View Page</h1>
+      <ToastContainer />
+      <h1 className="mb-4 text-xl font-bold">Sales Order View Page</h1>
 
-      {/* Parent Div that contains 3 inner Divs */}
+      {/* Quick Load by ID */}
+      <div className="mb-3 flex gap-2">
+        <input
+          type="text"
+          placeholder="Enter Sale ID"
+          value={inputSaleId}
+          onChange={(e) => setInputSaleId(e.target.value)}
+          className="w-60 rounded border p-2"
+        />
+        <button
+          onClick={handleSearch}
+          className="rounded border bg-white px-3 py-2 text-sm font-medium hover:bg-gray-100"
+        >
+          Load
+        </button>
+      </div>
+
+      {/* Maintain / Status / Settlement */}
       <div className="flex flex-wrap gap-2">
-        {/* First Div: Maintain Section */}
-        <div className="p-2 h-17 bg-white">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Maintain Section */}
-            <div className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
+        <div className="h-17 bg-white p-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {/* Maintain */}
+            <div className="flex flex-col gap-2 rounded-lg border bg-gray-50 p-4">
               <h2 className="text-sm font-semibold text-gray-700">Maintain</h2>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={handleInvoice}
-                  className="px-3 py-1 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
+                  className="rounded-md border border-gray-300 bg-white px-3 py-1 text-xs font-medium hover:bg-gray-100"
                 >
                   Invoice
                 </button>
                 <button
                   onClick={handleUpdate}
                   disabled={loading}
-                  className={`px-3 py-1 text-xs font-medium border rounded-md transition ${
+                  className={`rounded-md border px-3 py-1 text-xs font-medium transition ${
                     loading
-                      ? "bg-gray-300 cursor-not-allowed"
+                      ? "cursor-not-allowed bg-gray-300"
                       : "bg-white border-gray-300 hover:bg-gray-100"
                   }`}
                 >
@@ -483,21 +830,21 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
                 </button>
                 <button
                   onClick={handleEdit}
-                  className="px-3 py-1 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
+                  className="rounded-md border border-gray-300 bg-white px-3 py-1 text-xs font-medium hover:bg-gray-100"
                 >
                   Edit
                 </button>
                 <button
-                  onClick={goBack}
-                  className="px-3 py-1 text-xs font-medium text-red-600 bg-white border border-red-400 rounded-md hover:bg-red-50"
+                  onClick={goBack ? goBack : () => navigate(-1)}
+                  className="rounded-md border border-red-400 bg-white px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
                 >
                   Close
                 </button>
               </div>
             </div>
 
-            {/* Status Change Section */}
-            <div className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
+            {/* Status Change */}
+            <div className="flex flex-col gap-2 rounded-lg border bg-gray-50 p-4">
               <h2 className="text-sm font-semibold text-gray-700">
                 Status Change
               </h2>
@@ -506,10 +853,10 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
                   <button
                     key={button.id}
                     type="button"
-                    className={`px-3 py-1 text-xs font-medium border rounded-md transition-all ${
+                    className={`rounded-md border px-3 py-1 text-xs font-medium transition-all ${
                       isButtonEnabled(button.label)
-                        ? "bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-                        : "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
+                        ? "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                        : "cursor-not-allowed border-gray-300 bg-gray-200 text-gray-400"
                     }`}
                     disabled={!isButtonEnabled(button.label) || loading}
                     onClick={() => handleStatusUpdate(button.label)}
@@ -520,21 +867,21 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
               </div>
             </div>
 
-            {/* Settlement Section */}
-            <div className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
+            {/* Settlement */}
+            <div className="flex flex-col gap-2 rounded-lg border bg-gray-50 p-4">
               <h2 className="text-sm font-semibold text-gray-700">
                 Settlement
               </h2>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setShowPaymentModal(true)}
-                  className="px-3 py-1 text-xs font-medium text-white bg-green-600 border border-green-500 rounded-md hover:bg-green-700"
+                  className="rounded-md border border-green-500 bg-green-600 px-3 py-1 text-xs font-medium text-white hover:bg-green-700"
                 >
                   Create Payment
                 </button>
                 <button
                   onClick={() => setShowPaymentHistoryModal(true)}
-                  className="px-3 py-1 text-xs font-medium text-white bg-blue-600 border border-blue-500 rounded-md hover:bg-blue-700"
+                  className="rounded-md border border-blue-500 bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
                 >
                   View Payments
                 </button>
@@ -544,455 +891,536 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
         </div>
       </div>
 
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+      {error && <p className="mb-4 text-red-500">{error}</p>}
+
       {!loading && saleData && (
-        <div className="bg-white p-6 rounded-lg shadow-lg w-full">
-          {/* Sale Details Section */}
-          <div className="grid gap-6 mb-4 lg:grid-cols-2 md:grid-cols-2 sm:grid-cols-1">
+        <div className="w-full rounded-lg bg-white p-6 shadow-lg">
+          {/* === Header Fields (exactly as requested) === */}
+          <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Sale Order */}
             <div className="flex flex-col">
-              <label className="font-bold">Sale Order</label>
+              <label className="font-semibold text-gray-700">Sale Order</label>
               <input
                 type="text"
-                value={saleData?.orderNum || 0}
-                disabled
-                className="border p-2 w-full"
-              />
-            </div>{" "}
-            <div className="flex flex-col">
-              <label className="font-bold">Sale Invoiced Number</label>
-              <input
-                type="text"
-                value={saleData?.invoiceNum || 0}
-                disabled
-                className="border p-2 w-full"
-              />
-            </div>{" "}
-            <div className="flex flex-col">
-              <label className="font-bold">Sale Invoiced Date</label>
-              <input type="text" disabled className="border p-2 w-full" />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Customer Account
-              </label>
-              <select
-                value={selectedCustomer}
-                onChange={(e) => setSelectedCustomer(e.target.value)}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Customer</option>
-                {customers.map((customer) => (
-                  <option key={customer._id} value={customer._id}>
-                    {`${customer.code} ${customer.name}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="font-bold">Customer Name</label>
-              <input
-                type="text"
-                value={saleData.customer?.name || 0}
-                disabled={!isEdited}
-                className="border p-2 w-full"
+                value={saleData?.orderType || "Sales"}
+                readOnly
+                className="w-full rounded border bg-gray-100 p-2"
               />
             </div>
+
+            {/* Customer Account */}
             <div className="flex flex-col">
               <label className="font-semibold text-gray-700">
-                Contact Number
+                Customer Account
               </label>
               <input
                 type="text"
-                value={saleData.customer?.contactNum || ""}
+                value={saleData?.customer?.code || ""}
                 readOnly
-                className="border border-gray-300 rounded-lg p-3 w-full bg-gray-100 cursor-not-allowed"
+                className="w-full rounded border bg-gray-100 p-2"
               />
             </div>
+
+            {/* Customer Name */}
             <div className="flex flex-col">
-              <label className="font-semibold text-gray-700">Currency</label>
+              <label className="font-semibold text-gray-700">
+                Customer Name
+              </label>
               <input
                 type="text"
-                value={saleData.currency || 0}
+                value={saleData?.customer?.name || ""}
                 readOnly
-                className="border border-gray-300 rounded-lg p-3 w-full bg-gray-100 cursor-not-allowed"
+                className="w-full rounded border bg-gray-100 p-2"
               />
             </div>
+
+            {/* Contact Email (from extras) */}
             <div className="flex flex-col">
-              <label className="font-semibold text-gray-700">Status</label>
+              <label className="font-semibold text-gray-700">
+                Contact Email
+              </label>
               <input
-                type="text"
-                value={saleData.status || 0}
-                placeholder="Selected Status"
-                disabled
-                className="border border-gray-300 bg-gray-100 text-gray-600 rounded-lg p-3 w-full cursor-not-allowed"
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="font-semibold text-gray-700">Advance</label>
-              <input
-                type="text"
-                value={saleData.advance || ""}
+                type="email"
+                value={extras.contactEmail}
                 onChange={(e) =>
-                  setSaleData({ ...saleData, advance: e.target.value })
+                  setExtras((x) => ({ ...x, contactEmail: e.target.value }))
                 }
                 disabled={!isEditing}
-                className="border border-gray-300 rounded-lg p-3 w-full"
+                className={`w-full rounded border p-2 ${
+                  isEditing ? "" : "bg-gray-100"
+                }`}
               />
             </div>
+
+            {/* Customer Address */}
             <div className="flex flex-col">
               <label className="font-semibold text-gray-700">
                 Customer Address
               </label>
               <textarea
-                value={saleData.salesAddress || 0}
+                value={
+                  saleData?.salesAddress || saleData?.customer?.address || ""
+                }
                 onChange={(e) =>
-                  setSaleData({ ...saleData, salesAddress: e.target.value })
+                  setSaleData((prev) =>
+                    prev ? { ...prev, salesAddress: e.target.value } : prev
+                  )
                 }
                 disabled={!isEditing}
-                className="border border-gray-300 rounded-lg p-3 w-full"
+                className={`w-full rounded border p-2 ${
+                  isEditing ? "" : "bg-gray-100"
+                }`}
               />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Created on
+            </div>
+
+            {/* Contact Details */}
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700">
+                Contact Details
               </label>
               <input
                 type="text"
-                value={form.createdOn || ""}
+                value={saleData?.customer?.contactNum || ""}
                 readOnly
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                className="w-full rounded border bg-gray-100 p-2"
               />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
+            </div>
+
+            {/* Currency */}
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700">Currency</label>
+              <input
+                type="text"
+                value={saleData?.currency || ""}
+                readOnly
+                className="w-full rounded border bg-gray-100 p-2"
+              />
+            </div>
+
+            {/* Sale Order no */}
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700">
+                Sale Order no
+              </label>
+              <input
+                type="text"
+                value={saleData?.orderNum || ""}
+                readOnly
+                className="w-full rounded border bg-gray-100 p-2"
+              />
+            </div>
+
+            {/* Purchase Reference No */}
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700">
+                Purchase Reference No
+              </label>
+              <input
+                type="text"
+                value={form.purchaseRef}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, purchaseRef: e.target.value }))
+                }
+                disabled={!isEditing}
+                className={`w-full rounded border p-2 ${
+                  isEditing ? "" : "bg-gray-100"
+                }`}
+              />
+            </div>
+
+            {/* Order Date */}
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700">Order Date</label>
+              <input
+                type="text"
+                value={form.orderDate}
+                readOnly
+                className="w-full rounded border bg-gray-100 p-2"
+              />
+            </div>
+
+            {/* Created on */}
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700">Created on</label>
+              <input
+                type="text"
+                value={form.createdOn}
+                readOnly
+                className="w-full rounded border bg-gray-100 p-2"
+              />
+            </div>
+
+            {/* Order Status */}
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700">
                 Order Status
               </label>
               <input
                 type="text"
-                value={status}
-                placeholder="Selected Status"
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                value={saleData?.status || ""}
                 readOnly
+                className="w-full rounded border bg-gray-100 p-2"
               />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Site
-              </label>
-              <select
-                name="site"
-                value={form.site}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
-              >
-                <option value="">Select</option>
-                {sites.map((s) => (
-                  <option key={s._id} value={s._id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
             </div>
-            {/* Warehouse */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Warehouse
+
+            {/* Sale Agreement No (if applicable) */}
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700">
+                Sale Agreement No (if applicable)
               </label>
-              <select
-                name="warehouse"
-                value={form.warehouse}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
-              >
-                <option value="">Select</option>
-                {warehouses.map((w) => (
-                  <option key={w._id} value={w._id}>
-                    {w.name}
-                  </option>
-                ))}
-              </select>
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
+              <input
+                type="text"
+                value={extras.saleAgreementNo}
+                onChange={(e) =>
+                  setExtras((x) => ({ ...x, saleAgreementNo: e.target.value }))
+                }
+                disabled={!isEditing}
+                className={`w-full rounded border p-2 ${
+                  isEditing ? "" : "bg-gray-100"
+                }`}
+              />
+            </div>
+
+            {/* Terms of payment */}
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700">
                 Terms of payment
               </label>
               <select
                 name="paymentTerms"
-                value={form.paymentTerms}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                value={form.paymentTerms || saleData?.paymentTerms || ""}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, paymentTerms: e.target.value }))
+                }
+                disabled={!isEditing}
+                className={`w-full rounded border p-2 ${
+                  isEditing ? "" : "bg-gray-100"
+                }`}
               >
                 <option value="">Select type</option>
-                {paymentTerms.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
+                {paymentTermsOptions.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
                   </option>
                 ))}
               </select>
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
+            </div>
+
+            {/* Delivery Mode */}
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700">
                 Delivery Mode
               </label>
               <input
                 type="text"
                 name="deliveryMode"
                 value={form.deliveryMode}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, deliveryMode: e.target.value }))
+                }
+                disabled={!isEditing}
+                className={`w-full rounded border p-2 ${
+                  isEditing ? "" : "bg-gray-100"
+                }`}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Order Id
-              </label>
+
+            {/* Order Id */}
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700">Order Id</label>
               <input
                 type="text"
                 name="orderId"
                 value={form.orderId}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, orderId: e.target.value }))
+                }
+                disabled={!isEditing}
+                className={`w-full rounded border p-2 ${
+                  isEditing ? "" : "bg-gray-100"
+                }`}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
+
+            {/* Advance Payment Amount */}
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700">
                 Advance Payment Amount
               </label>
               <input
-                type="text"
-                name="advance"
+                type="number"
                 value={advance}
-                onChange={(e) => {
-                  const value = Number(e.target.value.replace(/\D/g, "")) || 0;
-                  setAdvance(value);
-                }}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                onChange={(e) => setAdvance(Number(e.target.value) || 0)}
+                disabled={!isEditing}
+                className={`w-full rounded border p-2 ${
+                  isEditing ? "" : "bg-gray-100"
+                }`}
               />
             </div>
-            <div className="flex flex-col">
+
+            {/* Remarks */}
+            <div className="col-span-full flex flex-col">
               <label className="font-semibold text-gray-700">Remarks</label>
               <textarea
-                value={saleData.remarks || ""}
+                value={saleData?.remarks || ""}
                 onChange={(e) =>
-                  setSaleData({ ...saleData, remarks: e.target.value })
+                  setSaleData((prev) =>
+                    prev ? { ...prev, remarks: e.target.value } : prev
+                  )
                 }
-                // Only enable editing when both isEditing is true and the sale is in Draft status
                 disabled={!isEditing}
-                className="border border-gray-300 rounded-lg p-3 w-full"
+                className={`w-full rounded border p-2 ${
+                  isEditing ? "" : "bg-gray-100"
+                }`}
               />
             </div>
           </div>
 
-          {/* Line Items Table */}
-          <div className="max-h-96 overflow-y-auto mt-6">
-            <table className="min-w-full border-collapse border border-gray-300 text-sm text-gray-700">
-              <thead className="bg-gray-100 text-gray-900 uppercase text-xs font-semibold">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    S.N
-                  </th>
-                  <th className="border p-3 text-center">Item Code</th>
-                  <th className="border px-4 py-2">Item Name</th>
-                  <th className="border px-4 py-2">Site</th>{" "}
-                  <th className="border px-4 py-2">Warehouse</th>
-                  <th className="border p-3 text-center">Qty</th>
-                  <th className="border p-3 text-center">Price</th>
-                  <th className="border p-3 text-center">Unit</th>
-                  <th className="border p-3 text-center">Type</th>
-                  <th className="border p-3 text-center">Amount</th>
-                  <th className="border p-3 text-center">Discount %</th>
-                  <th className="border p-3 text-center">Tax %</th>
-                  <th className="border p-3 text-center">TCS/TDS %</th>
-                  <th className="border p-3 text-center">Total Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                <tr>
-                  <td className="border p-3">1</td>
-                  <td className="border p-3">{saleData.item?.code || 0}</td>
-                  <td className="border p-3">
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={saleData.item?.name || 0}
-                        className="border rounded p-1 text-center w-full"
-                      />
-                    ) : (
-                      saleData.item?.name
-                    )}
-                  </td>
-                  <td className="border p-3 text-center">
-                    {" "}
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={saleData.quantity || null}
-                        onChange={(e) => handleInputChange(e, "quantity")}
-                        className="border rounded p-1 text-center w-full"
-                      />
-                    ) : (
-                      saleData.quantity
-                    )}
-                  </td>
-                  <td className="border p-3 text-center">
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={saleData.item?.price || null}
-                        onChange={(e) => handleInputChange(e, "price", true)}
-                        className="border rounded p-1 text-center w-full"
-                      />
-                    ) : (
-                      saleData.item?.price
-                    )}
-                  </td>
-                  <td className="border p-3 text-center">
-                    <select
-                      name="unit"
-                      value={saleData?.unit || null}
-                      onChange={(e) => handleInputChange(e, "unit")}
-                      className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring focus:ring-blue-300"
-                      disabled={!isEditing}
-                    >
-                      <option value="kgs">KG - Kilogram</option>
+          {/* === Lines Section (your requested table) === */}
+          <section className="p-6">
+            <div className="mt-4 max-h-96 overflow-y-auto rounded-lg border bg-white">
+              <div className="overflow-x-auto rounded-lg border border-gray-200">
+                <table className="min-w-full text-xs">
+                  <thead className="bg-gray-50 text-gray-700">
+                    <tr>
+                      {[
+                        "S.N",
+                        "Item Code",
+                        "Item Name",
+                        "Description",
+                        "Site",
+                        "Warehouse",
+                        "Qty",
+                        "Unit",
+                        "Price",
+                        "Discount %",
+                        "Amount",
+                        "Tax %",
+                        "TCS/TDS %",
+                        "Total Amount",
+                      ].map((header, index) => (
+                        <th
+                          key={index}
+                          className="border border-gray-300 px-2 py-1 text-center"
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
 
-                      <option value="mt ">Metric tonnes</option>
-                      <option value="ea">Ea - Each</option>
-                      <option value="lbs"> lbs - pounds</option>
+                  <tbody className="divide-y divide-gray-200">
+                    <tr key="purchase-order-row" className="hover:bg-gray-50">
+                      <td className="border px-2 py-1 text-center">1</td>
 
-                      <option value="hr">Hour</option>
-                      <option value="min">Minutes</option>
-                      <option value="qty">Quantity</option>
-                    </select>
-                  </td>
-                  <td className="border p-3 text-center">
-                    {saleData.item?.type || null}
-                  </td>
-                  <td className="border p-3 text-center">
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={saleData?.lineAmt || null}
-                        onChange={(e) => handleInputChange(e, "lineAmt")}
-                        className="border rounded p-1 text-center w-full"
-                      />
-                    ) : (
-                      saleData?.lineAmt
-                    )}
-                  </td>
+                      {/* Item Code */}
+                      <td className="border px-2 py-1 text-center">
+                        {itemCode}
+                      </td>
 
-                  <td className="border p-3 text-center">
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={saleData.discount || null}
-                        onChange={(e) => handleInputChange(e, "discount")}
-                        className="border rounded p-1 text-center w-full"
-                      />
-                    ) : (
-                      saleData.discount
-                    )}
-                  </td>
-                  <td className="border p-3 text-center">
-                    {" "}
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={saleData.tax || null}
-                        onChange={(e) => handleInputChange(e, "tax")}
-                        className="border rounded p-1 text-center w-full"
-                      />
-                    ) : (
-                      saleData.tax
-                    )}
-                  </td>
-                  <td className="border p-3 text-center">
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={saleData.withholdingTax || null}
-                        onChange={(e) => handleInputChange(e, "withholdingTax")}
-                        className="border rounded p-1 text-center w-full"
-                      />
-                    ) : (
-                      saleData.withholdingTax
-                    )}
-                  </td>
-                  <td className="border p-3 text-center">
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={saleData.netAR || null}
-                        onChange={(e) => handleInputChange(e, "netAR")}
-                        className="border rounded p-1 text-center w-full"
-                      />
-                    ) : (
-                      saleData.netAR
-                    )}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <h5 className="text-xl font-bold mb-4 mt-2  ">Sale Summary</h5>
-          <div className="summary border p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 rounded shadow-sm">
-            <div className="flex flex-col">
-              <span className="text-sm text-gray-600">Charges</span>
-              <span className="text-lg font-semibold text-gray-800">
-                {saleData.charges || 0}
-              </span>
+                      {/* Item Name (select) */}
+                      <td className="border px-2 py-1">
+                        <select
+                          value={selectedItem?._id || ""}
+                          disabled={loadingItems || !isEditing}
+                          onChange={(e) => onSelectItem(e.target.value)}
+                          className="w-full rounded border px-2 py-1"
+                        >
+                          <option value="">
+                            {loadingItems ? "Loading…" : "Select Item"}
+                          </option>
+                          {items.map((itemOption) => (
+                            <option key={itemOption._id} value={itemOption._id}>
+                              {itemOption.name}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+
+                      {/* Description */}
+                      <td className="border px-2 py-1 text-center">
+                        <input
+                          type="text"
+                          value={itemDesc}
+                          readOnly
+                          className="w-full rounded border bg-gray-100 px-2 py-1 text-center"
+                        />
+                      </td>
+
+                      {/* Site */}
+                      <td className="border px-2 py-1">
+                        <select
+                          value={String(selectedSite || form.site || "")}
+                          onChange={(e) => onSelectSite(e.target.value)}
+                          disabled={!isEditing}
+                          className="m mt-1 w-full rounded border p-2 focus:ring-2 focus:ring-blue-200"
+                        >
+                          <option value="">
+                            {loadingSites
+                              ? "Loading…"
+                              : sites.length
+                              ? "Select Site"
+                              : "No sites found"}
+                          </option>
+                          {sites.map((site) => (
+                            <option
+                              key={getSiteId(site)}
+                              value={getSiteId(site)}
+                            >
+                              {getSiteLabel(site)}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+
+                      {/* Warehouse */}
+                      <td className="border px-2 py-1">
+                        <select
+                          name="warehouse"
+                          value={String(form.warehouse || "")}
+                          onChange={(e) =>
+                            onSelectWarehouse(String(e.target.value))
+                          }
+                          className="w-full rounded border px-2 py-1"
+                          disabled={
+                            loadingWarehouses ||
+                            !warehouses.length ||
+                            !isEditing
+                          }
+                        >
+                          <option value="">
+                            {loadingWarehouses
+                              ? "Loading…"
+                              : "Select Warehouse"}
+                          </option>
+                          {warehouses.map((w) => {
+                            const id = getWhId(w);
+                            return (
+                              <option key={id} value={id}>
+                                {getWhLabel(w)}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </td>
+
+                      {/* Qty */}
+                      <td className="border px-2 py-1">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className="w-full rounded border px-2 py-1 text-center"
+                          value={quantity}
+                          onChange={(e) =>
+                            setQuantity(Number(e.target.value) || 0)
+                          }
+                          readOnly={!isEditing}
+                        />
+                      </td>
+
+                      {/* Unit */}
+                      <td className="border px-2 py-1 text-center">
+                        <input
+                          type="text"
+                          value={itemUnit}
+                          readOnly
+                          className="w-full rounded border bg-gray-100 px-2 py-1 text-center"
+                        />
+                      </td>
+
+                      {/* Price */}
+                      <td className="border px-2 py-1">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className="w-full rounded border px-2 py-1 text-center"
+                          value={price}
+                          onChange={(e) =>
+                            setPrice(Number(e.target.value) || 0)
+                          }
+                          readOnly={!isEditing}
+                        />
+                      </td>
+
+                      {/* Discount % */}
+                      <td className="border px-2 py-1">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className="w-full rounded border px-2 py-1 text-center"
+                          value={discount}
+                          onChange={(e) =>
+                            setDiscount(Number(e.target.value) || 0)
+                          }
+                          readOnly={!isEditing}
+                        />
+                      </td>
+
+                      {/* Amount (before tax) */}
+                      <td className="border px-2 py-1 text-center">
+                        {isNaN(amountBeforeTax)
+                          ? "0.00"
+                          : amountBeforeTax.toFixed(2)}
+                      </td>
+
+                      {/* Tax % */}
+                      <td className="border px-2 py-1">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className="w-full rounded border px-2 py-1 text-center"
+                          value={tax}
+                          onChange={(e) => setTax(Number(e.target.value) || 0)}
+                          readOnly={!isEditing}
+                        />
+                      </td>
+
+                      {/* TCS/TDS % -> maps to withholdingTax */}
+                      <td className="border px-2 py-1">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className="w-full rounded border px-2 py-1 text-center"
+                          value={tcs}
+                          onChange={(e) => setTcs(Number(e.target.value) || 0)}
+                          readOnly={!isEditing}
+                        />
+                      </td>
+
+                      {/* Total Amount */}
+                      <td className="border px-2 py-1 text-center">
+                        {lineAmt}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {/* Summary (your compact set) */}
+                <div className="grid grid-cols-1 gap-4 bg-gray-50 p-4 sm:grid-cols-2 md:grid-cols-4">
+                  <SummaryCard label="Advance" value={advance} />
+                  <SummaryCard
+                    label="Subtotal / line amount"
+                    value={
+                      isNaN(amountBeforeTax)
+                        ? "0.00"
+                        : amountBeforeTax.toFixed(2)
+                    }
+                  />
+                  <SummaryCard label="Discount (%)" value={discount} />
+                  <SummaryCard label="Total (incl tax)" value={lineAmt} />
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm text-gray-600">Combined Paid</span>
-              <span className="text-lg font-semibold text-gray-800">
-                {saleData.combinedPaid || 0}
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm text-gray-600">Discount Amt</span>
-              <span className="text-lg font-semibold text-gray-800">
-                {saleData.discountAmt || 0}
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm text-gray-600">Paid Amt</span>
-              <span className="text-lg font-semibold text-gray-800">
-                {saleData.paidAmt
-                  ? saleData.paidAmt.reduce((a, b) => a + b, 0)
-                  : 0}
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm text-gray-600">Net Amt After Tax</span>
-              <span className="text-lg font-semibold text-gray-800">
-                {saleData.netAmtAfterTax || 0}
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm text-gray-600">Net Payment Due</span>
-              <span className="text-lg font-semibold text-gray-800">
-                {saleData.netPaymentDue || 0}
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm text-gray-600">Withholding Tax Amt</span>
-              <span className="text-lg font-semibold text-gray-800">
-                {saleData.withholdingTaxAmt || 0}
-              </span>
-            </div>{" "}
-            <div className="flex flex-col">
-              <span className="text-sm text-gray-600">
-                Carry Forward Advance
-              </span>
-              <span className="text-lg font-semibold text-gray-800">
-                {saleData.carryForwardAdvance || 0}
-              </span>
-            </div>
-          </div>
+          </section>
         </div>
       )}
 
-      {/* Conditionally render the Payment Modals */}
+      {/* Modals */}
       {showPaymentModal && (
         <PaymentModal
           onClose={() => setShowPaymentModal(false)}
@@ -1009,5 +1437,15 @@ const SaleorderViewPage = ({ goBack, saleId }) => {
     </div>
   );
 };
+
+/** Simple summary card (used in the line summary block) */
+const SummaryCard = ({ label, value }) => (
+  <div className="flex flex-col">
+    <span className="text-sm text-gray-600">{label}</span>
+    <span className="text-lg font-semibold text-gray-800">
+      {String(value ?? "")}
+    </span>
+  </div>
+);
 
 export default SaleorderViewPage;

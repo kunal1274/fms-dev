@@ -1,246 +1,363 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-// import Invoice from "./Invoice/Icopy";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate, useLocation } from "react-router-dom";
+// If you have it, uncomment:
 import SaleorderViewPage from "./SaleOrderViewPage";
+
 const SummaryCard = ({ label, value }) => (
   <div className="flex flex-col">
     <span className="text-sm text-gray-600">{label}</span>
-    <span className="text-lg font-semibold text-gray-800">{value}</span>
+    <span className="text-lg font-semibold text-gray-800">{String(value)}</span>
   </div>
 );
+
 const SaleOrderform = ({ handleCancel }) => {
+  // -------------------------
+  // API endpoints
+  // -------------------------
   const warehousesBaseUrl =
     "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const siteBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
   const customersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
   const salesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
-  const paymentTerms = [
-    "COD",
-    "Net30D",
-    "Net7D",
-    "Net15D",
-    "Net45D",
-    "Net60D",
-    "Net90D",
-    "Advance",
-  ];
+
+  const paymentTerms = useMemo(
+    () => [
+      "COD",
+      "Net30D",
+      "Net7D",
+      "Net15D",
+      "Net45D",
+      "Net60D",
+      "Net90D",
+      "Advance",
+    ],
+    []
+  );
+
+  // -------------------------
+  // UI/loaders
+  // -------------------------
+  const [loading, setLoading] = useState(false);
+  const [loadingWarehouses, setLoadingWarehouses] = useState(false);
+  const [loadingSites, setLoadingSites] = useState(false);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [loadingItems, setLoadingItems] = useState(false);
+
+  // -------------------------
+  // Top-level choices
+  // -------------------------
+  const [customers, setCustomers] = useState([]);
+  const [sites, setSites] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
+  const [items, setItems] = useState([]);
+
+  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [selectedSite, setSelectedSite] = useState("");
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  // -------------------------
+  // Derived labels/helpers
+  // -------------------------
+  const getSiteId = (s) =>
+    String(s?._id ?? s?.id ?? s?.siteId ?? s?.code ?? "");
+  const getSiteLabel = (s) =>
+    s?.code && s?.name
+      ? `${s.code} ${s.name}`
+      : s?.name ?? s?.code ?? getSiteId(s);
+
+  const getWhId = (w) =>
+    String(w?._id ?? w?.id ?? w?.warehouseId ?? w?.code ?? "");
+  const getWhLabel = (w) =>
+    [w?.code, w?.name].filter(Boolean).join(" ").trim() || w?._id || "Unnamed";
+
+  // -------------------------
+  // Form state
+  // -------------------------
   const [form, setForm] = useState({
     site: "",
     warehouse: "",
-    // Add other form fields if needed
+    orderDate: "",
+    createdOn: new Date().toLocaleString(),
+    saleAgreementNo: "",
+    purchaseRef: "",
+    paymentTerms: "",
+    deliveryMode: "",
+    orderId: "",
   });
-  const [goForInvoice, setGoSaleInvoice] = useState(null);
-  const [advance, setAdvance] = useState(0);
-  const [customers, setCustomers] = useState([]);
-  const [viewingSaleId, setViewingSaleId] = useState(null);
-  const [warehouses, setWarehouses] = useState([]);
-  const [selectedSaleOrderId, setSelectedSaleOrderId] = useState("");
-  const [items, setItems] = useState([]);
+
   const [remarks, setRemarks] = useState("");
+  const status = "Draft";
+  const [docId, setDocId] = useState("");
   const [saleOrderNum, setSaleOrderNum] = useState(null);
-  const [sites, setSites] = useState([]);
-  // Global form states (for a single order line)
-  const [selectedCustomer, setSelectedCustomer] = useState("");
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [viewingSaleId, setViewingSaleId] = useState(null);
+
+  // One line-item fields
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState(0);
-  const [discount, setDiscount] = useState(0);
-  const [tax, setTax] = useState(0);
-  const [tcs, setTcs] = useState(0);
+  const [discount, setDiscount] = useState(0); // %
+  const [tax, setTax] = useState(0); // %
+  const [tcs, setTcs] = useState(0); // %
   const [charges, setCharges] = useState(0);
+  const [advance, setAdvance] = useState(0);
   const [lineAmt, setLineAmt] = useState("0.00");
-  const [salesAddress, setSalesAddress] = useState(null);
-  const [loading, setLoading] = useState(false);
 
-  // Editing and status management states
-  const [isEdited, setIsEdited] = useState(false);
-  const [status, setStatus] = useState("Draft");
-  const [_id, set_id] = useState("");
-
-  // Navigation and Location for Edit mode
-  // const navigate = useNavigate();
-  // const location = useLocation();
-
-  // If coming back in edit mode, pre-populate form fields accordingly
-  useEffect(() => {
-    if (location.state && location.state.edit && location.state.saleOrderNum) {
-      setSaleOrderNum(location.state.saleOrderNum);
-      setIsEdited(true);
-      // Optionally, fetch sale order details here from your API.
-    }
-  }, [location.state]);
-
-  // -------------------------
-  // Line Items State (for detailed items table)
-  // -------------------------
-  const [lineItems, setLineItems] = useState([
-    {
-      id: Date.now(),
-      itemId: "",
-      itemName: "",
-      itemCode: "",
-      unit: "",
-      quantity: 1,
-      price: 0,
-      discount: 0,
-      Status: "draft",
-      charges: 0,
-      tax: 0,
-      tcs: 0,
-      tds: 0,
-      lineAmt: 0,
-      amountBeforeTax: 0,
-    },
-  ]);
-
-  const [summary, setSummary] = useState({
-    totalLines: 0,
-    totalNetAmount: 0,
-    totalDiscountAmount: 0,
-    totalTaxAmount: 0,
-    totalWithholdingTax: 0,
-    totalNetAmountAfterTax: 0,
-    totalLineAmount: 0,
+  // Customer preview card
+  const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
+    name: "",
+    contactNum: "",
+    currency: "",
+    address: "",
+    email: "",
   });
 
   // -------------------------
-  // Fetch Customers & Items
+  // Small utilities
+  // -------------------------
+  const listFromApi = (res) =>
+    Array.isArray(res?.data?.data)
+      ? res.data.data
+      : Array.isArray(res?.data)
+      ? res.data
+      : [];
+
+  const withToast = async (label, runner, { setLoading: setLoadFn } = {}) => {
+    const id = toast.loading(`${label}: loading…`);
+    try {
+      if (setLoadFn) setLoadFn(true);
+      const result = await runner();
+      toast.update(id, {
+        render: `${label}: loaded successfully`,
+        type: "success",
+        isLoading: false,
+        autoClose: 1500,
+        closeOnClick: true,
+      });
+      return result;
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message || err?.message || "Something went wrong.";
+      toast.update(id, {
+        render: `${label}: ${msg}`,
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+        closeOnClick: true,
+      });
+      throw err;
+    } finally {
+      if (setLoadFn) setLoadFn(false);
+    }
+  };
+
+  // -------------------------
+  // Initial fetches
   // -------------------------
   useEffect(() => {
-    const fetchCustomers = async () => {
-      console.log("Fetching customers...");
-      try {
-        const response = await axios.get(customersBaseUrl);
-        console.log("Customers fetched:", response.data);
-        setCustomers(response.data.data || []);
-      } catch (error) {
-        console.error("Error fetching customers:", error);
-      }
-    };
+    const fetchSites = () =>
+      withToast(
+        "Sites",
+        async () => {
+          const res = await axios.get(siteBaseUrl);
+          const list = listFromApi(res);
+          setSites(list);
+          return list;
+        },
+        { setLoading: setLoadingSites }
+      );
 
-    const fetchItems = async () => {
-      console.log("Fetching items...");
-      try {
-        const response = await axios.get(itemsBaseUrl);
-        console.log("Items fetched:", response.data);
-        setItems(response.data.data || []);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-      }
-    };
+    const fetchItems = () =>
+      withToast(
+        "Items",
+        async () => {
+          const res = await axios.get(itemsBaseUrl);
+          const list = listFromApi(res);
+          setItems(list);
+          return list;
+        },
+        { setLoading: setLoadingItems }
+      );
 
-    const fetchWarehouses = async () => {
-      console.log("Fetching warehouses...");
-      try {
-        const response = await axios.get(warehousesBaseUrl);
-        console.log("Warehouses fetched:", response.data);
-        setItems(response.data.data || []); // <- likely a mistake, you probably meant `setWarehouses`
-      } catch (error) {
-        console.error("Error fetching warehouses:", error);
-      }
-    };
+    const fetchCustomers = () =>
+      withToast(
+        "Customers",
+        async () => {
+          const res = await axios.get(customersBaseUrl);
+          const list = listFromApi(res);
+          setCustomers(list);
+          return list;
+        },
+        { setLoading: setLoadingCustomers }
+      );
 
-    const fetchSiteBaseUrl = async () => {
-      console.log("Fetching site base data...");
-      try {
-        const response = await axios.get(siteBaseUrl);
-        console.log("Site base data fetched:", response.data);
-        setItems(response.data.data || []); // <- again, likely meant `setSites` or similar
-      } catch (error) {
-        console.error("Error fetching site base data:", error);
-      }
-    };
-
-    fetchSiteBaseUrl();
-    fetchCustomers();
-    fetchWarehouses();
-    fetchItems();
+    // run in parallel
+    Promise.allSettled([fetchSites(), fetchItems(), fetchCustomers()]).catch(
+      () => {}
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+
   // -------------------------
-  // Basic Form Validation
+  // Warehouses (refetch on site)
   // -------------------------
-  const validateForm = () => {
+  useEffect(() => {
+    const fetchWarehouses = () =>
+      withToast(
+        "Warehouses",
+        async () => {
+          const res = await axios.get(warehousesBaseUrl);
+          const all = listFromApi(res);
+          const filtered = all.filter((w) => {
+            const sid = w?.site?._id || w?.siteId || w?.site || "";
+            return String(sid) === String(selectedSite);
+          });
+          const finalList = filtered.length ? filtered : all;
+          setWarehouses(finalList);
+          return finalList;
+        },
+        { setLoading: setLoadingWarehouses }
+      );
+
+    if (selectedSite) {
+      fetchWarehouses().catch(() => {});
+    } else {
+      setWarehouses([]);
+    }
+  }, [selectedSite]);
+
+  // -------------------------
+  // Customer details preview
+  // -------------------------
+  useEffect(() => {
     if (!selectedCustomer) {
-      toast.warn("⚠️ No sale order selected to delete.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
+      setSelectedCustomerDetails({
+        name: "",
+        contactNum: "",
+        currency: "",
+        address: "",
+        email: "",
       });
-      toast.warn("⚠️ Customer selection is required.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
-
-      return false;
+      return;
     }
-    if (!selectedItem) {
-      toast.warn("⚠️Item selection is required.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
+    const c = customers.find((x) => String(x._id) === String(selectedCustomer));
+    setSelectedCustomerDetails({
+      name: c?.name || "",
+      contactNum: c?.contactNum || "",
+      currency: c?.currency || "",
+      address: c?.address || "",
+      email: c?.email || "",
+    });
+  }, [selectedCustomer, customers]);
 
-      return false;
-    }
-    return true;
+  // -------------------------
+  // Item pick → default numbers
+  // -------------------------
+  useEffect(() => {
+    if (!selectedItem) return;
+    setPrice(
+      Number(
+        selectedItem?.price ??
+          selectedItem?.sellingPrice ??
+          selectedItem?.mrp ??
+          0
+      ) || 0
+    );
+    setDiscount(Number(selectedItem?.discount ?? 0) || 0);
+    setTax(Number(selectedItem?.tax ?? selectedItem?.gst ?? 0) || 0);
+    setTcs(Number(selectedItem?.tcs ?? selectedItem?.tds ?? 0) || 0);
+    setQuantity(Number(selectedItem?.quantity ?? 1) || 1);
+  }, [selectedItem]);
+
+  // -------------------------
+  // Amount calculations (single row)
+  // -------------------------
+  const discountAmount =
+    (Number(discount) * Number(quantity) * Number(price)) / 100;
+  const amountBeforeTax = Number(quantity) * Number(price) - discountAmount;
+
+  useEffect(() => {
+    const beforeTax = amountBeforeTax;
+    const taxAmount = (beforeTax * Number(tax)) / 100;
+    const tcsAmount = (beforeTax * Number(tcs)) / 100;
+    const total =
+      beforeTax +
+      taxAmount +
+      tcsAmount +
+      Number(charges || 0) -
+      Number(advance || 0);
+    setLineAmt(isNaN(total) ? "0.00" : total.toFixed(2));
+  }, [quantity, price, discount, tax, tcs, charges, advance, amountBeforeTax]);
+
+  // -------------------------
+  // Handlers
+  // -------------------------
+  const handleSimpleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
+
+  const onSelectSite = (id) => {
+    setSelectedSite(id);
+    setForm((prev) => ({ ...prev, site: id }));
+    const label = getSiteLabel(
+      sites.find((s) => String(getSiteId(s)) === String(id)) || {}
+    );
+    toast.success(`Site selected: ${label || id}`);
+  };
+
+  const onSelectWarehouse = (id) => {
+    setForm((prev) => ({ ...prev, warehouse: id }));
+    const label = getWhLabel(
+      warehouses.find((w) => String(getWhId(w)) === String(id)) || {}
+    );
+    toast.success(`Warehouse selected: ${label || id}`);
+  };
+
+  const onSelectItem = (id) => {
+    const sel = items.find((it) => String(it._id) === String(id));
+    setSelectedItem(sel || null);
+    if (sel) {
+      const inferred =
+        Number(sel.price ?? sel.sellingPrice ?? sel.mrp ?? 0) || 0;
+      setPrice(inferred);
+      toast.success(`Item selected: ${sel?.name || sel?._id}`);
+    }
+  };
+
+  const onSelectCustomer = (id) => {
+    setSelectedCustomer(id);
+    const c = customers.find((x) => String(x._id) === String(id));
+    toast.success(`Customer selected: ${c?.name || id}`);
+  };
+
+  const clean = (obj) =>
+    Object.fromEntries(
+      Object.entries(obj).filter(
+        ([, v]) =>
+          v !== "" &&
+          v !== null &&
+          v !== undefined &&
+          !(typeof v === "number" && Number.isNaN(v))
+      )
+    );
 
   const handleCreate = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      toast.warn("⚠️ Please fill all the mandatory fields correctly.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
-
+    // Validations
+    if (!selectedCustomer) {
+      toast.warn("⚠️ Customer selection is required.");
       return;
     }
-    if (!selectedItem) {
-      toast.warn("⚠️ Please select an item.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
-
+    if (!selectedItem?._id) {
+      toast.warn("⚠️ Item selection is required.");
       return;
     }
 
-    // Construct payload from global fields
-    const payload = {
+    const lineTotal = Number(lineAmt || 0);
+    const payloadRaw = {
       customer: selectedCustomer,
       item: selectedItem._id || selectedItem.id || "",
       quantity: Number(quantity) || 1,
@@ -251,278 +368,89 @@ const SaleOrderform = ({ handleCancel }) => {
       withholdingTax: Number(tcs) || 0,
       charges: Number(charges) || 0,
       advance: Number(advance) || 0,
-      salesAddress: salesAddress,
+      // salesAddress: salesAddress,
     };
 
-    console.log("📌 Payload being sent:", payload);
+    const payload = clean(payloadRaw);
 
     try {
       setLoading(true);
+      const id = toast.loading("Creating Sales Order…");
       const { data } = await axios.post(salesOrderUrl, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      // Set sale order number and mark as created/editable.
-      setSaleOrderNum(data.data.orderNum);
-      set_id(data.data._id);
-      console.log(data.data._id, "id");
-      setIsEdited(true);
-      toast.success(
-        `Sales Order Created Successfully! Order Number: ${data.data.orderNum}`,
-        {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        }
-      );
-    } catch (error) {
-      console.error("🚨 Error response:", error.response);
-      toast.error(
-        `Error: ${
-          error.response?.data?.message || "Failed to create Sales Order"
+      const newNum = data?.data?.orderNum;
+      setSaleOrderNum(newNum || null);
+      setDocId(data?.data?._id || "");
+      toast.update(id, {
+        render: `Sales Order Created Successfully! Order Number: ${
+          newNum || "N/A"
         }`,
-        {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: "colored",
-        }
-      );
+        type: "success",
+        isLoading: false,
+        autoClose: 2500,
+        closeOnClick: true,
+      });
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message || "Failed to create Sales Order";
+      toast.error(`Error: ${msg}`);
+      // keep state so user can correct and resubmit
     } finally {
       setLoading(false);
     }
   };
 
-  const calculateTotalAmount = (item) => {
-    const quantityVal = Number(item.quantity) || 1;
-    const priceVal = Number(item.price) || 0;
-    const discountVal = Number(item.discount) || 0;
-    const taxVal = Number(item.tax) || 0;
-    const tcsVal = Number(item.tcs) || 0;
-    const tdsVal = Number(item.tds) || 0;
-    const chargesVal = Number(item.charges) || 0;
-
-    const subtotal = quantityVal * priceVal;
-    const discountAmount = (subtotal * discountVal) / 100;
-    const amountBeforeTax = subtotal - discountAmount;
-    const taxAmount = (amountBeforeTax * taxVal) / 100;
-    const tcsAmount = (amountBeforeTax * tcsVal) / 100;
-    const tdsAmount = (amountBeforeTax * tdsVal) / 100;
-
-    const computedLineAmt =
-      amountBeforeTax + taxAmount + tcsAmount + chargesVal;
-
-    console.log("🔹 Subtotal:", subtotal);
-    console.log("🔹 Discount (%):", discountVal);
-    console.log("🔹 Discount Amount:", discountAmount);
-    console.log("🔹 Amount Before Tax:", amountBeforeTax);
-    console.log("🔹 Tax Amount:", taxAmount);
-    console.log("🔹 TCS Amount:", tcsAmount);
-    console.log("🔹 TDS Amount:", tdsAmount);
-    console.log(
-      "🔹 Final Line Amount:",
-      isNaN(computedLineAmt) ? 0 : computedLineAmt.toFixed(2)
-    );
-
-    return {
-      amountBeforeTax: isNaN(amountBeforeTax)
-        ? "0.00"
-        : amountBeforeTax.toFixed(2),
-      lineAmt: isNaN(computedLineAmt) ? "0.00" : computedLineAmt.toFixed(2),
-    };
-  };
-
-  // Updates a line item field and recalculates amounts
-  const handleLineItemChange = (id, field, value) => {
-    setLineItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              [field]: field === "discount" ? Number(value) || 0 : value,
-              ...calculateTotalAmount({
-                ...item,
-                [field]: field === "discount" ? Number(value) || 0 : value,
-              }),
-            }
-          : item
-      )
-    );
-  };
-
-  // Updated Handler for Line Item Item-Selection
-
-  // Update summary when lineItems change
-  useEffect(() => {
-    if (lineItems.length > 0) {
-      const totalNetAmount = lineItems.reduce(
-        (sum, item) => sum + Number(item.amountBeforeTax || 0),
-        0
-      );
-
-      const totalDiscountAmount = lineItems.reduce(
-        (sum, item) =>
-          sum +
-          Number(item.quantity) *
-            Number(item.price) *
-            (Number(item.discount) / 100),
-        0
-      );
-
-      const totalTaxAmount = lineItems.reduce(
-        (sum, item) =>
-          sum + Number(item.amountBeforeTax) * (Number(item.tax) / 100),
-        0
-      );
-
-      const totalWithholdingTax = lineItems.reduce(
-        (sum, item) =>
-          sum + Number(item.amountBeforeTax) * (Number(item.tcs) / 100),
-        0
-      );
-
-      const totalNetAmountAfterTax = lineItems.reduce(
-        (sum, item) => sum + Number(item.netAmtAfterTax || 0),
-        0
-      );
-
-      const totalLineAmount = lineItems.reduce(
-        (sum, item) => sum + Number(item.quantity) * Number(item.price),
-        0
-      );
-
-      setSummary({
-        totalLines: lineItems.length,
-        totalNetAmount,
-        totalDiscountAmount,
-        totalTaxAmount,
-        totalWithholdingTax,
-        totalNetAmountAfterTax,
-        totalLineAmount,
-      });
-    }
-  }, [lineItems]);
-
-  // -------------------------
-  // Fetch Customer Details on Customer Selection
-  // -------------------------
-  const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
-    contactNum: "",
-    currency: "",
-    address: "",
-    email: "",
-  });
-  useEffect(() => {
-    if (selectedCustomer) {
-      const customer = customers.find((c) => c._id === selectedCustomer);
-      if (customer) {
-        setSelectedCustomerDetails({
-          contactNum: customer.contactNum || "",
-          currency: customer.currency || "",
-          address: customer.address || "",
-          email: customer.email || "", // ← correct!
-        });
-      }
-    } else {
-      setSelectedCustomerDetails({
-        contactNum: "",
-        currency: "",
-        address: "",
-        email: "",
-      });
-    }
-  }, [selectedCustomer, customers]);
-
-  // -------------------------
-  // Fetch Item Details on Global Item Selection
-  // -------------------------
-  const [itemDetails, setItemDetails] = useState({
-    code: "",
-    name: "",
-    type: "",
-    unit: "",
-    price: 0,
-    id: "",
-  });
-
-  useEffect(() => {
-    if (selectedItem) {
-      const item = items.find((i) => i._id === selectedItem._id);
-      if (item) {
-        setItemDetails({
-          name: item.name,
-          code: item.code,
-          type: item.type,
-          unit: item.unit,
-          price: item.price,
-          id: item._id,
-        });
-        // Set default values
-        setPrice(Number(item.price) || 0);
-        setDiscount(Number(item.discount) || 0);
-        setTax(Number(item.tax) || 0);
-        setTcs(Number(item.tcs) || 0);
-        setQuantity(Number(item.quantity) || 0);
-      }
-    }
-  }, [selectedItem, items]);
-
-  // -------------------------
-  // Global Line Amount Calculation (for the single item form)
-  // -------------------------
-  useEffect(() => {
-    const discountAmount =
-      (Number(discount) * Number(quantity) * Number(price)) / 100;
-    const computedAmountBeforeTax =
-      Number(quantity) * Number(price) - discountAmount;
-    const taxAmount = (computedAmountBeforeTax * Number(tax)) / 100;
-    const tcsAmount = (computedAmountBeforeTax * Number(tcs)) / 100;
-    const computedTotalAmount = computedAmountBeforeTax + taxAmount + tcsAmount;
-    setLineAmt(
-      isNaN(computedTotalAmount) ? "0.00" : computedTotalAmount.toFixed(2)
-    );
-  }, [quantity, price, discount, tax, tcs]);
-
-  // Pre-calculate amountBeforeTax for table display
-  const discountAmountForDisplay =
-    (Number(discount) * Number(quantity) * Number(price)) / 100;
-  const amountBeforeTax =
-    Number(quantity) * Number(price) - discountAmountForDisplay;
-
-  // -------------------------
-  // Navigation: Go Back
-  // -------------------------
-  const goBack = () => {
-    navigate(-1);
-  };
-
-  // -------------------------
-  // Handle Edit button click:
-  // Navigate to the Sale Order View Page with the sale order identifier.
-  // -------------------------
   const handleEdit = () => {
-    setViewingSaleId(_id);
+    if (!docId) {
+      toast.info("No document to view yet.");
+      return;
+    }
+    setViewingSaleId(docId);
   };
-  // -------------------------
-  // Render Component
-  // -------------------------
+
+  // If you have SaleorderViewPage, this allows instant view after create.
+  if (viewingSaleId) {
+    return (
+      <div>
+        {/* <SaleorderViewPage
+          saleId={viewingSaleId}
+          onClose={() => setViewingSaleId(null)}
+        /> */}
+        <div className="p-6 border rounded-lg">
+          <p className="mb-4 text-sm text-gray-600">
+            Replace this with your <code>SaleorderViewPage</code> component.
+          </p>
+          <button
+            onClick={() => setViewingSaleId(null)}
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Safe accessors for item fields
+  const itemCode =
+    selectedItem?.code || selectedItem?.itemCode || selectedItem?.sku || "";
+  const itemDesc =
+    selectedItem?.description || selectedItem?.desc || selectedItem?.name || "";
+  const itemUnit =
+    selectedItem?.unit || selectedItem?.uom || selectedItem?.unitName || "";
+
   return (
     <div className="">
       <ToastContainer />
-      {/* Header Buttons */}
+      {/* Header */}
       <div className="flex justify-between ">
         <div className="flex items-center space-x-2">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-            {" "}
             <button
               type="button"
               className="text-blue-600 mt-2 text-sm hover:underline"
+              onClick={() => toast.info("Photo upload coming soon")}
             >
               Upload Photo
               <svg
@@ -538,7 +466,7 @@ const SaleOrderform = ({ handleCancel }) => {
                   strokeWidth={2}
                   d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
                 />
-              </svg>{" "}
+              </svg>
             </button>
           </div>
           <h3 className="text-xl font-semibold">Sale Order Form</h3>
@@ -549,10 +477,9 @@ const SaleOrderform = ({ handleCancel }) => {
         onSubmit={handleCreate}
         className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
       >
-        {/* Business Details */}
+        {/* Maintain */}
         <section className="p-6">
           <div className="flex flex-wrap w-full gap-2">
-            {/* Maintain Section */}
             <div className="p-2 h-17 bg-white">
               <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-6">
                 <div className="flex flex-nowrap gap-2">
@@ -575,14 +502,15 @@ const SaleOrderform = ({ handleCancel }) => {
                     </>
                   ) : (
                     <button
-                      onClick={handleCreate}
                       type="submit"
                       className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
+                      disabled={loading}
                     >
-                      Create
+                      {loading ? "Creating..." : "Create"}
                     </button>
                   )}
                   <button
+                    type="button"
                     onClick={handleCancel}
                     className="px-3 py-2 w-36 text-xs font-medium text-red-600 bg-white border border-red-400 rounded-md hover:bg-red-50"
                   >
@@ -592,11 +520,12 @@ const SaleOrderform = ({ handleCancel }) => {
               </div>
             </div>
           </div>
+
+          {/* Sale details */}
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Sale Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Sale Order */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Sale Order
@@ -616,21 +545,21 @@ const SaleOrderform = ({ handleCancel }) => {
               </label>
               <select
                 value={selectedCustomer}
-                onChange={(e) => setSelectedCustomer(e.target.value)}
+                onChange={(e) => onSelectCustomer(e.target.value)}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
-                <option value="">Select Customer</option>
-                {customers.map((customer) => (
-                  <option key={customer._id} value={customer._id}>
-                    {`${customer.code} ${customer.name}`}
+                <option value="">
+                  {loadingCustomers ? "Loading…" : "Select Customer"}
+                </option>
+                {customers.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {`${c.code} ${c.name}`}
                   </option>
                 ))}
               </select>
             </div>
-
             <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-4 h-full">
-                {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Customer Name
@@ -638,13 +567,12 @@ const SaleOrderform = ({ handleCancel }) => {
                   <input
                     type="text"
                     value={selectedCustomerDetails.name}
-                    placeholder="Customer Account"
+                    placeholder="Customer Name"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
                 </div>
 
-                {/* Currency */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Contact Email
@@ -658,22 +586,19 @@ const SaleOrderform = ({ handleCancel }) => {
                   />
                 </div>
               </div>
-              {/* Address */}
+
               <div>
                 <label className="block text-sm font-medium text-gray-600">
                   Customer Address
                 </label>
                 <textarea
                   rows="4"
-                  value={selectedCustomerDetails?.address || ""}
+                  value={selectedCustomerDetails.address}
                   readOnly
-                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                  className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 />
               </div>
-
-              {/* Name + Currency */}
             </div>
-            {/* Order Date */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Contact Details
@@ -692,7 +617,7 @@ const SaleOrderform = ({ handleCancel }) => {
               </label>
               <input
                 type="text"
-                value={selectedCustomerDetails?.currency || ""}
+                value={selectedCustomerDetails.currency}
                 placeholder="Currency"
                 readOnly
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
@@ -700,31 +625,51 @@ const SaleOrderform = ({ handleCancel }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Order Date
+                Sale Order no
               </label>
               <input
-                type="date"
-                name="orderDate"
-                value={form.orderDate}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded"
+                type="text"
+                value={selectedCustomerDetails.currency}
+                placeholder="Currency"
+                readOnly
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
             </div>
-
-            {/* Created On */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Purchase Reference No{" "}
+              </label>
+              <input
+                type="text"
+                value={selectedCustomerDetails.currency}
+                placeholder="Currency"
+                readOnly
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Order Date{" "}
+              </label>
+              <input
+                type="text"
+                value={selectedCustomerDetails.currency}
+                placeholder="Currency"
+                readOnly
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Created on
               </label>
               <input
                 type="text"
-                value={form.createdOn || ""}
+                value={form.createdOn}
                 readOnly
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
             </div>
-
-            {/* Order Status */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Order Status
@@ -732,182 +677,113 @@ const SaleOrderform = ({ handleCancel }) => {
               <input
                 type="text"
                 value={status}
-                placeholder="Selected Status"
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
               />
             </div>
-
-            {/* Conditional Customer Details */}
-            {selectedCustomerDetails && (
-              <>
-                {/* Currency */}
-
-                {/* Email (User Editable) */}
-
-                {/* Sale Agreement No */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Sale Agreement No (if applicable)
-                  </label>
-                  <input
-                    type="text"
-                    name="saleAgreementNo"
-                    value={form.saleAgreementNo}
-                    onChange={handleChange}
-                    className="mt-1 w-full p-2 border rounded"
-                  />
-                </div>
-
-                {/* Purchase Reference No */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Purchase Reference No
-                  </label>
-                  <input
-                    type="text"
-                    name="purchaseRef"
-                    value={form.purchaseRef}
-                    onChange={handleChange}
-                    className="mt-1 w-full p-2 border rounded"
-                  />
-                </div>
-
-                {/* Sale Address */}
-
-                {/* Contact Details */}
-
-                {/* Contact Email */}
-
-                {/* Site */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Site
-                  </label>
-                  <select
-                    name="site"
-                    value={form.site}
-                    onChange={handleChange}
-                    className="mt-1 w-full p-2 border rounded"
-                  >
-                    <option value="">Select</option>
-                    {sites.map((s) => (
-                      <option key={s._id} value={s._id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Warehouse */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Warehouse
-                  </label>
-                  <select
-                    name="warehouse"
-                    value={form.warehouse}
-                    onChange={handleChange}
-                    className="mt-1 w-full p-2 border rounded"
-                  >
-                    <option value="">Select</option>
-                    {warehouses.map((w) => (
-                      <option key={w._id} value={w._id}>
-                        {w.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Payment Terms */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Terms of payment
-                  </label>
-                  <select
-                    name="paymentTerms"
-                    value={form.paymentTerms}
-                    onChange={handleChange}
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                  >
-                    <option value="">Select type</option>
-                    {paymentTerms.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Delivery Mode */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Delivery Mode
-                  </label>
-                  <input
-                    type="text"
-                    name="deliveryMode"
-                    value={form.deliveryMode}
-                    onChange={handleChange}
-                    className="mt-1 w-full p-2 border rounded"
-                  />
-                </div>
-
-                {/* Order ID */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Order Id
-                  </label>
-                  <input
-                    type="text"
-                    name="orderId"
-                    value={form.orderId}
-                    onChange={handleChange}
-                    className="mt-1 w-full p-2 border rounded"
-                  />
-                </div>
-
-                {/* Advance */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Advance Payment Amount
-                  </label>
-                  <input
-                    type="text"
-                    name="advance"
-                    value={advance}
-                    onChange={(e) => {
-                      const value =
-                        Number(e.target.value.replace(/\D/g, "")) || 0;
-                      setAdvance(value);
-                    }}
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
-              </>
-            )}
-
-            {/* Remarks */}
+            {/* Optional entries */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Sale Agreement No (if applicable)
+              </label>
+              <input
+                type="text"
+                name="saleAgreementNo"
+                value={form.saleAgreementNo}
+                onChange={handleSimpleChange}
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Purchase Reference No
+              </label>
+              <input
+                type="text"
+                name="purchaseRef"
+                value={form.purchaseRef}
+                onChange={handleSimpleChange}
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Terms of payment
+              </label>
+              <select
+                name="paymentTerms"
+                value={form.paymentTerms}
+                onChange={handleSimpleChange}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="">Select type</option>
+                {paymentTerms.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Delivery Mode
+              </label>
+              <input
+                type="text"
+                name="deliveryMode"
+                value={form.deliveryMode}
+                onChange={handleSimpleChange}
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Order Id
+              </label>
+              <input
+                type="text"
+                name="orderId"
+                value={form.orderId}
+                onChange={handleSimpleChange}
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Advance Payment Amount
+              </label>
+              <input
+                type="number"
+                name="advance"
+                value={advance}
+                onChange={(e) => setAdvance(Number(e.target.value) || 0)}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                min="0"
+                step="0.01"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Remarks
               </label>
               <textarea
                 name="remarks"
-                rows="4"
                 value={form.remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring focus:ring-blue-300"
+                // onChange={handleChange}
+                placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
+                rows={4}
+                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
+            </div>{" "}
           </div>
         </section>
 
+        {/* Items table */}
         <section className="p-6">
           <div className="max-h-96 overflow-y-auto mt-4 border rounded-lg bg-white">
-            <div className="space-y-6 p-4">
-              <table className="min-w-full border-collapse text-sm text-gray-700">
-                <thead className="bg-gray-100 text-gray-900 uppercase text-xs font-semibold sticky top-0 z-10">
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="min-w-full text-xs">
+                <thead className="bg-gray-50 text-gray-700">
                   <tr>
                     {[
                       "S.N",
@@ -939,24 +815,18 @@ const SaleOrderform = ({ handleCancel }) => {
                   <tr key="purchase-order-row" className="hover:bg-gray-50">
                     <td className="border text-center px-2 py-1">1</td>
 
-                    <td className="border px-2 py-1 text-center">
-                      {selectedItem?.code || ""}
-                    </td>
+                    <td className="border px-2 py-1 text-center">{itemCode}</td>
 
                     <td className="border px-2 py-1">
                       <select
                         value={selectedItem?._id || ""}
-                        disabled={!isEdited}
-                        onChange={(e) => {
-                          const sel = items.find(
-                            (item) => item._id === e.target.value
-                          );
-                          setSelectedItem(sel);
-                          if (sel) setPrice(Number(sel.price) || 0);
-                        }}
+                        disabled={loadingItems}
+                        onChange={(e) => onSelectItem(e.target.value)}
                         className="w-full border rounded px-2 py-1"
                       >
-                        <option value="">Select Item</option>
+                        <option value="">
+                          {loadingItems ? "Loading…" : "Select Item"}
+                        </option>
                         {items.map((itemOption) => (
                           <option key={itemOption._id} value={itemOption._id}>
                             {itemOption.name}
@@ -968,31 +838,62 @@ const SaleOrderform = ({ handleCancel }) => {
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
-                        value={selectedItem?.description || ""}
+                        value={itemDesc}
                         readOnly
                         className="w-full border rounded text-center px-2 py-1 bg-gray-100"
                       />
                     </td>
 
-                    <td className="border px-2 py-1 text-center">
-                      <input
-                        type="text"
-                        placeholder="Site"
-                        className="w-full border rounded text-center px-2 py-1"
-                      />
+                    <td className="border px-2 py-1">
+                      <select
+                        value={selectedSite}
+                        onChange={(e) => onSelectSite(e.target.value)}
+                        className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                      >
+                        <option value="">
+                          {loadingSites
+                            ? "Loading…"
+                            : sites.length
+                            ? "Select Site"
+                            : "No sites found"}
+                        </option>
+                        {sites.map((site) => (
+                          <option key={getSiteId(site)} value={getSiteId(site)}>
+                            {getSiteLabel(site)}
+                          </option>
+                        ))}
+                      </select>
                     </td>
 
-                    <td className="border px-2 py-1 text-center">
-                      <input
-                        type="text"
-                        placeholder="Warehouse"
-                        className="w-full border rounded text-center px-2 py-1"
-                      />
+                    <td className="border px-2 py-1">
+                      <select
+                        name="warehouse"
+                        value={String(form.warehouse || "")}
+                        onChange={(e) =>
+                          onSelectWarehouse(String(e.target.value))
+                        }
+                        className="w-full border rounded px-2 py-1"
+                        disabled={loadingWarehouses || !warehouses.length}
+                      >
+                        <option value="">
+                          {loadingWarehouses ? "Loading…" : "Select Warehouse"}
+                        </option>
+                        {warehouses.map((w) => {
+                          const id = getWhId(w);
+                          return (
+                            <option key={id} value={id}>
+                              {getWhLabel(w)}
+                            </option>
+                          );
+                        })}
+                      </select>
                     </td>
 
                     <td className="border px-2 py-1">
                       <input
-                        type="text"
+                        type="number"
+                        min="0"
+                        step="0.01"
                         className="w-full border rounded text-center px-2 py-1"
                         value={quantity}
                         onChange={(e) =>
@@ -1004,7 +905,7 @@ const SaleOrderform = ({ handleCancel }) => {
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
-                        value={selectedItem?.unit || ""}
+                        value={itemUnit}
                         readOnly
                         className="w-full border rounded text-center px-2 py-1 bg-gray-100"
                       />
@@ -1012,7 +913,9 @@ const SaleOrderform = ({ handleCancel }) => {
 
                     <td className="border px-2 py-1">
                       <input
-                        type="text"
+                        type="number"
+                        min="0"
+                        step="0.01"
                         className="w-full border rounded text-center px-2 py-1"
                         value={price}
                         onChange={(e) => setPrice(Number(e.target.value) || 0)}
@@ -1021,7 +924,9 @@ const SaleOrderform = ({ handleCancel }) => {
 
                     <td className="border px-2 py-1">
                       <input
-                        type="text"
+                        type="number"
+                        min="0"
+                        step="0.01"
                         className="w-full border rounded text-center px-2 py-1"
                         value={discount}
                         onChange={(e) =>
@@ -1038,7 +943,9 @@ const SaleOrderform = ({ handleCancel }) => {
 
                     <td className="border px-2 py-1">
                       <input
-                        type="text"
+                        type="number"
+                        min="0"
+                        step="0.01"
                         className="w-full border rounded text-center px-2 py-1"
                         value={tax}
                         onChange={(e) => setTax(Number(e.target.value) || 0)}
@@ -1047,7 +954,9 @@ const SaleOrderform = ({ handleCancel }) => {
 
                     <td className="border px-2 py-1">
                       <input
-                        type="text"
+                        type="number"
+                        min="0"
+                        step="0.01"
                         className="w-full border rounded text-center px-2 py-1"
                         value={tcs}
                         onChange={(e) => setTcs(Number(e.target.value) || 0)}
@@ -1059,46 +968,58 @@ const SaleOrderform = ({ handleCancel }) => {
                 </tbody>
               </table>
 
-              {/* Summary Section */}
+              {/* Summary */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
                 <SummaryCard label="Advance" value={advance} />
                 <SummaryCard
-                  label="Subtotal /  line amount"
+                  label="Subtotal / line amount"
                   value={
                     isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
                   }
                 />
-                <SummaryCard label="Discount" value={discount} />
-                <SummaryCard label="Total Tax" value={lineAmt} />
-                <SummaryCard
-                  label="Total Tds/ Tcs"
-                  value={
-                    isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
-                  }
-                />
-                <SummaryCard
-                  label="Grand Total"
-                  value={isNaN(lineAmt) ? "0.00" : lineAmt}
-                />
+                <SummaryCard label="Discount (%)" value={discount} />
+                <SummaryCard label="Total (incl tax)" value={lineAmt} />
               </div>
             </div>
           </div>
         </section>
 
-        {/* Action Buttons */}
+        {/* Actions */}
         <div className="py-6 flex items-center justify-between">
-          {/* Left side - Reset Button */}
           <div>
             <button
               type="button"
-              // onClick={handleReset}
+              onClick={() => {
+                setSelectedCustomer("");
+                setSelectedItem(null);
+                setQuantity(1);
+                setPrice(0);
+                setDiscount(0);
+                setTax(0);
+                setTcs(0);
+                setCharges(0);
+                setAdvance(0);
+                setRemarks("");
+                setSelectedSite("");
+                setWarehouses([]);
+                setForm((f) => ({
+                  ...f,
+                  site: "",
+                  warehouse: "",
+                  orderDate: "",
+                  paymentTerms: "",
+                  deliveryMode: "",
+                  orderId: "",
+                  purchaseRef: "",
+                  saleAgreementNo: "",
+                }));
+                toast.info("Form reset");
+              }}
               className="text-gray-500 hover:text-gray-700 text-sm"
             >
               Reset
             </button>
           </div>
-
-          {/* Right side - Go Back and Create Buttons */}
           <div className="flex gap-4">
             <button
               type="button"
@@ -1110,8 +1031,9 @@ const SaleOrderform = ({ handleCancel }) => {
             <button
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+              disabled={loading}
             >
-              Create
+              {loading ? "Creating…" : "Create"}
             </button>
           </div>
         </div>
