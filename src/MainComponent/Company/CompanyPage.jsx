@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import CompanyViewPage from "./CompanyViewPage";
 import { Button } from "../../Component/Button/Button";
 import CompanyForm from "./CompanyForm";
-import CompanyList from "./Companylist";
+import CompanyList from "./Companyist";
 
 const CompanyPage = () => {
   const [view, setView] = useState("list");
