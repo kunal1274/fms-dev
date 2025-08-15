@@ -43,6 +43,8 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
     bankDetails: [],
   });
   const [isEditing, setIsEditing] = useState(false);
+  // const [isEditing, setIsEditing] = useState(false);
+  const [isEdited, setIsEdited] = useState(false);
   const [loading, setLoading] = useState(true);
   const [logoUploading, setLogoUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({});
@@ -79,11 +81,15 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
     let val = type === "checkbox" ? checked : value;
 
     // example: uppercase tax codes
-    if (["panNumber", "gstNumber", "tanNumber"].includes(name)) {
-      val = val.toUpperCase();
+    if (name === "panNumber" || name === "gstNumber" || name === "tanNumber") {
+      const sanitized = String(val)
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .toUpperCase()
+        .slice(0, 10);
+
       setFormData((prev) => ({
         ...prev,
-        taxInfo: { ...prev.taxInfo, [name]: val },
+        taxInfo: { ...prev.taxInfo, [name]: sanitized },
       }));
       return;
     }
@@ -171,12 +177,13 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
   if (loading) return <div>Loading…</div>;
 
   const handleEdit = () => {
+    setIsEditing(!isEditing);
     setIsEdited(true);
     setIsEditing(true);
+    // You can also trigger your edit logic here
   };
-
   return (
-    <div className="space-y-6 ">
+    <div>
       <ToastContainer />
       {/* Header Buttons */}
       <div className="flex justify-between ">
@@ -188,20 +195,6 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
               className="text-blue-600 mt-2 text-sm hover:underline"
             >
               Upload Photo
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
-                />
-              </svg>{" "}
             </button>
           </div>
           <h3 className="text-xl font-semibold">Company View Page</h3>
@@ -277,20 +270,6 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Company Website
-              </label>
-              <input
-                name="website"
-                type="email"
-                value={formData.website || ""}
-                onChange={handleChange}
-                placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
                 Company Contact No
               </label>
               <input
@@ -299,6 +278,18 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                 value={formData.contactNum || ""}
                 onChange={handleChange}
                 disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Alternate Contact No
+              </label>
+              <input
+                type="text"
+                onChange={handleChange}
+                disabled={!isEditing}
+                placeholder="eg. 7870462783"
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
@@ -317,6 +308,33 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Alternate Email ID
+              </label>
+              <input
+                name="email"
+                type="email"
+                placeholder="e.g. info@xyzenterprises.com"
+                required
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Company Website
+              </label>
+              <input
+                name="website"
+                type="email"
+                value={formData.website || ""}
+                onChange={handleChange}
+                placeholder="e.g. Retail, Wholesale"
+                disabled
+                className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Currency
@@ -341,7 +359,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Address
+                Business/Office Address
               </label>
               <textarea
                 name="primaryGSTAddress"
@@ -354,7 +372,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Secondary Office Address
+                Billing Address
               </label>
               <textarea
                 name="secondaryOfficeAddress"
@@ -367,7 +385,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Tertiary Shipping Address
+                Shipping Address
               </label>
               <textarea
                 name="tertiaryShippingAddress"
@@ -616,23 +634,27 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
         <div className="py-6 flex justify-end gap-4">
           <button
             type="button"
-            onClick={handleEdit}
-            className="px-6 py-2 bg-green-200 rounded hover:bg-gray-300 transition"
-          >
-            Edit
-          </button>
-          <button
-            type="button"
             onClick={goBack}
             className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
           >
             Go Back
           </button>
           <button
-            onClick={handleUpdate}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            type="button"
+            onClick={() => {
+              if (isEditing) {
+                handleUpdate(); // already editing → update
+              } else {
+                handleEdit(); // not editing → switch to edit mode
+              }
+            }}
+            className={`px-6 py-2 rounded transition ${
+              isEditing
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-green-200 hover:bg-gray-300"
+            }`}
           >
-            Update
+            {isEditing ? "Update" : "Edit"}
           </button>
         </div>
       </form>

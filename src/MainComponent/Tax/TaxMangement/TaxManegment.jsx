@@ -7,7 +7,7 @@ import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
  * ========================================= */
 import JornalList from "../General Jornal/GeneralJournalList"; // <-- update path
 import Jornalcreation from "../General Jornal/GeneralJournalcreation"; // <-- update path
-import TaxList from "../TaxPage"; // <-- update path
+import TaxList from "../TaxMaster/TaxPage"; // <-- update path
 
 export default function InventoryManagement() {
   const [page, setPage] = useState(PAGE.TOGGLE);

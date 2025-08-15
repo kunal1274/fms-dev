@@ -437,7 +437,19 @@ export default function CompanyForm({ handleCancel }) {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Contact No
+                Company Contact No
+              </label>
+              <input
+                name="contactNum"
+                value={form.contactNum}
+                onChange={handleChange}
+                placeholder="e.g. +91-9876543210"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Alternate Contact No
               </label>
               <input
                 name="contactNum"
@@ -450,6 +462,19 @@ export default function CompanyForm({ handleCancel }) {
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Company Email ID
+              </label>
+              <input
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="e.g. contact@abccompany.com"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Alternate Email ID
               </label>
               <input
                 name="email"
@@ -494,13 +519,13 @@ export default function CompanyForm({ handleCancel }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Address
+                Business/Office Address
               </label>
               <textarea
                 name="primaryGSTAddress"
                 value={form.primaryGSTAddress}
                 onChange={handleChange}
-                placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
+                placeholder="e.g Ground 1st and 2nd Floor, 54B Lands End, Sisters Bunglow, ABC company Limited, B J Road Mount Mary Band Stand, Bandra West Mumbai, Mumbai Suburban, Maharashtra, 400050"
                 rows={4}
                 required
                 className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
@@ -514,33 +539,57 @@ export default function CompanyForm({ handleCancel }) {
                 name="remarks"
                 value={form.remarks}
                 onChange={handleChange}
-                placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
+                placeholder="e.g General Description
+
+“Primary legal entity for GST and statutory reporting.”
+“Head office registration – used for all domestic transactions.”
+
+2. Operational Purpose
+
+“Handles manufacturing and domestic sales.”
+“Export-focused subsidiary, transactions in USD & EUR.”
+
+3. Special Compliance Notes
+
+“Compliant with MCA audit trail requirements – SOC 2 in progress.”
+“Registered for GST – returns filed monthly.”
+
+4. Internal Notes
+
+“Main billing entity; all intercompany billed here.”
+“Merged with XYZ Ltd. in FY 2024–25, retained original GSTIN.”"
                 rows={4}
                 className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Secondary Office Address
+                Billing Address
               </label>
               <textarea
                 name="secondaryOfficeAddress"
                 value={form.secondaryOfficeAddress}
                 onChange={handleChange}
-                placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
+                placeholder="e.g. Unit No. 502, 5th Floor, Tower B
+DLF Cyber City, Phase III
+Gurugram, Haryana – 122002
+India"
                 rows={4}
                 className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Tertiary Shipping Address
+                Shipping Address
               </label>
               <textarea
                 name="tertiaryShippingAddress"
                 value={form.tertiaryShippingAddress}
                 onChange={handleChange}
-                placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
+                placeholder="e.g. Warehouse No. 14, Ground Floor
+IndoSpace Industrial Park, Chakan Phase II
+Pune, Maharashtra – 410501
+India"
                 rows={4}
                 className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
@@ -591,7 +640,7 @@ export default function CompanyForm({ handleCancel }) {
                 name="bankName"
                 value={form.bankName}
                 onChange={handleChange}
-                placeholder="e.g. State Bank of India"
+                placeholder="e.g. State Bank of India (Copy & Paste Not Allowed)"
                 disabled={disableBankFields}
                 className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
                   disableBankFields ? "cursor-not-allowed bg-gray-100" : ""

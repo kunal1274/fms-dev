@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button } from "../../Component/Button/Button.jsx";
+import { Button } from "../../../Component/Button/Button.jsx";
 import TaxForm from "./TaxForm.jsx";
 import TaxList from "./TaxList.jsx";
 import TaxViewPage from "./TaxViewPage.jsx";
@@ -34,9 +34,7 @@ const TaxPage = () => {
 
   /** Show Locataion details */
   const handleViewTax = (LocataionAccountNo) => {
-    const cust = Tax.find(
-      (c) => c.LocataionAccountNo === LocataionAccountNo
-    );
+    const cust = Tax.find((c) => c.LocataionAccountNo === LocataionAccountNo);
     setSelectedLocataion(cust);
     setView("details");
   };

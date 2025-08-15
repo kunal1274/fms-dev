@@ -14,8 +14,6 @@ import Invoice from "../Invoice/Icopy";
 import SaleorderViewPage from "./SaleOrderViewPage";
 
 const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
-  const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-  const customersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
 
   const [sales, setSales] = useState([]);
@@ -271,7 +269,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
       });
       setFilteredSales(inRange);
       toast.success(`Applied date range: ${inRange.length} records`, {
-        autoClose: 1500,
+        autoClose: 1000,
       });
     } catch (e) {
       toast.error("Failed to apply date range");

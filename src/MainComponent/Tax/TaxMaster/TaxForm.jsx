@@ -1,1007 +1,534 @@
-import { useEffect, useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-
-import { ToastContainer, toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const TaxForm = ({ handleCancel }) => {
-  // ─── Initial form (matches txnSchema) ────────────────────────────────
+/**
+ * TaxForm
+ * Props:
+ *  - handleCancel: () => void
+ *  - onSaved?: (createdTax) => void
+ *  - apiRoot?: string   // optional override of API root
+ */
+export default function TaxForm({ handleCancel, onSaved, apiRoot }) {
+  /** ---------- API ROOTS (single source) ---------- */
+  const API_ROOT = apiRoot || "https://fms-qkmw.onrender.com/fms/api/v0";
+  const apiBase = `${API_ROOT}/taxes`; // adjust to /taxs if your backend uses that path
+  const uploadUrl = `${apiBase}/upload-logo`;
+
+  /** ---------- Helpers ---------- */
+  const generateCode = useCallback((list) => {
+    // Expecting codes like TAX_001, TAX_002...
+    const lastNum = list
+      .map((t) => parseInt(String(t?.code || "").split("_")[1], 10))
+      .filter((n) => !Number.isNaN(n))
+      .reduce((m, n) => Math.max(m, n), 0);
+    return `TAX_${String(lastNum + 1).padStart(3, "0")}`;
+  }, []);
+
+  /** ---------- State ---------- */
   const initialForm = {
-    txnDate: "",
-    sourceType: "",
-    sourceId: "",
-    sourceLine: 1,
-
-    item: "",
-    dims: {
-      site: "",
-      warehouse: "",
-      zone: "",
-      location: "",
-      aisle: "",
-      rack: "",
-      shelf: "",
-      bin: "",
-
-      config: "",
-      color: "",
-      size: "",
-      style: "",
-      version: "",
-      batch: "",
-      serial: "",
-    },
-
-    qty: 0,
-    costPrice: 0,
-    purchasePrice: 0,
-    salesPrice: 0,
-    transferPrice: 0,
-
-    taxes: {
-      gst: 0,
-      withholdingTax: 0,
-    },
-
-    extras: "", // JSON string to parse on submit
+    code: "",
+    name: "",
+    taxType: "GST", // GST | TDS | TCS | CESS | VAT | Custom
+    taxCategory: "Output", // Input | Output | RCM | Exempt | Nil Rated | Non-GST | Other
+    applicableModule: "Both", // Sales | Purchase | Both
+    effectiveFromDate: "",
+    effectiveToDate: "",
+    remarks: "",
+    gstRate: "",
+    hsnSac: "",
+    gstApplicability: "Both", // Goods | Services | Both | NA
+    gstType: "IGST", // IGST | CGST+SGST | UGST | NA
+    sectionCode: "", // e.g., 194C, 194H...
+    tdsTcsRate: "",
+    frequencyOfDeduction: "Per Invoice", // Per Invoice | On Payment | Monthly | Quarterly | Yearly
+    deductorType: "Company", // Individual | Company | Firm | LLP | Others
+    active: true,
   };
 
   const [form, setForm] = useState(initialForm);
+  const [taxes, setTaxes] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({});
 
-  // ─── Lookup lists ───────────────────────────────────────────────────────────
-  const [items, setItems] = useState([]);
-  const [sites, setSites] = useState([]);
-  const [warehouses, setWarehouses] = useState([]);
-  const [zones, setZones] = useState([]);
-  const [locations, setLocations] = useState([]);
-  const [aisles, setAisles] = useState([]);
-  const [racks, setRacks] = useState([]);
-  const [shelves, setShelves] = useState([]);
-  const [bins, setBins] = useState([]);
+  /** ---------- Load existing taxes once ---------- */
+  const fetchTaxes = useCallback(async () => {
+    try {
+      const { data } = await axios.get(apiBase);
+      const list = data?.data || [];
+      setTaxes(list);
+      setForm((prev) => ({ ...prev, code: generateCode(list) }));
+    } catch (e) {
+      console.error(e);
+      toast.error("Couldn’t fetch taxes");
+    }
+  }, [apiBase, generateCode]);
 
-  const [configs, setConfigs] = useState([]);
-  const [colors, setColors] = useState([]);
-  const [sizes, setSizes] = useState([]);
-  const [styles, setStyles] = useState([]);
-  const [versions, setVersions] = useState([]);
-  const [batches, setBatches] = useState([]);
-  const [serials, setSerials] = useState([]);
-
-  // ─── Endpoint bases ───────────────────────────────────────────────────────────
-  const apiBase =
-    "https://fms-qkmw.onrender.com/fms/api/v0/inventorytransactions";
-  const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-  const sitesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
-  const warehousesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
-  const zonesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/zones";
-  const locationsUrl = "https://fms-qkmw.onrender.com/fms/api/v0/locations";
-  const aislesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
-  const racksUrl = "https://fms-qkmw.onrender.com/fms/api/v0/racks";
-  const shelvesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/shelves";
-  const binsUrl = "https://fms-qkmw.onrender.com/fms/api/v0/bins";
-
-  const configsUrl = "https://fms-qkmw.onrender.com/fms/api/v0/configurations";
-  const colorsUrl = "https://fms-qkmw.onrender.com/fms/api/v0/colors";
-  const sizesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sizes";
-  const stylesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/styles";
-  const versionsUrl = "https://fms-qkmw.onrender.com/fms/api/v0/versions";
-  const batchesUrl = "https://fms-qkmw.onrender.com/fms/api/v0/batches";
-  const serialsUrl = "https://fms-qkmw.onrender.com/fms/api/v0/serials";
-
-  // ─── Fetch all lookups on mount ─────────────────────────────────────────────────
   useEffect(() => {
-    const fetchAllLookups = async () => {
-      try {
-        const [
-          itemsRes,
-          sitesRes,
-          warehousesRes,
-          zonesRes,
-          locationsRes,
-          aislesRes,
-          racksRes,
-          shelvesRes,
-          binsRes,
-          configsRes,
-          colorsRes,
-          sizesRes,
-          stylesRes,
-          versionsRes,
-          batchesRes,
-          serialsRes,
-        ] = await Promise.all([
-          axios.get(itemsBaseUrl),
-          axios.get(sitesUrl),
-          axios.get(warehousesUrl),
-          axios.get(zonesUrl),
-          axios.get(locationsUrl),
-          axios.get(aislesUrl),
-          axios.get(racksUrl),
-          axios.get(shelvesUrl),
-          axios.get(binsUrl),
-          axios.get(configsUrl),
-          axios.get(colorsUrl),
-          axios.get(sizesUrl),
-          axios.get(stylesUrl),
-          axios.get(versionsUrl),
-          axios.get(batchesUrl),
-          axios.get(serialsUrl),
-        ]);
+    fetchTaxes();
+  }, [fetchTaxes]);
 
-        setItems(itemsRes.data || []);
-        setSites(sitesRes.data || []);
-        setWarehouses(warehousesRes.data || []);
-        setZones(zonesRes.data || []);
-        setLocations(locationsRes.data || []);
-        setAisles(aislesRes.data || []);
-        setRacks(racksRes.data || []);
-        setShelves(shelvesRes.data || []);
-        setBins(binsRes.data || []);
+  /** ---------- File Upload ---------- */
+  const handleFileUpload = async (file) => {
+    if (!file) {
+      toast.error("No file selected!");
+      return;
+    }
+    try {
+      setLogoUploading(true);
+      const formData = new FormData();
+      formData.append("logoImage", file);
 
-        setConfigs(configsRes.data || []);
-        setColors(colorsRes.data || []);
-        setSizes(sizesRes.data || []);
-        setStyles(stylesRes.data || []);
-        setVersions(versionsRes.data || []);
-        setBatches(batchesRes.data || []);
-        setSerials(serialsRes.data || []);
-      } catch (err) {
-        console.error("Error fetching lookup data:", err);
-        toast.error("Failed to load lookup lists", { autoClose: 2000 });
-      }
-    };
+      await axios.post(uploadUrl, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (evt) => {
+          if (!evt.total) return;
+          const percent = Math.round((evt.loaded * 100) / evt.total);
+          setUploadProgress({ [file.name]: percent });
+        },
+      });
 
-    fetchAllLookups();
-  }, []);
-
-  // ─── Handlers for top‐level fields ────────────────────────────────────────────
-  const handleFieldChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: name === "sourceLine" || name === "qty" ? Number(value) : value,
-    }));
+      toast.success("File uploaded successfully! ✅");
+      await fetchTaxes();
+    } catch (error) {
+      console.error(error);
+      toast.error("Error uploading file");
+    } finally {
+      setTimeout(() => {
+        setLogoUploading(false);
+        setUploadProgress({});
+      }, 500);
+    }
   };
 
-  const handleDateChange = (e) => {
-    setForm((prev) => ({
-      ...prev,
-      txnDate: e.target.value,
-    }));
+  /** ---------- Change handlers & validators ---------- */
+  const validators = {
+    name: /^[A-Za-z0-9\s().\-_/]{0,100}$/,
+    gstRate: /^(?:100(?:\.0{1,2})?|[0-9]?\d(?:\.\d{1,2})?)?$/, // 0..100 with up to 2 decimals
+    tdsTcsRate: /^(?:100(?:\.0{1,2})?|[0-9]?\d(?:\.\d{1,2})?)?$/,
+    hsnSac: /^[A-Za-z0-9]{0,10}$/,
+    sectionCode: /^[A-Za-z0-9]{0,10}$/,
+    remarks: /^.{0,500}$/,
   };
 
-  // ─── Handlers for nested dims ────────────────────────────────────────────────
-  const handleDimsChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      dims: {
-        ...prev.dims,
-        [name]: value,
-      },
-    }));
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    if (type === "checkbox") {
+      setForm((prev) => ({ ...prev, [name]: checked }));
+      return;
+    }
+
+    // Uppercase for some fields
+    let val = value;
+    if (["hsnSac", "sectionCode"].includes(name)) {
+      val = val.toUpperCase();
+    }
+
+    if (validators[name] && !validators[name].test(val)) return;
+
+    setForm((prev) => ({ ...prev, [name]: val }));
   };
 
-  // ─── Handler for nested taxes ────────────────────────────────────────────────
-  const handleTaxChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      taxes: {
-        ...prev.taxes,
-        [name]: Number(value),
-      },
-    }));
-  };
-
-  // ─── Handler for “extras” JSON string ────────────────────────────────────────
-  const handleExtrasChange = (e) => {
-    setForm((prev) => ({
-      ...prev,
-      extras: e.target.value,
-    }));
-  };
-
-  // ─── Form submission: create one inventory transaction ───────────────────────
-  const createTransaction = async (e) => {
+  /** ---------- Submit ---------- */
+  const createTax = async (e) => {
     e.preventDefault();
 
-    // Parse extras as JSON if provided
-    let extrasObj = {};
-    if (form.extras.trim()) {
-      try {
-        extrasObj = JSON.parse(form.extras);
-      } catch {
-        toast.error("Extras must be valid JSON", { autoClose: 2000 });
+    // simple guards
+    if (!form.name?.trim()) {
+      toast.error("Tax Name is required");
+      return;
+    }
+    if (form.effectiveFromDate && form.effectiveToDate) {
+      const from = new Date(form.effectiveFromDate);
+      const to = new Date(form.effectiveToDate);
+      if (to < from) {
+        toast.error("Effective To Date cannot be earlier than From Date");
         return;
       }
     }
+    if (form.gstRate && Number(form.gstRate) > 100) {
+      toast.error("GST Rate cannot exceed 100%");
+      return;
+    }
+    if (form.tdsTcsRate && Number(form.tdsTcsRate) > 100) {
+      toast.error("TDS/TCS Rate cannot exceed 100%");
+      return;
+    }
 
-    // Build payload exactly matching txnSchema
-    const payload = {
-      txnDate: form.txnDate,
-      sourceType: form.sourceType,
-      sourceId: form.sourceId,
-      sourceLine: form.sourceLine,
-      item: form.item,
-      dims: {
-        site: form.dims.site,
-        warehouse: form.dims.warehouse,
-        zone: form.dims.zone,
-        location: form.dims.location,
-        aisle: form.dims.aisle,
-        rack: form.dims.rack,
-        shelf: form.dims.shelf,
-        bin: form.dims.bin,
-        config: form.dims.config,
-        color: form.dims.color,
-        size: form.dims.size,
-        style: form.dims.style,
-        version: form.dims.version,
-        batch: form.dims.batch,
-        serial: form.dims.serial,
-      },
-      qty: Number(form.qty),
-      costPrice: Number(form.costPrice),
-      purchasePrice: Number(form.purchasePrice),
-      salesPrice: Number(form.salesPrice),
-      transferPrice: Number(form.transferPrice),
-      taxes: {
-        gst: Number(form.taxes.gst),
-        withholdingTax: Number(form.taxes.withholdingTax),
-      },
-      extras: extrasObj,
-    };
+    const payload = { ...form };
 
     try {
-      await axios.post(apiBase, payload, {
+      setLoading(true);
+      const { data } = await axios.post(apiBase, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      toast.success("Inventory transaction saved", {
-        autoClose: 1200,
-        onClose: () => handleCancel(),
+      const created = data?.data ?? data;
+
+      toast.success("Tax saved", {
+        autoClose: 1000,
+        onClose: () => handleCancel?.(),
       });
+
+      setTaxes((prev) => [...prev, created]);
+      onSaved?.(created);
+
+      // prepare for next entry
+      setForm({ ...initialForm, code: generateCode([...taxes, created]) });
     } catch (err) {
-      console.error("Error creating transaction:", err.response || err);
-      const msg = err.response?.data?.message || "Couldn’t save transaction";
-      toast.error(msg, { autoClose: 2000 });
+      console.error("Error creating tax:", err?.response || err);
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Couldn’t save Tax. Please try again.";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // ─── Reset form back to initial state ───────────────────────────────────────
+  /** ---------- Reset ---------- */
   const handleReset = () => {
-    setForm(initialForm);
+    const code = generateCode(taxes);
+    setForm({ ...initialForm, code });
   };
 
+  /** ---------- UI ---------- */
   return (
     <div className="">
       <ToastContainer />
-
-      {/* Header Buttons */}
-      <div className="flex justify-between mb-4">
-        <div className="flex items-center space-x-2">
-          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-            <button
-              type="button"
-              className="text-blue-600 mt-2 text-sm hover:underline"
-            >
-              Upload Photo
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
-                />
-              </svg>
-            </button>
+      {/* Header */}
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-4">
+          <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center relative overflow-hidden">
+            <input
+              type="file"
+              accept="image/*"
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              onChange={(e) => handleFileUpload(e.target.files?.[0])}
+              disabled={logoUploading}
+            />
+            <span className="text-xs text-gray-600 text-center px-2">
+              {logoUploading
+                ? `${Object.values(uploadProgress)[0] ?? 0}%`
+                : "Upload\nLogo"}
+            </span>
           </div>
-          <h3 className="text-xl font-semibold">Tax Form</h3>
+          <h3 className="text-xl font-semibold">Tax Configuration</h3>
         </div>
       </div>
 
       <form
-        onSubmit={createTransaction}
+        onSubmit={createTax}
         className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
       >
-        {/* ─── Transaction Details ──────────────────────────────────────────────── */}
+        {/* Details */}
         <section className="p-6">
-          <h3 className="text-lg font-medium text-gray-700 mb-4">
-            Transaction Details
-          </h3>
+          <h2 className="text-lg font-medium text-gray-700 mb-4">Details</h2>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* txnDate */}
+            {/* Tax Code (readonly) */}
             <div>
-              <label
-                htmlFor="txnDate"
-                className="block text-sm font-medium text-gray-600"
+              <label className="block text-sm font-medium text-gray-600">
+                Tax Code
+              </label>
+              <input
+                name="code"
+                value={form.code}
+                readOnly
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-600 cursor-not-allowed"
+              />
+            </div>
+
+            {/* Tax Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Tax Name
+              </label>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            {/* Tax Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Tax Type
+              </label>
+              <select
+                name="taxType"
+                value={form.taxType}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
-                Transaction Date
+                <option>GST</option>
+                <option>TDS</option>
+                <option>TCS</option>
+                <option>CESS</option>
+                <option>VAT</option>
+                <option>Custom</option>
+              </select>
+            </div>
+
+            {/* Tax Category */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Tax Category
+              </label>
+              <select
+                name="taxCategory"
+                value={form.taxCategory}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option>Input</option>
+                <option>Output</option>
+                <option>RCM</option>
+                <option>Exempt</option>
+                <option>Nil Rated</option>
+                <option>Non-GST</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            {/* Applicable Module */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Applicable Module
+              </label>
+              <select
+                name="applicableModule"
+                value={form.applicableModule}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option>Sales</option>
+                <option>Purchase</option>
+                <option>Both</option>
+              </select>
+            </div>
+
+            {/* Effective From */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Effective From Date
               </label>
               <input
                 type="date"
-                id="txnDate"
-                name="txnDate"
-                value={form.txnDate}
-                onChange={handleDateChange}
+                name="effectiveFromDate"
+                value={form.effectiveFromDate}
+                onChange={handleChange}
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
-            {/* sourceType */}
+            {/* Effective To */}
             <div>
-              <label
-                htmlFor="sourceType"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Source Type
-              </label>
-              <select
-                id="sourceType"
-                name="sourceType"
-                value={form.sourceType}
-                onChange={handleFieldChange}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Type</option>
-                <option value="JOURNAL">JOURNAL</option>
-                <option value="JOURNAL_PROV">JOURNAL_PROV</option>
-                <option value="PURCHASE">PURCHASE</option>
-                <option value="SALES">SALES</option>
-                <option value="TRANSFER">TRANSFER</option>
-                <option value="ADJUSTMENT">ADJUSTMENT</option>
-                <option value="COUNTING">COUNTING</option>
-              </select>
-            </div>
-
-            {/* sourceId */}
-            <div>
-              <label
-                htmlFor="sourceId"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Source ID 
+              <label className="block text-sm font-medium text-gray-600">
+                Effective To Date
               </label>
               <input
-                type="text"
-                id="sourceId"
-                name="sourceId"
-                value={form.sourceId}
-                onChange={handleFieldChange}
-                placeholder="e.g. 605c72e..."
-                required
+                type="date"
+                name="effectiveToDate"
+                value={form.effectiveToDate}
+                onChange={handleChange}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
-            {/* sourceLine */}
-            <div>
-              <label
-                htmlFor="sourceLine"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Source Line 
+            {/* Remarks */}
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-600">
+                Remarks
               </label>
-              <input
-                type="number"
-                id="sourceLine"
-                name="sourceLine"
-                value={form.sourceLine}
-                onChange={handleFieldChange}
-                min={1}
+              <textarea
+                name="remarks"
+                value={form.remarks}
+                onChange={handleChange}
+                rows={3}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
-            {/* item */}
+            {/* GST Rate */}
             <div>
-              <label
-                htmlFor="item"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Item
-              </label>
-              <select
-                id="item"
-                name="item"
-                value={form.item}
-                onChange={handleFieldChange}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Item</option>
-                {items.map((itm) => (
-                  <option key={itm._id} value={itm._id}>
-                    {itm.name || itm.code || itm._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </section>
-
-        {/* ─── Dimensions ───────────────────────────────────────────────────────── */}
-        <section className="p-6 bg-gray-50">
-          <h3 className="text-lg font-medium text-gray-700 mb-4">Dimensions</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* site */}
-            <div>
-              <label
-                htmlFor="site"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Site
-              </label>
-              <select
-                id="site"
-                name="site"
-                value={form.dims.site}
-                onChange={handleDimsChange}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Site</option>
-                {sites.map((s) => (
-                  <option key={s._id} value={s._id}>
-                    {s.name || s.code || s._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* warehouse */}
-            <div>
-              <label
-                htmlFor="warehouse"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Warehouse
-              </label>
-              <select
-                id="warehouse"
-                name="warehouse"
-                value={form.dims.warehouse}
-                onChange={handleDimsChange}
-                required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Warehouse</option>
-                {warehouses.map((w) => (
-                  <option key={w._id} value={w._id}>
-                    {w.name || w.code || w._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* zone */}
-            <div>
-              <label
-                htmlFor="zone"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Zone
-              </label>
-              <select
-                id="zone"
-                name="zone"
-                value={form.dims.zone}
-                onChange={handleDimsChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Zone</option>
-                {zones.map((z) => (
-                  <option key={z._id} value={z._id}>
-                    {z.name || z.code || z._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* location */}
-            <div>
-              <label
-                htmlFor="location"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Location
-              </label>
-              <select
-                id="location"
-                name="location"
-                value={form.dims.location}
-                onChange={handleDimsChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Location</option>
-                {locations.map((loc) => (
-                  <option key={loc._id} value={loc._id}>
-                    {loc.name || loc.code || loc._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* aisle */}
-            <div>
-              <label
-                htmlFor="aisle"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Aisle
-              </label>
-              <select
-                id="aisle"
-                name="aisle"
-                value={form.dims.aisle}
-                onChange={handleDimsChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Aisle</option>
-                {aisles.map((a) => (
-                  <option key={a._id} value={a._id}>
-                    {a.name || a.code || a._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* rack */}
-            <div>
-              <label
-                htmlFor="rack"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Rack
-              </label>
-              <select
-                id="rack"
-                name="rack"
-                value={form.dims.rack}
-                onChange={handleDimsChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Rack</option>
-                {racks.map((r) => (
-                  <option key={r._id} value={r._id}>
-                    {r.name || r.code || r._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* shelf */}
-            <div>
-              <label
-                htmlFor="shelf"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Shelf
-              </label>
-              <select
-                id="shelf"
-                name="shelf"
-                value={form.dims.shelf}
-                onChange={handleDimsChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Shelf</option>
-                {shelves.map((sh) => (
-                  <option key={sh._id} value={sh._id}>
-                    {sh.name || sh.code || sh._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* bin */}
-            <div>
-              <label
-                htmlFor="bin"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Bin
-              </label>
-              <select
-                id="bin"
-                name="bin"
-                value={form.dims.bin}
-                onChange={handleDimsChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Bin</option>
-                {bins.map((b) => (
-                  <option key={b._id} value={b._id}>
-                    {b.name || b.code || b._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* config */}
-            <div>
-              <label
-                htmlFor="config"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Configuration
-              </label>
-              <select
-                id="config"
-                name="config"
-                value={form.dims.config}
-                onChange={handleDimsChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Configuration</option>
-                {configs.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.name || c.code || c._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* color */}
-            <div>
-              <label
-                htmlFor="color"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Color
-              </label>
-              <select
-                id="color"
-                name="color"
-                value={form.dims.color}
-                onChange={handleDimsChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Color</option>
-                {colors.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.name || c.code || c._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* size */}
-            <div>
-              <label
-                htmlFor="size"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Size
-              </label>
-              <select
-                id="size"
-                name="size"
-                value={form.dims.size}
-                onChange={handleDimsChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Size</option>
-                {sizes.map((s) => (
-                  <option key={s._id} value={s._id}>
-                    {s.name || s.code || s._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* style */}
-            <div>
-              <label
-                htmlFor="style"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Style
-              </label>
-              <select
-                id="style"
-                name="style"
-                value={form.dims.style}
-                onChange={handleDimsChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Style</option>
-                {styles.map((st) => (
-                  <option key={st._id} value={st._id}>
-                    {st.name || st.code || st._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* version */}
-            <div>
-              <label
-                htmlFor="version"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Version
-              </label>
-              <select
-                id="version"
-                name="version"
-                value={form.dims.version}
-                onChange={handleDimsChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Version</option>
-                {versions.map((v) => (
-                  <option key={v._id} value={v._id}>
-                    {v.name || v.code || v._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* batch */}
-            <div>
-              <label
-                htmlFor="batch"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Batch
-              </label>
-              <select
-                id="batch"
-                name="batch"
-                value={form.dims.batch}
-                onChange={handleDimsChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Batch</option>
-                {batches.map((b) => (
-                  <option key={b._id} value={b._id}>
-                    {b.name || b.code || b._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* serial */}
-            <div>
-              <label
-                htmlFor="serial"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Serial
-              </label>
-              <select
-                id="serial"
-                name="serial"
-                value={form.dims.serial}
-                onChange={handleDimsChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select Serial</option>
-                {serials.map((s) => (
-                  <option key={s._1} value={s._1}>
-                    {s.serialNumber || s._1}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </section>
-
-        {/* ─── Quantity & Pricing ─────────────────────────────────────────────────── */}
-        <section className="p-6">
-          <h3 className="text-lg font-medium text-gray-700 mb-4">
-            Quantity & Pricing
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* qty */}
-            <div>
-              <label
-                htmlFor="qty"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Quantity
+              <label className="block text-sm font-medium text-gray-600">
+                GST Rate (%)
               </label>
               <input
-                type="number"
-                id="qty"
-                name="qty"
-                value={form.qty}
-                onChange={handleFieldChange}
-                min={0}
-                required
+                name="gstRate"
+                value={form.gstRate}
+                onChange={handleChange}
+                placeholder="e.g. 18"
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
-            {/* costPrice */}
+            {/* HSN/SAC */}
             <div>
-              <label
-                htmlFor="costPrice"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Cost Price
+              <label className="block text-sm font-medium text-gray-600">
+                HSN/SAC Code
               </label>
               <input
-                type="number"
-                step="0.01"
-                id="costPrice"
-                name="costPrice"
-                value={form.costPrice}
-                onChange={handleFieldChange}
-                min={0}
-                required
+                name="hsnSac"
+                value={form.hsnSac}
+                onChange={handleChange}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
-            {/* purchasePrice */}
+            {/* GST Applicability */}
             <div>
-              <label
-                htmlFor="purchasePrice"
-                className="block text-sm font-medium text-gray-600"
+              <label className="block text-sm font-medium text-gray-600">
+                GST Applicability
+              </label>
+              <select
+                name="gstApplicability"
+                value={form.gstApplicability}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
-                Purchase Price
+                <option>Goods</option>
+                <option>Services</option>
+                <option>Both</option>
+                <option>NA</option>
+              </select>
+            </div>
+
+            {/* GST Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                GST Type
+              </label>
+              <select
+                name="gstType"
+                value={form.gstType}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option>IGST</option>
+                <option>CGST+SGST</option>
+                <option>UGST</option>
+                <option>NA</option>
+              </select>
+            </div>
+
+            {/* Section Code */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Section Code
               </label>
               <input
-                type="number"
-                step="0.01"
-                id="purchasePrice"
-                name="purchasePrice"
-                value={form.purchasePrice}
-                onChange={handleFieldChange}
-                min={0}
+                name="sectionCode"
+                value={form.sectionCode}
+                onChange={handleChange}
+                placeholder="e.g. 194C"
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
-            {/* salesPrice */}
+            {/* TDS/TCS Rate */}
             <div>
-              <label
-                htmlFor="salesPrice"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Sales Price
+              <label className="block text-sm font-medium text-gray-600">
+                TDS/TCS Rate (%)
               </label>
               <input
-                type="number"
-                step="0.01"
-                id="salesPrice"
-                name="salesPrice"
-                value={form.salesPrice}
-                onChange={handleFieldChange}
-                min={0}
+                name="tdsTcsRate"
+                value={form.tdsTcsRate}
+                onChange={handleChange}
+                placeholder="e.g. 1"
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
 
-            {/* transferPrice */}
+            {/* Frequency of Deduction */}
             <div>
-              <label
-                htmlFor="transferPrice"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Transfer Price
+              <label className="block text-sm font-medium text-gray-600">
+                Frequency of Deduction
               </label>
-              <input
-                type="number"
-                step="0.01"
-                id="transferPrice"
-                name="transferPrice"
-                value={form.transferPrice}
-                onChange={handleFieldChange}
-                min={0}
+              <select
+                name="frequencyOfDeduction"
+                value={form.frequencyOfDeduction}
+                onChange={handleChange}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option>Per Invoice</option>
+                <option>On Payment</option>
+                <option>Monthly</option>
+                <option>Quarterly</option>
+                <option>Yearly</option>
+              </select>
+            </div>
+
+            {/* Deductor Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Deductor Type
+              </label>
+              <select
+                name="deductorType"
+                value={form.deductorType}
+                onChange={handleChange}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                <option>Individual</option>
+                <option>Company</option>
+                <option>Firm</option>
+                <option>LLP</option>
+                <option>Others</option>
+              </select>
+            </div>
+
+            {/* Active */}
+            <div className="flex items-center gap-2 ml-1">
+              <label className="text-blue-600 font-medium">Active</label>
+              <input
+                name="active"
+                checked={form.active}
+                onChange={handleChange}
+                type="checkbox"
+                className="w-4 h-4"
               />
             </div>
           </div>
         </section>
 
-        {/* ─── Taxes ───────────────────────────────────────────────────────────────── */}
-        <section className="p-6 bg-gray-50">
-          <h3 className="text-lg font-medium text-gray-700 mb-4">Taxes</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* gst */}
-            <div>
-              <label
-                htmlFor="gst"
-                className="block text-sm font-medium text-gray-600"
-              >
-                GST (%)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                id="gst"
-                name="gst"
-                value={form.taxes.gst}
-                onChange={handleTaxChange}
-                min={0}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-
-            {/* withholdingTax */}
-            <div>
-              <label
-                htmlFor="withholdingTax"
-                className="block text-sm font-medium text-gray-600"
-              >
-                Withholding Tax (%)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                id="withholdingTax"
-                name="withholdingTax"
-                value={form.taxes.withholdingTax}
-                onChange={handleTaxChange}
-                min={0}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* ─── Extras (JSON) ──────────────────────────────────────────────────────── */}
-        <section className="p-6">
-          <h3 className="text-lg font-medium text-gray-700 mb-4">
-            Extras (JSON)
-          </h3>
-          <div>
-            <textarea
-              id="extras"
-              name="extras"
-              rows={4}
-              value={form.extras}
-              onChange={handleExtrasChange}
-              placeholder='e.g. {"key1": "value1", "flag": true}'
-              className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-            />
-          </div>
-        </section>
-
-        {/* ─── Action Buttons ─────────────────────────────────────────────────────── */}
+        {/* Footer Actions */}
         <div className="py-6 flex items-center justify-between">
-          {/* Left side – Reset Button */}
-          <div>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="text-gray-500 hover:text-gray-700 text-sm"
-            >
-              Reset
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="text-gray-500 hover:text-gray-700 text-sm"
+          >
+            Reset
+          </button>
 
-          {/* Right side – Go Back and Create Buttons */}
           <div className="flex gap-4">
             <button
               type="button"
               onClick={handleCancel}
               className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
+              disabled={loading}
             >
               Go Back
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-60"
+              disabled={loading}
             >
-              Create
+              {loading ? "Saving..." : "Create"}
             </button>
           </div>
         </div>
       </form>
     </div>
   );
-};
-
-export default TaxForm;
+}

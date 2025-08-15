@@ -43,6 +43,16 @@ export const groups = [
         title: "Jornal Creation",
         icon: <FaArchive />,
         page: PAGE.JOURNAL_CREATE,
+      },  {
+        id: "journal-create",
+        title: "Jornal Creation",
+        icon: <FaArchive />,
+        page: PAGE.JOURNAL_CREATE,
+      },  {
+        id: "journal-create",
+        title: "Jornal Creation",
+        icon: <FaArchive />,
+        page: PAGE.JOURNAL_CREATE,
       },
     ],
   },

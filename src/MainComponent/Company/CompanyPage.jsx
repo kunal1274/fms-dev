@@ -35,9 +35,7 @@ const CompanyPage = () => {
 
   /** Show Company details */
   const handleViewCompany = (CompanyAccountNo) => {
-    const cust = Companys.find(
-      (c) => c.CompanyAccountNo === CompanyAccountNo
-    );
+    const cust = Companys.find((c) => c.CompanyAccountNo === CompanyAccountNo);
     setSelectedCompany(cust);
     setView("details");
   };

@@ -9,7 +9,7 @@ import Invoice from "../Invoice/Icopy";
 /** ---------- API ROOTS (single source) ---------- */
 const API_ROOT = "https://fms-qkmw.onrender.com/fms/api/v0";
 const SALES_URL = `${API_ROOT}/salesorders`;
-const META_URL = API_ROOT; 
+const META_URL = API_ROOT; // items, sites, warehouses, customers
 
 const PaymentHistoryModal = ({ onClose, payments }) => {
   return (
@@ -821,56 +821,17 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
           {/* === Header Fields === */}
           <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {/* Sale Order */}
-
-            {/* Customer Account */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Sale Order
-              </label>
-              <input
-                type="text"
-                name="saleOrder"
-                value={saleData?.orderNum ?? ""}
-                placeholder="Sale Order"
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                readOnly
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Customer Account
-              </label>
-              <select
-                value={selectedCustomer || saleData?.customer?._id || ""}
-                onChange={(e) => onSelectCustomer(e.target.value)}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">
-                  {loadingCustomers ? "Loading…" : "Select Customer"}
-                </option>
-                {customers.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {`${c.code} ${c.name}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-4 h-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Customer Name
+                    Sale Order
                   </label>
                   <input
                     type="text"
-                    value={
-                      saleData?.customer?.name ??
-                      selectedCustomerDetails?.name ??
-                      ""
-                    }
-                    placeholder="Customer Name"
+                    name="saleOrder"
+                    value={saleData?.orderNum ?? ""}
+                    placeholder="Sale Order"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
@@ -878,236 +839,284 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Contact Email
+                    Customer Account
+                  </label>
+                  <select
+                    value={selectedCustomer || saleData?.customer?._id || ""}
+                    onChange={(e) => onSelectCustomer(e.target.value)}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  >
+                    <option value="">
+                      {loadingCustomers ? "Loading…" : "Select Customer"}
+                    </option>
+                    {customers.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {`${c.code} ${c.name}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-4 h-full">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">
+                        Customer Name
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          saleData?.customer?.name ??
+                          selectedCustomerDetails?.name ??
+                          ""
+                        }
+                        placeholder="Customer Name"
+                        className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                        readOnly
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">
+                        Contact Email
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          extras.contactEmail ??
+                          selectedCustomerDetails?.email ??
+                          ""
+                        }
+                        onChange={(e) =>
+                          setExtras((x) => ({
+                            ...x,
+                            contactEmail: e.target.value,
+                          }))
+                        }
+                        disabled={!isEditing}
+                        placeholder="Contact Email"
+                        className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      Customer Address
+                    </label>
+                    <textarea
+                      rows="4"
+                      value={
+                        saleData?.salesAddress ??
+                        saleData?.customer?.address ??
+                        selectedCustomerDetails?.address ??
+                        ""
+                      }
+                      onChange={(e) =>
+                        setSaleData((prev) =>
+                          prev
+                            ? { ...prev, salesAddress: e.target.value }
+                            : prev
+                        )
+                      }
+                      disabled={!isEditing}
+                      className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Contact Details
                   </label>
                   <input
                     type="text"
                     value={
-                      extras.contactEmail ??
-                      selectedCustomerDetails?.email ??
+                      saleData?.customer?.contactNum ??
+                      selectedCustomerDetails?.contactNum ??
                       ""
                     }
-                    onChange={(e) =>
-                      setExtras((x) => ({ ...x, contactEmail: e.target.value }))
+                    placeholder="Contact Number"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Currency
+                  </label>
+                  <input
+                    type="text"
+                    value={
+                      saleData?.currency ??
+                      selectedCustomerDetails?.currency ??
+                      ""
                     }
+                    placeholder="Currency"
+                    readOnly
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Sale Order no
+                  </label>
+                  <input
+                    type="text"
+                    value={saleData?.orderNum ?? ""}
+                    placeholder="Sale Order No"
+                    readOnly
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Order Date{" "}
+                  </label>
+                  <input
+                    type="text"
+                    value={form.orderDate ?? saleData?.orderDate ?? ""}
+                    readOnly
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Created on
+                  </label>
+                  <input
+                    type="text"
+                    value={form.createdOn ?? ""}
+                    readOnly
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Order Status
+                  </label>
+                  <input
+                    type="text"
+                    value={saleData?.status ?? status ?? ""}
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
+
+                {/* Optional entries */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Sale Agreement No (if applicable)
+                  </label>
+                  <input
+                    type="text"
+                    name="saleAgreementNo"
+                    value={form.saleAgreementNo ?? ""}
+                    onChange={handleSimpleChange}
                     disabled={!isEditing}
-                    placeholder="Contact Email"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
+                    className="mt-1 w-full p-2 border rounded"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Purchase Reference No
+                  </label>
+                  <input
+                    type="text"
+                    name="purchaseRef"
+                    value={form.purchaseRef ?? ""}
+                    onChange={handleSimpleChange}
+                    disabled={!isEditing}
+                    className="mt-1 w-full p-2 border rounded"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Terms of payment
+                  </label>
+                  <select
+                    name="paymentTerms"
+                    value={form.paymentTerms ?? saleData?.paymentTerms ?? ""}
+                    onChange={handleSimpleChange}
+                    disabled={!isEditing}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  >
+                    <option value="">Select type</option>
+                    {paymentTerms.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Delivery Mode
+                  </label>
+                  <input
+                    type="text"
+                    name="deliveryMode"
+                    value={form.deliveryMode ?? ""}
+                    onChange={handleSimpleChange}
+                    disabled={!isEditing}
+                    className="mt-1 w-full p-2 border rounded"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Order Id
+                  </label>
+                  <input
+                    type="text"
+                    name="orderId"
+                    value={form.orderId ?? ""}
+                    onChange={handleSimpleChange}
+                    disabled={!isEditing}
+                    className="mt-1 w-full p-2 border rounded"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Advance Payment Amount
+                  </label>
+                  <input
+                    type="number"
+                    name="advance"
+                    value={advance}
+                    onChange={(e) => setAdvance(Number(e.target.value) || 0)}
+                    disabled={!isEditing}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Remarks
+                  </label>
+                  <textarea
+                    name="remarks"
+                    value={form.remarks ?? saleData?.remarks ?? ""}
+                    onChange={handleSimpleChange}
+                    disabled={!isEditing}
+                    placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
+                    rows={4}
+                    className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                   />
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Customer Address
-                </label>
-                <textarea
-                  rows="4"
-                  value={
-                    saleData?.salesAddress ??
-                    saleData?.customer?.address ??
-                    selectedCustomerDetails?.address ??
-                    ""
-                  }
-                  onChange={(e) =>
-                    setSaleData((prev) =>
-                      prev ? { ...prev, salesAddress: e.target.value } : prev
-                    )
-                  }
-                  disabled={!isEditing}
-                  className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Contact Details
-              </label>
-              <input
-                type="text"
-                value={
-                  saleData?.customer?.contactNum ??
-                  selectedCustomerDetails?.contactNum ??
-                  ""
-                }
-                placeholder="Contact Number"
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                readOnly
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Currency
-              </label>
-              <input
-                type="text"
-                value={
-                  saleData?.currency ?? selectedCustomerDetails?.currency ?? ""
-                }
-                placeholder="Currency"
-                readOnly
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Sale Order no
-              </label>
-              <input
-                type="text"
-                value={saleData?.orderNum ?? ""}
-                placeholder="Sale Order No"
-                readOnly
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Order Date{" "}
-              </label>
-              <input
-                type="text"
-                value={form.orderDate ?? saleData?.orderDate ?? ""}
-                readOnly
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Created on
-              </label>
-              <input
-                type="text"
-                value={form.createdOn ?? ""}
-                readOnly
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Order Status
-              </label>
-              <input
-                type="text"
-                value={saleData?.status ?? status ?? ""}
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                readOnly
-              />
-            </div>
-
-            {/* Optional entries */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Sale Agreement No (if applicable)
-              </label>
-              <input
-                type="text"
-                name="saleAgreementNo"
-                value={form.saleAgreementNo ?? ""}
-                onChange={handleSimpleChange}
-                disabled={!isEditing}
-                className="mt-1 w-full p-2 border rounded"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Purchase Reference No
-              </label>
-              <input
-                type="text"
-                name="purchaseRef"
-                value={form.purchaseRef ?? ""}
-                onChange={handleSimpleChange}
-                disabled={!isEditing}
-                className="mt-1 w-full p-2 border rounded"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Terms of payment
-              </label>
-              <select
-                name="paymentTerms"
-                value={form.paymentTerms ?? saleData?.paymentTerms ?? ""}
-                onChange={handleSimpleChange}
-                disabled={!isEditing}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Select type</option>
-                {paymentTerms.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Delivery Mode
-              </label>
-              <input
-                type="text"
-                name="deliveryMode"
-                value={form.deliveryMode ?? ""}
-                onChange={handleSimpleChange}
-                disabled={!isEditing}
-                className="mt-1 w-full p-2 border rounded"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Order Id
-              </label>
-              <input
-                type="text"
-                name="orderId"
-                value={form.orderId ?? ""}
-                onChange={handleSimpleChange}
-                disabled={!isEditing}
-                className="mt-1 w-full p-2 border rounded"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Advance Payment Amount
-              </label>
-              <input
-                type="number"
-                name="advance"
-                value={advance}
-                onChange={(e) => setAdvance(Number(e.target.value) || 0)}
-                disabled={!isEditing}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                min="0"
-                step="0.01"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Remarks
-              </label>
-              <textarea
-                name="remarks"
-                value={form.remarks ?? saleData?.remarks ?? ""}
-                onChange={handleSimpleChange}
-                disabled={!isEditing}
-                placeholder="e.g. Sector 98, Noida, Uttar Pradesh, 201301"
-                rows={4}
-                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
             </div>
           </div>
 
