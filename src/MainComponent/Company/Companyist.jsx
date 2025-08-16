@@ -32,6 +32,21 @@ export default function CompaniesList({ handleAddCompany, onView }) {
   const outstanding = (c) => Number(c?.outstandingBalance || 0);
   const getStatus = (c) => String(c?.status || "");
 
+  /** ---------- Date helpers (createdAt boundaries) ---------- */
+  const toStartOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStrLocal}T00:00:00`).toISOString();
+  const toEndOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStrLocal}T23:59:59.999`).toISOString();
+
+  // Build a tiny range around an exact createdAt timestamp (exact match) — kept if you need it elsewhere
+  const exactCreatedAtRange = (iso /* '2025-08-14T12:33:49.194Z' */) => {
+    const at = new Date(iso).getTime();
+    return {
+      fromISO: new Date(at).toISOString(),
+      toISO: new Date(at + 1).toISOString(), // +1ms upper bound
+    };
+  };
+
   /** ---------- State ---------- */
   const tabNames = [
     "Companies List",
@@ -74,29 +89,51 @@ export default function CompaniesList({ handleAddCompany, onView }) {
   const [uploadProgress, setUploadProgress] = useState({});
   const [currentUploadFile, setCurrentUploadFile] = useState("");
 
-
+  /** Core fetch that ALWAYS constrains by createdAt day boundaries */
   const fetchCompanies = useCallback(
     async (fromDate = startDate, toDate = endDate) => {
       setLoading(true);
       setError(null);
       try {
+        // Convert selected dates to full-day UTC ISO bounds
+        const fromISO = toStartOfDayISO(fromDate);
+        const toISO = toEndOfDayISO(toDate);
+
+        // Ask backend to filter by the range (assumes it uses createdAt internally)
         const { data: resp } = await axios.get(baseUrl, {
-          params: { from: fromDate, to: toDate },
+          params: { from: fromISO, to: toISO },
         });
+
+        // Normalize the list
         const list = resp?.data || resp || [];
-        setCompanies(Array.isArray(list) ? list : []);
-        // Baseline summary (in case metrics call fails)
+        const arrayList = Array.isArray(list) ? list : [];
+
+        // Defensive client-side filter by createdAt (in case backend ignores params)
+        const fromMs = new Date(fromISO).getTime();
+        const toMs = new Date(toISO).getTime();
+        const filteredByCreatedAt = arrayList.filter((c) => {
+          if (!c?.createdAt) return false; // if createdAt missing, exclude from dated view
+          const t = new Date(c.createdAt).getTime();
+          return t >= fromMs && t <= toMs;
+        });
+
+        setCompanies(filteredByCreatedAt);
+
+        // Baseline summary (if metrics fail)
         setSummary((prev) => ({
           ...prev,
-          count: list.length || 0,
-          creditLimit: (list || []).reduce(
+          count: filteredByCreatedAt.length || 0,
+          creditLimit: filteredByCreatedAt.reduce(
             (s, c) => s + (Number(c?.creditLimit) || 0),
             0
           ),
-          paidCompaniess: (list || []).filter((c) => getStatus(c) === "Paid")
+          paidCompaniess: filteredByCreatedAt.filter(
+            (c) => getStatus(c) === "Paid"
+          ).length,
+          activeCompaniess: filteredByCreatedAt.filter((c) => isActive(c))
             .length,
-          activeCompaniess: (list || []).filter((c) => isActive(c)).length,
-          onHoldCompaniess: (list || []).filter((c) => isOnHold(c)).length,
+          onHoldCompaniess: filteredByCreatedAt.filter((c) => isOnHold(c))
+            .length,
         }));
       } catch (err) {
         console.error(err);
@@ -108,29 +145,37 @@ export default function CompaniesList({ handleAddCompany, onView }) {
     [startDate, endDate]
   );
 
-  const fetchMetrics = useCallback(async () => {
-    setLoadingMetrics(true);
-    try {
-      const { data: resp } = await axios.get(metricsUrl, {
-        params: { from: startDate, to: endDate },
-      });
-      const m = (resp?.metrics && resp.metrics[0]) || {};
-      setSummary((prev) => ({
-        ...prev,
-        count: m?.totalCompaniess ?? prev.count,
-        creditLimit: m?.creditLimit ?? prev.creditLimit,
-        paidCompaniess: m?.paidCompaniess ?? prev.paidCompaniess,
-        activeCompaniess: m?.activeCompaniess ?? prev.activeCompaniess,
-        onHoldCompaniess: m?.onHoldCompaniess ?? prev.onHoldCompaniess,
-      }));
-    } catch (err) {
-      console.error(err);
-      // metrics are optional; no toast to avoid noise
-    } finally {
-      setLoadingMetrics(false);
-    }
-  }, [startDate, endDate]);
+  const fetchMetrics = useCallback(
+    async (fromDate = startDate, toDate = endDate) => {
+      setLoadingMetrics(true);
+      try {
+        const fromISO = toStartOfDayISO(fromDate);
+        const toISO = toEndOfDayISO(toDate);
 
+        const { data: resp } = await axios.get(metricsUrl, {
+          params: { from: fromISO, to: toISO },
+        });
+
+        const m = (resp?.metrics && resp.metrics[0]) || {};
+        setSummary((prev) => ({
+          ...prev,
+          count: m?.totalCompaniess ?? prev.count,
+          creditLimit: m?.creditLimit ?? prev.creditLimit,
+          paidCompaniess: m?.paidCompaniess ?? prev.paidCompaniess,
+          activeCompaniess: m?.activeCompaniess ?? prev.activeCompaniess,
+          onHoldCompaniess: m?.onHoldCompaniess ?? prev.onHoldCompaniess,
+        }));
+      } catch (err) {
+        console.error(err);
+        // metrics optional
+      } finally {
+        setLoadingMetrics(false);
+      }
+    },
+    [startDate, endDate]
+  );
+
+  // Initial load + auto-refetch whenever start/end change
   useEffect(() => {
     fetchCompanies();
     fetchMetrics();
@@ -199,20 +244,31 @@ export default function CompaniesList({ handleAddCompany, onView }) {
   }, [companies, activeTab, statusFilter, searchTerm, sortOption]);
 
   /** ---------- Handlers ---------- */
-  const onTabClick = (tab) => setActiveTab(tab);
+  const onTabClick = (tab) => {
+    setActiveTab(tab);
+
+    // If any filter is active, reset them when switching tabs
+    if (sortOption || statusFilter !== "All" || searchTerm) {
+      resetFilters(); // clears search, status, sort
+      setSelectedIds([]); // also clear row selections
+    }
+  };
 
   const handleCompaniesClick = (CompaniesId) => {
     setViewingCompaniesId(CompaniesId);
+    publishSelectedCompanyName(getName(companyObj));
   };
 
   const resetFilters = () => {
     setSearchTerm("");
     setStatusFilter("All");
+    setSelectedIds([]);
     setSortOption("");
   };
 
   const handleSortChange = (e) => {
     const v = e.target.value;
+    setSortOption(e.target.value);
     // Map the visible labels you had to internal values
     if (v === "Companies Name") return setSortOption("name-asc");
     if (v === "Companies Account no") return setSortOption("code-asc");
@@ -231,6 +287,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
+  // Selecting all rows
   const toggleSelectAll = (e) => {
     setSelectedIds(
       e.target.checked ? filteredCompanies.map((c) => getId(c)) : []
@@ -268,7 +325,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
         await fetchCompanies(startDate, endDate);
-        await fetchMetrics();
+        await fetchMetrics(startDate, endDate);
         window.location.reload(); // refresh the page after successful deletion
       }
       if (failed) toast.error(`${failed} failed — check console`);
@@ -277,6 +334,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
       toast.error("Unexpected error while deleting");
     }
   };
+
   /** ---------- Export ---------- */
   const exportToExcel = () => {
     if (!companies.length) {
@@ -315,7 +373,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
         getCurrency(c) || "",
         c?.primaryGSTAddress || "",
         isActive(c) ? "Active" : "Inactive",
-        
       ]),
     });
     doc.save("Companies_list.pdf");
@@ -384,7 +441,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
 
               {/* Metrics */}
               <div className=" bg-white rounded-lg ">
-                {/* Date filters */}
+                {/* Date filters       /creation date  */}
                 <div className="flex flex-wrap gap-2">
                   <input
                     type="date"
@@ -400,7 +457,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                   />
                   <button
                     onClick={async () => {
-                      await fetchMetrics();
+                      await fetchMetrics(startDate, endDate);
                       await fetchCompanies(startDate, endDate);
                     }}
                     className="px-3 py-1 border rounded w-full sm:w-auto"
@@ -435,18 +492,17 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                   <div className="relative">
                     <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <select
-                      defaultValue=""
                       value={sortOption}
                       onChange={handleSortChange}
                       className="w-full sm:w-56 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="Companies Name">Companies Name</option>
-                      <option value="Companies Account no">
+                      <option value="name-asc">Companies Name</option>
+                      <option value="code-asc">
                         Companies Account in Ascending
                       </option>
-                      <option value="Companies Account no descending">
-                        Companies Account in descending
+                      <option value="code-desc">
+                        Companies Account in Descending
                       </option>
                     </select>
                   </div>
@@ -495,7 +551,23 @@ export default function CompaniesList({ handleAddCompany, onView }) {
 
                 <button
                   onClick={resetFilters}
-                  className="text-red-500 hover:text-red-600 font-medium w-full sm:w-auto"
+                  disabled={
+                    !(
+                      sortOption ||
+                      statusFilter === "Active" ||
+                      statusFilter === "Inactive" ||
+                      searchTerm
+                    )
+                  }
+                  className={`font-medium w-full sm:w-auto transition
+    ${
+      sortOption ||
+      statusFilter === "Active" ||
+      statusFilter === "Inactive" ||
+      searchTerm
+        ? "text-red-500 hover:text-red-600 cursor-pointer"
+        : "text-gray-400 cursor-not-allowed"
+    }`}
                 >
                   Reset Filter
                 </button>

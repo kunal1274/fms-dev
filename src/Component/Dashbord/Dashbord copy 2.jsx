@@ -37,20 +37,6 @@ const Dashboard = () => {
         selectedMenu={selectedMenu}
         onSelectMenu={handleSelectMenu}
       />
-
-      <div className="flex flex-col flex-1">
-        <Header onSidebarToggle={handleSidebarToggle} />
-
-        <main className="flex-1 w-full overflow-auto">
-          <Main
-            sidebarOpen={sidebarOpen}
-            selectedMenu={selectedMenu}
-            onAddNew={handleAddNew}
-            onView={handleView}
-          />
-        </main>
-        <Footer />
-      </div>
     </div>
   );
 };

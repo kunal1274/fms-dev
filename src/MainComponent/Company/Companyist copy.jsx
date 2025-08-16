@@ -1,19 +1,38 @@
-import React, { useState, useEffect, useCallback, useRef ,useMemo} from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import axios from "axios";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { Tabs } from "flowbite-react";
+import { Tabs } from "flowbite-react"; // kept to match your imports
 import "./c.css";
 
 import CompanyViewPage from "./CompanyViewPage";
 
 export default function CompaniesList({ handleAddCompany, onView }) {
+  /** ---------- API ---------- */
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/companies";
   const metricsUrl = `${baseUrl}/metrics`;
-const [companies, setCompanies] = useState([]);
+
+  /** ---------- Helpers to normalize fields ---------- */
+  const getId = (c) => c?._id || c?.id || c?.companyId || c?.code || "";
+  const getCode = (c) => c?.companyCode || c?.code || "";
+  const getName = (c) => c?.companyName || c?.name || "";
+  const getBusinessType = (c) => c?.businessType || "";
+  const getCurrency = (c) => c?.currency || "";
+  const isActive = (c) => !!c?.active;
+  const isOnHold = (c) => !!c?.onHold;
+  const outstanding = (c) => Number(c?.outstandingBalance || 0);
+  const getStatus = (c) => String(c?.status || "");
+
+  /** ---------- State ---------- */
   const tabNames = [
     "Companies List",
     "Paid Companies",
@@ -22,102 +41,52 @@ const [companies, setCompanies] = useState([]);
     "Outstanding Companies",
   ];
 
-  // States
   const [activeTab, setActiveTab] = useState(tabNames[0]);
-  const [CompaniesList, setCompaniesList] = useState([]);
-  const [selectedOption, setSelectedOption] = useState("All");
-  const [filteredCompaniess, setFilteredCompaniess] = useState([]);
-  const [selectedCompaniess, setSelectedCompaniess] = useState([]);
+
+  const [companies, setCompanies] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [viewingCompaniesId, setViewingCompaniesId] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
+  const [sortOption, setSortOption] = useState(""); // name-asc | code-asc | code-desc
+
   const [startDate, setStartDate] = useState(
     new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
   );
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [sortOption, setSortOption] = useState("");
+  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+const toStartOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
+  new Date(`${dateStrLocal}T00:00:00`).toISOString();
+const toEndOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
+  new Date(`${dateStrLocal}T23:59:59.999`).toISOString();
 
-  const [CompaniesSummary, setCompaniesSummary] = useState({
+// Build a tiny range around an exact createdAt timestamp (exact match)
+const exactCreatedAtRange = (iso /* '2025-08-14T12:33:49.194Z' */) => {
+  const at = new Date(iso).getTime();
+  return {
+    fromISO: new Date(at).toISOString(),
+    toISO: new Date(at + 1).toISOString(), // +1ms upper bound
+  };
+};
+  const [summary, setSummary] = useState({
     count: 0,
     creditLimit: 0,
     paidCompaniess: 0,
     activeCompaniess: 0,
     onHoldCompaniess: 0,
   });
-  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+
   const [loading, setLoading] = useState(false);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
 
-  // Upload Logo
+  // Upload Logo (kept as-is; UI not shown here but function preserved)
   const fileInputRef = useRef(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({});
   const [currentUploadFile, setCurrentUploadFile] = useState("");
 
-  const handleFileUpload = async (file) => {
-    if (!file) {
-      toast.error("No file selected!");
-      return;
-    }
-    setCurrentUploadFile(file.name);
-    setLogoUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("logoImage", file);
-
-      await axios.post(`${baseUrl}/upload-logo`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        onUploadProgress: (evt) => {
-          const percent = Math.round((evt.loaded * 100) / evt.total);
-          setUploadProgress({ [file.name]: percent });
-        },
-      });
-
-      toast.success("Logo uploaded successfully ✅");
-      // Refresh list
-      fetchCompaniess();
-    } catch (error) {
-      console.error(error);
-      toast.error("Error uploading logo!");
-    } finally {
-      setTimeout(() => {
-        setLogoUploading(false);
-        setUploadProgress({});
-        setCurrentUploadFile("");
-      }, 1500);
-    }
-  };
-  const handleFilterChange = (e) => {
-    const value = e.target.value;
-    setSelectedOption(value);
-
-    let filtered = [...customerList];
-
-    if (value === "All") {
-      setFilteredCustomers(filtered);
-    } else if (value === "yes") {
-      setFilteredCustomers(
-        filtered.filter((customer) => customer.active === true)
-      );
-    } else if (value === "no") {
-      setFilteredCustomers(
-        filtered.filter((customer) => customer.active === false)
-      );
-    } else if (value === "Customer Name") {
-      filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
-      setFilteredCustomers(filtered);
-    } else if (value === "Customer Account no") {
-      filtered = filtered.sort((a, b) => a.code.localeCompare(b.code));
-      setFilteredCustomers(filtered);
-    } else if (value === "Customer Account no descending") {
-      filtered = filtered.sort((a, b) => b.code.localeCompare(a.code));
-      setFilteredCustomers(filtered);
-    }
-  };
-
-  // Fetch Companiess
-  const fetchCompaniess = useCallback(
+  const fetchCompanies = useCallback(
     async (fromDate = startDate, toDate = endDate) => {
       setLoading(true);
       setError(null);
@@ -125,18 +94,21 @@ const [companies, setCompanies] = useState([]);
         const { data: resp } = await axios.get(baseUrl, {
           params: { from: fromDate, to: toDate },
         });
-        const list = resp.data || resp;
-
-        setCompaniesList(list);
-        setFilteredCompaniess(list);
-
-        setCompaniesSummary({
-          count: list.length,
-          creditLimit: list.reduce((s, c) => s + (c.creditLimit || 0), 0),
-          paidCompaniess: list.filter((c) => c.status === "Paid").length,
-          activeCompaniess: list.filter((c) => c.active).length,
-          onHoldCompaniess: list.filter((c) => c.onHold).length,
-        });
+        const list = resp?.data || resp || [];
+        setCompanies(Array.isArray(list) ? list : []);
+        // Baseline summary (in case metrics call fails)
+        setSummary((prev) => ({
+          ...prev,
+          count: list.length || 0,
+          creditLimit: (list || []).reduce(
+            (s, c) => s + (Number(c?.creditLimit) || 0),
+            0
+          ),
+          paidCompaniess: (list || []).filter((c) => getStatus(c) === "Paid")
+            .length,
+          activeCompaniess: (list || []).filter((c) => isActive(c)).length,
+          onHoldCompaniess: (list || []).filter((c) => isOnHold(c)).length,
+        }));
       } catch (err) {
         console.error(err);
         setError("Unable to load Companies data.");
@@ -147,87 +119,36 @@ const [companies, setCompanies] = useState([]);
     [startDate, endDate]
   );
 
-  // Fetch Metrics
   const fetchMetrics = useCallback(async () => {
+    setLoadingMetrics(true);
     try {
       const { data: resp } = await axios.get(metricsUrl, {
         params: { from: startDate, to: endDate },
       });
-
-      const m = (resp.metrics && resp.metrics[0]) || {};
-      setCompaniesSummary((prev) => ({
+      const m = (resp?.metrics && resp.metrics[0]) || {};
+      setSummary((prev) => ({
         ...prev,
-        count: m.totalCompaniess ?? prev.count,
-        creditLimit: m.creditLimit ?? prev.creditLimit,
-        paidCompaniess: m.paidCompaniess ?? prev.paidCompaniess,
-        activeCompaniess: m.activeCompaniess ?? prev.activeCompaniess,
-        onHoldCompaniess: m.onHoldCompaniess ?? prev.onHoldCompaniess,
+        count: m?.totalCompaniess ?? prev.count,
+        creditLimit: m?.creditLimit ?? prev.creditLimit,
+        paidCompaniess: m?.paidCompaniess ?? prev.paidCompaniess,
+        activeCompaniess: m?.activeCompaniess ?? prev.activeCompaniess,
+        onHoldCompaniess: m?.onHoldCompaniess ?? prev.onHoldCompaniess,
       }));
     } catch (err) {
       console.error(err);
+      // metrics are optional; no toast to avoid noise
+    } finally {
+      setLoadingMetrics(false);
     }
   }, [startDate, endDate]);
 
   useEffect(() => {
-    fetchCompaniess();
+    fetchCompanies();
     fetchMetrics();
-  }, [fetchCompaniess, fetchMetrics]);
+  }, [fetchCompanies, fetchMetrics]);
 
-  // Filtering, Search, Sorting
-  useEffect(() => {
-    let list = [...CompaniesList];
-
-    switch (activeTab) {
-      case tabNames[1]:
-        list = list.filter((c) => c.status === "Paid");
-        break;
-      case tabNames[2]:
-        list = list.filter((c) => c.active);
-        break;
-      case tabNames[3]:
-        list = list.filter((c) => c.onHold);
-        break;
-      case tabNames[4]:
-        list = list.filter((c) => c.outstandingBalance > 0);
-        break;
-      default:
-        break;
-    }
-
-    if (statusFilter === "Active") list = list.filter((c) => c.active);
-    else if (statusFilter === "Inactive") list = list.filter((c) => !c.active);
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      list = list.filter(
-        (c) =>
-          c.name.toLowerCase().includes(term) ||
-          c.code.toLowerCase().includes(term)
-      );
-    }
-
-    if (sortOption === "name-asc")
-      list.sort((a, b) => a.name.localeCompare(b.name));
-    else if (sortOption === "code-asc")
-      list.sort((a, b) => a.code.localeCompare(b.code));
-    else if (sortOption === "code-desc")
-      list.sort((a, b) => b.code.localeCompare(a.code));
-
-    setFilteredCompaniess(list);
-  }, [CompaniesList, activeTab, statusFilter, searchTerm, sortOption]);
-
-  // Handlers
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
-  const handleStatusChange = (e) => setStatusFilter(e.target.value);
-  const handleSortChange = (e) => setSortOption(e.target.value);
-  const onTabClick = (tab) => setActiveTab(tab);
-
-  const handleCheckboxChange = (id) => {
-    setSelectedCompaniess((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-    );
-  };
-  const displayedCompanies = useMemo(() => {
+  /** ---------- Derived: filtered + sorted list ---------- */
+  const filteredCompanies = useMemo(() => {
     let list = [...companies];
 
     // Tabs
@@ -245,13 +166,14 @@ const [companies, setCompanies] = useState([]);
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
-        // "Companies List" -> no extra tab filter
+        // "Companies List" -> no extra filter
         break;
     }
 
-    // Status filter
+    // Status filter (dropdown)
     if (statusFilter === "Active") list = list.filter((c) => isActive(c));
-    if (statusFilter === "Inactive") list = list.filter((c) => !isActive(c));
+    else if (statusFilter === "Inactive")
+      list = list.filter((c) => !isActive(c));
 
     // Search
     const term = searchTerm.trim().toLowerCase();
@@ -287,12 +209,62 @@ const [companies, setCompanies] = useState([]);
     return list;
   }, [companies, activeTab, statusFilter, searchTerm, sortOption]);
 
-  /** ---------- Selection ---------- */
+  /** ---------- Handlers ---------- */
+  const onTabClick = (tab) => {
+    setActiveTab(tab);
+
+    // If any filter is active, reset them when switching tabs
+    if (sortOption || statusFilter !== "All" || searchTerm) {
+      resetFilters(); // clears search, status, sort
+      setSelectedIds([]); // also clear row selections
+      // toast.info("Filters reset for the selected tab");
+    }
+  };
+
+  const handleCompaniesClick = (CompaniesId) => {
+    setViewingCompaniesId(CompaniesId);
+  };
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("All");
+    setSelectedIds([]);
+    setSortOption("");
+  };
+
+  const handleSortChange = (e) => {
+    const v = e.target.value;
+    setSortOption(e.target.value);
+    // Map the visible labels you had to internal values
+    if (v === "Companies Name") return setSortOption("name-asc");
+    if (v === "Companies Account no") return setSortOption("code-asc");
+    if (v === "Companies Account no descending")
+      return setSortOption("code-desc");
+    // If values already internal, keep them:
+    setSortOption(v);
+  };
+
+  const handleStatusChange = (e) => {
+    const v = e.target.value;
+    if (v === "yes") return setStatusFilter("Active");
+    if (v === "no") return setStatusFilter("Inactive");
+    setStatusFilter("All");
+  };
+
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
+
   const toggleSelectAll = (e) => {
     setSelectedIds(
-      e.target.checked ? displayedCompanies.map((c) => getId(c)) : []
+      e.target.checked ? filteredCompanies.map((c) => getId(c)) : []
     );
   };
+
+  const handleCheckboxChange = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
   const handleDeleteSelected = async () => {
     if (!selectedIds.length) {
       toast.info("No companies selected to delete");
@@ -309,7 +281,7 @@ const [companies, setCompanies] = useState([]);
     }
     try {
       const results = await Promise.allSettled(
-        selectedIds.map((id) => axios.delete(`${BASE_URL}/${id}`))
+        selectedIds.map((id) => axios.delete(`${baseUrl}/${id}`))
       );
       const succeeded = results.filter((r) => r.status === "fulfilled").length;
       const failed = results.length - succeeded;
@@ -318,6 +290,8 @@ const [companies, setCompanies] = useState([]);
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
         await fetchCompanies(startDate, endDate);
+        await fetchMetrics();
+        window.location.reload(); // refresh the page after successful deletion
       }
       if (failed) toast.error(`${failed} failed — check console`);
     } catch (err) {
@@ -325,67 +299,13 @@ const [companies, setCompanies] = useState([]);
       toast.error("Unexpected error while deleting");
     }
   };
-  useEffect(() => {
-    let list = [...CompaniesList];
-
-    // Tabs
-    switch (activeTab) {
-      case tabNames[1]:
-        list = list.filter((c) => c.status === "Paid");
-        break;
-      case tabNames[2]:
-        list = list.filter((c) => c.active);
-        break;
-      case tabNames[3]:
-        list = list.filter((c) => c.onHold);
-        break;
-      case tabNames[4]:
-        list = list.filter((c) => (c.outstandingBalance || 0) > 0);
-        break;
-      default:
-        break;
-    }
-
-    // Status filter
-    if (statusFilter === "Active") list = list.filter((c) => c.active);
-    else if (statusFilter === "Inactive") list = list.filter((c) => !c.active);
-
-    // Search (use the actual field names you render)
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      list = list.filter(
-        (c) =>
-          (c.companyName?.toLowerCase() || "").includes(term) ||
-          (c.companyCode?.toLowerCase() || "").includes(term) ||
-          (c.email?.toLowerCase() || "").includes(term) ||
-          (c.taxInfo?.gstNumber?.toLowerCase() || "").includes(term) ||
-          (c.primaryGSTAddress?.toLowerCase() || "").includes(term)
-      );
-    }
-
-    // Sorting (based on sortOption)
-    if (sortOption === "name-asc") {
-      list.sort((a, b) =>
-        (a.companyName || "").localeCompare(b.companyName || "")
-      );
-    } else if (sortOption === "code-asc") {
-      list.sort((a, b) =>
-        (a.companyCode || "").localeCompare(b.companyCode || "")
-      );
-    } else if (sortOption === "code-desc") {
-      list.sort((a, b) =>
-        (b.companyCode || "").localeCompare(a.companyCode || "")
-      );
-    }
-
-    setFilteredCompaniess(list);
-  }, [CompaniesList, activeTab, statusFilter, searchTerm, sortOption]);
+  /** ---------- Export ---------- */
   const exportToExcel = () => {
-    if (!CompaniesList.length) {
+    if (!companies.length) {
       toast.info("No data to export.");
       return;
     }
-    const ws = XLSX.utils.json_to_sheet(CompaniesList);
+    const ws = XLSX.utils.json_to_sheet(companies);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Companiess");
     XLSX.writeFile(wb, "Companies_list.xlsx");
@@ -393,7 +313,6 @@ const [companies, setCompanies] = useState([]);
 
   const generatePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
-
     autoTable(doc, {
       head: [
         [
@@ -408,35 +327,25 @@ const [companies, setCompanies] = useState([]);
           "Status",
         ],
       ],
-      body: filteredCompaniess.map((c, i) => [
+      body: filteredCompanies.map((c, i) => [
         i + 1,
-        c.companyCode || "",
-        c.companyName || "",
-        c.contactNum || "",
-        c.email || "",
-        c.taxInfo?.gstNumber || "",
-        c.businessType || "",
-        c.currency || "",
-        c.primaryGSTAddress || "",
-        c.active ? "Active" : "Inactive",
+        getCode(c) || "",
+        getName(c) || "",
+        c?.email || "",
+        c?.taxInfo?.gstNumber || "",
+        getBusinessType(c) || "",
+        getCurrency(c) || "",
+        c?.primaryGSTAddress || "",
+        isActive(c) ? "Active" : "Inactive",
       ]),
     });
-
     doc.save("Companies_list.pdf");
   };
 
-  const handleCompaniesClick = (CompaniesId) => {
-    setViewingCompaniesId(CompaniesId);
-  };
-
-  const resetFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("All");
-    setSortOption("");
-  };
-
+  /** ---------- View toggle ---------- */
   const goBack = () => setViewingCompaniesId(null);
 
+  /** ---------- Render ---------- */
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
@@ -448,20 +357,19 @@ const [companies, setCompanies] = useState([]);
     );
   }
 
-  // ─── Render ─────────────────────────────────────────────────────
   return (
     <div>
       <div>
         <div>
           {viewingCompaniesId ? (
-            <CompanyViewPage ComapniesId={viewingCompaniesId} goBack={goBack} />
+            <CompanyViewPage CompaniesId={viewingCompaniesId} goBack={goBack} />
           ) : (
             <div className="space-y-6">
               <ToastContainer />
 
               {/* Header Buttons (stack on small) */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center space-x-2 ml-8">
+                <div className="flex items-center space-x-2 ">
                   <h3 className="text-xl font-semibold">Companies List</h3>
                 </div>
 
@@ -475,7 +383,7 @@ const [companies, setCompanies] = useState([]);
                   </button>
                   <button
                     onClick={handleDeleteSelected}
-                    disabled={!selectedCompaniess.length}
+                    disabled={!selectedIds.length}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     Delete
@@ -495,9 +403,9 @@ const [companies, setCompanies] = useState([]);
                 </div>
               </div>
 
-              {/* Metrics (unchanged grid but already responsive) */}
+              {/* Metrics */}
               <div className=" bg-white rounded-lg ">
-                {/* Date filters wrap on small */}
+                {/* Date filters       /creation date  */}
                 <div className="flex flex-wrap gap-2">
                   <input
                     type="date"
@@ -512,9 +420,9 @@ const [companies, setCompanies] = useState([]);
                     className="border rounded px-2 py-1 w-full sm:w-auto"
                   />
                   <button
-                    onClick={() => {
-                      fetchMetrics();
-                      fetchCompaniess(startDate, endDate);
+                    onClick={async () => {
+                      await fetchMetrics();
+                      await fetchCompanies(startDate, endDate);
                     }}
                     className="px-3 py-1 border rounded w-full sm:w-auto"
                   >
@@ -524,11 +432,11 @@ const [companies, setCompanies] = useState([]);
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Companiess", CompaniesSummary.count],
-                    ["Credit Limit", CompaniesSummary.creditLimit],
-                    ["Paid Companiess", CompaniesSummary.paidCompaniess],
-                    ["Active Companiess", CompaniesSummary.activeCompaniess],
-                    ["On-Hold Companiess", CompaniesSummary.onHoldCompaniess],
+                    ["Total Companiess", summary.count],
+                    ["Credit Limit", summary.creditLimit],
+                    ["Paid Companiess", summary.paidCompaniess],
+                    ["Active Companiess", summary.activeCompaniess],
+                    ["On-Hold Companiess", summary.onHoldCompaniess],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -541,25 +449,24 @@ const [companies, setCompanies] = useState([]);
                 </div>
               </div>
 
-              {/* Filters & Search (already flex-wrap; make inputs responsive widths) */}
+              {/* Filters & Search */}
               <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md  mb-2 space-y-3 md:space-y-0 md:space-x-4">
                 <div className="flex flex-wrap items-center gap-3 md:gap-4">
                   {/* Sort By */}
                   <div className="relative">
                     <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <select
-                      defaultValue=""
-                      value={selectedOption}
+                      value={sortOption}
                       onChange={handleSortChange}
                       className="w-full sm:w-56 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="Companies Name">Companies Name</option>
-                      <option value="Companies Account no">
+                      <option value="name-asc">Companies Name</option>
+                      <option value="code-asc">
                         Companies Account in Ascending
                       </option>
-                      <option value="Companies Account no descending">
-                        Companies Account in descending
+                      <option value="code-desc">
+                        Companies Account in Descending
                       </option>
                     </select>
                   </div>
@@ -570,8 +477,14 @@ const [companies, setCompanies] = useState([]);
                     <select
                       defaultValue="All"
                       className="w-full sm:w-56 pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                      value={selectedOption}
-                      onChange={handleFilterChange}
+                      value={
+                        statusFilter === "Active"
+                          ? "yes"
+                          : statusFilter === "Inactive"
+                          ? "no"
+                          : "All"
+                      }
+                      onChange={handleStatusChange}
                     >
                       <option value="All">Filter By Status</option>
                       <option value="yes">Active</option>
@@ -585,14 +498,15 @@ const [companies, setCompanies] = useState([]);
                       type="text"
                       placeholder="Search..."
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={handleSearchChange}
                       className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                     <button
-                      value={searchTerm}
-                      onChange={handleSearchChange}
                       type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                      onClick={() => {
+                        /* no-op search button to match UI */
+                      }}
                     >
                       <FaSearch className="w-5 h-5" />
                     </button>
@@ -601,13 +515,29 @@ const [companies, setCompanies] = useState([]);
 
                 <button
                   onClick={resetFilters}
-                  className="text-red-500 hover:text-red-600 font-medium w-full sm:w-auto"
+                  disabled={
+                    !(
+                      sortOption ||
+                      statusFilter === "Active" ||
+                      statusFilter === "Inactive" ||
+                      searchTerm
+                    )
+                  }
+                  className={`font-medium w-full sm:w-auto transition
+    ${
+      sortOption ||
+      statusFilter === "Active" ||
+      statusFilter === "Inactive" ||
+      searchTerm
+        ? "text-red-500 hover:text-red-600 cursor-pointer"
+        : "text-gray-400 cursor-not-allowed"
+    }`}
                 >
                   Reset Filter
                 </button>
               </div>
 
-              {/* Tabs (make horizontally scrollable on mobile) */}
+              {/* Tabs */}
               <div className="flex overflow-x-auto">
                 <ul className="flex space-x-6 list-none p-0 m-0 whitespace-nowrap px-1">
                   {tabNames.map((tab) => (
@@ -626,7 +556,7 @@ const [companies, setCompanies] = useState([]);
                 </ul>
               </div>
 
-              {/* Data Table (taller on mobile; horizontal scroll with min width) */}
+              {/* Data Table */}
               <div className="table-scroll-container h-[60vh] md:h-[400px] overflow-auto bg-white rounded-lg">
                 <table className="min-w-[900px] md:min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -636,9 +566,8 @@ const [companies, setCompanies] = useState([]);
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedCompaniess.length ===
-                              filteredCompaniess.length &&
-                            filteredCompaniess.length > 0
+                            selectedIds.length === filteredCompanies.length &&
+                            filteredCompanies.length > 0
                           }
                           className="form-checkbox"
                         />
@@ -663,43 +592,49 @@ const [companies, setCompanies] = useState([]);
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredCompaniess.length ? (
-                      filteredCompaniess.map((c) => (
+                    {filteredCompanies.length ? (
+                      filteredCompanies.map((c) => (
                         <tr
-                          key={c._id || c.companyCode}
+                          key={getId(c)}
                           className="hover:bg-gray-100 transition-colors"
                         >
                           <td className="px-4 py-2">
                             <input
                               type="checkbox"
-                              checked={selectedCompaniess.includes(c._id)}
-                              onChange={() => handleCheckboxChange(c._id)}
+                              checked={selectedIds.includes(getId(c))}
+                              onChange={() => handleCheckboxChange(getId(c))}
                               className="form-checkbox"
                             />
                           </td>
                           <td>
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleCompaniesClick(c._id)}
+                              onClick={() => handleCompaniesClick(getId(c))}
                             >
-                              {c.companyCode}
+                              {getCode(c)}
                             </button>
                           </td>
-                          <td className="px-6 py-4"> {c.businessType} </td>
-                          <td className="px-6 py-4">{c.companyName}</td>
-                          <td className="px-6 py-3 truncate">{c.currency}</td>
-                          <td className="px-6 py-4">{c.primaryGSTAddress}</td>
-                          <td className="px-6 py-4">{c.email}</td>
-                          <td className="px-6 py-4">{c.taxInfo?.gstNumber}</td>
+                          <td className="px-6 py-4">{getBusinessType(c)}</td>
+                          <td className="px-6 py-4">{getName(c)}</td>
+                          <td className="px-6 py-3 truncate">
+                            {getCurrency(c)}
+                          </td>
+                          <td className="px-6 py-4">
+                            {c?.primaryGSTAddress || ""}
+                          </td>
+                          <td className="px-6 py-4">{c?.email || ""}</td>
+                          <td className="px-6 py-4">
+                            {c?.taxInfo?.gstNumber || ""}
+                          </td>
                           <td className="px-6 py-4">
                             <span
                               className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                c.active
+                                isActive(c)
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
                               }`}
                             >
-                              {c.active ? "Active" : "Inactive"}
+                              {isActive(c) ? "Active" : "Inactive"}
                             </span>
                           </td>
                         </tr>
@@ -707,7 +642,7 @@ const [companies, setCompanies] = useState([]);
                     ) : (
                       <tr>
                         <td
-                          colSpan={6}
+                          colSpan={9}
                           className="px-6 py-4 text-center text-sm text-gray-500"
                         >
                           No data

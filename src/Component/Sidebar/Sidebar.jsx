@@ -10,11 +10,7 @@ import {
   FaMapMarkerAlt,
 } from "react-icons/fa";
 
-const navItems = 
-
-
-
-[
+const navItems = [
   // { label: "Customer", icon: FaUser },
   { label: "Company", icon: FaTruck },
   // { label: "Vendor", icon: FaTruck },
@@ -28,8 +24,6 @@ const navItems =
   { label: "User", icon: FaUser },
   { label: "Accounting And Tax", icon: FaUser },
 ];
-
-
 
 [
   {

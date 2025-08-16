@@ -207,13 +207,13 @@ export default function CompanyForm({ handleCancel }) {
       tanNumber: /^[A-Z0-9]{0,10}$/,
       ifsc: /^[A-Z0-9]{0,12}$/,
       swift: /^[A-Z0-9]{0,10}$/,
-      TanNumber: /^[A-Z0-9]{0,10}$/,
+      TanNumber: -/^[A-Z0-9]{0,10}$/,
       qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
       companyName: /^[A-Za-z\s]*$/,
       employeeName: /^[A-Za-z\s]*$/,
       email: /^.{0,100}$/,
       employeeEmail: /^.{0,100}$/,
-      contactNum: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
+      contactNum: /^[0-9+\-\s]{0,15}$/,  // ✅ Numeric, max 10 digits
       contactPersonPhone: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
       creditLimit: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
     };
