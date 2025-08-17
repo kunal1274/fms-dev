@@ -785,7 +785,14 @@ const CustomerViewPagee = ({
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Bank Details
-          </h2>
+          </h2>{" "}
+          <button
+            type="button"
+            onClick={addBankDetail}
+            className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+          >
+            + Add Bank
+          </button>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
             {formData.bankDetails?.length > 0 &&
               formData.bankDetails.map((b, i) => (
@@ -1047,8 +1054,8 @@ const CustomerViewPagee = ({
               </label>
               <input
                 type="text"
-                name="tanNumber"
-                value={formData.tanNumber || ""}
+                name="tanNum"
+                value={formData.tanNum || ""}
                 onChange={handleChange}
                 disabled={!isEditing}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"

@@ -83,13 +83,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
 
-  // Upload Logo (kept as-is; UI not shown here but function preserved)
-  const fileInputRef = useRef(null);
-  const [logoUploading, setLogoUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({});
-  const [currentUploadFile, setCurrentUploadFile] = useState("");
-
-  /** Core fetch that ALWAYS constrains by createdAt day boundaries */
   const fetchCompanies = useCallback(
     async (fromDate = startDate, toDate = endDate) => {
       setLoading(true);
@@ -132,8 +125,9 @@ export default function CompaniesList({ handleAddCompany, onView }) {
           ).length,
           activeCompaniess: filteredByCreatedAt.filter((c) => isActive(c))
             .length,
-          onHoldCompaniess: filteredByCreatedAt.filter((c) => isOnHold(c))
-            .length,
+       onHoldCompaniess: filteredByCreatedAt.filter((c) => !isActive(c)).length,
+
+      
         }));
       } catch (err) {
         console.error(err);
@@ -163,7 +157,10 @@ export default function CompaniesList({ handleAddCompany, onView }) {
           creditLimit: m?.creditLimit ?? prev.creditLimit,
           paidCompaniess: m?.paidCompaniess ?? prev.paidCompaniess,
           activeCompaniess: m?.activeCompaniess ?? prev.activeCompaniess,
-          onHoldCompaniess: m?.onHoldCompaniess ?? prev.onHoldCompaniess,
+          onHoldCompaniess: m?.onHoldCompaniess ?? prev.onHoldCompaniess,onHoldCompaniess:
+  typeof m?.inactiveCompaniess === "number"
+    ? m.inactiveCompaniess
+    : prev.onHoldCompaniess,
         }));
       } catch (err) {
         console.error(err);
@@ -194,7 +191,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
         list = list.filter((c) => isActive(c));
         break;
       case "Hold Companies":
-        list = list.filter((c) => isOnHold(c));
+        list = list.filter((c) => !isActive(c));
         break;
       case "Outstanding Companies":
         list = list.filter((c) => outstanding(c) > 0);
@@ -472,7 +469,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                     ["Credit Limit", summary.creditLimit],
                     ["Paid Companiess", summary.paidCompaniess],
                     ["Active Companiess", summary.activeCompaniess],
-                    ["On-Hold Companiess", summary.onHoldCompaniess],
+                  ["On-Hold Companiess", summary.onHoldCompaniess],
                   ].map(([label, value]) => (
                     <div
                       key={label}

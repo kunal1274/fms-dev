@@ -1,13 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
-import "react-toastify/dist/ReactToastify.css";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
-import "react-toastify/dist/ReactToastify.css";
 import { toast, ToastContainer } from "react-toastify";
 
-/* ---------- Constants (unchanged lists) ---------- */
 const businessTypes = [
   "Individual",
   "Manufacturing",
@@ -29,46 +24,9 @@ const paymentTerms = [
   "Net90D",
   "Advance",
 ];
+
 const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", "UPI"];
-
-/* ---------- Helpers (put OUTSIDE the component) ---------- */
-// disable all bank fields when type is non-bank
-const isBankFieldsDisabled = (type) =>
-  ["Cash", "Barter", "Crypto", "UPI"].includes(String(type || "").trim());
-
-// enable UPI input only for UPI/BankAndUpi
-const isUpiEnabled = (type) =>
-  ["UPI", "BankAndUpi"].includes(String(type || "").trim());
-
-// sanitize one bank row to match server rules
-const sanitizeBank = (b = {}, codeFromForm = "") => {
-  const t = String(b.type || "").trim();
-
-  const up = (s) =>
-    String(s || "")
-      .toUpperCase()
-      .trim();
-  const keep = (s) => String(s || "").trim();
-
-  // strip spaces; allow only A-Z a-z 0-9 @ . _ -
-  const cleanAcc = keep(b.bankAccNum).replace(/\s+/g, "");
-  const accValid = /^[A-Za-z0-9@._-]*$/.test(cleanAcc);
-
-  return {
-    code: codeFromForm,
-    type: t,
-    bankAccNum: accValid ? cleanAcc : "",
-    bankName: up(b.bankName),
-    accountHolderName: keep(b.accountHolderName),
-    ifsc: up(b.ifsc),
-    swift: up(b.swift),
-    qrDetails: keep(b.qrDetails),
-    active: true,
-  };
-};
-
-export default function CustomerForm({ handleCancel, onSaved }) {
-  /* ---------- State ---------- */
+export default function CustomerForm({ handleCancel }) {
   const [form, setForm] = useState({
     code: "",
     name: "",
@@ -111,45 +69,8 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     globalPartyId: "",
     active: true,
     qrDetails: "",
-    customerAccountNo: "", // will be generated
   });
-
-  const [customers, setCustomers] = useState([]);
-
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
-
-  /* ---------- Helpers ---------- */
-  const generateAccountNo = useCallback((list) => {
-    const last = (Array.isArray(list) ? list : [])
-      .map((c) => parseInt(c.customerAccountNo?.split("_")?.[1], 10))
-      .filter((n) => !isNaN(n))
-      .reduce((m, n) => Math.max(m, n), 0);
-  }, []);
-
-  const fetchCustomers = useCallback(async () => {
-    try {
-      const { data } = await axios.get(apiBase);
-      const arr = Array.isArray(data?.data) ? data.data : [];
-      setCustomers(arr);
-      setForm((prev) => ({
-        ...prev,
-        customerAccountNo: generateAccountNo(arr),
-      }));
-    } catch (err) {
-      console.error("Fetch customers failed:", {
-        status: err.response?.status,
-        data: err.response?.data,
-      });
-      toast.error(
-        err.response?.data?.message || err.message || "Couldn’t fetch customers"
-      );
-    }
-  }, [apiBase, generateAccountNo]);
-
-  useEffect(() => {
-    fetchCustomers();
-  }, [fetchCustomers]);
-
   const addBankDetail = () => {
     setForm((prev) => ({
       ...prev,
@@ -179,43 +100,80 @@ export default function CustomerForm({ handleCancel, onSaved }) {
       return { ...prev, bankDetails: updatedBanks };
     });
   };
-
+  // ─── Data ────────────────────────────────────────────────
+  const [customers, setCustomers] = useState([]);
+  const disableBankFields =
+    form.bankType === "Cash" ||
+    form.bankType === "Barter" ||
+    form.bankType === "qrDetails" ||
+    form.bankType === "Crypto";
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({});
   const handleFileUpload = async (file) => {
     if (!file) {
       toast.error("No file selected!");
       return;
     }
     setLogoUploading(true);
+
     try {
       const formData = new FormData();
       formData.append("logoImage", file);
 
-      await axios.post(`${apiBase}/upload-logo`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          setUploadProgress({ [file.name]: percentCompleted });
-        },
-      });
+      await axios.post(
+        "https://fms-qkmw.onrender.com/fms/api/v0/customers/upload-logo",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setUploadProgress({ [file.name]: percentCompleted });
+          },
+        }
+      );
 
       toast.success("File uploaded successfully! ✅");
-      await fetchCustomers();
-      handleCancel?.();
+      handleCancel();
+      await fetchCustomers(); // If you want to refresh after upload
     } catch (error) {
-      console.error("Upload failed:", {
-        status: error.response?.status,
-        data: error.response?.data,
-      });
+      console.error(error);
       toast.error("Error uploading logo!");
     } finally {
+      // Delay a little to let user feel "100% uploaded"
       setTimeout(() => {
-        setLogoUploading(false);
+        setLogoUploading(false); // 👈 this will hide the circle after success
         setUploadProgress({});
-      }, 500);
+      }, 500); // 0.5 second delay
     }
   };
+
+  // ─── Helpers ─────────────────────────────────────────────
+  const generateAccountNo = useCallback((list) => {
+    const last = list
+      .map((c) => parseInt(c.customerAccountNo?.split("_")[1], 10))
+      .filter((n) => !isNaN(n))
+      .reduce((m, n) => Math.max(m, n), 0);
+    return `CUST_${String(last + 1).padStart(3, "0")}`;
+  }, []);
+
+  // ─── Load existing customers once ────────────────────────
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await axios.get(apiBase);
+        setCustomers(data.data);
+        setForm((prev) => ({
+          ...prev,
+          customerAccountNo: generateAccountNo(data.data),
+        }));
+        // toast.info("Customer form ready", { autoClose: 800 });
+      } catch {
+        toast.error("Couldn’t fetch customers");
+      }
+    })();
+  }, [apiBase, generateAccountNo]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -233,34 +191,63 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     ) {
       val = val.charAt(0).toUpperCase() + val.slice(1);
     }
+const isBankFieldsDisabled = (type) =>
+  ["Cash", "Barter", "Crypto", "UPI"].includes(String(type || "").trim());
 
-    // Validators (top-level fields only)
+// enable UPI input only for UPI/BankAndUpi
+const isUpiEnabled = (type) =>
+  ["UPI", "BankAndUpi"].includes(String(type || "").trim());
+
+// sanitize one bank row to match server rules
+const sanitizeBank = (b = {}, codeFromForm = "") => {
+  const t = String(b.type || "").trim();
+
+  const up = (s) => String(s || "").toUpperCase().trim();
+  const keep = (s) => String(s || "").trim();
+
+  // strip spaces; allow only A-Z a-z 0-9 @ . _ -
+  const cleanAcc = keep(b.bankAccNum).replace(/\s+/g, "");
+  const accValid = /^[A-Za-z0-9@._-]*$/.test(cleanAcc);
+
+  return {
+    code: codeFromForm,
+    type: t,
+    bankAccNum: accValid ? cleanAcc : "",
+    bankName: up(b.bankName),
+    accountHolderName: keep(b.accountHolderName),
+    ifsc: up(b.ifsc),
+    swift: up(b.swift),
+    qrDetails: keep(b.qrDetails),
+    active: true,
+  };
+};const rowDisabled = isBankFieldsDisabled(bank.type);
+    // Validators
     const validators = {
-      // NOTE: bankAccNum here is the top-level one (unused in payload). We still keep it aligned.
-      bankAccNum: /^[A-Za-z0-9@._-]{0,25}$/,
-      bankName: /^[A-Z0-9\s]{0,50}$/,
+      bankAccNum: /^[0-9]{0,15}$/,
+      bankName: /^[A-Z0-9\s]{0,50}$/, // ✅ Now allows spaces and longer names
       panNum: /^[A-Z0-9]{0,10}$/,
       registrationNum: /^[A-Z0-9]{0,15}$/,
       ifsc: /^[A-Z0-9]{0,12}$/,
       swift: /^[A-Z0-9]{0,10}$/,
       tanNumber: /^[A-Z0-9]{0,10}$/,
       qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
+      bankAccNum: /^[A-Za-z0-9@._-]{0,25}$/,
       name: /^[A-Za-z\s]*$/,
       employeeName: /^[A-Za-z\s]*$/,
       email: /^.{0,100}$/,
       employeeEmail: /^.{0,100}$/,
-      contactNum: /^\d{0,10}$/,
-      contactPersonPhone: /^\d{0,10}$/,
-      creditLimit: /^\d{0,10}$/,
+      contactNum: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
+      contactPersonPhone: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
+      creditLimit: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
     };
 
-    // checkbox
+    // Handle checkbox separately
     if (type === "checkbox") {
       setForm((prev) => ({ ...prev, [name]: checked }));
       return;
     }
 
-    // Reset bank-related top-level fields if bankType is Cash-like (legacy fields)
+    // Reset bank-related fields if bankType is Cash-like
     if (
       name === "bankType" &&
       ["Cash", "Barter", "Crypto", "UPI"].includes(val.trim())
@@ -278,9 +265,10 @@ export default function CustomerForm({ handleCancel, onSaved }) {
       return;
     }
 
-    // Uppercase specific fields (NOT including account numbers)
+    // Uppercase specific fields
     if (
       [
+        "bankAccNum",
         "bankName",
         "panNum",
         "registrationNum",
@@ -299,24 +287,69 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     setForm((prev) => ({ ...prev, [name]: val }));
   };
 
+  // const createCustomer = async (e) => {
+  //   e.preventDefault();
+
+  //   const bankDetailsPayload = [
+  //     {
+  //       code: form.code, // your bank‐detail code
+  //       type: form.bankType, // e.g. "Bank", "UPI", etc.
+  //       bankAccNum: form.bankAccNum, // account number (≤18 digits)
+  //       bankName: form.bankName, // bank’s name
+  //       accountHolderName: form.accountHolderName, // name on the account
+  //       ifsc: form.ifsc, // 12‐char uppercase IFSC
+  //       swift: form.swift, // ≤16‐char uppercase SWIFT
+  //       active: true, // boolean flag
+  //       qrDetails: form.qrDetails, // whatever you store for UPI/QR
+  //     },
+  //   ];
+
+  //   const payload = {
+  //     ...form,
+  //     bankDetails: bankDetailsPayload,
+  //   };
+
+  //   try {
+  //     const { data } = await axios.post(apiBase, payload, {
+  //       headers: { "Content-Type": "application/json" },
+  //     });
+  //     const newCustomer = data.data;
+
+  //     toast.success("Customer saved", {
+  //       autoClose: 1200,
+  //       onClose: () => handleCancel(),
+  //     });
+
+  //     setCustomers((prev) => [...prev, newCustomer]);
+
+  //     onSaved?.(newCustomer);
+  //   } catch (err) {
+  //     console.error("Error creating customer:", err.response || err);
+  //     const msg = err.response?.data?.message || "Couldn’t save customer"; // ← define msg properly
+  //     toast.error(msg, { autoClose: 2000 });
+  //   }
+  // };
+
+  // ─── Reset / Cancel ──────────────────────────────────────
+
   const createCustomer = async (e) => {
     e.preventDefault();
 
     // Map and sanitize bank details from the array actually used in the UI
     const banks = (form.bankDetails || [])
       .map((b) => sanitizeBank(b, form.code))
-      .filter((b) => b.type); // drop empty rows (no type)
+      // drop empty rows (no type)
+      .filter((b) => b.type);
 
-    // Client guardrails
+    // Basic guardrails for UPI/Bank:
     for (const b of banks) {
-      if (
-        (b.type === "Bank" || b.type === "BankAndUpi") &&
-        (!b.bankName || !b.accountHolderName || !b.bankAccNum)
-      ) {
-        toast.error(
-          "Please fill Bank Name, Account Holder, and Account Number for Bank types."
-        );
-        return;
+      if (b.type === "Bank" || b.type === "BankAndUpi") {
+        if (!b.bankName || !b.accountHolderName || !b.bankAccNum) {
+          toast.error(
+            "Please fill Bank Name, Account Holder, and Account Number for Bank types."
+          );
+          return;
+        }
       }
       if (b.type === "UPI" && !b.qrDetails) {
         toast.error("Please provide a UPI ID for UPI type.");
@@ -324,16 +357,16 @@ export default function CustomerForm({ handleCancel, onSaved }) {
       }
     }
 
-    // TAN: server expects tanNum (exactly 10 chars)
+    // TAN: server expects tanNum (10 chars)
     const tanNum = (form.tanNumber || "").toUpperCase().trim();
     if (tanNum.length !== 10) {
-      toast.error("TAN must be exactly 10 characters (e.g., ABCDE1234F).");
+      toast.error("TAN must be exactly 10 characters (e.g., ABCD12345E).");
       return;
     }
 
-    // Build payload (avoid unused top-level bank fields)
+    // Build the payload (avoid sending unused top-level bank fields)
     const payload = {
-      code: form.code || form.customerAccountNo, // fall back to generated if code is empty
+      code: form.code || form.customerAccountNo, // if your API accepts code
       name: form.name,
       businessType: form.businessType,
       address: form.address,
@@ -351,38 +384,58 @@ export default function CustomerForm({ handleCancel, onSaved }) {
       currency: form.currency,
       panNum: (form.panNum || "").toUpperCase().trim(),
       registrationNum: (form.registrationNum || "").toUpperCase().trim(),
-      tanNum,
+      tanNum, // <- correct key for backend
       active: !!form.active,
-      bankDetails: banks,
+      bankDetails: banks, // <- array you actually edited
     };
 
     try {
       const { data } = await axios.post(apiBase, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      const newCustomer = data?.data;
 
+      const newCustomer = data?.data;
       toast.success("Customer saved", {
         autoClose: 1200,
-        onClose: () => handleCancel?.(),
+        onClose: () => handleCancel(),
       });
-
       setCustomers((prev) => [...prev, newCustomer]);
       onSaved?.(newCustomer);
     } catch (err) {
-      console.error("Error creating customer:", {
-        status: err.response?.status,
-        data: err.response?.data,
-      });
+      console.error("Error creating customer:", err.response || err);
       const msg =
         err.response?.data?.message ||
         err.response?.data?.error ||
-        err.message ||
         "Couldn’t save customer";
       toast.error(msg, { autoClose: 2500 });
     }
   };
 
+  const resetForm = (nextAccNo) =>
+    setForm({
+      ...form,
+      customerAccountNo: nextAccNo ?? generateAccountNo(customers),
+      name: "",
+      businessType: "",
+      address: "",
+      contactNum: "",
+      email: "",
+      group: "",
+      remarks: "",
+      employeeName: "",
+      employeePhone: "",
+      employeeEmail: "",
+      bankType: "",
+      bankName: "",
+      bankAccNum: "",
+      bankHolder: "",
+      ifsc: "",
+      swift: "",
+      upi: "",
+      panNum: "",
+      registrationNum: "",
+      active: true,
+    });
   const initialForm = {
     code: "",
     name: "",
@@ -410,23 +463,18 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     currency: "INR",
     panNum: "",
     registrationNum: "",
+
     active: true,
   };
-
-  const resetForm = (nextAccNo) =>
-    setForm((prev) => ({
-      ...initialForm,
-      customerAccountNo: nextAccNo ?? generateAccountNo(customers),
-      // keep globalPartyId if you want it preserved
-      globalPartyId: prev.globalPartyId || "",
-    }));
 
   const handleReset = () => {
     const newCustomerCode = generateAccountNo(customers);
     setForm({ ...initialForm, customerAccountNo: newCustomerCode });
   };
+  const handleEdit = () => {
+    navigate("/customerview", { state: { customer: formData } });
+  };
 
-  /* ---------- Render ---------- */
   return (
     <div className="">
       <ToastContainer />
@@ -462,7 +510,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
               </label>
               <input
                 name="customercode"
-                value={form.customerAccountNo}
+                value={form.code}
                 readOnly
                 placeholder="Auto-generated"
                 className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
@@ -500,8 +548,9 @@ export default function CustomerForm({ handleCancel, onSaved }) {
               </label>
               <select
                 name="businessType"
-                value={form.businessType ?? ""}
+                value={form.businessType}
                 onChange={handleChange}
+                options={businessTypes}
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
@@ -513,43 +562,19 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 ))}
               </select>
             </div>{" "}
-            {/* <div>
+            <div>
               <label className="block text-sm font-medium text-gray-600">
                 Contact No
               </label>
-              <PhoneInput
-                country="in" // default India
-                value={form.contactPersonPhone} // keep the "+91..." format here
-                onChange={(val, country, e, formattedValue) => {
-                  const dial = country?.dialCode ? `+${country.dialCode}` : "";
-                  const e164 = val ? `+${val}` : "";
-                  setForm((prev) => ({
-                    ...prev,
-                    countryCode: dial,
-                    contactNum: e164, // always store with "+"
-                  }));
-                }}
-                inputProps={{ name: "contactNum", required: true }}
-                containerClass="mt-1 w-full"
-                inputClass="!w-full !pl-18 !pr-7 !py-3 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
-                buttonClass="!border !rounded-l-lg "
-                dropdownClass="!shadow-lg"
-                enableSearch
-                prefix="+"
-              />
-            </div>{" "} */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-        Customer Contact No
-              </label>
               <input
-                name="contactPersonName"
-                value={form.contactPersonName}
+                name="contactNum"
+                value={form.contactNum}
                 onChange={handleChange}
-                placeholder="e.g. John Doe"
+                placeholder="e.g. +91 98765 43210"
+                required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
+            </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Email ID
@@ -622,7 +647,6 @@ export default function CustomerForm({ handleCancel, onSaved }) {
             <div className="space-y-4"></div>{" "}
           </div>
         </section>
-
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Contact Person
@@ -695,7 +719,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
               </label>
               <select
                 name="paymentTerms"
-                value={form.paymentTerms ?? ""}
+                value={form.paymentTerms}
                 onChange={handleChange}
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
@@ -715,7 +739,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
               </label>
               <select
                 name="currency"
-                value={form.currency ?? ""}
+                value={form.currency}
                 onChange={handleChange}
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
@@ -730,7 +754,6 @@ export default function CustomerForm({ handleCancel, onSaved }) {
             </div>
           </div>
         </section>
-
         {/* Bank Details */}
         <section className="p-6">
           <div className="flex items-center justify-between mb-4">
@@ -745,7 +768,12 @@ export default function CustomerForm({ handleCancel, onSaved }) {
           </div>
 
           {form.bankDetails.map((bank, index) => {
-            const rowDisabled = isBankFieldsDisabled(bank.type);
+            const disableBankFields = [
+              "Cash",
+              "Barter",
+              "Crypto",
+              "UPI",
+            ].includes(bank.type);
             return (
               <div
                 key={index}
@@ -757,15 +785,17 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                   </label>
                   <select
                     name="type"
-                    value={bank.type ?? ""}
+                    value={bank.type}
                     onChange={(e) => handleBankChange(index, e)}
                     required
                     className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                   >
                     <option value="">Select type</option>
                     {bankTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type === "BankAndUpi" ? "Bank And UPI" : type}
+                      <option key={type.trim()} value={type.trim()}>
+                        {type.trim() === "BankAndUpi"
+                          ? "Bank And UPI"
+                          : type.trim()}
                       </option>
                     ))}
                   </select>
@@ -779,10 +809,10 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                     name="bankName"
                     value={bank.bankName}
                     onChange={(e) => handleBankChange(index, e)}
-                    disabled={rowDisabled}
+                    disabled={disableBankFields}
                     placeholder="e.g. HDFC Bank"
                     className={`mt-1 w-full p-2 border rounded ${
-                      rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
+                      disableBankFields ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
                   />
                 </div>
@@ -795,9 +825,9 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                     name="bankAccNum"
                     value={bank.bankAccNum}
                     onChange={(e) => handleBankChange(index, e)}
-                    disabled={rowDisabled}
+                    disabled={disableBankFields}
                     className={`mt-1 w-full p-2 border rounded ${
-                      rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
+                      disableBankFields ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
                   />
                 </div>
@@ -810,9 +840,9 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                     name="accountHolderName"
                     value={bank.accountHolderName}
                     onChange={(e) => handleBankChange(index, e)}
-                    disabled={rowDisabled}
+                    disabled={disableBankFields}
                     className={`mt-1 w-full p-2 border rounded ${
-                      rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
+                      disableBankFields ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
                   />
                 </div>
@@ -825,9 +855,9 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                     name="ifsc"
                     value={bank.ifsc}
                     onChange={(e) => handleBankChange(index, e)}
-                    disabled={rowDisabled}
+                    disabled={disableBankFields}
                     className={`mt-1 w-full p-2 border rounded ${
-                      rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
+                      disableBankFields ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
                   />
                 </div>
@@ -840,9 +870,9 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                     name="swift"
                     value={bank.swift}
                     onChange={(e) => handleBankChange(index, e)}
-                    disabled={rowDisabled}
+                    disabled={disableBankFields}
                     className={`mt-1 w-full p-2 border rounded ${
-                      rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
+                      disableBankFields ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
                   />
                 </div>
@@ -869,6 +899,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
         </section>
 
         {/* Tax Information */}
+
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Tax Information
@@ -916,7 +947,6 @@ export default function CustomerForm({ handleCancel, onSaved }) {
             </div>
           </div>
         </section>
-
         {/* Action Buttons */}
         <div className="py-6 flex items-center justify-between">
           {/* Left side - Reset Button */}

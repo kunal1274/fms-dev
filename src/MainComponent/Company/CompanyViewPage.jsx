@@ -432,14 +432,16 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
 
         {/* Bank Details */}
         <section className="p-6">
-          <h2 className="text-lg font-medium text-gray-700 ">Bank Details</h2>
-          <button
-            type="button"
-            onClick={handleAddBank}
-            class="bg-gray-300 text-gray-800 border border-gray-400 px-4 py-2 rounded hover:bg-gray-400"
-          >
-            Add Bank
-          </button>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-medium text-gray-700">Bank Details</h2>
+            <button
+              type="button"
+              onClick={handleAddBank}
+              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              + Add Bank
+            </button>{" "}
+          </div>
           {formData.bankDetails?.length > 0 &&
             formData.bankDetails.map((b, i) => (
               <div key={i} className="rounded-lg mt-2">
