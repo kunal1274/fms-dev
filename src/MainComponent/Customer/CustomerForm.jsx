@@ -431,7 +431,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     <div className="">
       <ToastContainer />
       {/* Header Buttons */}
-      <div className="flex justify-between ">
+      <div className="flex justify-between sticky top-0 z-20 bg-white border-b">
         <div className="flex items-center space-x-2">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
             {" "}
@@ -540,7 +540,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
             </div>{" "} */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-        Customer Contact No
+                Customer Contact No
               </label>
               <input
                 name="contactPersonName"
@@ -614,12 +614,6 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 className="w-4 h-4"
               />
             </div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div className="space-y-4"></div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div className="space-y-4"></div>{" "}
           </div>
         </section>
 
