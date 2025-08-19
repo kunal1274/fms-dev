@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import ItemViewPage from "./ItemViewPage";
 import ItemForm from "./ItemForm";
-import ItemList from "./List";
+import ItemList from "./Itemlist";
 import { Button } from "../../../../../src/Component/Button/Button";
 
 import CompanyContext from "../../../../context/CompanyContext";
@@ -89,10 +89,8 @@ const ItemPage = () => {
   return (
     <div className="">
       {/* {renderHeader()} */}
-      <h2 className="mt-2 text-lg">
-        {/* Item Master - Selected Company: {form.company} */}
-      </h2>
-      <div className="mt-4">
+     
+      <div className="">
         {view === "list" && (
           <ItemList
             items={items}

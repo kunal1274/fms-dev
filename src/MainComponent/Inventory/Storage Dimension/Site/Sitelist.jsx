@@ -1,39 +1,40 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import * as XLSX from "xlsx";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Tabs } from "flowbite-react"; // kept to match your imports
 import "./c.css";
-import SiteViewPagee from "./SiteViewPagee";
-export default function SiteList({ handleAddSite }) {
+
+import SiteViewPage from "./SiteViewPage";
+
+export default function SiteList({ handleAddSite, onView }) {
+  /** ---------- API ---------- */
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
+  const metricsUrl = `${baseUrl}/metrics`;
 
-  // State
+  /** ---------- Helpers to normalize fields (match Postman) ---------- */
+  const getId = (c) => c?._id || c?.id || c?.code || "";
+  const getCode = (c) => c?.code || "";
+  const getName = (c) => c?.name || "";
+  const getType = (c) => c?.type || "";
+  const getDescription = (c) => c?.description || "";
+  const isActive = (c) => c?.active === true;
+  const isArchived = (c) => c?.archived === true;
+  // Leave onHold/status hooks intact if backend adds them later
+  const isOnHold = (c) => !!c?.onHold;
+  const outstanding = (c) => Number(c?.outstandingBalance || 0);
+  const getStatus = (c) => String(c?.status || "");
 
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
+  /** ---------- Date helpers (createdAt boundaries) ---------- */
+  const toStartOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStrLocal}T00:00:00`).toISOString();
+  const toEndOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStrLocal}T23:59:59.999`).toISOString();
 
-  const [selectedOption, setSelectedOption] = useState("All");
-  const toggleSelectAll = (e) => {
-    setSelectedSites(e.target.checked ? filteredSites.map((c) => c._id) : []);
-  };
-
-  const [sites, setSites] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [archivedFilter, setArchivedFilter] = useState("all");
-  const [sortKey, setSortKey] = useState("");
-  const [sortOrder, setSortOrder] = useState("asc");
-  // …any other state…
-  const goBack = () => setViewingSiteId(null);
-  // ––– now it’s safe to reference them in your useEffect:
-  useEffect(() => {
-    let data = [...sites];
-    // apply searchTerm, statusFilter, archivedFilter, sortKey, sortOrder…
-    setFilteredSites(data);
-  }, [sites, searchTerm, statusFilter, archivedFilter, sortKey, sortOrder]);
-  const [loadingMetrics, setLoadingMetrics] = useState(false);
-  const [viewingSiteId, setViewingSiteId] = useState(null);
-  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+  /** ---------- State ---------- */
   const tabNames = [
     "Site List",
     "Paid Site",
@@ -41,102 +42,245 @@ export default function SiteList({ handleAddSite }) {
     "Hold Site",
     "Outstanding Site",
   ];
-  const [selectedSites, setSelectedSites] = useState([]);
-  const [filteredSites, setFilteredSites] = useState([]);
+
   const [activeTab, setActiveTab] = useState(tabNames[0]);
-  const [siteSummary, setSiteSummary] = useState({
-    count: 0,
-    creditLimit: 0,
-    paidSites: 0,
-    activeSites: 0,
-    onHoldSites: 0,
-  });
-  const handleFilterChange = (e) => {
-    const value = e.target.value;
-    setSelectedOption(value);
 
-    let filtered = [...sites];
+  const [Site, setSite] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [viewingSiteId, setViewingSiteId] = useState(null);
 
-    if (value === "All") {
-      setFilteredSites(filtered);
-    } else if (value === "yes") {
-      setFilteredSites(filtered.filter((site) => site.active === true));
-    } else if (value === "no") {
-      setFilteredSites(filtered.filter((site) => site.active === false));
-    } else if (value === "Site Name") {
-      filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
-      setFilteredSites(filtered);
-    } else if (value === "Site Account no") {
-      filtered = filtered.sort((a, b) => a.code.localeCompare(b.code));
-      setFilteredSites(filtered);
-    } else if (value === "Site Account no descending") {
-      filtered = filtered.sort((a, b) => b.code.localeCompare(a.code));
-      setFilteredSites(filtered);
-    }
-  };
-  const fetchSites = useCallback(async () => {
-    setLoading(true);
-    try {
-      const resp = await axios.get(baseUrl);
-      // pull out the actual array
-      const arr = Array.isArray(resp.data) ? resp.data : resp.data.sites ?? [];
-      setSites(arr);
-      setFilteredSites(arr);
-    } catch (err) {
-      console.error(err);
-      toast.error("Error loading sites");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchSites();
-  }, [fetchSites]);
-
-  useEffect(() => {
-    // guard against non-array
-    const base = Array.isArray(sites) ? sites : [];
-    let data = [...base];
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      data = data.filter(
-        (s) =>
-          s.code.toLowerCase().includes(term) ||
-          s.name.toLowerCase().includes(term)
-      );
-    }
-
-    // … your other filters …
-
-    setFilteredSites(data);
-  }, [sites, searchTerm, statusFilter, archivedFilter, sortKey, sortOrder]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
+  const [sortOption, setSortOption] = useState(""); // name-asc | code-asc | code-desc
 
   const [startDate, setStartDate] = useState(
     new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
   );
+  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+
+  const [summary, setSummary] = useState({
+    count: 0,
+    activeSites: 0,
+    archivedSites: 0,
+  });
+
   const [loading, setLoading] = useState(false);
-  const handleDeleteSelected = async () => {
-    if (!selectedSites.length) {
-      toast.info("No Sites selected to delete");
-      return;
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchSite = useCallback(
+    async (fromDate = startDate, toDate = endDate) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const fromISO = toStartOfDayISO(fromDate);
+        const toISO = toEndOfDayISO(toDate);
+
+        const { data: resp } = await axios.get(baseUrl, {
+          params: { from: fromISO, to: toISO },
+        });
+
+        // Normalize the list (support {data: []} or [] shapes)
+        const list = resp?.data || resp || [];
+        const arrayList = Array.isArray(list) ? list : [];
+
+        // Defensive client-side filter by createdAt (include if missing)
+        const fromMs = new Date(fromISO).getTime();
+        const toMs = new Date(toISO).getTime();
+        const filteredByCreatedAt = arrayList.filter((c) => {
+          if (!c?.createdAt) return true;
+          const t = new Date(c.createdAt).getTime();
+          return t >= fromMs && t <= toMs;
+        });
+
+        setSite(filteredByCreatedAt);
+
+        // Baseline summary (if metrics fail)
+        const activeCount = filteredByCreatedAt.filter((c) =>
+          isActive(c)
+        ).length;
+        const archivedCount = filteredByCreatedAt.filter((c) =>
+          isArchived(c)
+        ).length;
+
+        setSummary({
+          count: filteredByCreatedAt.length || 0,
+          activeSites: activeCount,
+          archivedSites: archivedCount,
+        });
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load Site data.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [startDate, endDate]
+  );
+
+  const fetchMetrics = useCallback(
+    async (fromDate = startDate, toDate = endDate) => {
+      setLoadingMetrics(true);
+      try {
+        const fromISO = toStartOfDayISO(fromDate);
+        const toISO = toEndOfDayISO(toDate);
+
+        const { data: resp } = await axios.get(metricsUrl, {
+          params: { from: fromISO, to: toISO },
+        });
+
+        const m = (resp?.metrics && resp.metrics[0]) || {};
+        setSummary((prev) => ({
+          count: m?.totalSites ?? prev.count,
+          activeSites: m?.activeSites ?? prev.activeSites,
+          archivedSites: m?.archivedSites ?? prev.archivedSites,
+        }));
+      } catch (err) {
+        console.error(err);
+        // metrics optional
+      } finally {
+        setLoadingMetrics(false);
+      }
+    },
+    [startDate, endDate]
+  );
+
+  useEffect(() => {
+    fetchSite();
+    fetchMetrics();
+  }, [fetchSite, fetchMetrics]);
+
+  /** ---------- Derived: filtered + sorted list ---------- */
+  const filteredSite = useMemo(() => {
+    let list = [...Site];
+
+    // Tabs
+    switch (activeTab) {
+      case "Site List":
+        // no extra filter
+        break;
+      case "Paid Site":
+        list = list.filter((c) => getStatus(c) === "Paid");
+        break;
+      case "Active Site":
+        list = list.filter((c) => isActive(c));
+        break;
+      case "Hold Site":
+        list = list.filter((c) => isOnHold(c));
+        break;
+      case "Outstanding Site":
+        list = list.filter((c) => outstanding(c) > 0);
+        break;
+      default:
+        break;
     }
 
-    if (!window.confirm("Delete selected Sites?")) return;
+    // Status filter (dropdown)
+    if (statusFilter === "Active") list = list.filter((c) => isActive(c));
+    else if (statusFilter === "Inactive")
+      list = list.filter((c) => !isActive(c));
 
+    // Search (use Postman fields)
+    const term = searchTerm.trim().toLowerCase();
+    if (term) {
+      list = list.filter((c) => {
+        const hay = [getName(c), getCode(c), getType(c), getDescription(c)]
+          .join(" | ")
+          .toLowerCase();
+        return hay.includes(term);
+      });
+    }
+
+    // Sort
+    const cmpStr = (a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: "base" });
+    if (sortOption === "name-asc")
+      list.sort((a, b) => cmpStr(getName(a), getName(b)));
+    if (sortOption === "name-desc")
+      list.sort((a, b) => cmpStr(getName(b), getName(a)));
+    if (sortOption === "code-asc")
+      list.sort((a, b) => cmpStr(getCode(a), getCode(b)));
+    if (sortOption === "code-desc")
+      list.sort((a, b) => cmpStr(getCode(b), getCode(a)));
+
+    return list;
+  }, [Site, activeTab, statusFilter, searchTerm, sortOption]);
+
+  /** ---------- Handlers ---------- */
+  const onTabClick = (tab) => {
+    setActiveTab(tab);
+    if (sortOption || statusFilter !== "All" || searchTerm) {
+      resetFilters();
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSiteClick = (siteId) => {
+    if (onView) onView(siteId);
+    setViewingSiteId(siteId);
+  };
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("All");
+    setSelectedIds([]);
+    setSortOption("");
+  };
+
+  const handleSortChange = (e) => {
+    const v = e.target.value;
+    if (v === "name-asc" || v === "code-asc" || v === "code-desc") {
+      setSortOption(v);
+    } else {
+      setSortOption("");
+    }
+  };
+
+  const handleStatusChange = (e) => {
+    const v = e.target.value;
+    if (v === "yes") return setStatusFilter("Active");
+    if (v === "no") return setStatusFilter("Inactive");
+    setStatusFilter("All");
+  };
+
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
+
+  const toggleSelectAll = (e) => {
+    setSelectedIds(e.target.checked ? filteredSite.map((c) => getId(c)) : []);
+  };
+
+  const handleCheckboxChange = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleDeleteSelected = async () => {
+    if (!selectedIds.length) {
+      toast.info("No site selected to delete");
+      return;
+    }
+    if (
+      !window.confirm(
+        `Delete ${selectedIds.length} selected site${
+          selectedIds.length > 1 ? "s" : ""
+        }?`
+      )
+    ) {
+      return;
+    }
     try {
       const results = await Promise.allSettled(
-        selectedSites.map((id) => axios.delete(`${baseUrl}/${id}`))
+        selectedIds.map((id) => axios.delete(`${baseUrl}/${id}`))
       );
-
       const succeeded = results.filter((r) => r.status === "fulfilled").length;
-      const failed = results.filter((r) => r.status === "rejected").length;
+      const failed = results.length - succeeded;
 
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
-        await fetchSites();
-        setSelectedSites([]);
+        setSelectedIds([]);
+        await fetchSite(startDate, endDate);
+        await fetchMetrics(startDate, endDate);
       }
       if (failed) toast.error(`${failed} failed — check console`);
     } catch (err) {
@@ -144,194 +288,124 @@ export default function SiteList({ handleAddSite }) {
       toast.error("Unexpected error while deleting");
     }
   };
-  // Column definitions matching backend model
-  const resetFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("All");
-    setSortOption("");
-  };
-  const columns = [
-    { key: "code", label: "Code" },
-    { key: "name", label: "Name" },
-    { key: "description", label: "Description" },
-    { key: "type", label: "Type" },
-    { key: "active", label: "Active" },
-    { key: "archived", label: "Archived" },
-    { key: "createdAt", label: "Created At" },
-  ];
+
+  /** ---------- Export (match Postman fields) ---------- */
   const exportToExcel = () => {
-    if (!siteList.length) {
+    const rows = filteredSite.length ? filteredSite : Site;
+    if (!rows.length) {
       toast.info("No data to export.");
       return;
     }
-    const ws = XLSX.utils.json_to_sheet(siteList);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "sites");
-    XLSX.writeFile(wb, "site_list.xlsx");
-  };
-  const fetchMetrics = useCallback(async () => {
-    try {
-      const { data: resp } = await axios.get(metricsUrl, {
-        params: { from: startDate, to: endDate },
-      });
+    const data = rows.map((c, i) => ({
+      "#": i + 1,
+      Code: getCode(c),
+      Name: getName(c),
+      Type: getType(c),
+      Description: getDescription(c),
+      Active: isActive(c) ? "Yes" : "No",
+      Archived: isArchived(c) ? "Yes" : "No",
+      CreatedAt: c?.createdAt ? new Date(c.createdAt).toLocaleString() : "",
+      UpdatedAt: c?.updatedAt ? new Date(c.updatedAt).toLocaleString() : "",
+      _id: getId(c),
+    }));
 
-      const m = (resp.metrics && resp.metrics[0]) || {};
-      setSiteSummary((prev) => ({
-        ...prev,
-        count: m.totalSites ?? prev.count,
-        creditLimit: m.creditLimit ?? prev.creditLimit,
-        paidSites: m.paidSites ?? prev.paidSites,
-        activeSites: m.activeSites ?? prev.activeSites,
-        onHoldSites: m.onHoldSites ?? prev.onHoldSites,
-      }));
-    } catch (err) {
-      console.error(err);
-    }
-  }, [startDate, endDate]);
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sites");
+    XLSX.writeFile(wb, "Site_list.xlsx");
+  };
+
   const generatePDF = () => {
+    const rows = filteredSite.length ? filteredSite : Site;
+    if (!rows.length) {
+      toast.info("No data to export.");
+      return;
+    }
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
-      head: [["#", "Code", "Name", "type", "Description", "Status"]],
-      body: filteredSites.map((c, i) => [
+      head: [
+        [
+          "#",
+          "Code",
+          "Name",
+          "Type",
+          "Description",
+          "Created At",
+          "Updated At",
+          "Status",
+          "Archived",
+        ],
+      ],
+      body: rows.map((c, i) => [
         i + 1,
-        c.code,
-        c.name,
-        c.contactNum,
-        c.address,
-        c.active ? "Active" : "Inactive",
+        getCode(c),
+        getName(c),
+        getType(c),
+        getDescription(c),
+        c?.createdAt ? new Date(c.createdAt).toLocaleString() : "",
+        c?.updatedAt ? new Date(c.updatedAt).toLocaleString() : "",
+        isActive(c) ? "Active" : "Inactive",
+        isArchived(c) ? "Yes" : "No",
       ]),
     });
     doc.save("Site_list.pdf");
   };
-  // Fetch sites from API
 
-  useEffect(() => {
-    fetchSites();
-  }, [fetchSites]);
-  const handleCheckboxChange = (id) => {
-    setSelectedSites((s) =>
-      s.includes(id) ? s.filter((x) => x !== id) : [...s, id]
+  /** ---------- View toggle ---------- */
+  const goBack = () => setViewingSiteId(null);
+
+  /** ---------- Render ---------- */
+  if (loading) return <div>Loading…</div>;
+  if (error) return <div className="text-red-600">{error}</div>;
+
+  if (viewingSiteId) {
+    return (
+      <div className="p-4">
+        <SiteViewPage SiteId={viewingSiteId} goBack={goBack} />
+      </div>
     );
-  };
-
-  const onTabClick = (tab) => {
-    setActiveTab(tab);
-    // if you need to filter metrics by tab, do that here
-  };
-
-  const handlesiteClick = (id) => {
-    setViewingSiteId(id);
-  };
-  // Filter, search, sort whenever dependencies change
-  useEffect(() => {
-    let data = [...sites];
-
-    // Text search
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      data = data.filter(
-        (s) =>
-          s.code.toLowerCase().includes(term) ||
-          s.name.toLowerCase().includes(term)
-      );
-    }
-
-    // Active/Inactive filter
-    if (statusFilter !== "all") {
-      const isActive = statusFilter === "active";
-      data = data.filter((s) => s.active === isActive);
-    }
-
-    // Archived filter
-    if (archivedFilter !== "all") {
-      const isArchived = archivedFilter === "archived";
-      data = data.filter((s) => s.archived === isArchived);
-    }
-
-    // Sorting
-    if (sortKey) {
-      data.sort((a, b) => {
-        const aVal = a[sortKey] ?? "";
-        const bVal = b[sortKey] ?? "";
-        let cmp = 0;
-        if (typeof aVal === "string" && typeof bVal === "string") {
-          cmp = aVal.localeCompare(bVal);
-        } else if (aVal > bVal) cmp = 1;
-        else if (aVal < bVal) cmp = -1;
-        return sortOrder === "asc" ? cmp : -cmp;
-      });
-    }
-
-    setFilteredSites(data);
-  }, [sites, searchTerm, statusFilter, archivedFilter, sortKey, sortOrder]);
+  }
 
   return (
     <div>
       <div>
         <div>
           {viewingSiteId ? (
-            <SiteViewPagee
-              // toggleView={toggleView}
-              siteId={viewingSiteId}
-              goBack={goBack}
-            />
+            <SiteViewPage SiteId={viewingSiteId} goBack={goBack} />
           ) : (
             <div className="space-y-6">
               <ToastContainer />
-              {/* Header Buttons */}
-              <div className="flex justify-between ">
-                <div className="flex items-center space-x-2">
-                  <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-                    {" "}
-                    <button
-                      type="button"
-                      className="text-blue-600 mt-2 text-sm hover:underline"
-                    >
-                      Upload Photo
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-8 w-8 text-gray-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
-                        />
-                      </svg>{" "}
-                    </button>
-                  </div>
 
-                  {/* </div> */}
+              {/* Header Buttons (stack on small) */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center space-x-2 ">
                   <h3 className="text-xl font-semibold">Site List</h3>
                 </div>
-                <div className="flex items-center gap-3 ">
+
+                {/* Buttons wrap on small */}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <button
                     onClick={handleAddSite}
-                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     + Add
                   </button>
                   <button
                     onClick={handleDeleteSelected}
-                    disabled={!selectedSites.length}
-                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                    disabled={!selectedIds.length}
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     Delete
                   </button>
                   <button
                     onClick={generatePDF}
-                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     PDF
                   </button>
                   <button
                     onClick={exportToExcel}
-                    c
-                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+                    className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     Export
                   </button>
@@ -340,36 +414,40 @@ export default function SiteList({ handleAddSite }) {
 
               {/* Metrics */}
               <div className=" bg-white rounded-lg ">
-                <div className="flex gap-2">
+                {/* Date filters */}
+                <div className="flex flex-wrap gap-2">
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="border rounded px-2 py-1"
+                    className="border rounded px-2 py-1 w-full sm:w-auto"
                   />
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="border rounded px-2 py-1"
+                    className="border rounded px-2 py-1 w-full sm:w-auto"
                   />
                   <button
-                    onClick={() => {
-                      fetchMetrics();
-                      fetchSites(startDate, endDate);
+                    onClick={async () => {
+                      await fetchMetrics(startDate, endDate);
+                      await fetchSite(startDate, endDate);
                     }}
-                    className="px-3 py-1 border rounded"
+                    className="px-3 py-1 border rounded w-full sm:w-auto"
                   >
                     {loadingMetrics ? "Applying…" : "Apply"}
                   </button>
                 </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Sites", siteSummary.count],
-                    ["Credit Limit", siteSummary.creditLimit],
-                    ["Paid sites", siteSummary.paidsites],
-                    ["Active sites", siteSummary.activesites],
-                    ["On‑Hold sites", siteSummary.onHoldsites],
+                    ["Total Sites", summary.count],
+                    ["Active Sites", summary.activeSites],
+                    ["Archived Sites", summary.archivedSites],
+                    [
+                      "Inactive (calc)",
+                      Math.max(summary.count - summary.activeSites, 0),
+                    ],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -384,24 +462,22 @@ export default function SiteList({ handleAddSite }) {
 
               {/* Filters & Search */}
               <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md  mb-2 space-y-3 md:space-y-0 md:space-x-4">
-                {/* Left group: Sort By, Filter By Status, Search */}
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-wrap items-center gap-3 md:gap-4">
                   {/* Sort By */}
                   <div className="relative">
                     <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <select
-                      defaultValue=""
-                      value={selectedOption}
-                      onChange={handleFilterChange}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                      value={sortOption}
+                      onChange={handleSortChange}
+                      className="w-full sm:w-56 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="site Name">site Name</option>
-                      <option value="site Account no">
-                        site Account in Ascending
+                      <option value="name-asc">Site Name</option>
+                      <option value="code-asc">
+                        Site Account in Ascending
                       </option>
-                      <option value="site Account no descending">
-                        site Account in descending
+                      <option value="code-desc">
+                        Site Account in Descending
                       </option>
                     </select>
                   </div>
@@ -411,9 +487,15 @@ export default function SiteList({ handleAddSite }) {
                     <FaFilter className=" text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <select
                       defaultValue="All"
-                      className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                      value={selectedOption}
-                      onChange={handleFilterChange}
+                      className="w-full sm:w-56 pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                      value={
+                        statusFilter === "Active"
+                          ? "yes"
+                          : statusFilter === "Inactive"
+                          ? "no"
+                          : "All"
+                      }
+                      onChange={handleStatusChange}
                     >
                       <option value="All">Filter By Status</option>
                       <option value="yes">Active</option>
@@ -422,17 +504,15 @@ export default function SiteList({ handleAddSite }) {
                   </div>
 
                   {/* Search */}
-                  <div className="relative">
+                  <div className="relative w-full sm:w-60">
                     <input
                       type="text"
                       placeholder="Search..."
                       value={searchTerm}
                       onChange={handleSearchChange}
-                      className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                     <button
-                      value={searchTerm}
-                      onChange={handleSearchChange}
                       type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
                     >
@@ -441,17 +521,33 @@ export default function SiteList({ handleAddSite }) {
                   </div>
                 </div>
 
-                {/* Right side: Reset Filter */}
                 <button
                   onClick={resetFilters}
-                  className="text-red-500 hover:text-red-600 font-medium"
+                  disabled={
+                    !(
+                      sortOption ||
+                      statusFilter === "Active" ||
+                      statusFilter === "Inactive" ||
+                      searchTerm
+                    )
+                  }
+                  className={`font-medium w-full sm:w-auto transition
+    ${
+      sortOption ||
+      statusFilter === "Active" ||
+      statusFilter === "Inactive" ||
+      searchTerm
+        ? "text-red-500 hover:text-red-600 cursor-pointer"
+        : "text-gray-400 cursor-not-allowed"
+    }`}
                 >
                   Reset Filter
                 </button>
               </div>
-              <div className="flex">
-                {" "}
-                <ul className="flex space-x-6 list-none p-0 m-0">
+
+              {/* Tabs */}
+              <div className="flex overflow-x-auto">
+                <ul className="flex space-x-6 list-none p-0 m-0 whitespace-nowrap px-1">
                   {tabNames.map((tab) => (
                     <li
                       key={tab}
@@ -467,9 +563,10 @@ export default function SiteList({ handleAddSite }) {
                   ))}
                 </ul>
               </div>
+
               {/* Data Table */}
-              <div className="table-scroll-container h-[400px] overflow-auto bg-white rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
+              <div className="table-scroll-container h-[60vh] md:h-[400px] overflow-auto bg-white rounded-lg">
+                <table className="min-w-[900px] md:min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="sticky top-0 z-10 px-4 py-2 bg-gray-50">
@@ -477,16 +574,21 @@ export default function SiteList({ handleAddSite }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedSites.length === filteredSites.length &&
-                            filteredSites.length > 0
+                            selectedIds.length === filteredSite.length &&
+                            filteredSite.length > 0
                           }
                           className="form-checkbox"
                         />
                       </th>
                       {[
-                    
-                    
-                    
+                        "Code",
+                        "Type",
+                        "Name",
+                        "Description",
+                        "Created At",
+                        "Updated At",
+                        "Status",
+                  
                       ].map((h) => (
                         <th
                           key={h}
@@ -498,54 +600,77 @@ export default function SiteList({ handleAddSite }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredSites.length ? (
-                      filteredSites.map((c) => (
+                    {filteredSite.length ? (
+                      filteredSite.map((c) => (
                         <tr
-                          key={c.code}
+                          key={getId(c)}
                           className="hover:bg-gray-100 transition-colors"
                         >
                           <td className="px-4 py-2">
                             <input
                               type="checkbox"
-                              checked={selectedSites.includes(c._id)}
-                              onChange={() => handleCheckboxChange(c._id)}
+                              checked={selectedIds.includes(getId(c))}
+                              onChange={() => handleCheckboxChange(getId(c))}
                               className="form-checkbox"
                             />
                           </td>
-                          <td
-                          // onClick={() => handlesiteClick(site._id)}
-                          // className="px-6 py-4 cursor-pointer text-blue-600 hover:underline"
-                          >
+
+                          {/* Code (clickable) */}
+                          <td className="px-6 py-4">
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handlesiteClick(c._id)}
+                              onClick={() => handleSiteClick(getId(c))}
                             >
-                              {c.code}
+                              {getCode(c)}
                             </button>
                           </td>
-                          <td className="px-6 py-4">{c.name}</td>
-                          <td className="px-6 py-4">{c.description}</td>{" "}
-                          <td className="px-6 py-4">{c.type}</td>
+
+                          {/* Type */}
+                          <td className="px-6 py-4">{getType(c)}</td>
+
+                          {/* Name */}
+                          <td className="px-6 py-4">{getName(c)}</td>
+
+                          {/* Description */}
                           <td className="px-6 py-3 truncate">
-                            {new Date(c.createdAt).toLocaleString()}
+                            {getDescription(c)}
                           </td>
+
+                          {/* Created At */}
+                          <td className="px-6 py-4">
+                            {c?.createdAt
+                              ? new Date(c.createdAt).toLocaleString()
+                              : ""}
+                          </td>
+
+                          {/* Updated At */}
+                          <td className="px-6 py-4">
+                            {c?.updatedAt
+                              ? new Date(c.updatedAt).toLocaleString()
+                              : ""}
+                          </td>
+
+                          {/* Status */}
                           <td className="px-6 py-4">
                             <span
                               className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                c.active
+                                isActive(c)
                                   ? "bg-green-100 text-green-800"
                                   : "bg-red-100 text-red-800"
                               }`}
                             >
-                              {c.active ? "Active" : "Inactive"}
+                              {isActive(c) ? "Active" : "Inactive"}
                             </span>
                           </td>
+
+                      
+                      
                         </tr>
                       ))
                     ) : (
                       <tr>
                         <td
-                          colSpan={6}
+                          colSpan={9}
                           className="px-6 py-4 text-center text-sm text-gray-500"
                         >
                           No data

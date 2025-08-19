@@ -8,8 +8,8 @@ import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
 
-// NOTE: change this import back to "./VendorViewPagee" if your file is named that.
-import VendorViewPage from "./VendorViewPage";
+// NOTE: change this import back to "./ItemViewPagee" if your file is named that.
+import ItemViewPage from "./ItemViewPage";
 
 /** ---------- Small helpers to normalize fields ---------- */
 const getId = (c) => c?._id || c?.id || c?.customerId || c?.code || "";
@@ -17,7 +17,8 @@ const getCode = (c) => c?.customerCode || c?.code || "";
 const getName = (c) => c?.customerName || c?.name || "";
 const getEmail = (c) => c?.email || "";
 const getGST = (c) => c?.taxInfo?.gstNumber || "";
-const getAddress = (c) => c?.primaryGSTAddress || c?.address || "";
+const getDescription = (c) =>
+  c?.description || c?.primaryGSTDescription || c?.address || "";
 const getBusinessType = (c) => c?.businessType || "";
 const getCurrency = (c) => c?.currency || "";
 const isActive = (c) => !!c?.active;
@@ -30,18 +31,18 @@ const toStartOfDayISO = (localDateStr /* YYYY-MM-DD */) =>
 const toEndOfDayISO = (localDateStr /* YYYY-MM-DD */) =>
   new Date(`${localDateStr}T23:59:59.999`).toISOString();
 
-export default function VendorList({ handleAddVendor }) {
+export default function ItemList({ handleAddItem }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const metricsUrl = `${baseUrl}/metrics`;
 
   /** ---------- Tabs ---------- */
   const tabNames = [
-    "Vendor List",
-    "Paid Vendor",
-    "Active Vendor",
-    "Hold Vendor",
-    "Outstanding Vendor",
+    "Item List",
+    "Paid Item",
+    "Active Item",
+    "Hold Item",
+    "Outstanding Item",
   ];
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
@@ -52,8 +53,8 @@ export default function VendorList({ handleAddVendor }) {
   const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
 
   /** ---------- Data & View ---------- */
-  const [customers, setVendors] = useState([]);
-  const [viewingVendorId, setViewingVendorId] = useState(null);
+  const [customers, setItems] = useState([]);
+  const [viewingItemId, setViewingItemId] = useState(null);
 
   /** ---------- Filters ---------- */
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,9 +68,9 @@ export default function VendorList({ handleAddVendor }) {
   const [summary, setSummary] = useState({
     count: 0,
     creditLimit: 0,
-    paidVendors: 0,
-    activeVendors: 0,
-    onHoldVendors: 0,
+    paidItems: 0,
+    activeItems: 0,
+    onHoldItems: 0,
   });
 
   /** ---------- UX ---------- */
@@ -77,8 +78,8 @@ export default function VendorList({ handleAddVendor }) {
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
 
-  /** ---------- Fetch: Vendors ---------- */
-  const fetchVendors = useCallback(
+  /** ---------- Fetch: Items ---------- */
+  const fetchItems = useCallback(
     async (fromDate = startDate, toDate = endDate) => {
       setLoading(true);
       setError(null);
@@ -102,7 +103,7 @@ export default function VendorList({ handleAddVendor }) {
           return t >= fromMs && t <= toMs;
         });
 
-        setVendors(filtered);
+        setItems(filtered);
 
         // Baseline summary (fallback if metrics call fails)
         setSummary({
@@ -111,10 +112,10 @@ export default function VendorList({ handleAddVendor }) {
             (s, c) => s + (Number(c?.creditLimit) || 0),
             0
           ),
-          paidVendors: filtered.filter((c) => getStatus(c) === "Paid").length,
-          activeVendors: filtered.filter((c) => isActive(c)).length,
+          paidItems: filtered.filter((c) => getStatus(c) === "Paid").length,
+          activeItems: filtered.filter((c) => isActive(c)).length,
 
-          onHoldVendors: filtered.filter((c) => isHold(c)).length, // Hold == Inactive
+          onHoldItems: filtered.filter((c) => isHold(c)).length, // Hold == Inactive
         });
       } catch (err) {
         console.error(err);
@@ -142,19 +143,19 @@ export default function VendorList({ handleAddVendor }) {
         const m = (resp?.metrics && resp.metrics[0]) || {};
         setSummary((prev) => ({
           ...prev,
-          count: m?.totalVendors ?? prev.count,
+          count: m?.totalItems ?? prev.count,
           creditLimit: m?.creditLimit ?? prev.creditLimit,
-          paidVendors: m?.paidVendors ?? prev.paidVendors,
-          activeVendors: m?.activeVendors ?? prev.activeVendors,
-          onHoldVendors: m?.onHoldVendors ?? prev.onHoldVendors,
+          paidItems: m?.paidItems ?? prev.paidItems,
+          activeItems: m?.activeItems ?? prev.activeItems,
+          onHoldItems: m?.onHoldItems ?? prev.onHoldItems,
           count: filtered.length,
           creditLimit: filtered.reduce(
             (s, c) => s + (Number(c?.creditLimit) || 0),
             0
           ),
-          paidVendors: filtered.filter((c) => getStatus(c) === "Paid").length,
-          activeVendors: filtered.filter((c) => isActive(c)).length,
-          onHoldVendors: filtered.filter((c) => isInactive(c)).length, // Hold == Inactive
+          paidItems: filtered.filter((c) => getStatus(c) === "Paid").length,
+          activeItems: filtered.filter((c) => isActive(c)).length,
+          onHoldItems: filtered.filter((c) => isInactive(c)).length, // Hold == Inactive
         }));
       } catch (err) {
         // optional; ignore errors
@@ -168,26 +169,26 @@ export default function VendorList({ handleAddVendor }) {
 
   /** ---------- Initial + on date change ---------- */
   useEffect(() => {
-    fetchVendors();
+    fetchItems();
     fetchMetrics();
-  }, [fetchVendors, fetchMetrics]);
+  }, [fetchItems, fetchMetrics]);
 
   /** ---------- Derived: filtered + sorted customers ---------- */
-  const filteredVendors = useMemo(() => {
+  const filteredItems = useMemo(() => {
     let list = [...customers];
 
     // Tabs
     switch (activeTab) {
-      case "Paid Vendor":
+      case "Paid Item":
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
-      case "Active Vendor":
+      case "Active Item":
         list = list.filter((c) => isActive(c));
         break;
-      case "Hold Vendor":
+      case "Hold Item":
         list = list.filter((c) => isInactive(c)); // show inactive customers
         break;
-      case "Outstanding Vendor":
+      case "Outstanding Item":
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
@@ -210,7 +211,7 @@ export default function VendorList({ handleAddVendor }) {
           getCode(c),
           getEmail(c),
           getGST(c),
-          getAddress(c),
+          getDescription(c),
           getBusinessType(c),
           getCurrency(c),
         ]
@@ -252,16 +253,17 @@ export default function VendorList({ handleAddVendor }) {
 
   const handleSortChange = (e) => {
     const v = e.target.value;
-    if (v === "Vendor Name") return setSortOption("name-asc");
-    if (v === "Vendor Account no") return setSortOption("code-asc");
-    if (v === "Vendor Account no descending") return setSortOption("code-desc");
+    if (v === "Item Name") return setSortOption("name-asc");
+    if (v === "Item Account no") return setSortOption("code-asc");
+    if (v === "Item Account no descending")
+      return setSortOption("code-desc");
     setSortOption(v || "");
   };
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const toggleSelectAll = (e) => {
-    setSelectedIds(e.target.checked ? filteredVendors.map(getId) : []);
+    setSelectedIds(e.target.checked ? filteredItems.map(getId) : []);
   };
 
   const handleCheckboxChange = (id) => {
@@ -288,7 +290,7 @@ export default function VendorList({ handleAddVendor }) {
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
-        await fetchVendors(startDate, endDate);
+        await fetchItems(startDate, endDate);
         await fetchMetrics(startDate, endDate);
       }
       if (failed) toast.error(`${failed} failed — check console`);
@@ -312,7 +314,7 @@ export default function VendorList({ handleAddVendor }) {
         GST: getGST(c),
         BusinessType: getBusinessType(c),
         Currency: getCurrency(c),
-        Address: getAddress(c),
+        Description: getDescription(c),
         Status: isActive(c) ? "Active" : "Inactive",
         CreatedAt: c?.createdAt || "",
         Contact: c?.contactNum || "",
@@ -320,21 +322,21 @@ export default function VendorList({ handleAddVendor }) {
       }))
     );
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Vendors");
+    XLSX.utils.book_append_sheet(wb, ws, "Items");
     XLSX.writeFile(wb, "customer_list.xlsx");
   };
 
   const generatePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
-      head: [["#", "Code", "Name", "Email", "GST", "Address", "Status"]],
-      body: filteredVendors.map((c, i) => [
+      head: [["#", "Code", "Name", "Email", "GST", "Description", "Status"]],
+      body: filteredItems.map((c, i) => [
         i + 1,
         getCode(c) || "",
         getName(c) || "",
         getEmail(c) || "",
         getGST(c) || "",
-        getAddress(c) || "",
+        getDescription(c) || "",
         isActive(c) ? "Active" : "Inactive",
       ]),
     });
@@ -348,20 +350,20 @@ export default function VendorList({ handleAddVendor }) {
     setSelectedIds([]);
   };
 
-  const handleVendorClick = (customerId) => {
-    setViewingVendorId(customerId);
+  const handleItemClick = (customerId) => {
+    setViewingItemId(customerId);
   };
 
-  const goBack = () => setViewingVendorId(null);
+  const goBack = () => setViewingItemId(null);
 
   /** ---------- Render ---------- */
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingVendorId) {
+  if (viewingItemId) {
     return (
       <div className="p-4">
-        <VendorViewPage customerId={viewingVendorId} goBack={goBack} />
+        <ItemViewPage customerId={viewingItemId} goBack={goBack} />
       </div>
     );
   }
@@ -373,12 +375,12 @@ export default function VendorList({ handleAddVendor }) {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-2 ">
-          <h3 className="text-xl font-semibold mb-6">Vendor List</h3>
+          <h3 className="text-xl font-semibold mb-6">Item List</h3>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
-            onClick={handleAddVendor}
+            onClick={handleAddItem}
             className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
           >
             + Add
@@ -423,7 +425,7 @@ export default function VendorList({ handleAddVendor }) {
           <button
             onClick={() => {
               fetchMetrics(startDate, endDate);
-              fetchVendors(startDate, endDate);
+              fetchItems(startDate, endDate);
             }}
             className="px-3 py-1 border rounded"
           >
@@ -433,11 +435,11 @@ export default function VendorList({ handleAddVendor }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
           {[
-            ["Total Vendors", summary.count],
+            ["Total Items", summary.count],
             ["Credit Limit", summary.creditLimit],
-            ["Paid Vendors", summary.paidVendors],
-            ["Active Vendors", summary.activeVendors],
-            ["On-Hold Vendors", summary.onHoldVendors],
+            ["Paid Items", summary.paidItems],
+            ["Active Items", summary.activeItems],
+            ["On-Hold Items", summary.onHoldItems],
           ].map(([label, value]) => (
             <div key={label} className="p-4 bg-gray-50 rounded-lg text-center">
               <div className="text-2xl font-bold">{value}</div>
@@ -456,23 +458,23 @@ export default function VendorList({ handleAddVendor }) {
             <select
               value={
                 sortOption === "name-asc"
-                  ? "Vendor Name"
+                  ? "Item Name"
                   : sortOption === "code-asc"
-                  ? "Vendor Account no"
+                  ? "Item Account no"
                   : sortOption === "code-desc"
-                  ? "Vendor Account no descending"
+                  ? "Item Account no descending"
                   : ""
               }
               onChange={handleSortChange}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
             >
               <option value="">Sort By</option>
-              <option value="Vendor Name">Vendor Name</option>
-              <option value="Vendor Account no">
-                Vendor Account in Ascending
+              <option value="Item Name">Item Name</option>
+              <option value="Item Account no">
+                Item Account in Ascending
               </option>
-              <option value="Vendor Account no descending">
-                Vendor Account in descending
+              <option value="Item Account no descending">
+                Item Account in descending
               </option>
             </select>
           </div>
@@ -566,8 +568,8 @@ export default function VendorList({ handleAddVendor }) {
                   type="checkbox"
                   onChange={toggleSelectAll}
                   checked={
-                    selectedIds.length === filteredVendors.length &&
-                    filteredVendors.length > 0
+                    selectedIds.length === filteredItems.length &&
+                    filteredItems.length > 0
                   }
                   className="form-checkbox"
                 />
@@ -575,7 +577,7 @@ export default function VendorList({ handleAddVendor }) {
               {[
                 "Code",
                 "Name",
-                "Address",
+                "Description",
                 "Created At",
                 "Contact",
                 "Status",
@@ -590,8 +592,8 @@ export default function VendorList({ handleAddVendor }) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredVendors.length ? (
-              filteredVendors.map((c) => (
+            {filteredItems.length ? (
+              filteredItems.map((c) => (
                 <tr
                   key={getId(c)}
                   className="hover:bg-gray-100 transition-colors"
@@ -607,13 +609,13 @@ export default function VendorList({ handleAddVendor }) {
                   <td className="px-6 py-4">
                     <button
                       className="text-blue-600 hover:underline focus:outline-none"
-                      onClick={() => handleVendorClick(getId(c))}
+                      onClick={() => handleItemClick(getId(c))}
                     >
                       {getCode(c)}
                     </button>
                   </td>
                   <td className="px-6 py-4">{getName(c)}</td>
-                  <td className="px-6 py-4">{getAddress(c)}</td>
+                  <td className="px-6 py-4">{getDescription(c)}</td>
                   <td className="px-6 py-3 truncate">
                     {c?.createdAt ? new Date(c.createdAt).toLocaleString() : ""}
                   </td>

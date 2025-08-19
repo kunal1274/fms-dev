@@ -1,7 +1,7 @@
 import React from "react";
 //
 import Dashbord from "./Component/Dashbord/Dashbord";
-// import Dashbord from "./A";
+// import Dashbord from "./MainComponent/Vendor/Vendorlist";
 const App = () => {
   return (
     <div>

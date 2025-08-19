@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import axios from "axios";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
@@ -8,22 +14,20 @@ import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react"; // kept to match your imports
 import "./c.css";
 
-import AisleViewPage from "./AisleViewPage";
+import CompanyViewPage from "./CompanyViewPage";
 
-export default function AisleList({ handleAddAisle, onView }) {
+export default function ColorList({ handleAddColor }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Configurations";
   const metricsUrl = `${baseUrl}/metrics`;
 
-  /** ---------- Helpers to normalize fields (match Postman) ---------- */
-  const getId = (c) => c?._id || c?.id || c?.code || "";
-  const getCode = (c) => c?.code || "";
-  const getName = (c) => c?.name || "";
-  const getType = (c) => c?.type || "";
-  const getDescription = (c) => c?.description || "";
-  const isActive = (c) => c?.active === true;
-  const isArchived = (c) => c?.archived === true;
-  // Leave onHold/status hooks intact if backend adds them later
+  /** ---------- Helpers to normalize fields ---------- */
+  const getId = (c) => c?._id || c?.id || c?.companyId || c?.code || "";
+  const getCode = (c) => c?.companyCode || c?.code || "";
+  const getName = (c) => c?.companyName || c?.name || "";
+  const getBusinessType = (c) => c?.businessType || "";
+  const getCurrency = (c) => c?.currency || "";
+  const isActive = (c) => !!c?.active;
   const isOnHold = (c) => !!c?.onHold;
   const outstanding = (c) => Number(c?.outstandingBalance || 0);
   const getStatus = (c) => String(c?.status || "");
@@ -34,20 +38,29 @@ export default function AisleList({ handleAddAisle, onView }) {
   const toEndOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
     new Date(`${dateStrLocal}T23:59:59.999`).toISOString();
 
+  // Build a tiny range around an exact createdAt timestamp (exact match) — kept if you need it elsewhere
+  const exactCreatedAtRange = (iso /* '2025-08-14T12:33:49.194Z' */) => {
+    const at = new Date(iso).getTime();
+    return {
+      fromISO: new Date(at).toISOString(),
+      toISO: new Date(at + 1).toISOString(), // +1ms upper bound
+    };
+  };
+
   /** ---------- State ---------- */
   const tabNames = [
-    "Aisle List",
-    "Paid Aisle",
-    "Active Aisle",
-    "Hold Aisle",
-    "Outstanding Aisle",
+    "Companies List",
+    "Paid Companies",
+    "Active Companies",
+    "Hold Companies",
+    "Outstanding Companies",
   ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  const [Aisle, setAisle] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [viewingAisleId, setViewingAisleId] = useState(null);
+  const [viewingCompaniesId, setViewingCompaniesId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
@@ -60,57 +73,65 @@ export default function AisleList({ handleAddAisle, onView }) {
 
   const [summary, setSummary] = useState({
     count: 0,
-    activeAisles: 0,
-    archivedAisles: 0,
+    creditLimit: 0,
+    paidCompaniess: 0,
+    activeCompaniess: 0,
+    onHoldCompaniess: 0,
   });
 
   const [loading, setLoading] = useState(false);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchAisle = useCallback(
+  const fetchCompanies = useCallback(
     async (fromDate = startDate, toDate = endDate) => {
       setLoading(true);
       setError(null);
       try {
+        // Convert selected dates to full-day UTC ISO bounds
         const fromISO = toStartOfDayISO(fromDate);
         const toISO = toEndOfDayISO(toDate);
 
+        // Ask backend to filter by the range (assumes it uses createdAt internally)
         const { data: resp } = await axios.get(baseUrl, {
           params: { from: fromISO, to: toISO },
         });
 
-        // Normalize the list (support {data: []} or [] shapes)
+        // Normalize the list
         const list = resp?.data || resp || [];
         const arrayList = Array.isArray(list) ? list : [];
 
-        // Defensive client-side filter by createdAt (include if missing)
+        // Defensive client-side filter by createdAt (in case backend ignores params)
         const fromMs = new Date(fromISO).getTime();
         const toMs = new Date(toISO).getTime();
         const filteredByCreatedAt = arrayList.filter((c) => {
-          if (!c?.createdAt) return true;
+          if (!c?.createdAt) return false; // if createdAt missing, exclude from dated view
           const t = new Date(c.createdAt).getTime();
           return t >= fromMs && t <= toMs;
         });
 
-        setAisle(filteredByCreatedAt);
+        setCompanies(filteredByCreatedAt);
 
         // Baseline summary (if metrics fail)
-        const activeCount = filteredByCreatedAt.filter((c) =>
-          isActive(c)
-        ).length;
-        const archivedCount = filteredByCreatedAt.filter((c) =>
-          isArchived(c)
-        ).length;
-
-        setSummary({
+        setSummary((prev) => ({
+          ...prev,
           count: filteredByCreatedAt.length || 0,
-          activeAisles: activeCount,
-          archivedAisles: archivedCount,
-        });
+          creditLimit: filteredByCreatedAt.reduce(
+            (s, c) => s + (Number(c?.creditLimit) || 0),
+            0
+          ),
+          paidCompaniess: filteredByCreatedAt.filter(
+            (c) => getStatus(c) === "Paid"
+          ).length,
+          activeCompaniess: filteredByCreatedAt.filter((c) => isActive(c))
+            .length,
+       onHoldCompaniess: filteredByCreatedAt.filter((c) => !isActive(c)).length,
+
+      
+        }));
       } catch (err) {
         console.error(err);
-        setError("Unable to load Aisle data.");
+        setError("Unable to load Companies data.");
       } finally {
         setLoading(false);
       }
@@ -131,9 +152,15 @@ export default function AisleList({ handleAddAisle, onView }) {
 
         const m = (resp?.metrics && resp.metrics[0]) || {};
         setSummary((prev) => ({
-          count: m?.totalAisles ?? prev.count,
-          activeAisles: m?.activeAisles ?? prev.activeAisles,
-          archivedAisles: m?.archivedAisles ?? prev.archivedAisles,
+          ...prev,
+          count: m?.totalCompaniess ?? prev.count,
+          creditLimit: m?.creditLimit ?? prev.creditLimit,
+          paidCompaniess: m?.paidCompaniess ?? prev.paidCompaniess,
+          activeCompaniess: m?.activeCompaniess ?? prev.activeCompaniess,
+          onHoldCompaniess: m?.onHoldCompaniess ?? prev.onHoldCompaniess,onHoldCompaniess:
+  typeof m?.inactiveCompaniess === "number"
+    ? m.inactiveCompaniess
+    : prev.onHoldCompaniess,
         }));
       } catch (err) {
         console.error(err);
@@ -145,33 +172,32 @@ export default function AisleList({ handleAddAisle, onView }) {
     [startDate, endDate]
   );
 
+  // Initial load + auto-refetch whenever start/end change
   useEffect(() => {
-    fetchAisle();
+    fetchCompanies();
     fetchMetrics();
-  }, [fetchAisle, fetchMetrics]);
+  }, [fetchCompanies, fetchMetrics]);
 
   /** ---------- Derived: filtered + sorted list ---------- */
-  const filteredAisle = useMemo(() => {
-    let list = [...Aisle];
+  const filteredCompanies = useMemo(() => {
+    let list = [...companies];
 
     // Tabs
     switch (activeTab) {
-      case "Aisle List":
-        // no extra filter
-        break;
-      case "Paid Aisle":
+      case "Paid Companies":
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
-      case "Active Aisle":
+      case "Active Companies":
         list = list.filter((c) => isActive(c));
         break;
-      case "Hold Aisle":
-        list = list.filter((c) => isOnHold(c));
+      case "Hold Companies":
+        list = list.filter((c) => !isActive(c));
         break;
-      case "Outstanding Aisle":
+      case "Outstanding Companies":
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
+        // "Companies List" -> no extra filter
         break;
     }
 
@@ -180,11 +206,19 @@ export default function AisleList({ handleAddAisle, onView }) {
     else if (statusFilter === "Inactive")
       list = list.filter((c) => !isActive(c));
 
-    // Search (use Postman fields)
+    // Search
     const term = searchTerm.trim().toLowerCase();
     if (term) {
       list = list.filter((c) => {
-        const hay = [getName(c), getCode(c), getType(c), getDescription(c)]
+        const hay = [
+          getName(c),
+          getCode(c),
+          String(c?.email ?? ""),
+          String(c?.taxInfo?.gstNumber ?? ""),
+          String(c?.primaryGSTAddress ?? ""),
+          getBusinessType(c),
+          getCurrency(c),
+        ]
           .join(" | ")
           .toLowerCase();
         return hay.includes(term);
@@ -204,20 +238,22 @@ export default function AisleList({ handleAddAisle, onView }) {
       list.sort((a, b) => cmpStr(getCode(b), getCode(a)));
 
     return list;
-  }, [Aisle, activeTab, statusFilter, searchTerm, sortOption]);
+  }, [companies, activeTab, statusFilter, searchTerm, sortOption]);
 
   /** ---------- Handlers ---------- */
   const onTabClick = (tab) => {
     setActiveTab(tab);
+
+    // If any filter is active, reset them when switching tabs
     if (sortOption || statusFilter !== "All" || searchTerm) {
-      resetFilters();
-      setSelectedIds([]);
+      resetFilters(); // clears search, status, sort
+      setSelectedIds([]); // also clear row selections
     }
   };
 
-  const handleAisleClick = (siteId) => {
-    if (onView) onView(siteId);
-    setViewingAisleId(siteId);
+  const handleCompaniesClick = (CompaniesId) => {
+    setViewingCompaniesId(CompaniesId);
+    publishSelectedCompanyName(getName(companyObj));
   };
 
   const resetFilters = () => {
@@ -229,11 +265,14 @@ export default function AisleList({ handleAddAisle, onView }) {
 
   const handleSortChange = (e) => {
     const v = e.target.value;
-    if (v === "name-asc" || v === "code-asc" || v === "code-desc") {
-      setSortOption(v);
-    } else {
-      setSortOption("");
-    }
+    setSortOption(e.target.value);
+    // Map the visible labels you had to internal values
+    if (v === "Companies Name") return setSortOption("name-asc");
+    if (v === "Companies Account no") return setSortOption("code-asc");
+    if (v === "Companies Account no descending")
+      return setSortOption("code-desc");
+    // If values already internal, keep them:
+    setSortOption(v);
   };
 
   const handleStatusChange = (e) => {
@@ -245,8 +284,11 @@ export default function AisleList({ handleAddAisle, onView }) {
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
+  // Selecting all rows
   const toggleSelectAll = (e) => {
-    setSelectedIds(e.target.checked ? filteredAisle.map((c) => getId(c)) : []);
+    setSelectedIds(
+      e.target.checked ? filteredCompanies.map((c) => getId(c)) : []
+    );
   };
 
   const handleCheckboxChange = (id) => {
@@ -257,13 +299,13 @@ export default function AisleList({ handleAddAisle, onView }) {
 
   const handleDeleteSelected = async () => {
     if (!selectedIds.length) {
-      toast.info("No site selected to delete");
+      toast.info("No companies selected to delete");
       return;
     }
     if (
       !window.confirm(
-        `Delete ${selectedIds.length} selected site${
-          selectedIds.length > 1 ? "s" : ""
+        `Delete ${selectedIds.length} selected compan${
+          selectedIds.length > 1 ? "ies" : "y"
         }?`
       )
     ) {
@@ -279,8 +321,9 @@ export default function AisleList({ handleAddAisle, onView }) {
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
-        await fetchAisle(startDate, endDate);
+        await fetchCompanies(startDate, endDate);
         await fetchMetrics(startDate, endDate);
+        window.location.reload(); // refresh the page after successful deletion
       }
       if (failed) toast.error(`${failed} failed — check console`);
     } catch (err) {
@@ -289,38 +332,19 @@ export default function AisleList({ handleAddAisle, onView }) {
     }
   };
 
-  /** ---------- Export (match Postman fields) ---------- */
+  /** ---------- Export ---------- */
   const exportToExcel = () => {
-    const rows = filteredAisle.length ? filteredAisle : Aisle;
-    if (!rows.length) {
+    if (!companies.length) {
       toast.info("No data to export.");
       return;
     }
-    const data = rows.map((c, i) => ({
-      "#": i + 1,
-      Code: getCode(c),
-      Name: getName(c),
-      Type: getType(c),
-      Description: getDescription(c),
-      Active: isActive(c) ? "Yes" : "No",
-      Archived: isArchived(c) ? "Yes" : "No",
-      CreatedAt: c?.createdAt ? new Date(c.createdAt).toLocaleString() : "",
-      UpdatedAt: c?.updatedAt ? new Date(c.updatedAt).toLocaleString() : "",
-      _id: getId(c),
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(companies);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Aisles");
-    XLSX.writeFile(wb, "Aisle_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Companiess");
+    XLSX.writeFile(wb, "Companies_list.xlsx");
   };
 
   const generatePDF = () => {
-    const rows = filteredAisle.length ? filteredAisle : Aisle;
-    if (!rows.length) {
-      toast.info("No data to export.");
-      return;
-    }
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [
@@ -328,40 +352,40 @@ export default function AisleList({ handleAddAisle, onView }) {
           "#",
           "Code",
           "Name",
-          "Type",
-          "Description",
-          "Created At",
-          "Updated At",
+          "Email",
+          "Registration Number",
+          "Business Type",
+          "Currency",
+          "Address",
           "Status",
-          "Archived",
         ],
       ],
-      body: rows.map((c, i) => [
+      body: filteredCompanies.map((c, i) => [
         i + 1,
-        getCode(c),
-        getName(c),
-        getType(c),
-        getDescription(c),
-        c?.createdAt ? new Date(c.createdAt).toLocaleString() : "",
-        c?.updatedAt ? new Date(c.updatedAt).toLocaleString() : "",
+        getCode(c) || "",
+        getName(c) || "",
+        c?.email || "",
+        c?.taxInfo?.gstNumber || "",
+        getBusinessType(c) || "",
+        getCurrency(c) || "",
+        c?.primaryGSTAddress || "",
         isActive(c) ? "Active" : "Inactive",
-        isArchived(c) ? "Yes" : "No",
       ]),
     });
-    doc.save("Aisle_list.pdf");
+    doc.save("Companies_list.pdf");
   };
 
   /** ---------- View toggle ---------- */
-  const goBack = () => setViewingAisleId(null);
+  const goBack = () => setViewingCompaniesId(null);
 
   /** ---------- Render ---------- */
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingAisleId) {
+  if (viewingCompaniesId) {
     return (
       <div className="p-4">
-        <AisleViewPage AisleId={viewingAisleId} goBack={goBack} />
+        <CompanyViewPage CompaniesId={viewingCompaniesId} goBack={goBack} />
       </div>
     );
   }
@@ -370,8 +394,8 @@ export default function AisleList({ handleAddAisle, onView }) {
     <div>
       <div>
         <div>
-          {viewingAisleId ? (
-            <AisleViewPage AisleId={viewingAisleId} goBack={goBack} />
+          {viewingCompaniesId ? (
+            <CompanyViewPage CompaniesId={viewingCompaniesId} goBack={goBack} />
           ) : (
             <div className="space-y-6">
               <ToastContainer />
@@ -379,13 +403,13 @@ export default function AisleList({ handleAddAisle, onView }) {
               {/* Header Buttons (stack on small) */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-2 ">
-                  <h3 className="text-xl font-semibold">Aisle List</h3>
+                  <h3 className="text-xl font-semibold">Companies List</h3>
                 </div>
 
                 {/* Buttons wrap on small */}
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <button
-                    onClick={handleAddAisle}
+                    onClick={handleAddCompany}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     + Add
@@ -414,7 +438,7 @@ export default function AisleList({ handleAddAisle, onView }) {
 
               {/* Metrics */}
               <div className=" bg-white rounded-lg ">
-                {/* Date filters */}
+                {/* Date filters       /creation date  */}
                 <div className="flex flex-wrap gap-2">
                   <input
                     type="date"
@@ -431,7 +455,7 @@ export default function AisleList({ handleAddAisle, onView }) {
                   <button
                     onClick={async () => {
                       await fetchMetrics(startDate, endDate);
-                      await fetchAisle(startDate, endDate);
+                      await fetchCompanies(startDate, endDate);
                     }}
                     className="px-3 py-1 border rounded w-full sm:w-auto"
                   >
@@ -441,13 +465,11 @@ export default function AisleList({ handleAddAisle, onView }) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Aisles", summary.count],
-                    ["Active Aisles", summary.activeAisles],
-                    ["Archived Aisles", summary.archivedAisles],
-                    [
-                      "Inactive (calc)",
-                      Math.max(summary.count - summary.activeAisles, 0),
-                    ],
+                    ["Total Companiess", summary.count],
+                    ["Credit Limit", summary.creditLimit],
+                    ["Paid Companiess", summary.paidCompaniess],
+                    ["Active Companiess", summary.activeCompaniess],
+                  ["On-Hold Companiess", summary.onHoldCompaniess],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -472,12 +494,12 @@ export default function AisleList({ handleAddAisle, onView }) {
                       className="w-full sm:w-56 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="name-asc">Aisle Name</option>
+                      <option value="name-asc">Companies Name</option>
                       <option value="code-asc">
-                        Aisle Account in Ascending
+                        Companies Account in Ascending
                       </option>
                       <option value="code-desc">
-                        Aisle Account in Descending
+                        Companies Account in Descending
                       </option>
                     </select>
                   </div>
@@ -515,6 +537,9 @@ export default function AisleList({ handleAddAisle, onView }) {
                     <button
                       type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                      onClick={() => {
+                        /* no-op search button to match UI */
+                      }}
                     >
                       <FaSearch className="w-5 h-5" />
                     </button>
@@ -574,19 +599,20 @@ export default function AisleList({ handleAddAisle, onView }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedIds.length === filteredAisle.length &&
-                            filteredAisle.length > 0
+                            selectedIds.length === filteredCompanies.length &&
+                            filteredCompanies.length > 0
                           }
                           className="form-checkbox"
                         />
                       </th>
                       {[
                         "Code",
-                        "Type",
+                        "Business Type",
                         "Name",
-                        "Description",
-                        "Created At",
-                        "Updated At",
+                        "Currency",
+                        "Address",
+                        "Email",
+                        "Registration Number",
                         "Status",
                       ].map((h) => (
                         <th
@@ -599,8 +625,8 @@ export default function AisleList({ handleAddAisle, onView }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredAisle.length ? (
-                      filteredAisle.map((c) => (
+                    {filteredCompanies.length ? (
+                      filteredCompanies.map((c) => (
                         <tr
                           key={getId(c)}
                           className="hover:bg-gray-100 transition-colors"
@@ -613,43 +639,26 @@ export default function AisleList({ handleAddAisle, onView }) {
                               className="form-checkbox"
                             />
                           </td>
-
-                          {/* Code (clickable) */}
-                          <td className="px-6 py-4">
+                          <td>
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleAisleClick(getId(c))}
+                              onClick={() => handleCompaniesClick(getId(c))}
                             >
                               {getCode(c)}
                             </button>
                           </td>
-
-                          {/* Type */}
-                          <td className="px-6 py-4">{getType(c)}</td>
-
-                          {/* Name */}
+                          <td className="px-6 py-4">{getBusinessType(c)}</td>
                           <td className="px-6 py-4">{getName(c)}</td>
-
-                          {/* */}
                           <td className="px-6 py-3 truncate">
-                            {getDescription(c)}
+                            {getCurrency(c)}
                           </td>
-
-                          {/* Created At */}
                           <td className="px-6 py-4">
-                            {c?.createdAt
-                              ? new Date(c.createdAt).toLocaleString()
-                              : ""}
+                            {c?.primaryGSTAddress || ""}
                           </td>
-
-                          {/* Updated At */}
+                          <td className="px-6 py-4">{c?.email || ""}</td>
                           <td className="px-6 py-4">
-                            {c?.updatedAt
-                              ? new Date(c.updatedAt).toLocaleString()
-                              : ""}
+                            {c?.taxInfo?.gstNumber || ""}
                           </td>
-
-                          {/* Status */}
                           <td className="px-6 py-4">
                             <span
                               className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

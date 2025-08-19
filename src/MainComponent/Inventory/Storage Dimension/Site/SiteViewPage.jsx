@@ -5,12 +5,11 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
 
-const mergedUrl = `https://fms-qkmw.onrender.com/fms/api/v0/aisless`;
-const locationUrl = `https://fms-qkmw.onrender.com/fms/api/v0/locations`;
+const mergedUrl = `https://fms-qkmw.onrender.com/fms/api/v0/sites`;
 
-const AislesViewPage = ({ AislesId, Aisles, goBack }) => {
+const SiteViewPage = ({ siteId, Site, goBack }) => {
   const { id } = useParams();
-  const effectiveId = AislesId || id;
+  const effectiveId = siteId || id;
 
   const initialForm = {
     code: "",
@@ -21,7 +20,6 @@ const AislesViewPage = ({ AislesId, Aisles, goBack }) => {
     remarks: "",
     active: false,
     archived: false,
-    location: "",
     groups: [],
     bankDetails: [],
   };
@@ -30,7 +28,6 @@ const AislesViewPage = ({ AislesId, Aisles, goBack }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [locations, setlocations] = useState([]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -40,16 +37,16 @@ const AislesViewPage = ({ AislesId, Aisles, goBack }) => {
 
   const handleUpdate = async () => {
     const confirmUpdate = window.confirm(
-      "Are you sure you want to update this Aisles?"
+      "Are you sure you want to update this Site?"
     );
     if (!confirmUpdate) return;
 
-    const toastId = toast.loading("Updating Aisles...");
+    const toastId = toast.loading("Updating site...");
     try {
       const response = await axios.put(`${mergedUrl}/${effectiveId}`, form);
       if (response.status === 200) {
         toast.update(toastId, {
-          render: "Aisles updated successfully!",
+          render: "Site updated successfully!",
           type: "success",
           isLoading: false,
           autoClose: 3000,
@@ -69,7 +66,7 @@ const AislesViewPage = ({ AislesId, Aisles, goBack }) => {
   const handleEdit = () => setIsEditing(true);
 
   useEffect(() => {
-    const fetchAislesDetail = async () => {
+    const fetchSiteDetail = async () => {
       try {
         const response = await axios.get(`${mergedUrl}/${effectiveId}`);
         if (response.status === 200) {
@@ -83,18 +80,7 @@ const AislesViewPage = ({ AislesId, Aisles, goBack }) => {
         setLoading(false);
       }
     };
-
-    const fetchlocations = async () => {
-      try {
-        const res = await axios.get(locationUrl);
-        if (res.status === 200) setlocations(res.data.data || []);
-      } catch (err) {
-        console.error("Failed to fetch locations", err);
-      }
-    };
-
-    fetchAislesDetail();
-    fetchlocations();
+    fetchSiteDetail();
   }, [effectiveId]);
 
   if (loading) return <div>Loading...</div>;
@@ -104,19 +90,19 @@ const AislesViewPage = ({ AislesId, Aisles, goBack }) => {
     <div className="space-y-6">
       <ToastContainer />
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold">Aisles View Page</h3>
+        <h3 className="text-xl font-semibold">Site View Page</h3>
       </div>
 
       <form className="bg-white shadow-none rounded-lg divide-y divide-gray-200">
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Aisles Details
+            Site Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Aisles Code - Readonly */}
+            {/* Site Code - Readonly */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Aisles Code
+                Site Code
               </label>
               <input
                 name="code"
@@ -127,10 +113,10 @@ const AislesViewPage = ({ AislesId, Aisles, goBack }) => {
               />
             </div>
 
-            {/* Aisles Name */}
+            {/* Site Name */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Aisles Name
+                Site Name
               </label>
               <input
                 name="name"
@@ -144,7 +130,7 @@ const AislesViewPage = ({ AislesId, Aisles, goBack }) => {
             {/* Description */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Aisles Description
+                Site Description
               </label>
               <textarea
                 name="description"
@@ -189,27 +175,6 @@ const AislesViewPage = ({ AislesId, Aisles, goBack }) => {
               </select>
             </div>
 
-            {/* location */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                location
-              </label>
-              <select
-                name="location"
-                value={form.location}
-                onChange={handleChange}
-                disabled={!isEditing}
-                className="mt-1 w-full p-2 border rounded"
-              >
-                <option value="">Select a location</option>
-                {locations.map((w) => (
-                  <option key={w._id} value={w._id}>
-                    {w.code} - {w.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             {/* Active Checkbox */}
             <div className="flex items-center space-x-2 mt-6">
               <label className="text-sm font-medium text-gray-600">
@@ -227,7 +192,7 @@ const AislesViewPage = ({ AislesId, Aisles, goBack }) => {
           </div>
 
           {/* Action Buttons */}
-         <div className="py-6 flex justify-end gap-4">
+          <div className="py-6 flex justify-end gap-4">
             {!isEditing ? (
               <button
                 type="button"
@@ -269,4 +234,4 @@ const AislesViewPage = ({ AislesId, Aisles, goBack }) => {
   );
 };
 
-export default AislesViewPage;
+export default SiteViewPage;

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
+
+import "react-toastify/dist/ReactToastify.css";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -34,9 +36,6 @@ export default function CompanyForm({ handleCancel }) {
     currency: "INR",
     remarks: "",
     active: true,
-    contactNum: "", // main phone (PhoneInput)
-    altContactNum: "",
-    altEmail: "",
     bankType: "",
     bankName: "",
     tanNumber: "",
@@ -144,53 +143,7 @@ export default function CompanyForm({ handleCancel }) {
     form.bankType === "Barter" ||
     form.bankType === " UPI" ||
     form.bankType === "Crypto";
-  const [logoUploading, setLogoUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({});
-  const handleFileUpload = async (file) => {
-    if (!file) {
-      toast.error("No file selected!");
-      return;
-    }
-    setLogoUploading(true);
 
-    try {
-      const formData = new FormData();
-      formData.append("logoImage", file);
-
-      await axios.post(
-        "https://fms-qkmw.onrender.com/fms/api/v0/Companies/upload-logo",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            setUploadProgress({ [file.name]: percentCompleted });
-          },
-        }
-      );
-
-      toast.success("File uploaded successfully! ✅");
-      await fetchCompany(); // If you want to refresh after upload
-    } catch (error) {
-      console.error(error);
-      toast.error("Error uploading logo!");
-    } finally {
-      // Delay a little to let user feel "100% uploaded"
-      setTimeout(() => {
-        setLogoUploading(false); // 👈 this will hide the circle after success
-        setUploadProgress({});
-      }, 500); // 0.5 second delay
-    }
-  };
-const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) => {
-  // react-phone-input-2 gives a digits-only string like "919876543210"
-  const onlyDigits = (value || '').replace(/\D/g, '');
-  if (onlyDigits.length <= 15) {
-    setForm((prev) => ({ ...prev, contactNum: onlyDigits }));
-  }
-}, []);
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let val = value;
@@ -214,18 +167,17 @@ const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) 
       bankName: /^[A-Z0-9\s]{0,50}$/, // ✅ Now allows spaces and longer names
       panNumber: /^[A-Z0-9]{0,10}$/,
       gstNumber: /^[A-Z0-9]{0,15}$/,
-      contactNum: /^\d{0,15}$/, // PhoneInput returns digits only
-      altContactNum: /^[0-9+\-\s]{0,15}$/, // plain input allows +, -, spaces
+
       tanNumber: /^[A-Z0-9]{0,10}$/,
       ifsc: /^[A-Z0-9]{0,12}$/,
       swift: /^[A-Z0-9]{0,10}$/,
-      TanNumber: -/^[A-Z0-9]{0,10}$/,
+      TanNumber: /^[A-Z0-9]{0,10}$/,
       qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
       companyName: /^[A-Za-z\s]*$/,
       employeeName: /^[A-Za-z\s]*$/,
       email: /^.{0,100}$/,
       employeeEmail: /^.{0,100}$/,
-      contactNum: /^[0-9+\-\s]{0,15}$/, // ✅ Numeric, max 10 digits
+      contactNum: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
       contactPersonPhone: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
       creditLimit: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
     };
@@ -334,16 +286,28 @@ const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) 
     currency: "INR",
     panNumber: "",
     registrationNum: "",
-
     active: true,
   };
-
+  const handleAddBank = () => {
+    setFormData((prev) => ({
+      ...prev,
+      bankDetails: [
+        ...prev.bankDetails,
+        {
+          bankType: "",
+          bankName: "",
+          bankAccNum: "",
+          accountHolderName: "",
+          ifsc: "",
+          swift: "",
+          qrDetails: "",
+        },
+      ],
+    }));
+  };
   const handleReset = () => {
     const newCompanyCode = generateAccountNo(companys);
     setForm({ ...initialForm, companyAccountNo: newCompanyCode });
-  };
-  const handleEdit = () => {
-    navigate("/companyview", { state: { company: formData } });
   };
 
   return (
@@ -384,7 +348,7 @@ const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) 
                 value={form.companyCode}
                 onChange={handleChange} // ✅ Add this line
                 required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               />
             </div>{" "}
             <div>
@@ -397,7 +361,7 @@ const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) 
                 onChange={handleChange}
                 placeholder="e.g. ABC Company Pvt. Ltd."
                 required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               />
             </div>{" "}
             <div>
@@ -410,7 +374,7 @@ const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) 
                 onChange={handleChange}
                 placeholder="Auto-generated"
                 readOnly
-                className="mt-1 cursor-not-allowed  w-full p-2 curser-notallow border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 cursor-not-allowed  w-full p-2 curser-notallow border rounded focus:ring-2 focus:ring-black-200"
               />
             </div>
             <div>
@@ -423,7 +387,7 @@ const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) 
                 onChange={handleChange}
                 options={businessTypes}
                 required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               >
                 <option value="">Select type</option>
                 {businessTypes.map((type) => (
@@ -433,46 +397,56 @@ const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) 
                 ))}
               </select>
             </div>{" "}
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Company Contact No
-              </label>
-              <PhoneInput
-                country={"in"} // default to India
-                value={form.contactNum}
-                onChange={handleChange}
-                inputClass="w-full !py-2 !pl-12 !pr-2 !border rounded focus:ring-2 focus:ring-blue-200"
-                buttonClass="!bg-white !border !rounded-l"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div> */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Company Contact No
               </label>
+
+              {/* Country selector on the left + full world list */}
               <PhoneInput
-                country="in"
-                value={form.contactNum}
-                onChange={handlePhoneChange}
+                country="in" // default India
+                value={form.contactNum} // keep the "+91..." format here
+                onChange={(val, country, e, formattedValue) => {
+                  const dial = country?.dialCode ? `+${country.dialCode}` : "";
+                  const e164 = val ? `+${val}` : "";
+                  setForm((prev) => ({
+                    ...prev,
+                    countryCode: dial,
+                    contactNum: e164, // always store with "+"
+                  }));
+                }}
+                inputProps={{ name: "contactNum", required: true }}
                 containerClass="mt-1 w-full"
-                inputClass="w-full p-2 !pl-12 !pr-2 border rounded focus:ring-2 focus:ring-blue-200"
-                buttonClass="!bg-white !border !rounded-l"
-                // optional niceties:
-                  className="mt-1 w-full p-1 border rounded focus:ring-2 focus:ring-blue-200"
-                countryCodeEditable={false}
+                inputClass="!w-full !pl-18 !pr-7 !py-2 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
+                buttonClass="!border !rounded-l-lg "
+                dropdownClass="!shadow-lg"
                 enableSearch
+                prefix="+"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Alternate Contact No
               </label>
-              <input
-                name="contactNum"
-                value={form.contactNum}
-                onChange={handleChange}
-                placeholder="e.g. +91-9876543210"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              <PhoneInput
+                country="in" // default India
+                value={form.contactNum} // keep the "+91..." format here
+                onChange={(val, country, e, formattedValue) => {
+                  const dial = country?.dialCode ? `+${country.dialCode}` : "";
+                  const e164 = val ? `+${val}` : "";
+                  setForm((prev) => ({
+                    ...prev,
+                    countryCode: dial,
+                    contactNum: e164, // always store with "+"
+                  }));
+                }}
+                inputProps={{ name: "contactNum", required: true }}
+                containerClass="mt-1 w-full"
+                inputClass="!w-full !pl-18 !pr-7 !py-2 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
+                buttonClass="!border !rounded-l-lg "
+                dropdownClass="!shadow-lg"
+                enableSearch
+                prefix="+"
               />
             </div>{" "}
             <div>
@@ -485,7 +459,7 @@ const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) 
                 value={form.email}
                 onChange={handleChange}
                 placeholder="e.g. contact@abccompany.com"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               />
             </div>{" "}
             <div>
@@ -498,7 +472,7 @@ const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) 
                 value={form.email}
                 onChange={handleChange}
                 placeholder="e.g. contact@abccompany.com"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               />
             </div>{" "}
             <div>
@@ -511,7 +485,7 @@ const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) 
                 value={form.website}
                 onChange={handleChange}
                 placeholder="e.g. contact@abccompany.com"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               />
             </div>{" "}
             <div>
@@ -523,7 +497,7 @@ const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) 
                 value={form.currency}
                 onChange={handleChange}
                 required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               >
                 <option value="">Select type</option>
                 {currency.map((type) => (
@@ -544,7 +518,7 @@ const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) 
                 placeholder="e.g Ground 1st and 2nd Floor, 54B Lands End, Sisters Bunglow, ABC company Limited, B J Road Mount Mary Band Stand, Bandra West Mumbai, Mumbai Suburban, Maharashtra, 400050"
                 rows={4}
                 required
-                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               />
             </div>{" "}
             <div>
@@ -575,7 +549,7 @@ const handlePhoneChange = useCallback((value /*, country, e, formattedValue */) 
 “Main billing entity; all intercompany billed here.”
 “Merged with XYZ Ltd. in FY 2024–25, retained original GSTIN.”"
                 rows={4}
-                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               />
             </div>{" "}
             <div>
@@ -591,7 +565,7 @@ DLF Cyber City, Phase III
 Gurugram, Haryana – 122002
 India"
                 rows={4}
-                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               />
             </div>{" "}
             <div>
@@ -607,7 +581,7 @@ IndoSpace Industrial Park, Chakan Phase II
 Pune, Maharashtra – 410501
 India"
                 rows={4}
-                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               />
             </div>{" "}
             <div className="flex items-center gap-2 ml-1">
@@ -626,7 +600,17 @@ India"
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Bank Details
-          </h2>
+          </h2>{" "}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-medium text-gray-700">Bank Details</h2>
+            <button
+              type="button"
+              onClick={handleAddBank}
+              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              + Add Bank
+            </button>{" "}
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
@@ -636,7 +620,7 @@ India"
                 name="bankType"
                 value={form.bankType}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               >
                 <option value="">Select type</option>
                 {bankTypes.map((type) => (
@@ -658,7 +642,7 @@ India"
                 onChange={handleChange}
                 placeholder="e.g. State Bank of India (Copy & Paste Not Allowed)"
                 disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
                   disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
                 }`}
               />
@@ -673,7 +657,7 @@ India"
                 onChange={handleChange}
                 placeholder="e.g. 0123456789012345"
                 disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
                   disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
                 }`}
               />
@@ -688,7 +672,7 @@ India"
                 onChange={handleChange}
                 placeholder="e.g. ABC Company Pvt Ltd"
                 disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
                   disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
                 }`}
               />
@@ -703,7 +687,7 @@ India"
                 onChange={handleChange}
                 placeholder="e.g. SBIN0001234"
                 disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
                   disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
                 }`}
               />
@@ -718,7 +702,7 @@ India"
                 onChange={handleChange}
                 placeholder="e.g. SBININBBXXX"
                 disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
                   disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
                 }`}
               />
@@ -733,7 +717,7 @@ India"
                 onChange={handleChange}
                 placeholder="e.g. abc@hdfcbank"
                 disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
                   disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
                 }`}
               />
@@ -758,7 +742,7 @@ India"
                 onChange={handleChange}
                 placeholder="e.g. ABCDE1234F"
                 required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               />
             </div>
             <div>
@@ -771,7 +755,7 @@ India"
                 onChange={handleChange}
                 placeholder="e.g.  REG123456789"
                 required
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               />
             </div>{" "}
             <div>
@@ -783,7 +767,7 @@ India"
                 value={form.tanNumber}
                 onChange={handleChange}
                 placeholder="e.g. ABCDE1234F"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
               />
             </div>
           </div>
@@ -812,7 +796,7 @@ India"
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-black-700 transition"
             >
               Create
             </button>

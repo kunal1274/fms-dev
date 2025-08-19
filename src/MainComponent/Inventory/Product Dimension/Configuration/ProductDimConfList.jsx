@@ -10,6 +10,24 @@ import ColorViewPage from "./ConfViewPage";
 
 export default function ColorList({ handleAddColor }) {
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Configurations";
+  const metricsUrl = `${baseUrl}/metrics`;
+
+  /** ---------- Helpers to normalize fields ---------- */
+  const getId = (c) => c?._id || c?.id || c?.companyId || c?.code || "";
+  const getCode = (c) => c?.companyCode || c?.code || "";
+  const getName = (c) => c?.companyName || c?.name || "";
+  const getBusinessType = (c) => c?.businessType || "";
+  const getCurrency = (c) => c?.currency || "";
+  const isActive = (c) => !!c?.active;
+  const isOnHold = (c) => !!c?.onHold;
+  const outstanding = (c) => Number(c?.outstandingBalance || 0);
+  const getStatus = (c) => String(c?.status || "");
+
+  /** ---------- Date helpers (createdAt boundaries) ---------- */
+  const toStartOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStrLocal}T00:00:00`).toISOString();
+  const toEndOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStrLocal}T23:59:59.999`).toISOString();
 
   // States
   const [colorList, setColorList] = useState([]);
@@ -20,8 +38,29 @@ export default function ColorList({ handleAddColor }) {
   const [viewingColorId, setViewingColorId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+const exactCreatedAtRange = (iso /* '2025-08-14T12:33:49.194Z' */) => {
+    const at = new Date(iso).getTime();
+    return {
+      fromISO: new Date(at).toISOString(),
+      toISO: new Date(at + 1).toISOString(), // +1ms upper bound
+    };
+  };
   // Fetch Conf
+  
+    const [activeTab, setActiveTab] = useState(tabNames[0]);
+  
+    const [companies, setCompanies] = useState([]);
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [viewingCompaniesId, setViewingCompaniesId] = useState(null);
+  
+   
+    const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
+    const [sortOption, setSortOption] = useState(""); // name-asc | code-asc | code-desc
+  
+    const [startDate, setStartDate] = useState(
+      new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    );
+    const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
   const fetchConf = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -73,6 +112,14 @@ export default function ColorList({ handleAddColor }) {
   const toggleSelectAll = (e) => {
     setSelectedConf(e.target.checked ? filteredConf.map((c) => c._id) : []);
   };
+    const [summary, setSummary] = useState({
+      count: 0,
+      creditLimit: 0,
+      paidCompaniess: 0,
+      activeCompaniess: 0,
+      onHoldCompaniess: 0,
+    });
+  
   const handleCheckboxChange = (id) => {
     setSelectedConf((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
@@ -97,7 +144,61 @@ export default function ColorList({ handleAddColor }) {
       toast.error("Error deleting Conf");
     }
   };
+ const fetchCompanies = useCallback(
+    async (fromDate = startDate, toDate = endDate) => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Convert selected dates to full-day UTC ISO bounds
+        const fromISO = toStartOfDayISO(fromDate);
+        const toISO = toEndOfDayISO(toDate);
 
+        // Ask backend to filter by the range (assumes it uses createdAt internally)
+        const { data: resp } = await axios.get(baseUrl, {
+          params: { from: fromISO, to: toISO },
+        });
+
+        // Normalize the list
+        const list = resp?.data || resp || [];
+        const arrayList = Array.isArray(list) ? list : [];
+
+        // Defensive client-side filter by createdAt (in case backend ignores params)
+        const fromMs = new Date(fromISO).getTime();
+        const toMs = new Date(toISO).getTime();
+        const filteredByCreatedAt = arrayList.filter((c) => {
+          if (!c?.createdAt) return false; // if createdAt missing, exclude from dated view
+          const t = new Date(c.createdAt).getTime();
+          return t >= fromMs && t <= toMs;
+        });
+
+        setCompanies(filteredByCreatedAt);
+
+        // Baseline summary (if metrics fail)
+        setSummary((prev) => ({
+          ...prev,
+          count: filteredByCreatedAt.length || 0,
+          creditLimit: filteredByCreatedAt.reduce(
+            (s, c) => s + (Number(c?.creditLimit) || 0),
+            0
+          ),
+          paidCompaniess: filteredByCreatedAt.filter(
+            (c) => getStatus(c) === "Paid"
+          ).length,
+          activeCompaniess: filteredByCreatedAt.filter((c) => isActive(c))
+            .length,
+       onHoldCompaniess: filteredByCreatedAt.filter((c) => !isActive(c)).length,
+
+      
+        }));
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load Companies data.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [startDate, endDate]
+  );
   // Export
   const exportToExcel = () => {
     if (!colorList.length) return toast.info("No data to export.");
@@ -154,7 +255,7 @@ export default function ColorList({ handleAddColor }) {
   return (
     <div>
       <ToastContainer />
-      <div className="flex justify-between mb-4">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="text-xl font-semibold">Configurations</h3>
         <div className="flex gap-3">
           <button

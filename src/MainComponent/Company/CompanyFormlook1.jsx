@@ -36,7 +36,6 @@ export default function CompanyForm({ handleCancel }) {
     currency: "INR",
     remarks: "",
     active: true,
-    alternatecontactNum: "",
     bankType: "",
     bankName: "",
     tanNumber: "",
@@ -289,7 +288,23 @@ export default function CompanyForm({ handleCancel }) {
     registrationNum: "",
     active: true,
   };
-
+  const handleAddBank = () => {
+    setFormData((prev) => ({
+      ...prev,
+      bankDetails: [
+        ...prev.bankDetails,
+        {
+          bankType: "",
+          bankName: "",
+          bankAccNum: "",
+          accountHolderName: "",
+          ifsc: "",
+          swift: "",
+          qrDetails: "",
+        },
+      ],
+    }));
+  };
   const handleReset = () => {
     const newCompanyCode = generateAccountNo(companys);
     setForm({ ...initialForm, companyAccountNo: newCompanyCode });
@@ -299,18 +314,35 @@ export default function CompanyForm({ handleCancel }) {
     <div className="">
       <ToastContainer />
       {/* Header Buttons */}
-      <div className="flex justify-between ">
-        <div className="flex items-center space-x-2">
-          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-            {" "}
+      <div className="flex justify-between items-center sticky top-0 z-20 bg-white px-4 py-2">
+        {/* Left side: Upload + Title */}
+        <div className="flex items-center space-x-4">
+          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
             <button
               type="button"
-              className="text-blue-600 mt-2 text-sm hover:underline"
+              className="text-blue-600 text-sm "
             >
               Upload Photo
             </button>
           </div>
           <h3 className="text-xl font-semibold">Company Form</h3>
+        </div>
+
+        {/* Right side: Actions */}
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
+          >
+            Go Back
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          >
+            Create
+          </button>
         </div>
       </div>
 
@@ -387,6 +419,7 @@ export default function CompanyForm({ handleCancel }) {
                 Company Contact No
               </label>
 
+              {/* Country selector on the left + full world list */}
               <PhoneInput
                 country="in" // default India
                 value={form.contactNum} // keep the "+91..." format here
@@ -401,7 +434,7 @@ export default function CompanyForm({ handleCancel }) {
                 }}
                 inputProps={{ name: "contactNum", required: true }}
                 containerClass="mt-1 w-full"
-                inputClass="!w-full !pl-18 !pr-7 !py-8 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
+                inputClass="!w-full !pl-18 !pr-7 !py-2 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
                 buttonClass="!border !rounded-l-lg "
                 dropdownClass="!shadow-lg"
                 enableSearch
@@ -414,7 +447,7 @@ export default function CompanyForm({ handleCancel }) {
               </label>
               <PhoneInput
                 country="in" // default India
-                value={form.alternatecontactNum} // keep the "+91..." format here
+                value={form.contactNum} // keep the "+91..." format here
                 onChange={(val, country, e, formattedValue) => {
                   const dial = country?.dialCode ? `+${country.dialCode}` : "";
                   const e164 = val ? `+${val}` : "";
@@ -426,7 +459,7 @@ export default function CompanyForm({ handleCancel }) {
                 }}
                 inputProps={{ name: "contactNum", required: true }}
                 containerClass="mt-1 w-full"
-                inputClass="!w-full !pl-18 !pr-7 !py-8 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
+                inputClass="!w-full !pl-18 !pr-7 !py-2 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
                 buttonClass="!border !rounded-l-lg "
                 dropdownClass="!shadow-lg"
                 enableSearch
@@ -451,7 +484,7 @@ export default function CompanyForm({ handleCancel }) {
                 Alternate Email ID
               </label>
               <input
-                name="alternateemail"
+                name="email"
                 type="email"
                 value={form.email}
                 onChange={handleChange}
@@ -584,7 +617,17 @@ India"
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Bank Details
-          </h2>
+          </h2>{" "}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-medium text-gray-700">Bank Details</h2>
+            <button
+              type="button"
+              onClick={handleAddBank}
+              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              + Add Bank
+            </button>{" "}
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
@@ -670,8 +713,6 @@ India"
               <label className="block text-sm font-medium text-gray-600">
                 Swift Code
               </label>
-
-
               <input
                 name="swift"
                 value={form.swift}
@@ -762,21 +803,6 @@ India"
           </div>
 
           {/* Right side - Go Back and Create Buttons */}
-          <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
-            >
-              Go Back
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-black-700 transition"
-            >
-              Create
-            </button>
-          </div>
         </div>
       </form>
     </div>

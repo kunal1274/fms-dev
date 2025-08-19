@@ -314,7 +314,7 @@ export default function CompanyForm({ handleCancel }) {
     <div className="">
       <ToastContainer />
       {/* Header Buttons */}
-      <div className="flex justify-between ">
+      <div className="flex justify-between sticky top-0 z-20 bg-white border-b">
         <div className="flex items-center space-x-2">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
             {" "}

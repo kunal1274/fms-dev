@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "../../../../../src/Component/Button/Button";
 import AislesForm from "./AislesForm";
 import Aisles from "./AislesList.jsx";
-import AislesViewPage from "./AislesViewPage.jsx";
+import AislesViewPage from "./AisleViewPage.jsx";
 
 const AislesPage = () => {
   const [view, setView] = useState("list");
