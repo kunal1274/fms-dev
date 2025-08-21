@@ -8,7 +8,7 @@ import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react"; // kept to match your imports
 import "./c.css";
 
-import LocationViewPage from "./LocationViewPage";
+import LocationViewPage from "./LocationViewpage";
 
 export default function LocationList({ handleAddLocation, onView }) {
   /** ---------- API ---------- */
