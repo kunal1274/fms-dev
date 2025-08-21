@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import SiteList from "./SiteList";
+import SiteList from "./SiteLit";
 import SiteForm from "./SiteForm";
 
 export default function SitePage() {
