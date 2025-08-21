@@ -37,10 +37,8 @@ export default function BinList({ handleAddBin, onView }) {
   /** ---------- State ---------- */
   const tabNames = [
     "Bin List",
-    "Paid Bin",
-    "Active Bin",
-    "Hold Bin",
-    "Outstanding Bin",
+
+    
   ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);

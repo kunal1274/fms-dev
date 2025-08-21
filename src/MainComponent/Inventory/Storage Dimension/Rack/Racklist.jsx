@@ -37,10 +37,7 @@ export default function RackList({ handleAddRack, onView }) {
   /** ---------- State ---------- */
   const tabNames = [
     "Rack List",
-    "Paid Rack",
-    "Active Rack",
-    "Hold Rack",
-    "Outstanding Rack",
+   
   ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);

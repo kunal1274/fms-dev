@@ -37,10 +37,18 @@ export default function ShelvesList({ handleAddShelves, onView }) {
   /** ---------- State ---------- */
   const tabNames = [
     "Shelves List",
-    "Paid Shelves",
-    "Active Shelves",
-    "Hold Shelves",
-    "Outstanding Shelves",
+   
+
+
+
+
+
+
+
+
+
+
+    
   ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
