@@ -37,10 +37,10 @@ export default function SiteList({ handleAddSite, onView }) {
   /** ---------- State ---------- */
   const tabNames = [
     "Site List",
-    "Paid Site",
+    // "Paid Site",
     "Active Site",
-    "Hold Site",
-    "Outstanding Site",
+    // "Hold Site",
+    // "Outstanding Site",
   ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);

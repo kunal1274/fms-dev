@@ -6,6 +6,10 @@ import { useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
+
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+
 const baseUrl = "https://fms-qkmw.onrender.com";
 const secondUrl = "/fms/api/v0";
 const thirdUrl = "/companies";
@@ -272,27 +276,49 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
               <label className="block text-sm font-medium text-gray-600">
                 Company Contact No
               </label>
-              <input
-                type="text"
-                name="contactNum"
+
+              {/* Country selector on the left + full world list */}
+              <PhoneInput
+                country="in" // default India
                 value={formData.contactNum || ""}
+                disabled={!isEditing}
+                onChange={handleChange}
+                inputProps={{ name: "contactNum", required: true }}
+                containerClass="mt-1 w-full"
+                inputClass="!w-full !pl-18 !pr-7 !py-2 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
+                buttonClass="!border !rounded-l-lg "
+                dropdownClass="!shadow-lg"
+                enableSearch
+                prefix="+"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Alternate Contact No
+              </label>
+              <PhoneInput
+                country="in" // default India
                 onChange={handleChange}
                 disabled={!isEditing}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                inputProps={{ name: "contactNum", required: true }}
+                containerClass="mt-1 w-full"
+                inputClass="!w-full !pl-18 !pr-7 !py-2 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
+                buttonClass="!border !rounded-l-lg "
+                dropdownClass="!shadow-lg"
+                enableSearch
+                prefix="+"
               />
             </div>{" "}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Alternate Contact No
               </label>
               <input
                 type="text"
-                onChange={handleChange}
-                disabled={!isEditing}
                 placeholder="eg. 7870462783"
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>{" "}
+            </div>{" "} */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Company Email ID

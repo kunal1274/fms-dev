@@ -35,11 +35,7 @@ export default function BinList({ handleAddBin, onView }) {
     new Date(`${dateStrLocal}T23:59:59.999`).toISOString();
 
   /** ---------- State ---------- */
-  const tabNames = [
-    "Bin List",
-
-    
-  ];
+  const tabNames = ["Bin List", "Active Bin"];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
@@ -471,9 +467,7 @@ export default function BinList({ handleAddBin, onView }) {
                     >
                       <option value="">Sort By</option>
                       <option value="name-asc">Bin Name</option>
-                      <option value="code-asc">
-                        Bin Account in Ascending
-                      </option>
+                      <option value="code-asc">Bin Account in Ascending</option>
                       <option value="code-desc">
                         Bin Account in Descending
                       </option>
@@ -616,7 +610,9 @@ export default function BinList({ handleAddBin, onView }) {
                           <td className="px-6 py-4">
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleBinil.BinViewPageClick(getId(c))}
+                              onClick={() =>
+                                handleBinil.BinViewPageClick(getId(c))
+                              }
                             >
                               {getCode(c)}
                             </button>

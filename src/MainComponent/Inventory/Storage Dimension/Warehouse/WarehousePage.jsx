@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import WarehouseList from "./WarehouseList";
+import WarehouseList from "./WarehouseList"
+
+
 import WarehouseForm from "./WarehouseForm";
 import WarehouseViewPage from "./WarehouseViewPagee";
 import { Button } from "../../../../../src/Component/Button/Button";

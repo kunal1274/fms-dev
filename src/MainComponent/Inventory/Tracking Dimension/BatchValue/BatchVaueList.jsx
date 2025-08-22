@@ -11,7 +11,7 @@ import "./c.css";
 import BatchViewPagee from "./BatchValueViewPagee";
 
 export default function BatchList({
-  handleAddbatch,
+  handleAddwarehouse,
   handleAddBatch,
   onView,
 }) {
@@ -132,15 +132,15 @@ export default function BatchList({
         const m = (resp?.metrics && resp.metrics[0]) || {};
         setSummary((prev) => ({
           count:
-            m?.totalBatches ?? m?.totalbatchs ?? m?.total ?? prev.count,
+            m?.totalBatches ?? m?.totalwarehouses ?? m?.total ?? prev.count,
           activeBatches:
             m?.activeBatches ??
-            m?.activebatchs ??
+            m?.activewarehouses ??
             m?.active ??
             prev.activeBatches,
           archivedBatches:
             m?.archivedBatches ??
-            m?.archivedbatchs ??
+            m?.archivedwarehouses ??
             m?.archived ??
             prev.archivedBatches,
         }));
@@ -392,7 +392,7 @@ export default function BatchList({
               {/* Buttons wrap on small */}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <button
-                  onClick={handleAddBatch || handleAddbatch}
+                  onClick={handleAddBatch || handleAddwarehouse}
                   className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                 >
                   + Add

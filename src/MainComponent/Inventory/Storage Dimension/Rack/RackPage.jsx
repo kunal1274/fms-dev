@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import RacksList from "./Racklist";
+import RacksList from "./Rack";
 import RacksForm from "./RackForm";
 
 // import { Button } from "../../../../src/Component/Button/Button";

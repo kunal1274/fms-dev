@@ -37,7 +37,7 @@ export default function LocationList({ handleAddLocation, onView }) {
   /** ---------- State ---------- */
   const tabNames = [
     "Location List",
-   
+   "Active Location ",
   ];
   
 

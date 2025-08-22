@@ -37,8 +37,10 @@ export default function AisleList({ handleAddAisle, onView }) {
   /** ---------- State ---------- */
   const tabNames = [
     "Aisle List",
-   
+
     
+   
+     "Active Aisle ",
   ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);

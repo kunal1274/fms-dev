@@ -12,7 +12,7 @@ import RackViewPage from "./RackViewPage";
 
 export default function RackList({ handleAddRack, onView }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Racks";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/aisles";
   const metricsUrl = `${baseUrl}/metrics`;
 
   /** ---------- Helpers to normalize fields (match Postman) ---------- */
@@ -35,10 +35,7 @@ export default function RackList({ handleAddRack, onView }) {
     new Date(`${dateStrLocal}T23:59:59.999`).toISOString();
 
   /** ---------- State ---------- */
-  const tabNames = [
-    "Rack List",
-   
-  ];
+  const tabNames = ["Rack List", "Active Rack "];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
@@ -615,9 +612,7 @@ export default function RackList({ handleAddRack, onView }) {
                           <td className="px-6 py-4">
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() =>
-                                handleRackil.RackViewPageClick(getId(c))
-                              }
+                              onClick={() => handleRackClick(getId(c))}
                             >
                               {getCode(c)}
                             </button>
