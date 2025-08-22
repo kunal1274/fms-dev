@@ -43,6 +43,15 @@ export default function CompaniesList({ handleAddCompany, onView }) {
     return `${yyyy}-${mm}-${dd}`;
   };
 
+  // NEW: today as YYYY-MM-DD in local time
+  const todayStr = () => {
+    const dt = new Date();
+    const yyyy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   /** ---------- State ---------- */
   const tabNames = [
     "Companies List",
@@ -62,9 +71,9 @@ export default function CompaniesList({ handleAddCompany, onView }) {
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
   const [sortOption, setSortOption] = useState(""); // name-asc | code-asc | code-desc
 
-  // Start/end date are BLANK initially -> show ALL data
+  // Start is blank; End defaults to TODAY  // CHANGED
   const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [endDate, setEndDate] = useState(() => todayStr()); // NEW default
 
   const [summary, setSummary] = useState({
     count: 0,
@@ -93,11 +102,9 @@ export default function CompaniesList({ handleAddCompany, onView }) {
 
       const { data: resp } = await axios.get(baseUrl, { params });
 
-      // Normalize the list shape
       const list = resp?.data || resp || [];
       const arrayList = Array.isArray(list) ? list : [];
 
-      // If we sent params, defensively re-check createdAt range; else keep all
       let finalList = arrayList;
       if (fromISO && toISO) {
         const fromMs = new Date(fromISO).getTime();
@@ -111,7 +118,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
 
       setCompanies(finalList);
 
-      // Baseline local summary
       setSummary((prev) => ({
         ...prev,
         count: finalList.length || 0,
@@ -162,6 +168,16 @@ export default function CompaniesList({ handleAddCompany, onView }) {
     }
   }, []);
 
+  // Keep endDate valid vs startDate
+  useEffect(() => {
+    if (!startDate) return;
+    setEndDate((prev) => {
+      const min = addDays(startDate, 1);
+      if (!prev || prev <= startDate) return min;
+      return prev;
+    });
+  }, [startDate]);
+
   // Initial load — show ALL data (no date params)
   useEffect(() => {
     fetchCompanies();
@@ -172,7 +188,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
   const filteredCompanies = useMemo(() => {
     let list = [...companies];
 
-    // Tabs
     switch (activeTab) {
       case "Paid Companies":
         list = list.filter((c) => getStatus(c) === "Paid");
@@ -190,12 +205,10 @@ export default function CompaniesList({ handleAddCompany, onView }) {
         break;
     }
 
-    // Status filter (dropdown)
     if (statusFilter === "Active") list = list.filter((c) => isActive(c));
     else if (statusFilter === "Inactive")
       list = list.filter((c) => !isActive(c));
 
-    // Search
     const term = searchTerm.trim().toLowerCase();
     if (term) {
       list = list.filter((c) => {
@@ -214,7 +227,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
       });
     }
 
-    // Sort
     const cmpStr = (a, b) =>
       a.localeCompare(b, undefined, { sensitivity: "base" });
     if (sortOption === "name-asc")
@@ -232,17 +244,33 @@ export default function CompaniesList({ handleAddCompany, onView }) {
   /** ---------- Date-range validity ---------- */
   const isRangeValid = useMemo(() => {
     if (!startDate || !endDate) return false;
-    // strictly greater than
     const s = new Date(startDate).getTime();
     const e = new Date(endDate).getTime();
     return e > s;
   }, [startDate, endDate]);
 
+  /** ---------- Is ANY filter on? (dates count only if both picked) ---------- */
+  const anyFiltersOn = useMemo(
+    () =>
+      Boolean(
+        sortOption ||
+          searchTerm ||
+          statusFilter === "Active" ||
+          statusFilter === "Inactive" ||
+          (startDate && endDate) // CHANGED: only when both set
+      ),
+    [sortOption, searchTerm, statusFilter, startDate, endDate]
+  );
+
   /** ---------- Handlers ---------- */
   const onTabClick = (tab) => {
     setActiveTab(tab);
-    // Reset filters when switching tabs
-    if (sortOption || statusFilter !== "All" || searchTerm) {
+    if (
+      sortOption ||
+      statusFilter !== "All" ||
+      searchTerm ||
+      (startDate && endDate) // CHANGED: matches anyFiltersOn
+    ) {
       resetFilters();
       setSelectedIds([]);
     }
@@ -252,11 +280,16 @@ export default function CompaniesList({ handleAddCompany, onView }) {
     setViewingCompaniesId(CompaniesId);
   };
 
-  const resetFilters = () => {
+  /** ---------- Reset also restores endDate to today ---------- */
+  const resetFilters = async () => {
     setSearchTerm("");
     setStatusFilter("All");
     setSelectedIds([]);
     setSortOption("");
+    setStartDate("");
+    setEndDate(todayStr()); // CHANGED: keep default end date visible
+    await fetchCompanies();
+    await fetchMetrics();
   };
 
   const handleSortChange = (e) => {
@@ -374,7 +407,10 @@ export default function CompaniesList({ handleAddCompany, onView }) {
   };
 
   /** ---------- View toggle ---------- */
-  const goBack = () => setViewingCompaniesId(null);
+  const goBack = () => {
+    setViewingCompaniesId(null);
+    window.location.reload();
+  };
 
   /** ---------- Render ---------- */
   if (loading) return <div>Loading…</div>;
@@ -388,7 +424,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
     );
   }
 
-  // Apply is enabled only when endDate is strictly after startDate
   const canApply = isRangeValid;
 
   return (
@@ -401,13 +436,12 @@ export default function CompaniesList({ handleAddCompany, onView }) {
             <div className="space-y-6">
               <ToastContainer />
 
-              {/* Header Buttons (stack on small) */}
+              {/* Header Buttons */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-2 ">
                   <h3 className="text-xl font-semibold">Companies List</h3>
                 </div>
 
-                {/* Buttons wrap on small */}
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <button
                     onClick={handleAddCompany}
@@ -446,7 +480,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                     value={startDate}
                     onChange={(e) => {
                       setStartDate(e.target.value);
-                      // Clear end date if it is now invalid
                       if (
                         endDate &&
                         e.target.value &&
@@ -464,6 +497,10 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                     className="border rounded px-2 py-1 w-full sm:w-auto"
                     disabled={!startDate}
                     min={startDate ? addDays(startDate, 1) : undefined}
+                    onFocus={() => {
+                      if (startDate && !endDate)
+                        setEndDate(addDays(startDate, 1));
+                    }}
                   />
                   <button
                     onClick={async () => {
@@ -572,20 +609,10 @@ export default function CompaniesList({ handleAddCompany, onView }) {
 
                 <button
                   onClick={resetFilters}
-                  disabled={
-                    !(
-                      sortOption ||
-                      statusFilter === "Active" ||
-                      statusFilter === "Inactive" ||
-                      searchTerm
-                    )
-                  }
+                  disabled={!anyFiltersOn}
                   className={`font-medium w-full sm:w-auto transition
     ${
-      sortOption ||
-      statusFilter === "Active" ||
-      statusFilter === "Inactive" ||
-      searchTerm
+      anyFiltersOn
         ? "text-red-500 hover:text-red-600 cursor-pointer"
         : "text-gray-400 cursor-not-allowed"
     }`}
