@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import VendorList from "./V"
+import VendorList from "./Vendorlist"
 import VendorViewPage from "./Vv";
 import { Button } from "../../Component/Button/Button";
 import VendorForm from "./V";

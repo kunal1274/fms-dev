@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-  useMemo,
-} from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import { FaFilter, FaSearch, FaSortAmountDown } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
@@ -28,23 +22,25 @@ export default function CompaniesList({ handleAddCompany, onView }) {
   const getBusinessType = (c) => c?.businessType || "";
   const getCurrency = (c) => c?.currency || "";
   const isActive = (c) => !!c?.active;
-  const isOnHold = (c) => !!c?.onHold;
   const outstanding = (c) => Number(c?.outstandingBalance || 0);
   const getStatus = (c) => String(c?.status || "");
 
-  /** ---------- Date helpers (createdAt boundaries) ---------- */
-  const toStartOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
-    new Date(`${dateStrLocal}T00:00:00`).toISOString();
-  const toEndOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
-    new Date(`${dateStrLocal}T23:59:59.999`).toISOString();
+  /** ---------- Date helpers ---------- */
+  const toStartOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStr}T00:00:00.000Z`).toISOString();
+  const toEndOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStr}T23:59:59.999Z`).toISOString();
 
-  // Build a tiny range around an exact createdAt timestamp (exact match) — kept if you need it elsewhere
-  const exactCreatedAtRange = (iso /* '2025-08-14T12:33:49.194Z' */) => {
-    const at = new Date(iso).getTime();
-    return {
-      fromISO: new Date(at).toISOString(),
-      toISO: new Date(at + 1).toISOString(), // +1ms upper bound
-    };
+  // addDays that is timezone-safe (strictly next day for 'min' on endDate)
+  const addDays = (dateStr, days) => {
+    if (!dateStr) return "";
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + days);
+    const yyyy = dt.getUTCFullYear();
+    const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getUTCDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
   };
 
   /** ---------- State ---------- */
@@ -66,10 +62,9 @@ export default function CompaniesList({ handleAddCompany, onView }) {
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
   const [sortOption, setSortOption] = useState(""); // name-asc | code-asc | code-desc
 
-  const [startDate, setStartDate] = useState(
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-  );
-  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+  // Start/end date are BLANK initially -> show ALL data
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const [summary, setSummary] = useState({
     count: 0,
@@ -83,96 +78,91 @@ export default function CompaniesList({ handleAddCompany, onView }) {
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchCompanies = useCallback(
-    async (fromDate = startDate, toDate = endDate) => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Convert selected dates to full-day UTC ISO bounds
-        const fromISO = toStartOfDayISO(fromDate);
-        const toISO = toEndOfDayISO(toDate);
+  /** ---------- Fetchers ---------- */
+  const fetchCompanies = useCallback(async ({ fromDate, toDate } = {}) => {
+    setLoading(true);
+    setError(null);
+    try {
+      let params = {};
+      let fromISO, toISO;
+      if (fromDate && toDate) {
+        fromISO = toStartOfDayISO(fromDate);
+        toISO = toEndOfDayISO(toDate);
+        params = { from: fromISO, to: toISO };
+      }
 
-        // Ask backend to filter by the range (assumes it uses createdAt internally)
-        const { data: resp } = await axios.get(baseUrl, {
-          params: { from: fromISO, to: toISO },
-        });
+      const { data: resp } = await axios.get(baseUrl, { params });
 
-        // Normalize the list
-        const list = resp?.data || resp || [];
-        const arrayList = Array.isArray(list) ? list : [];
+      // Normalize the list shape
+      const list = resp?.data || resp || [];
+      const arrayList = Array.isArray(list) ? list : [];
 
-        // Defensive client-side filter by createdAt (in case backend ignores params)
+      // If we sent params, defensively re-check createdAt range; else keep all
+      let finalList = arrayList;
+      if (fromISO && toISO) {
         const fromMs = new Date(fromISO).getTime();
         const toMs = new Date(toISO).getTime();
-        const filteredByCreatedAt = arrayList.filter((c) => {
-          if (!c?.createdAt) return false; // if createdAt missing, exclude from dated view
+        finalList = arrayList.filter((c) => {
+          if (!c?.createdAt) return false;
           const t = new Date(c.createdAt).getTime();
           return t >= fromMs && t <= toMs;
         });
-
-        setCompanies(filteredByCreatedAt);
-
-        // Baseline summary (if metrics fail)
-        setSummary((prev) => ({
-          ...prev,
-          count: filteredByCreatedAt.length || 0,
-          creditLimit: filteredByCreatedAt.reduce(
-            (s, c) => s + (Number(c?.creditLimit) || 0),
-            0
-          ),
-          paidCompaniess: filteredByCreatedAt.filter(
-            (c) => getStatus(c) === "Paid"
-          ).length,
-          activeCompaniess: filteredByCreatedAt.filter((c) => isActive(c))
-            .length,
-       onHoldCompaniess: filteredByCreatedAt.filter((c) => !isActive(c)).length,
-
-      
-        }));
-      } catch (err) {
-        console.error(err);
-        setError("Unable to load Companies data.");
-      } finally {
-        setLoading(false);
       }
-    },
-    [startDate, endDate]
-  );
 
-  const fetchMetrics = useCallback(
-    async (fromDate = startDate, toDate = endDate) => {
-      setLoadingMetrics(true);
-      try {
+      setCompanies(finalList);
+
+      // Baseline local summary
+      setSummary((prev) => ({
+        ...prev,
+        count: finalList.length || 0,
+        creditLimit: finalList.reduce(
+          (s, c) => s + (Number(c?.creditLimit) || 0),
+          0
+        ),
+        paidCompaniess: finalList.filter((c) => getStatus(c) === "Paid").length,
+        activeCompaniess: finalList.filter((c) => isActive(c)).length,
+        onHoldCompaniess: finalList.filter((c) => !isActive(c)).length,
+      }));
+    } catch (err) {
+      console.error(err);
+      setError("Unable to load Companies data.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchMetrics = useCallback(async ({ fromDate, toDate } = {}) => {
+    setLoadingMetrics(true);
+    try {
+      let params = {};
+      if (fromDate && toDate) {
         const fromISO = toStartOfDayISO(fromDate);
         const toISO = toEndOfDayISO(toDate);
-
-        const { data: resp } = await axios.get(metricsUrl, {
-          params: { from: fromISO, to: toISO },
-        });
-
-        const m = (resp?.metrics && resp.metrics[0]) || {};
-        setSummary((prev) => ({
-          ...prev,
-          count: m?.totalCompaniess ?? prev.count,
-          creditLimit: m?.creditLimit ?? prev.creditLimit,
-          paidCompaniess: m?.paidCompaniess ?? prev.paidCompaniess,
-          activeCompaniess: m?.activeCompaniess ?? prev.activeCompaniess,
-          onHoldCompaniess: m?.onHoldCompaniess ?? prev.onHoldCompaniess,onHoldCompaniess:
-  typeof m?.inactiveCompaniess === "number"
-    ? m.inactiveCompaniess
-    : prev.onHoldCompaniess,
-        }));
-      } catch (err) {
-        console.error(err);
-        // metrics optional
-      } finally {
-        setLoadingMetrics(false);
+        params = { from: fromISO, to: toISO };
       }
-    },
-    [startDate, endDate]
-  );
 
-  // Initial load + auto-refetch whenever start/end change
+      const { data: resp } = await axios.get(metricsUrl, { params });
+      const m = (resp?.metrics && resp.metrics[0]) || {};
+
+      setSummary((prev) => ({
+        ...prev,
+        count: m?.totalCompaniess ?? prev.count,
+        creditLimit: m?.creditLimit ?? prev.creditLimit,
+        paidCompaniess: m?.paidCompaniess ?? prev.paidCompaniess,
+        activeCompaniess: m?.activeCompaniess ?? prev.activeCompaniess,
+        onHoldCompaniess:
+          typeof m?.inactiveCompaniess === "number"
+            ? m.inactiveCompaniess
+            : m?.onHoldCompaniess ?? prev.onHoldCompaniess,
+      }));
+    } catch (err) {
+      console.error(err); // metrics optional
+    } finally {
+      setLoadingMetrics(false);
+    }
+  }, []);
+
+  // Initial load — show ALL data (no date params)
   useEffect(() => {
     fetchCompanies();
     fetchMetrics();
@@ -197,7 +187,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
-        // "Companies List" -> no extra filter
         break;
     }
 
@@ -240,20 +229,27 @@ export default function CompaniesList({ handleAddCompany, onView }) {
     return list;
   }, [companies, activeTab, statusFilter, searchTerm, sortOption]);
 
+  /** ---------- Date-range validity ---------- */
+  const isRangeValid = useMemo(() => {
+    if (!startDate || !endDate) return false;
+    // strictly greater than
+    const s = new Date(startDate).getTime();
+    const e = new Date(endDate).getTime();
+    return e > s;
+  }, [startDate, endDate]);
+
   /** ---------- Handlers ---------- */
   const onTabClick = (tab) => {
     setActiveTab(tab);
-
-    // If any filter is active, reset them when switching tabs
+    // Reset filters when switching tabs
     if (sortOption || statusFilter !== "All" || searchTerm) {
-      resetFilters(); // clears search, status, sort
-      setSelectedIds([]); // also clear row selections
+      resetFilters();
+      setSelectedIds([]);
     }
   };
 
   const handleCompaniesClick = (CompaniesId) => {
     setViewingCompaniesId(CompaniesId);
-    publishSelectedCompanyName(getName(companyObj));
   };
 
   const resetFilters = () => {
@@ -265,13 +261,11 @@ export default function CompaniesList({ handleAddCompany, onView }) {
 
   const handleSortChange = (e) => {
     const v = e.target.value;
-    setSortOption(e.target.value);
-    // Map the visible labels you had to internal values
     if (v === "Companies Name") return setSortOption("name-asc");
-    if (v === "Companies Account no") return setSortOption("code-asc");
-    if (v === "Companies Account no descending")
+    if (v === "Companies Account in Ascending")
+      return setSortOption("code-asc");
+    if (v === "Companies Account in Descending")
       return setSortOption("code-desc");
-    // If values already internal, keep them:
     setSortOption(v);
   };
 
@@ -284,7 +278,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
-  // Selecting all rows
   const toggleSelectAll = (e) => {
     setSelectedIds(
       e.target.checked ? filteredCompanies.map((c) => getId(c)) : []
@@ -321,9 +314,14 @@ export default function CompaniesList({ handleAddCompany, onView }) {
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
-        await fetchCompanies(startDate, endDate);
-        await fetchMetrics(startDate, endDate);
-        window.location.reload(); // refresh the page after successful deletion
+        if (startDate && endDate && isRangeValid) {
+          await fetchCompanies({ fromDate: startDate, toDate: endDate });
+          await fetchMetrics({ fromDate: startDate, toDate: endDate });
+        } else {
+          await fetchCompanies();
+          await fetchMetrics();
+        }
+        window.location.reload();
       }
       if (failed) toast.error(`${failed} failed — check console`);
     } catch (err) {
@@ -390,6 +388,9 @@ export default function CompaniesList({ handleAddCompany, onView }) {
     );
   }
 
+  // Apply is enabled only when endDate is strictly after startDate
+  const canApply = isRangeValid;
+
   return (
     <div>
       <div>
@@ -443,7 +444,17 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                   <input
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      // Clear end date if it is now invalid
+                      if (
+                        endDate &&
+                        e.target.value &&
+                        endDate <= e.target.value
+                      ) {
+                        setEndDate("");
+                      }
+                    }}
                     className="border rounded px-2 py-1 w-full sm:w-auto"
                   />
                   <input
@@ -451,13 +462,28 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="border rounded px-2 py-1 w-full sm:w-auto"
+                    disabled={!startDate}
+                    min={startDate ? addDays(startDate, 1) : undefined}
                   />
                   <button
                     onClick={async () => {
-                      await fetchMetrics(startDate, endDate);
-                      await fetchCompanies(startDate, endDate);
+                      if (!isRangeValid) {
+                        toast.error(
+                          "Please choose an end date after the start date."
+                        );
+                        return;
+                      }
+                      await fetchMetrics({
+                        fromDate: startDate,
+                        toDate: endDate,
+                      });
+                      await fetchCompanies({
+                        fromDate: startDate,
+                        toDate: endDate,
+                      });
                     }}
                     className="px-3 py-1 border rounded w-full sm:w-auto"
+                    disabled={!canApply || loadingMetrics}
                   >
                     {loadingMetrics ? "Applying…" : "Apply"}
                   </button>
@@ -469,7 +495,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                     ["Credit Limit", summary.creditLimit],
                     ["Paid Companiess", summary.paidCompaniess],
                     ["Active Companiess", summary.activeCompaniess],
-                  ["On-Hold Companiess", summary.onHoldCompaniess],
+                    ["On-Hold Companiess", summary.onHoldCompaniess],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -537,9 +563,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                     <button
                       type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
-                      onClick={() => {
-                        /* no-op search button to match UI */
-                      }}
+                      onClick={() => {}}
                     >
                       <FaSearch className="w-5 h-5" />
                     </button>
