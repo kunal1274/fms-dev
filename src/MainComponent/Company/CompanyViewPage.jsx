@@ -190,13 +190,12 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
     <div>
       <ToastContainer />
       {/* Header Buttons */}
-      <div className="flex justify-between ">
-        <div className="flex items-center space-x-2">
-          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-            {" "}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center space-x-2 ">
+          <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center  justify-center">
             <button
               type="button"
-              className="text-blue-600 mt-2 text-sm hover:underline"
+              className="text-blue-600 mt-1 text-xs hover:underline"
             >
               Upload Photo
             </button>

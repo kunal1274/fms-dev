@@ -8,32 +8,53 @@ import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
 
-// NOTE: change this import back to "./CustomerViewPagee" if your file is named that.
 import CustomerViewPage from "./CustomerViewPagee";
-
-/** ---------- Small helpers to normalize fields ---------- */
-const getId = (c) => c?._id || c?.id || c?.customerId || c?.code || "";
-const getCode = (c) => c?.customerCode || c?.code || "";
-const getName = (c) => c?.customerName || c?.name || "";
-const getEmail = (c) => c?.email || "";
-const getGST = (c) => c?.taxInfo?.gstNumber || "";
-const getAddress = (c) => c?.primaryGSTAddress || c?.address || "";
-const getBusinessType = (c) => c?.businessType || "";
-const getCurrency = (c) => c?.currency || "";
-const isActive = (c) => !!c?.active;
-const isOnHold = (c) => !!c?.onHold;
-const outstanding = (c) => Number(c?.outstandingBalance || 0);
-const getStatus = (c) => String(c?.status || "");
-const isHold = (c) => !isActive(c);
-const toStartOfDayISO = (localDateStr /* YYYY-MM-DD */) =>
-  new Date(`${localDateStr}T00:00:00`).toISOString();
-const toEndOfDayISO = (localDateStr /* YYYY-MM-DD */) =>
-  new Date(`${localDateStr}T23:59:59.999`).toISOString();
 
 export default function CustomerList({ handleAddCustomer }) {
   /** ---------- API ---------- */
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
   const metricsUrl = `${baseUrl}/metrics`;
+
+  /** ---------- Helpers to normalize fields ---------- */
+  const getId = (c) => c?._id || c?.id || c?.customerId || c?.code || "";
+  const getCode = (c) => c?.customerCode || c?.code || "";
+  const getName = (c) => c?.customerName || c?.name || "";
+  const getEmail = (c) => c?.email || "";
+  const getGST = (c) => c?.taxInfo?.gstNumber || "";
+  const getAddress = (c) => c?.primaryGSTAddress || c?.address || "";
+  const getBusinessType = (c) => c?.businessType || "";
+  const getCurrency = (c) => c?.currency || "";
+  const isActive = (c) => !!c?.active;
+  const isOnHold = (c) => !!c?.onHold;
+  const isInactive = (c) => !isActive(c);
+  const outstanding = (c) => Number(c?.outstandingBalance || 0);
+  const getStatus = (c) => String(c?.status || "");
+
+  /** ---------- Date helpers ---------- */
+  const toStartOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStr}T00:00:00.000Z`).toISOString();
+  const toEndOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStr}T23:59:59.999Z`).toISOString();
+
+  // addDays that is timezone-safe (strictly next day for 'min' on endDate)
+  const addDays = (dateStr, days) => {
+    if (!dateStr) return "";
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + days);
+    const yyyy = dt.getUTCFullYear();
+    const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getUTCDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const todayStr = () => {
+    const dt = new Date();
+    const yyyy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
 
   /** ---------- Tabs ---------- */
   const tabNames = [
@@ -43,27 +64,22 @@ export default function CustomerList({ handleAddCustomer }) {
     "Hold Customer",
     "Outstanding Customer",
   ];
+
+  /** ---------- State ---------- */
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  /** ---------- Dates ---------- */
-  const [startDate, setStartDate] = useState(
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-  );
-  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+  // Dates start empty => initial fetch = ALL data
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
-  /** ---------- Data & View ---------- */
   const [customers, setCustomers] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [viewingCustomerId, setViewingCustomerId] = useState(null);
 
-  /** ---------- Filters ---------- */
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
   const [sortOption, setSortOption] = useState(""); // name-asc | code-asc | code-desc
 
-  /** ---------- Selection ---------- */
-  const [selectedIds, setSelectedIds] = useState([]);
-
-  /** ---------- Summary ---------- */
   const [summary, setSummary] = useState({
     count: 0,
     creditLimit: 0,
@@ -72,107 +88,120 @@ export default function CustomerList({ handleAddCustomer }) {
     onHoldCustomers: 0,
   });
 
-  /** ---------- UX ---------- */
   const [loading, setLoading] = useState(false);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
 
-  /** ---------- Fetch: Customers ---------- */
+  /** ---------- Keep endDate valid vs startDate ---------- */
+  useEffect(() => {
+    if (!startDate) return;
+    setEndDate((prev) => {
+      const min = addDays(startDate, 1);
+      if (!prev || prev <= startDate) return min;
+      return prev;
+    });
+  }, [startDate]);
+
+  /** ---------- Fetchers ---------- */
   const fetchCustomers = useCallback(
-    async (fromDate = startDate, toDate = endDate) => {
+    async ({ fromDate, toDate } = {}) => {
       setLoading(true);
       setError(null);
       try {
-        const fromISO = toStartOfDayISO(fromDate);
-        const toISO = toEndOfDayISO(toDate);
+        let params = {};
+        let fromISO, toISO;
 
-        const { data: resp } = await axios.get(baseUrl, {
-          params: { from: fromISO, to: toISO },
-        });
+        if (fromDate && toDate) {
+          fromISO = toStartOfDayISO(fromDate);
+          toISO = toEndOfDayISO(toDate);
+          params = { from: fromISO, to: toISO };
+        }
 
-        const raw = resp?.data || resp || [];
-        const list = Array.isArray(raw) ? raw : [];
+        const { data: resp } = await axios.get(baseUrl, { params });
+        const list = resp?.data || resp || [];
+        const arrayList = Array.isArray(list) ? list : [];
 
-        // Defensive client filter on createdAt bounds
-        const fromMs = new Date(fromISO).getTime();
-        const toMs = new Date(toISO).getTime();
-        const filtered = list.filter((c) => {
-          if (!c?.createdAt) return false;
-          const t = new Date(c.createdAt).getTime();
-          return t >= fromMs && t <= toMs;
-        });
+        // If backend didn't filter by date, enforce it client-side when dates are provided
+        let finalList = arrayList;
+        if (fromISO && toISO) {
+          const fromMs = new Date(fromISO).getTime();
+          const toMs = new Date(toISO).getTime();
+          finalList = arrayList.filter((c) => {
+            if (!c?.createdAt) return false;
+            const t = new Date(c.createdAt).getTime();
+            return t >= fromMs && t <= toMs;
+          });
+        }
 
-        setCustomers(filtered);
+        setCustomers(finalList);
 
-        // Baseline summary (fallback if metrics call fails)
-        setSummary({
-          count: filtered.length,
-          creditLimit: filtered.reduce(
+        // Fallback local summary (metrics may override later)
+        setSummary((prev) => ({
+          ...prev,
+          count: finalList.length || 0,
+          creditLimit: finalList.reduce(
             (s, c) => s + (Number(c?.creditLimit) || 0),
             0
           ),
-          paidCustomers: filtered.filter((c) => getStatus(c) === "Paid").length,
-          activeCustomers: filtered.filter((c) => isActive(c)).length,
-
-          onHoldCustomers: filtered.filter((c) => isHold(c)).length, // Hold == Inactive
-        });
+          paidCustomers: finalList.filter((c) => getStatus(c) === "Paid")
+            .length,
+          activeCustomers: finalList.filter(isActive).length,
+          onHoldCustomers: finalList.filter((c) => isInactive(c) || isOnHold(c))
+            .length,
+        }));
       } catch (err) {
         console.error(err);
-        setError("Unable to load customer data.");
+        setError("Unable to load Customer data.");
       } finally {
         setLoading(false);
       }
     },
-    [startDate, endDate]
+    [baseUrl]
   );
-  const isInactive = (c) => !isActive(c);
-  const isHold = (c) => isInactive(c) || isOnHold(c);
-  /** ---------- Fetch: Metrics (optional backend aggregation) ---------- */
+
   const fetchMetrics = useCallback(
-    async (fromDate = startDate, toDate = endDate) => {
+    async ({ fromDate, toDate } = {}) => {
       setLoadingMetrics(true);
       try {
-        const fromISO = toStartOfDayISO(fromDate);
-        const toISO = toEndOfDayISO(toDate);
+        let params = {};
+        if (fromDate && toDate) {
+          params = {
+            from: toStartOfDayISO(fromDate),
+            to: toEndOfDayISO(toDate),
+          };
+        }
 
-        const { data: resp } = await axios.get(metricsUrl, {
-          params: { from: fromISO, to: toISO },
-        });
-
+        const { data: resp } = await axios.get(metricsUrl, { params });
         const m = (resp?.metrics && resp.metrics[0]) || {};
+
         setSummary((prev) => ({
           ...prev,
           count: m?.totalCustomers ?? prev.count,
           creditLimit: m?.creditLimit ?? prev.creditLimit,
           paidCustomers: m?.paidCustomers ?? prev.paidCustomers,
           activeCustomers: m?.activeCustomers ?? prev.activeCustomers,
-          onHoldCustomers: m?.onHoldCustomers ?? prev.onHoldCustomers,
-          count: filtered.length,
-          creditLimit: filtered.reduce(
-            (s, c) => s + (Number(c?.creditLimit) || 0),
-            0
-          ),
-          paidCustomers: filtered.filter((c) => getStatus(c) === "Paid").length,
-          activeCustomers: filtered.filter((c) => isActive(c)).length,
-          onHoldCustomers: filtered.filter((c) => isInactive(c)).length, // Hold == Inactive
+          onHoldCustomers:
+            typeof m?.inactiveCustomers === "number"
+              ? m.inactiveCustomers
+              : m?.onHoldCustomers ?? prev.onHoldCustomers,
         }));
       } catch (err) {
-        // optional; ignore errors
+        // metrics optional; do not block UI
         console.error(err);
       } finally {
         setLoadingMetrics(false);
       }
     },
-    [startDate, endDate]
+    [metricsUrl]
   );
 
-  /** ---------- Initial + on date change ---------- */
+  /** ---------- Initial load: fetch ALL (no dates) ---------- */
   useEffect(() => {
-    fetchCustomers();
-    fetchMetrics();
+    fetchCustomers(); // all
+    fetchMetrics(); // all
   }, [fetchCustomers, fetchMetrics]);
 
-  /** ---------- Derived: filtered + sorted customers ---------- */
+  /** ---------- Derived: filtered + sorted list ---------- */
   const filteredCustomers = useMemo(() => {
     let list = [...customers];
 
@@ -182,10 +211,10 @@ export default function CustomerList({ handleAddCustomer }) {
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
       case "Active Customer":
-        list = list.filter((c) => isActive(c));
+        list = list.filter(isActive);
         break;
       case "Hold Customer":
-        list = list.filter((c) => isInactive(c)); // show inactive customers
+        list = list.filter((c) => isInactive(c) || isOnHold(c));
         break;
       case "Outstanding Customer":
         list = list.filter((c) => outstanding(c) > 0);
@@ -195,12 +224,9 @@ export default function CustomerList({ handleAddCustomer }) {
     }
 
     // Status filter
-    if (statusFilter === "Active") list = list.filter((c) => isActive(c));
-    else if (statusFilter === "Inactive")
-      list = list.filter((c) => !isActive(c));
-    if (statusFilter === "Active") list = list.filter((c) => isActive(c));
-    else if (statusFilter === "Inactive")
-      list = list.filter((c) => isInactive(c));
+    if (statusFilter === "Active") list = list.filter(isActive);
+    else if (statusFilter === "Inactive") list = list.filter(isInactive);
+
     // Search
     const term = searchTerm.trim().toLowerCase();
     if (term) {
@@ -233,10 +259,18 @@ export default function CustomerList({ handleAddCustomer }) {
     return list;
   }, [customers, activeTab, statusFilter, searchTerm, sortOption]);
 
+  /** ---------- Date-range validity ---------- */
+  const isRangeValid = useMemo(() => {
+    if (!startDate || !endDate) return false;
+    const s = new Date(startDate).getTime();
+    const e = new Date(endDate).getTime();
+    return e > s;
+  }, [startDate, endDate]);
+
   /** ---------- Handlers ---------- */
   const onTabClick = (tab) => {
     setActiveTab(tab);
-    // clear selections and filters when moving tabs
+    // clear selections and basic filters when moving tabs (keep chosen dates)
     setSelectedIds([]);
     setSearchTerm("");
     setStatusFilter("All");
@@ -253,8 +287,8 @@ export default function CustomerList({ handleAddCustomer }) {
   const handleSortChange = (e) => {
     const v = e.target.value;
     if (v === "Customer Name") return setSortOption("name-asc");
-    if (v === "Customer Account no") return setSortOption("code-asc");
-    if (v === "Customer Account no descending")
+    if (v === "Customer Account in Ascending") return setSortOption("code-asc");
+    if (v === "Customer Account in descending")
       return setSortOption("code-desc");
     setSortOption(v || "");
   };
@@ -289,8 +323,13 @@ export default function CustomerList({ handleAddCustomer }) {
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
-        await fetchCustomers(startDate, endDate);
-        await fetchMetrics(startDate, endDate);
+        if (isRangeValid) {
+          await fetchCustomers({ fromDate: startDate, toDate: endDate });
+          await fetchMetrics({ fromDate: startDate, toDate: endDate });
+        } else {
+          await fetchCustomers();
+          await fetchMetrics();
+        }
       }
       if (failed) toast.error(`${failed} failed — check console`);
     } catch (err) {
@@ -342,13 +381,6 @@ export default function CustomerList({ handleAddCustomer }) {
     doc.save("customer_list.pdf");
   };
 
-  const resetFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("All");
-    setSortOption("");
-    setSelectedIds([]);
-  };
-
   const handleCustomerClick = (customerId) => {
     setViewingCustomerId(customerId);
   };
@@ -366,6 +398,15 @@ export default function CustomerList({ handleAddCustomer }) {
       </div>
     );
   }
+
+  const anyFiltersOn = Boolean(
+    sortOption ||
+      searchTerm ||
+      statusFilter === "Active" ||
+      statusFilter === "Inactive" ||
+      startDate ||
+      endDate
+  );
 
   return (
     <div>
@@ -418,14 +459,20 @@ export default function CustomerList({ handleAddCustomer }) {
           <input
             type="date"
             value={endDate}
+            min={startDate ? addDays(startDate, 1) : undefined}
             onChange={(e) => setEndDate(e.target.value)}
             className="border rounded px-2 py-1"
           />
           <button
             onClick={() => {
-              fetchMetrics(startDate, endDate);
-              fetchCustomers(startDate, endDate);
+              if (!isRangeValid) {
+                toast.info("Pick a valid Start and End date (End > Start).");
+                return;
+              }
+              fetchMetrics({ fromDate: startDate, toDate: endDate });
+              fetchCustomers({ fromDate: startDate, toDate: endDate });
             }}
+            disabled={!isRangeValid || loadingMetrics}
             className="px-3 py-1 border rounded"
           >
             {loadingMetrics ? "Applying…" : "Apply"}
@@ -459,9 +506,9 @@ export default function CustomerList({ handleAddCustomer }) {
                 sortOption === "name-asc"
                   ? "Customer Name"
                   : sortOption === "code-asc"
-                  ? "Customer Account no"
+                  ? "Customer Account in Ascending"
                   : sortOption === "code-desc"
-                  ? "Customer Account no descending"
+                  ? "Customer Account in descending"
                   : ""
               }
               onChange={handleSortChange}
@@ -469,10 +516,10 @@ export default function CustomerList({ handleAddCustomer }) {
             >
               <option value="">Sort By</option>
               <option value="Customer Name">Customer Name</option>
-              <option value="Customer Account no">
+              <option value="Customer Account in Ascending">
                 Customer Account in Ascending
               </option>
-              <option value="Customer Account no descending">
+              <option value="Customer Account in descending">
                 Customer Account in descending
               </option>
             </select>
@@ -515,21 +562,20 @@ export default function CustomerList({ handleAddCustomer }) {
 
         {/* Reset */}
         <button
-          onClick={resetFilters}
-          disabled={
-            !(
-              sortOption ||
-              statusFilter === "Active" ||
-              statusFilter === "Inactive" ||
-              searchTerm
-            )
-          }
+          onClick={async () => {
+            setSearchTerm("");
+            setStatusFilter("All");
+            setSelectedIds([]);
+            setSortOption("");
+            setStartDate("");
+            setEndDate("");
+            await fetchCustomers(); // all
+            await fetchMetrics(); // all
+          }}
+          disabled={!anyFiltersOn}
           className={`font-medium w-full sm:w-auto transition
           ${
-            sortOption ||
-            statusFilter === "Active" ||
-            statusFilter === "Inactive" ||
-            searchTerm
+            anyFiltersOn
               ? "text-red-500 hover:text-red-600 cursor-pointer"
               : "text-gray-400 cursor-not-allowed"
           }`}

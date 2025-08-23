@@ -11,29 +11,51 @@ import "./c.css";
 // NOTE: change this import back to "./VendorViewPagee" if your file is named that.
 import VendorViewPage from "./VendorViewPage";
 
-/** ---------- Small helpers to normalize fields ---------- */
-const getId = (c) => c?._id || c?.id || c?.customerId || c?.code || "";
-const getCode = (c) => c?.customerCode || c?.code || "";
-const getName = (c) => c?.customerName || c?.name || "";
-const getEmail = (c) => c?.email || "";
-const getGST = (c) => c?.taxInfo?.gstNumber || "";
-const getAddress = (c) => c?.primaryGSTAddress || c?.address || "";
-const getBusinessType = (c) => c?.businessType || "";
-const getCurrency = (c) => c?.currency || "";
-const isActive = (c) => !!c?.active;
-const isOnHold = (c) => !!c?.onHold;
-const outstanding = (c) => Number(c?.outstandingBalance || 0);
-const getStatus = (c) => String(c?.status || "");
-const isHold = (c) => !isActive(c);
-const toStartOfDayISO = (localDateStr /* YYYY-MM-DD */) =>
-  new Date(`${localDateStr}T00:00:00`).toISOString();
-const toEndOfDayISO = (localDateStr /* YYYY-MM-DD */) =>
-  new Date(`${localDateStr}T23:59:59.999`).toISOString();
-
 export default function VendorList({ handleAddVendor }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/vendors";
   const metricsUrl = `${baseUrl}/metrics`;
+
+  /** ---------- Helpers to normalize fields ---------- */
+  const getId = (c) => c?._id || c?.id || c?.customerId || c?.code || "";
+  const getCode = (c) => c?.customerCode || c?.code || "";
+  const getName = (c) => c?.customerName || c?.name || "";
+  const getEmail = (c) => c?.email || "";
+  const getGST = (c) => c?.taxInfo?.gstNumber || "";
+  const getAddress = (c) => c?.primaryGSTAddress || c?.address || "";
+  const getBusinessType = (c) => c?.businessType || "";
+  const getCurrency = (c) => c?.currency || "";
+  const isActive = (c) => !!c?.active;
+  const isOnHold = (c) => !!c?.onHold;
+  const isInactive = (c) => !isActive(c);
+  const outstanding = (c) => Number(c?.outstandingBalance || 0);
+  const getStatus = (c) => String(c?.status || "");
+
+  /** ---------- Date helpers ---------- */
+  const toStartOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStr}T00:00:00.000Z`).toISOString();
+  const toEndOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStr}T23:59:59.999Z`).toISOString();
+
+  // addDays that is timezone-safe (strictly next day for 'min' on endDate)
+  const addDays = (dateStr, days) => {
+    if (!dateStr) return "";
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + days);
+    const yyyy = dt.getUTCFullYear();
+    const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getUTCDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const todayStr = () => {
+    const dt = new Date();
+    const yyyy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
 
   /** ---------- Tabs ---------- */
   const tabNames = [
@@ -43,27 +65,22 @@ export default function VendorList({ handleAddVendor }) {
     "Hold Vendor",
     "Outstanding Vendor",
   ];
+
+  /** ---------- State ---------- */
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  /** ---------- Dates ---------- */
-  const [startDate, setStartDate] = useState(
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-  );
-  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+  // Dates start empty => initial fetch = ALL data
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
-  /** ---------- Data & View ---------- */
-  const [customers, setVendors] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [viewingVendorId, setViewingVendorId] = useState(null);
 
-  /** ---------- Filters ---------- */
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
   const [sortOption, setSortOption] = useState(""); // name-asc | code-asc | code-desc
 
-  /** ---------- Selection ---------- */
-  const [selectedIds, setSelectedIds] = useState([]);
-
-  /** ---------- Summary ---------- */
   const [summary, setSummary] = useState({
     count: 0,
     creditLimit: 0,
@@ -72,109 +89,121 @@ export default function VendorList({ handleAddVendor }) {
     onHoldVendors: 0,
   });
 
-  /** ---------- UX ---------- */
   const [loading, setLoading] = useState(false);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
 
-  /** ---------- Fetch: Vendors ---------- */
+  /** ---------- Keep endDate valid vs startDate ---------- */
+  useEffect(() => {
+    if (!startDate) return;
+    setEndDate((prev) => {
+      const min = addDays(startDate, 1);
+      if (!prev || prev <= startDate) return min;
+      return prev;
+    });
+  }, [startDate]);
+
+  /** ---------- Fetchers ---------- */
   const fetchVendors = useCallback(
-    async (fromDate = startDate, toDate = endDate) => {
+    async ({ fromDate, toDate } = {}) => {
       setLoading(true);
       setError(null);
       try {
-        const fromISO = toStartOfDayISO(fromDate);
-        const toISO = toEndOfDayISO(toDate);
+        let params = {};
+        let fromISO, toISO;
 
-        const { data: resp } = await axios.get(baseUrl, {
-          params: { from: fromISO, to: toISO },
-        });
+        if (fromDate && toDate) {
+          fromISO = toStartOfDayISO(fromDate);
+          toISO = toEndOfDayISO(toDate);
+          params = { from: fromISO, to: toISO };
+        }
 
-        const raw = resp?.data || resp || [];
-        const list = Array.isArray(raw) ? raw : [];
+        const { data: resp } = await axios.get(baseUrl, { params });
+        const list = resp?.data || resp || [];
+        const arrayList = Array.isArray(list) ? list : [];
 
-        // Defensive client filter on createdAt bounds
-        const fromMs = new Date(fromISO).getTime();
-        const toMs = new Date(toISO).getTime();
-        const filtered = list.filter((c) => {
-          if (!c?.createdAt) return false;
-          const t = new Date(c.createdAt).getTime();
-          return t >= fromMs && t <= toMs;
-        });
+        // If backend didn't filter by date, enforce it client-side when dates are provided
+        let finalList = arrayList;
+        if (fromISO && toISO) {
+          const fromMs = new Date(fromISO).getTime();
+          const toMs = new Date(toISO).getTime();
+          finalList = arrayList.filter((c) => {
+            if (!c?.createdAt) return false;
+            const t = new Date(c.createdAt).getTime();
+            return t >= fromMs && t <= toMs;
+          });
+        }
 
-        setVendors(filtered);
+        setVendors(finalList);
 
-        // Baseline summary (fallback if metrics call fails)
-        setSummary({
-          count: filtered.length,
-          creditLimit: filtered.reduce(
+        // Fallback local summary (metrics may override later)
+        setSummary((prev) => ({
+          ...prev,
+          count: finalList.length || 0,
+          creditLimit: finalList.reduce(
             (s, c) => s + (Number(c?.creditLimit) || 0),
             0
           ),
-          paidVendors: filtered.filter((c) => getStatus(c) === "Paid").length,
-          activeVendors: filtered.filter((c) => isActive(c)).length,
-
-          onHoldVendors: filtered.filter((c) => isHold(c)).length, // Hold == Inactive
-        });
+          paidVendors: finalList.filter((c) => getStatus(c) === "Paid").length,
+          activeVendors: finalList.filter(isActive).length,
+          onHoldVendors: finalList.filter((c) => isInactive(c) || isOnHold(c))
+            .length,
+        }));
       } catch (err) {
         console.error(err);
-        setError("Unable to load customer data.");
+        setError("Unable to load Vendor data.");
       } finally {
         setLoading(false);
       }
     },
-    [startDate, endDate]
+    [baseUrl]
   );
-  const isInactive = (c) => !isActive(c);
-  const isHold = (c) => isInactive(c) || isOnHold(c);
-  /** ---------- Fetch: Metrics (optional backend aggregation) ---------- */
+
   const fetchMetrics = useCallback(
-    async (fromDate = startDate, toDate = endDate) => {
+    async ({ fromDate, toDate } = {}) => {
       setLoadingMetrics(true);
       try {
-        const fromISO = toStartOfDayISO(fromDate);
-        const toISO = toEndOfDayISO(toDate);
+        let params = {};
+        if (fromDate && toDate) {
+          params = {
+            from: toStartOfDayISO(fromDate),
+            to: toEndOfDayISO(toDate),
+          };
+        }
 
-        const { data: resp } = await axios.get(metricsUrl, {
-          params: { from: fromISO, to: toISO },
-        });
-
+        const { data: resp } = await axios.get(metricsUrl, { params });
         const m = (resp?.metrics && resp.metrics[0]) || {};
+
         setSummary((prev) => ({
           ...prev,
           count: m?.totalVendors ?? prev.count,
           creditLimit: m?.creditLimit ?? prev.creditLimit,
           paidVendors: m?.paidVendors ?? prev.paidVendors,
           activeVendors: m?.activeVendors ?? prev.activeVendors,
-          onHoldVendors: m?.onHoldVendors ?? prev.onHoldVendors,
-          count: filtered.length,
-          creditLimit: filtered.reduce(
-            (s, c) => s + (Number(c?.creditLimit) || 0),
-            0
-          ),
-          paidVendors: filtered.filter((c) => getStatus(c) === "Paid").length,
-          activeVendors: filtered.filter((c) => isActive(c)).length,
-          onHoldVendors: filtered.filter((c) => isInactive(c)).length, // Hold == Inactive
+          onHoldVendors:
+            typeof m?.inactiveVendors === "number"
+              ? m.inactiveVendors
+              : m?.onHoldVendors ?? prev.onHoldVendors,
         }));
       } catch (err) {
-        // optional; ignore errors
+        // metrics optional; do not block UI
         console.error(err);
       } finally {
         setLoadingMetrics(false);
       }
     },
-    [startDate, endDate]
+    [metricsUrl]
   );
 
-  /** ---------- Initial + on date change ---------- */
+  /** ---------- Initial load: fetch ALL (no dates) ---------- */
   useEffect(() => {
-    fetchVendors();
-    fetchMetrics();
+    fetchVendors(); // all
+    fetchMetrics(); // all
   }, [fetchVendors, fetchMetrics]);
 
-  /** ---------- Derived: filtered + sorted customers ---------- */
+  /** ---------- Derived: filtered + sorted list ---------- */
   const filteredVendors = useMemo(() => {
-    let list = [...customers];
+    let list = [...vendors];
 
     // Tabs
     switch (activeTab) {
@@ -182,10 +211,10 @@ export default function VendorList({ handleAddVendor }) {
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
       case "Active Vendor":
-        list = list.filter((c) => isActive(c));
+        list = list.filter(isActive);
         break;
       case "Hold Vendor":
-        list = list.filter((c) => isInactive(c)); // show inactive customers
+        list = list.filter((c) => isInactive(c) || isOnHold(c));
         break;
       case "Outstanding Vendor":
         list = list.filter((c) => outstanding(c) > 0);
@@ -195,12 +224,9 @@ export default function VendorList({ handleAddVendor }) {
     }
 
     // Status filter
-    if (statusFilter === "Active") list = list.filter((c) => isActive(c));
-    else if (statusFilter === "Inactive")
-      list = list.filter((c) => !isActive(c));
-    if (statusFilter === "Active") list = list.filter((c) => isActive(c));
-    else if (statusFilter === "Inactive")
-      list = list.filter((c) => isInactive(c));
+    if (statusFilter === "Active") list = list.filter(isActive);
+    else if (statusFilter === "Inactive") list = list.filter(isInactive);
+
     // Search
     const term = searchTerm.trim().toLowerCase();
     if (term) {
@@ -231,12 +257,20 @@ export default function VendorList({ handleAddVendor }) {
       list.sort((a, b) => cmpStr(getCode(b), getCode(a)));
 
     return list;
-  }, [customers, activeTab, statusFilter, searchTerm, sortOption]);
+  }, [vendors, activeTab, statusFilter, searchTerm, sortOption]);
+
+  /** ---------- Date-range validity ---------- */
+  const isRangeValid = useMemo(() => {
+    if (!startDate || !endDate) return false;
+    const s = new Date(startDate).getTime();
+    const e = new Date(endDate).getTime();
+    return e > s;
+  }, [startDate, endDate]);
 
   /** ---------- Handlers ---------- */
   const onTabClick = (tab) => {
     setActiveTab(tab);
-    // clear selections and filters when moving tabs
+    // clear selections and basic filters when moving tabs (keep chosen dates)
     setSelectedIds([]);
     setSearchTerm("");
     setStatusFilter("All");
@@ -253,8 +287,8 @@ export default function VendorList({ handleAddVendor }) {
   const handleSortChange = (e) => {
     const v = e.target.value;
     if (v === "Vendor Name") return setSortOption("name-asc");
-    if (v === "Vendor Account no") return setSortOption("code-asc");
-    if (v === "Vendor Account no descending") return setSortOption("code-desc");
+    if (v === "Vendor Account in Ascending") return setSortOption("code-asc");
+    if (v === "Vendor Account in descending") return setSortOption("code-desc");
     setSortOption(v || "");
   };
 
@@ -268,6 +302,12 @@ export default function VendorList({ handleAddVendor }) {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
+  };
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("All");
+    setSortOption("");
   };
 
   const handleDeleteSelected = async () => {
@@ -288,8 +328,13 @@ export default function VendorList({ handleAddVendor }) {
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
-        await fetchVendors(startDate, endDate);
-        await fetchMetrics(startDate, endDate);
+        if (isRangeValid) {
+          await fetchVendors({ fromDate: startDate, toDate: endDate });
+          await fetchMetrics({ fromDate: startDate, toDate: endDate });
+        } else {
+          await fetchVendors();
+          await fetchMetrics();
+        }
       }
       if (failed) toast.error(`${failed} failed — check console`);
     } catch (err) {
@@ -300,12 +345,12 @@ export default function VendorList({ handleAddVendor }) {
 
   /** ---------- Export ---------- */
   const exportToExcel = () => {
-    if (!customers.length) {
+    if (!vendors.length) {
       toast.info("No data to export.");
       return;
     }
     const ws = XLSX.utils.json_to_sheet(
-      customers.map((c) => ({
+      vendors.map((c) => ({
         Code: getCode(c),
         Name: getName(c),
         Email: getEmail(c),
@@ -321,7 +366,7 @@ export default function VendorList({ handleAddVendor }) {
     );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Vendors");
-    XLSX.writeFile(wb, "customer_list.xlsx");
+    XLSX.writeFile(wb, "vendor_list.xlsx");
   };
 
   const generatePDF = () => {
@@ -338,18 +383,11 @@ export default function VendorList({ handleAddVendor }) {
         isActive(c) ? "Active" : "Inactive",
       ]),
     });
-    doc.save("customer_list.pdf");
+    doc.save("vendor_list.pdf");
   };
 
-  const resetFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("All");
-    setSortOption("");
-    setSelectedIds([]);
-  };
-
-  const handleVendorClick = (customerId) => {
-    setViewingVendorId(customerId);
+  const handleVendorClick = (vendorId) => {
+    setViewingVendorId(vendorId);
   };
 
   const goBack = () => setViewingVendorId(null);
@@ -361,6 +399,7 @@ export default function VendorList({ handleAddVendor }) {
   if (viewingVendorId) {
     return (
       <div className="p-4">
+        {/* Keeping prop name as 'customerId' for compatibility with your ViewPage */}
         <VendorViewPage customerId={viewingVendorId} goBack={goBack} />
       </div>
     );
@@ -422,8 +461,13 @@ export default function VendorList({ handleAddVendor }) {
           />
           <button
             onClick={() => {
-              fetchMetrics(startDate, endDate);
-              fetchVendors(startDate, endDate);
+              if (isRangeValid) {
+                fetchMetrics({ fromDate: startDate, toDate: endDate });
+                fetchVendors({ fromDate: startDate, toDate: endDate });
+              } else {
+                fetchMetrics();
+                fetchVendors();
+              }
             }}
             className="px-3 py-1 border rounded"
           >
@@ -458,9 +502,9 @@ export default function VendorList({ handleAddVendor }) {
                 sortOption === "name-asc"
                   ? "Vendor Name"
                   : sortOption === "code-asc"
-                  ? "Vendor Account no"
+                  ? "Vendor Account in Ascending"
                   : sortOption === "code-desc"
-                  ? "Vendor Account no descending"
+                  ? "Vendor Account in descending"
                   : ""
               }
               onChange={handleSortChange}
@@ -468,10 +512,10 @@ export default function VendorList({ handleAddVendor }) {
             >
               <option value="">Sort By</option>
               <option value="Vendor Name">Vendor Name</option>
-              <option value="Vendor Account no">
+              <option value="Vendor Account in Ascending">
                 Vendor Account in Ascending
               </option>
-              <option value="Vendor Account no descending">
+              <option value="Vendor Account in descending">
                 Vendor Account in descending
               </option>
             </select>
@@ -514,21 +558,20 @@ export default function VendorList({ handleAddVendor }) {
 
         {/* Reset */}
         <button
-          onClick={resetFilters}
-          disabled={
-            !(
-              sortOption ||
-              statusFilter === "Active" ||
-              statusFilter === "Inactive" ||
-              searchTerm
-            )
-          }
+          onClick={async () => {
+            setSearchTerm("");
+            setStatusFilter("All");
+            setSelectedIds([]);
+            setSortOption("");
+            setStartDate("");
+            setEndDate("");
+            await fetchCustomers(); // all
+            await fetchMetrics(); // all
+          }}
+          disabled={!anyFiltersOn}
           className={`font-medium w-full sm:w-auto transition
           ${
-            sortOption ||
-            statusFilter === "Active" ||
-            statusFilter === "Inactive" ||
-            searchTerm
+            anyFiltersOn
               ? "text-red-500 hover:text-red-600 cursor-pointer"
               : "text-gray-400 cursor-not-allowed"
           }`}

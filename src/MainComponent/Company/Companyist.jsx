@@ -474,57 +474,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
               {/* Metrics */}
               <div className=" bg-white rounded-lg ">
                 {/* Date filters       /creation date  */}
-                <div className="flex flex-wrap gap-2">
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => {
-                      setStartDate(e.target.value);
-                      if (
-                        endDate &&
-                        e.target.value &&
-                        endDate <= e.target.value
-                      ) {
-                        setEndDate("");
-                      }
-                    }}
-                    className="border rounded px-2 py-1 w-full sm:w-auto"
-                  />
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="border rounded px-2 py-1 w-full sm:w-auto"
-                    disabled={!startDate}
-                    min={startDate ? addDays(startDate, 1) : undefined}
-                    onFocus={() => {
-                      if (startDate && !endDate)
-                        setEndDate(addDays(startDate, 1));
-                    }}
-                  />
-                  <button
-                    onClick={async () => {
-                      if (!isRangeValid) {
-                        toast.error(
-                          "Please choose an end date after the start date."
-                        );
-                        return;
-                      }
-                      await fetchMetrics({
-                        fromDate: startDate,
-                        toDate: endDate,
-                      });
-                      await fetchCompanies({
-                        fromDate: startDate,
-                        toDate: endDate,
-                      });
-                    }}
-                    className="px-3 py-1 border rounded w-full sm:w-auto"
-                    disabled={!canApply || loadingMetrics}
-                  >
-                    {loadingMetrics ? "Applying…" : "Apply"}
-                  </button>
-                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
@@ -549,6 +498,22 @@ export default function CompaniesList({ handleAddCompany, onView }) {
               <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md  mb-2 space-y-3 md:space-y-0 md:space-x-4">
                 <div className="flex flex-wrap items-center gap-3 md:gap-4">
                   {/* Sort By */}
+                    <div className="relative w-full sm:w-60">
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                      onClick={() => {}}
+                    >
+                      <FaSearch className="w-5 h-5" />
+                    </button>
+                  </div>
                   <div className="relative">
                     <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <select
@@ -566,7 +531,6 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                       </option>
                     </select>
                   </div>
-
                   {/* Filter By Status */}
                   <div className="relative">
                     <FaFilter className=" text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -589,20 +553,56 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                   </div>
 
                   {/* Search */}
-                  <div className="relative w-full sm:w-60">
+                
+                  <div className="flex flex-wrap gap-2">
                     <input
-                      type="text"
-                      placeholder="Search..."
-                      value={searchTerm}
-                      onChange={handleSearchChange}
-                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => {
+                        setStartDate(e.target.value);
+                        if (
+                          endDate &&
+                          e.target.value &&
+                          endDate <= e.target.value
+                        ) {
+                          setEndDate("");
+                        }
+                      }}
+                      className="border rounded px-2 py-1 w-full sm:w-auto"
+                    />
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="border rounded px-2 py-1 w-full sm:w-auto"
+                      disabled={!startDate}
+                      min={startDate ? addDays(startDate, 1) : undefined}
+                      onFocus={() => {
+                        if (startDate && !endDate)
+                          setEndDate(addDays(startDate, 1));
+                      }}
                     />
                     <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
-                      onClick={() => {}}
+                      onClick={async () => {
+                        if (!isRangeValid) {
+                          toast.error(
+                            "Please choose an end date after the start date."
+                          );
+                          return;
+                        }
+                        await fetchMetrics({
+                          fromDate: startDate,
+                          toDate: endDate,
+                        });
+                        await fetchCompanies({
+                          fromDate: startDate,
+                          toDate: endDate,
+                        });
+                      }}
+                      className="px-3 py-1 border rounded w-full sm:w-auto"
+                      disabled={!canApply || loadingMetrics}
                     >
-                      <FaSearch className="w-5 h-5" />
+                      {loadingMetrics ? "Applying…" : "Apply"}
                     </button>
                   </div>
                 </div>

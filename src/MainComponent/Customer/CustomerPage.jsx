@@ -84,7 +84,7 @@ const CustomerPage = () => {
   };
 
   return (
-    <div className="w-full bg-white rounded-lg ">
+    <div className="">
       <div>
         {view === "list" && (
           <CustomerList
