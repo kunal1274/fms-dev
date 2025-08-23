@@ -67,6 +67,28 @@ const sanitizeBank = (b = {}, codeFromForm = "") => {
   };
 };
 
+/* ---------- NEW: Robust next account number generator ---------- */
+const nextCustomerCode = (list = []) => {
+  // Look for patterns like CUST_001 (3+ digits). If not found, default to CUST_001
+  const takeNum = (val) => {
+    if (!val) return NaN;
+    const m =
+      String(val).match(/(?:^|[^A-Z0-9])CUST[_-]?(\d{1,6})(?:[^0-9]|$)/i) ||
+      String(val).match(/_(\d{1,6})$/); // fallback: *_### at end
+    return m ? parseInt(m[1], 10) : NaN;
+  };
+
+  let maxN = 0;
+  for (const c of Array.isArray(list) ? list : []) {
+    const n1 = takeNum(c?.customerAccountNo);
+    const n2 = takeNum(c?.code);
+    if (!Number.isNaN(n1)) maxN = Math.max(maxN, n1);
+    if (!Number.isNaN(n2)) maxN = Math.max(maxN, n2);
+  }
+  const next = maxN + 1;
+  return `CUST_${String(next).padStart(3, "0")}`;
+};
+
 export default function CustomerForm({ handleCancel, onSaved }) {
   /* ---------- State ---------- */
   const [form, setForm] = useState({
@@ -105,7 +127,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     contactPersonEmail: "",
     swift: "",
     upi: "",
-    currency: "",
+    currency: "INR",
     panNum: "",
     registrationNum: "",
     globalPartyId: "",
@@ -116,14 +138,16 @@ export default function CustomerForm({ handleCancel, onSaved }) {
 
   const [customers, setCustomers] = useState([]);
 
+  /* ---------- NEW: uploader states referenced by handleFileUpload ---------- */
+  const [logoUploading, setLogoUploading] = useState(false); // logic only; UI unchanged
+  const [uploadProgress, setUploadProgress] = useState({}); // logic only; UI unchanged
+
   const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
 
   /* ---------- Helpers ---------- */
   const generateAccountNo = useCallback((list) => {
-    const last = (Array.isArray(list) ? list : [])
-      .map((c) => parseInt(c.customerAccountNo?.split("_")?.[1], 10))
-      .filter((n) => !isNaN(n))
-      .reduce((m, n) => Math.max(m, n), 0);
+    // CHANGED: return next code string instead of computing and discarding
+    return nextCustomerCode(list);
   }, []);
 
   const fetchCustomers = useCallback(async () => {
@@ -133,7 +157,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
       setCustomers(arr);
       setForm((prev) => ({
         ...prev,
-        customerAccountNo: generateAccountNo(arr),
+        customerAccountNo: prev.customerAccountNo || generateAccountNo(arr), // don't overwrite if already set
       }));
     } catch (err) {
       console.error("Fetch customers failed:", {
@@ -194,7 +218,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
         headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
+            (progressEvent.loaded * 100) / (progressEvent.total || 1)
           );
           setUploadProgress({ [file.name]: percentCompleted });
         },
@@ -249,8 +273,8 @@ export default function CustomerForm({ handleCancel, onSaved }) {
       employeeName: /^[A-Za-z\s]*$/,
       email: /^.{0,100}$/,
       employeeEmail: /^.{0,100}$/,
-      contactNum: /^\d{0,10}$/,
-      contactPersonPhone: /^\d{0,10}$/,
+      contactNum: /^\d{0,10}$/, // not used when PhoneInput sets +E164
+      contactPersonPhone: /^\d{0,10}$/, // not used when PhoneInput sets +E164
       creditLimit: /^\d{0,10}$/,
     };
 
@@ -263,7 +287,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     // Reset bank-related top-level fields if bankType is Cash-like (legacy fields)
     if (
       name === "bankType" &&
-      ["Cash", "Barter", "Crypto", "UPI"].includes(val.trim())
+      ["Cash", "Barter", "Crypto", "UPI"].includes(String(val || "").trim())
     ) {
       setForm((prev) => ({
         ...prev,
@@ -289,7 +313,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
         "tanNumber",
       ].includes(name)
     ) {
-      val = val.toUpperCase();
+      val = String(val).toUpperCase();
     }
 
     // Validate input
@@ -304,7 +328,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
 
     // Map and sanitize bank details from the array actually used in the UI
     const banks = (form.bankDetails || [])
-      .map((b) => sanitizeBank(b, form.code))
+      .map((b) => sanitizeBank(b, form.code || form.customerAccountNo))
       .filter((b) => b.type); // drop empty rows (no type)
 
     // Client guardrails
@@ -325,7 +349,9 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     }
 
     // TAN: server expects tanNum (exactly 10 chars)
-    const tanNum = (form.tanNumber || "").toUpperCase().trim();
+    const tanNum = String(form.tanNumber || "")
+      .toUpperCase()
+      .trim();
     if (tanNum.length !== 10) {
       toast.error("TAN must be exactly 10 characters (e.g., ABCDE1234F).");
       return;
@@ -337,7 +363,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
       name: form.name,
       businessType: form.businessType,
       address: form.address,
-      contactNum: form.contactNum,
+      contactNum: form.contactNum, // already +E164 from PhoneInput
       email: form.email,
       group: form.group,
       remarks: form.remarks,
@@ -345,12 +371,16 @@ export default function CustomerForm({ handleCancel, onSaved }) {
       contactPersonName: form.contactPersonName,
       employeePhone: form.employeePhone,
       paymentTerms: form.paymentTerms,
-      contactPersonPhone: form.contactPersonPhone,
+      contactPersonPhone: form.contactPersonPhone, // +E164 from PhoneInput below
       employeeEmail: form.employeeEmail,
       creditLimit: Number(form.creditLimit || 0),
       currency: form.currency,
-      panNum: (form.panNum || "").toUpperCase().trim(),
-      registrationNum: (form.registrationNum || "").toUpperCase().trim(),
+      panNum: String(form.panNum || "")
+        .toUpperCase()
+        .trim(),
+      registrationNum: String(form.registrationNum || "")
+        .toUpperCase()
+        .trim(),
       tanNum,
       active: !!form.active,
       bankDetails: banks,
@@ -369,6 +399,12 @@ export default function CustomerForm({ handleCancel, onSaved }) {
 
       setCustomers((prev) => [...prev, newCustomer]);
       onSaved?.(newCustomer);
+
+      // Optionally bump the code for the next entry locally
+      setForm((prev) => ({
+        ...prev,
+        customerAccountNo: nextCustomerCode([...customers, newCustomer]),
+      }));
     } catch (err) {
       console.error("Error creating customer:", {
         status: err.response?.status,
@@ -411,6 +447,19 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     panNum: "",
     registrationNum: "",
     active: true,
+    // CHANGED: keep a starter row so Reset preserves the section structure
+    bankDetails: [
+      {
+        type: "",
+        bankName: "",
+        bankAccNum: "",
+        accountHolderName: "",
+        ifsc: "",
+        swift: "",
+        qrDetails: "",
+      },
+    ],
+    tanNumber: "",
   };
 
   const resetForm = (nextAccNo) =>
@@ -513,19 +562,20 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 ))}
               </select>
             </div>{" "}
-            {/* <div>
+            <div>
               <label className="block text-sm font-medium text-gray-600">
                 Contact No
               </label>
               <PhoneInput
-                country="in" // default India
-                value={form.contactPersonPhone} // keep the "+91..." format here
-                onChange={(val, country, e, formattedValue) => {
-                  const dial = country?.dialCode ? `+${country.dialCode}` : "";
+                country="in"
+                value={form.contactNum?.replace(/^\+/, "") || ""} // show without "+" per lib
+                onChange={(val, country) => {
                   const e164 = val ? `+${val}` : "";
                   setForm((prev) => ({
                     ...prev,
-                    countryCode: dial,
+                    countryCode: country?.dialCode
+                      ? `+${country.dialCode}`
+                      : "",
                     contactNum: e164, // always store with "+"
                   }));
                 }}
@@ -537,19 +587,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 enableSearch
                 prefix="+"
               />
-            </div>{" "} */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Customer Contact No
-              </label>
-              <input
-                name="contactPersonName"
-                value={form.contactPersonName}
-                onChange={handleChange}
-                placeholder="e.g. John Doe"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
+            </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Email ID
@@ -608,7 +646,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
               <label className="text-blue-600 font-medium">Active</label>
               <input
                 name="active"
-                checked={form.active}
+                checked={!!form.active}
                 onChange={handleChange}
                 type="checkbox"
                 className="w-4 h-4"
@@ -634,20 +672,31 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Phone No.
               </label>
-              <input
-                name="contactPersonPhone"
-                value={form.contactPersonPhone}
-                onChange={handleChange}
+              <PhoneInput
+                country="in"
+                // CHANGED: keep storage as +E164, show without "+"
+                value={form.contactPersonPhone?.replace(/^\+/, "") || ""}
+                onChange={(val, country) => {
+                  const e164 = val ? `+${val}` : "";
+                  setForm((prev) => ({
+                    ...prev,
+                    contactPersonPhone: e164,
+                  }));
+                }}
+                inputProps={{ name: "contactPersonPhone", required: true }}
+                containerClass="mt-1 w-full"
+                inputClass="!w-full !pl-18 !pr-7 !py-4 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
+                buttonClass="!border !rounded-l-lg "
+                dropdownClass="!shadow-lg"
                 placeholder="e.g. +91 91234 56789"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                enableSearch
+                prefix="+"
               />
-            </div>
-
+            </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Email.id
@@ -704,7 +753,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600">
+              <label className="block text sm font-medium text-gray-600">
                 Currency
               </label>
               <select
