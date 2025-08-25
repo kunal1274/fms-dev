@@ -806,17 +806,18 @@ const CustomerViewPagee = ({
         </section>
         {/* Bank Details */}
         <section className="p-6 ">
-            <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Bank Details
-          </h2>{" "}
-          <button
-            type="button"
-            onClick={addBankDetail}
-            className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
-          >
-            + Add Bank
-          </button>   </div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-medium text-gray-700 mb-4">
+              Bank Details
+            </h2>{" "}
+            <button
+              type="button"
+              onClick={addBankDetail}
+              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              + Add Bank
+            </button>{" "}
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
             {formData.bankDetails?.length > 0 &&
               formData.bankDetails.map((b, i) => (
@@ -1094,23 +1095,27 @@ const CustomerViewPagee = ({
           {" "}
           <button
             type="button"
-            onClick={handleEdit}
-            className="px-6 py-2 bg-green-200 rounded hover:bg-gray-300 transition"
-          >
-            Edit
-          </button>
-          <button
-            type="button"
             onClick={goBack}
             className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
           >
             Go Back
           </button>
           <button
-            onClick={handleUpdate}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            type="button"
+            onClick={() => {
+              if (isEditing) {
+                handleUpdate(); // already editing → update
+              } else {
+                handleEdit(); // not editing → switch to edit mode
+              }
+            }}
+            className={`px-6 py-2 rounded transition ${
+              isEditing
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-green-200 hover:bg-gray-300"
+            }`}
           >
-            Update
+            {isEditing ? "Update" : "Edit"}
           </button>
         </div>
       </form>
