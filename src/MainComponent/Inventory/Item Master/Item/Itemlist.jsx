@@ -148,14 +148,6 @@ export default function ItemList({ handleAddItem }) {
           paidItems: m?.paidItems ?? prev.paidItems,
           activeItems: m?.activeItems ?? prev.activeItems,
           onHoldItems: m?.onHoldItems ?? prev.onHoldItems,
-          count: filtered.length,
-          creditLimit: filtered.reduce(
-            (s, c) => s + (Number(c?.creditLimit) || 0),
-            0
-          ),
-          paidItems: filtered.filter((c) => getStatus(c) === "Paid").length,
-          activeItems: filtered.filter((c) => isActive(c)).length,
-          onHoldItems: filtered.filter((c) => isInactive(c)).length, // Hold == Inactive
         }));
       } catch (err) {
         // optional; ignore errors
@@ -255,8 +247,7 @@ export default function ItemList({ handleAddItem }) {
     const v = e.target.value;
     if (v === "Item Name") return setSortOption("name-asc");
     if (v === "Item Account no") return setSortOption("code-asc");
-    if (v === "Item Account no descending")
-      return setSortOption("code-desc");
+    if (v === "Item Account no descending") return setSortOption("code-desc");
     setSortOption(v || "");
   };
 
@@ -470,9 +461,7 @@ export default function ItemList({ handleAddItem }) {
             >
               <option value="">Sort By</option>
               <option value="Item Name">Item Name</option>
-              <option value="Item Account no">
-                Item Account in Ascending
-              </option>
+              <option value="Item Account no">Item Account in Ascending</option>
               <option value="Item Account no descending">
                 Item Account in descending
               </option>
