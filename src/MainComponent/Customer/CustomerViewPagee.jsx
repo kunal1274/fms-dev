@@ -93,6 +93,10 @@ const CustomerViewPagee = ({
     businessType: "",
     address: "",
     contactNum: "",
+    businessInfo: {},
+    taxInfo: {},
+    banks: [{ bankName: "", accountNo: "", ifsc: "" }],
+    addresses: [],
     email: "",
     group: "",
     remarks: "",
@@ -124,6 +128,25 @@ const CustomerViewPagee = ({
     }, // ← add this
     active: true,
   });
+
+  const addBankDetail = () => {
+    setFormData((prev) => ({
+      ...prev,
+      bankDetails: [
+        ...(prev.bankDetails || []),
+        {
+          type: "",
+          bankName: "",
+          bankAccNum: "",
+          accountHolderName: "",
+          ifsc: "",
+          swift: "",
+          qrDetails: "",
+        },
+      ],
+    }));
+  };
+
   const sanitizeBankField = (field, raw) => {
     let v = raw;
     switch (field) {
@@ -782,7 +805,8 @@ const CustomerViewPagee = ({
           </div>
         </section>
         {/* Bank Details */}
-        <section className="p-6">
+        <section className="p-6 ">
+            <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
             Bank Details
           </h2>{" "}
@@ -792,7 +816,7 @@ const CustomerViewPagee = ({
             className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
           >
             + Add Bank
-          </button>
+          </button>   </div>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
             {formData.bankDetails?.length > 0 &&
               formData.bankDetails.map((b, i) => (
