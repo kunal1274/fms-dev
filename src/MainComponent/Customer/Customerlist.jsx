@@ -6,7 +6,10 @@ import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
+
 import "./c.css";
+
+
 
 import CustomerViewPage from "./CustomerViewPage";
 
