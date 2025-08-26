@@ -7,7 +7,7 @@ import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
 import ItemMasterPage from "../Item/ItemPage";
 import WarehousePage from "../../Storage Dimension/Warehouse/WarehousePage";
 import SitePage from "../../Storage Dimension/Site/SitePage";
-// import ZonePage from "../../Storage Dimension/Zone/ZonePage";
+import ZonePage from "../../Storage Dimension/Zone/ZonePage";
 // import ShelvesPage from "../../Storage Dimension/Shelves/ShelvesPage";
 // import AislesPage from "../../Storage Dimension/Aisles/AislesPage";
 // import BatchValuePage from "../../Tracking Dimension/BatchValue/BatchValuePage";
