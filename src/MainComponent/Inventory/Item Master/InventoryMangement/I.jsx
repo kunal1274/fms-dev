@@ -5,25 +5,25 @@ import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
 
 // === Page Components ===
 import ItemMasterPage from "../Item/ItemPage";
-import WarehousePage from "../../Storage Dimension/Warehouse/WarehousePage";
-import SitePage from "../../Storage Dimension/Site/SitePage";
-import ZonePage from "../../Storage Dimension/Zone/ZonePage";
-import ShelvesPage from "../../Storage Dimension/Shelves/ShelvesPage";
-import AislesPage from "../../Storage Dimension/Aisles/AislesPage";
-import BatchValuePage from "../../Tracking Dimension/BatchValue/BatchValuePage";
-import BinPage from "../../Storage Dimension/Bin/BinPage";
-import LocationPage from "../../Storage Dimension/Location/LocationPage";
-import RackPage from "../../Storage Dimension/Rack/RackPage";
-import SerialPage from "../../Tracking Dimension/Serial/SerialPage";
-import JournalCreationForm from "../../Inventory Jornal/Jornal/Jornal";
-import InoutJournal from "../../../Sale/JournalRevenue/InoutJornal";
-import InventoryTransction from "../../Transcation Report/InventoryTransaction/InventoryTransaction";
+// import WarehousePage from "../../Storage Dimension/Warehouse/WarehousePage";
+// import SitePage from "../../Storage Dimension/Site/SitePage";
+// import ZonePage from "../../Storage Dimension/Zone/ZonePage";
+// import ShelvesPage from "../../Storage Dimension/Shelves/ShelvesPage";
+// import AislesPage from "../../Storage Dimension/Aisles/AislesPage";
+// import BatchValuePage from "../../Tracking Dimension/BatchValue/BatchValuePage";
+// import BinPage from "../../Storage Dimension/Bin/BinPage";
+// import LocationPage from "../../Storage Dimension/Location/LocationPage";
+// import RackPage from "../../Storage Dimension/Rack/RackPage";
+// import SerialPage from "../../Tracking Dimension/Serial/SerialPage";
+// import JournalCreationForm from "../../Inventory Jornal/Jornal/Jornal";
+// import InoutJournal from "../../../Sale/JournalRevenue/InoutJornal";
+// import InventoryTransction from "../../Transcation Report/InventoryTransaction/InventoryTransaction";
 // === Product Dimensions ===
-import ProductDimColor from "../../Product Dimension/Color/ProductDimColorPage";
-import ProductDimConfig from "../../Product Dimension/Configuration/ProductDimConfPage";
-import ProductDimVersion from "../../Product Dimension/ProductDimVersion/ProductDimVersionPage";
-import Style from "../../Product Dimension/Style/ProductDimStylePage";
-import Size from "../../Product Dimension/ProductDimSize/ProductDimSizePage";
+// import ProductDimColor from "../../Product Dimension/Color/ProductDimColorPage";
+// import ProductDimConfig from "../../Product Dimension/Configuration/ProductDimConfPage";
+// import ProductDimVersion from "../../Product Dimension/ProductDimVersion/ProductDimVersionPage";
+// import Style from "../../Product Dimension/Style/ProductDimStylePage";
+// import Size from "../../Product Dimension/ProductDimSize/ProductDimSizePage";
 
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
@@ -66,70 +66,70 @@ export default function InventoryManegment() {
       [PAGE.ITEM_MASTER]: (
         <ItemMasterPage companies={companies} form={form} setForm={setForm} />
       ),
-      [PAGE.WAREHOUSE]: (
-        <WarehousePage companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.SITE]: (
-        <SitePage companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.ZONE]: (
-        <ZonePage companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.SHELVES]: (
-        <ShelvesPage companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.AISLES]: (
-        <AislesPage companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.BATCHES]: (
-        <BatchValuePage companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.BIN]: (
-        <BinPage companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.LOCATION]: (
-        <LocationPage companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.RACK]: (
-        <RackPage companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.SERIALS]: (
-        <SerialPage companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.INVENTORY_JOURNALS]: (
-        <JournalCreationForm
-          companies={companies}
-          form={form}
-          setForm={setForm}
-        />
-      ),
-      [PAGE.INOUT]: (
-        <InoutJournal companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.COLOR]: (
-        <ProductDimColor companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.CONFIG]: (
-        <ProductDimConfig companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.DIMVERSION]: (
-        <ProductDimVersion
-          companies={companies}
-          form={form}
-          setForm={setForm}
-        />
-      ),
-      [PAGE.STYLE]: (
-        <Style companies={companies} form={form} setForm={setForm} />
-      ),
-      [PAGE.SIZE]: <Size companies={companies} form={form} setForm={setForm} />,
-      [PAGE.INVENTORY_TRANSACTIONS]: (
-        <InventoryTransction
-          companies={companies}
-          form={form}
-          setForm={setForm}
-        />
-      ),
+    //   [PAGE.WAREHOUSE]: (
+    //     <WarehousePage companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.SITE]: (
+    //     <SitePage companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.ZONE]: (
+    //     <ZonePage companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.SHELVES]: (
+    //     <ShelvesPage companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.AISLES]: (
+    //     <AislesPage companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.BATCHES]: (
+    //     <BatchValuePage companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.BIN]: (
+    //     <BinPage companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.LOCATION]: (
+    //     <LocationPage companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.RACK]: (
+    //     <RackPage companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.SERIALS]: (
+    //     <SerialPage companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.INVENTORY_JOURNALS]: (
+    //     <JournalCreationForm
+    //       companies={companies}
+    //       form={form}
+    //       setForm={setForm}
+    //     />
+    //   ),
+    //   [PAGE.INOUT]: (
+    //     <InoutJournal companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.COLOR]: (
+    //     <ProductDimColor companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.CONFIG]: (
+    //     <ProductDimConfig companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.DIMVERSION]: (
+    //     <ProductDimVersion
+    //       companies={companies}
+    //       form={form}
+    //       setForm={setForm}
+    //     />
+    //   ),
+    //   [PAGE.STYLE]: (
+    //     <Style companies={companies} form={form} setForm={setForm} />
+    //   ),
+    //   [PAGE.SIZE]: <Size companies={companies} form={form} setForm={setForm} />,
+    //   [PAGE.INVENTORY_TRANSACTIONS]: (
+    //     <InventoryTransction
+    //       companies={companies}
+    //       form={form}
+    //       setForm={setForm}
+    //     />
+    //   ),
     }),
     [companies, form]
   );
