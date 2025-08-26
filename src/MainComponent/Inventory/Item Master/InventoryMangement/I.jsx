@@ -6,7 +6,7 @@ import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
 // === Page Components ===
 import ItemMasterPage from "../Item/ItemPage";
 import WarehousePage from "../../Storage Dimension/Warehouse/WarehousePage";
-// import SitePage from "../../Storage Dimension/Site/SitePage";
+import SitePage from "../../Storage Dimension/Site/SitePage";
 // import ZonePage from "../../Storage Dimension/Zone/ZonePage";
 // import ShelvesPage from "../../Storage Dimension/Shelves/ShelvesPage";
 // import AislesPage from "../../Storage Dimension/Aisles/AislesPage";
@@ -69,9 +69,9 @@ export default function InventoryManegment() {
       [PAGE.WAREHOUSE]: (
         <WarehousePage companies={companies} form={form} setForm={setForm} />
       ),
-    //   [PAGE.SITE]: (
-    //     <SitePage companies={companies} form={form} setForm={setForm} />
-    //   ),
+      [PAGE.SITE]: (
+        <SitePage companies={companies} form={form} setForm={setForm} />
+      ),
     //   [PAGE.ZONE]: (
     //     <ZonePage companies={companies} form={form} setForm={setForm} />
     //   ),
