@@ -9,7 +9,7 @@ const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
 };
 import ItemMasterPage from "../Item/ItemPage";
-import BinPage from "../../Storage Dimension/Bin/BinPage";
+import BinPage from "../../../Inventory/Storage Dimension/Bin/BinPage";
 import ProductDimColor from "../../Product Dimension/Color/ProductDimColorPage";
 import ProductDimConfig from "../../Product Dimension/Configuration/ProductDimConfPage";
 import ProductDimVersion from "../../Product Dimension/ProductDimVersion/ProductDimVersionPage";
