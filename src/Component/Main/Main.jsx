@@ -3,7 +3,7 @@ import CustomerList from "../../MainComponent/Customer/CustomerPage";
 import CompanyPage from "../../MainComponent/Company/CompanyPage";
 import SalePage from "../../MainComponent/Sale/Sale/SaleManegment";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
-// import InventoryManegment from "../../MainComponent/Inventory/Item Master/InventoryMangement/I";
+import InventoryManegment from "../../MainComponent/Inventory/Item Master/InventoryMangement/I.jsx";
 import PurchasePage from "../../MainComponent/Purchase/Purchase/PurchaseManegment";
 import TaxManegment from "../../MainComponent/Tax/TaxMangement/TaxManegment";
 import BankManegment from "../../MainComponent/Bank/BankMangement/BankManegment";
@@ -37,9 +37,9 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
           <PurchasePage onAddNew={onAddNew} onView={onView} />
         </div>
       )}
-      {/* {selectedMenu === "Inventory" && (
+      {selectedMenu === "Inventory" && (
         <InventoryManegment onAddNew={onAddNew} onView={onView} />
-      )} */}
+      )}
       {/* {selectedMenu === "itemPage" && (
         <ItemPage onAddNew={onAddNew} onView={onView} />
       )} */}
