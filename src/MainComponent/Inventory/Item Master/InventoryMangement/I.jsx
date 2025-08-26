@@ -6,8 +6,8 @@ import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
 import SerialPage from "../../Tracking Dimension/Serial/SerialPage";
 
 import AislesPage from "../../Storage Dimension/Aisles/AislesPage";
-
 import ItemMasterPage from "../Item/ItemPage";
+import ShelvesPage from "../../Storage Dimension/Shelves/ShelvesPage";
 import LocationPage from "../../Storage Dimension/Location/LocationPage";
 import BinPage from "../../../Inventory/Storage Dimension/Bin/BinPage";
 import ProductDimColor from "../../Product Dimension/Color/ProductDimColorPage";
@@ -42,7 +42,7 @@ const I = () => {
       [PAGE.ITEM_MASTER]: (
         <ItemMasterPage companies={companies} form={form} setForm={setForm} />
       ),
-      
+
       [PAGE.AISLES]: (
         <AislesPage companies={companies} form={form} setForm={setForm} />
       ),
@@ -60,6 +60,9 @@ const I = () => {
       ),
       [PAGE.WAREHOUSE]: (
         <WarehousePage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.SHELVES]: (
+        <ShelvesPage companies={companies} form={form} setForm={setForm} />
       ),
       [PAGE.LOCATION]: (
         <LocationPage companies={companies} form={form} setForm={setForm} />
