@@ -4,10 +4,9 @@ import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
 import BatchValuePage from "../../Tracking Dimension/BatchValue/BatchValuePage";
 import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
 import SerialPage from "../../Tracking Dimension/Serial/SerialPage";
+import ZonePage from "../../Storage Dimension/Zone/ZonePage";
 import AislesPage from "../../Storage Dimension/Aisles/AislesPage";
-const initialForm = {
-  company: localStorage.getItem("selectedCompany") || "",
-};
+
 import ItemMasterPage from "../Item/ItemPage";
 import LocationPage from "../../Storage Dimension/Location/LocationPage";
 import BinPage from "../../../Inventory/Storage Dimension/Bin/BinPage";
@@ -16,6 +15,7 @@ import ProductDimConfig from "../../Product Dimension/Configuration/ProductDimCo
 import ProductDimVersion from "../../Product Dimension/ProductDimVersion/ProductDimVersionPage";
 import Style from "../../Product Dimension/Style/ProductDimStylePage";
 import Size from "../../Product Dimension/ProductDimSize/ProductDimSizePage";
+
 const I = () => {
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState(initialForm);
@@ -31,6 +31,9 @@ const I = () => {
     setHiddenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   const toggleSubgroup = (id) =>
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
+  const initialForm = {
+    company: localStorage.getItem("selectedCompany") || "",
+  };
   const componentMap = useMemo(
     () => ({
       [PAGE.ITEM_MASTER]: (
@@ -47,6 +50,9 @@ const I = () => {
       ),
       [PAGE.COLOR]: (
         <ProductDimColor companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.ZONE]: (
+        <ZonePage companies={companies} form={form} setForm={setForm} />
       ),
       [PAGE.LOCATION]: (
         <LocationPage companies={companies} form={form} setForm={setForm} />
