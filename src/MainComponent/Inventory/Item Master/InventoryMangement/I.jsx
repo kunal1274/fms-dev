@@ -8,6 +8,11 @@ const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
 };
 import ItemMasterPage from "../Item/ItemPage";
+import ProductDimColor from "../../Product Dimension/Color/ProductDimColorPage";
+import ProductDimConfig from "../../Product Dimension/Configuration/ProductDimConfPage";
+import ProductDimVersion from "../../Product Dimension/ProductDimVersion/ProductDimVersionPage";
+import Style from "../../Product Dimension/Style/ProductDimStylePage";
+import Size from "../../Product Dimension/ProductDimSize/ProductDimSizePage";
 const I = () => {
   const [companies, setCompanies] = useState([]);
   const [form, setForm] = useState(initialForm);
@@ -34,6 +39,23 @@ const I = () => {
       [PAGE.BATCHES]: (
         <BatchValuePage companies={companies} form={form} setForm={setForm} />
       ),
+      [PAGE.COLOR]: (
+        <ProductDimColor companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.CONFIG]: (
+        <ProductDimConfig companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.DIMVERSION]: (
+        <ProductDimVersion
+          companies={companies}
+          form={form}
+          setForm={setForm}
+        />
+      ),
+      [PAGE.STYLE]: (
+        <Style companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.SIZE]: <Size companies={companies} form={form} setForm={setForm} />,
     }),
     [companies, form]
   );
