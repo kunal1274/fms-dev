@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import CustomerViewPage from "./CustomerViewPagee";
+import CustomerViewPage from "./CustomerViewPage";
 import { Button } from "../../Component/Button/Button";
 import CustomerForm from "./CustomerForm";
 import CustomerList from "./Customerlist";
