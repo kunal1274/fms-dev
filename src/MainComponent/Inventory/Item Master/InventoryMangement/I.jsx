@@ -16,6 +16,7 @@ import ProductDimVersion from "../../Product Dimension/ProductDimVersion/Product
 import Style from "../../Product Dimension/Style/ProductDimStylePage";
 import Size from "../../Product Dimension/ProductDimSize/ProductDimSizePage";
 import RackPage from "../../Storage Dimension/Rack/RackPage";
+import WarehousePage from "../../Storage Dimension/Warehouse/WarehousePage";
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
 };
@@ -55,6 +56,9 @@ const I = () => {
       ),
       [PAGE.RACK]: (
         <RackPage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.WAREHOUSE]: (
+        <WarehousePage companies={companies} form={form} setForm={setForm} />
       ),
       [PAGE.LOCATION]: (
         <LocationPage companies={companies} form={form} setForm={setForm} />
