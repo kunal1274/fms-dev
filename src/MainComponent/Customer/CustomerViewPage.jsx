@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 import { useParams } from "react-router-dom";
-
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
@@ -586,17 +587,22 @@ const CustomerViewPagee = ({
               <label className="block text-sm font-medium text-gray-600">
                 Contact No
               </label>
-              <input
-                type="text"
-                inputMode="numeric"
+              <PhoneInput
+                country="in"
                 name="contactNum"
+                inputMode="numeric"
                 value={formData.contactNum || ""}
-                maxLength={10}
-                onChange={handleChange}
                 disabled={!isEditing}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                onChange={handleChange}
+                inputProps={{ name: "contactNum", required: true }}
+                containerClass="mt-1 w-full"
+                inputClass="!w-full !pl-18 !pr-7 !py-3 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
+                buttonClass="!border !rounded-l-lg "
+                dropdownClass="!shadow-lg"
+                enableSearch
+                prefix="+"
               />
-            </div>
+            </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Email ID
@@ -711,20 +717,28 @@ const CustomerViewPagee = ({
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-
-            <div>
+  <div>
               <label className="block text-sm font-medium text-gray-600">
                 Phone No.
               </label>
-              <input
-                name="contactPersonPhone"
+              <PhoneInput
+                country="in"
+                // CHANGED: keep storage as +E164, show without "+"
+               name="contactPersonPhone"
                 inputMode="numeric"
                 value={formData.contactPersonPhone}
                 onChange={handleChange}
+                inputProps={{ name: "contactPersonPhone", required: true }}
+                containerClass="mt-1 w-full"
+                inputClass="!w-full !pl-18 !pr-7 !py-4 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
+                buttonClass="!border !rounded-l-lg "
+                dropdownClass="!shadow-lg"
                 placeholder="e.g. +91 91234 56789"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                enableSearch
+                prefix="+"
               />
-            </div>
+            </div>{" "}
+          
 
             <div>
               <label className="block text-sm font-medium text-gray-600">

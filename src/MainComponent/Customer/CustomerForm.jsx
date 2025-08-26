@@ -85,8 +85,6 @@ const nextCustomerCode = (list = []) => {
     if (!Number.isNaN(n1)) maxN = Math.max(maxN, n1);
     if (!Number.isNaN(n2)) maxN = Math.max(maxN, n2);
   }
-  const next = maxN + 1;
-  return `CUST_${String(next).padStart(3, "0")}`;
 };
 
 export default function CustomerForm({ handleCancel, onSaved }) {
@@ -306,6 +304,14 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     if (
       [
         "bankName",
+        "panNumber",
+        "gstNumber",
+        "tanNumber",
+        "bankAccNum",
+        "bankName",
+        "companyCode",
+        "ifsc",
+        "swift",
         "panNum",
         "registrationNum",
         "ifsc",
@@ -821,10 +827,17 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                   <input
                     name="bankName"
                     value={bank.bankName}
-                    onChange={(e) => handleBankChange(index, e)}
+                    onChange={(e) =>
+                      handleBankChange(index, {
+                        target: {
+                          name: "bankName",
+                          value: e.target.value.toUpperCase(), // force uppercase
+                        },
+                      })
+                    }
                     disabled={rowDisabled}
-                    placeholder="e.g. HDFC Bank"
-                    className={`mt-1 w-full p-2 border rounded ${
+                    placeholder="e.g. HDFC BANK"
+                    className={`mt-1 w-full p-2 border rounded uppercase ${
                       rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
                   />
@@ -837,7 +850,16 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                   <input
                     name="bankAccNum"
                     value={bank.bankAccNum}
-                    onChange={(e) => handleBankChange(index, e)}
+                    onChange={(e) => {
+                      // remove non-digits and limit to 16
+                      const onlyNums = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 16);
+                      handleBankChange(index, {
+                        target: { name: "bankAccNum", value: onlyNums },
+                      });
+                    }}
+                    maxLength={16} // extra safeguard
                     disabled={rowDisabled}
                     className={`mt-1 w-full p-2 border rounded ${
                       rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
@@ -852,7 +874,16 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                   <input
                     name="accountHolderName"
                     value={bank.accountHolderName}
-                    onChange={(e) => handleBankChange(index, e)}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      // Capitalize first character if present
+                      if (val.length > 0) {
+                        val = val.charAt(0).toUpperCase() + val.slice(1);
+                      }
+                      handleBankChange(index, {
+                        target: { name: "accountHolderName", value: val },
+                      });
+                    }}
                     disabled={rowDisabled}
                     className={`mt-1 w-full p-2 border rounded ${
                       rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
@@ -867,11 +898,20 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                   <input
                     name="ifsc"
                     value={bank.ifsc}
-                    onChange={(e) => handleBankChange(index, e)}
+                    onChange={(e) =>
+                      handleBankChange(index, {
+                        target: {
+                          name: "ifsc",
+                          value: e.target.value.toUpperCase().slice(0, 12),
+                        },
+                      })
+                    }
                     disabled={rowDisabled}
+                    maxLength={12} // extra safeguard for typing
                     className={`mt-1 w-full p-2 border rounded ${
                       rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
+                    style={{ textTransform: "uppercase" }} // display stays uppercase
                   />
                 </div>
 
@@ -882,11 +922,20 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                   <input
                     name="swift"
                     value={bank.swift}
-                    onChange={(e) => handleBankChange(index, e)}
+                    onChange={(e) =>
+                      handleBankChange(index, {
+                        target: {
+                          name: "swift",
+                          value: e.target.value.toUpperCase().slice(0, 10),
+                        },
+                      })
+                    }
                     disabled={rowDisabled}
+                    maxLength={10} // HTML safeguard
                     className={`mt-1 w-full p-2 border rounded ${
                       rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
+                    style={{ textTransform: "uppercase" }}
                   />
                 </div>
 

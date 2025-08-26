@@ -8,7 +8,7 @@ import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
 
-import CustomerViewPage from "./CustomerViewPagee";
+import CustomerViewPage from "./CustomerViewPage";
 
 export default function CustomerList({ handleAddCustomer }) {
   /** ---------- API ---------- */
@@ -367,13 +367,13 @@ export default function CustomerList({ handleAddCustomer }) {
   const generatePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
-      head: [["#", "Code", "Name", "Email", "GST", "Address", "Status"]],
+      head: [["#", "Code", "Name", "Email", "Address", "Status"]],
       body: filteredCustomers.map((c, i) => [
         i + 1,
         getCode(c) || "",
         getName(c) || "",
         getEmail(c) || "",
-        getGST(c) || "",
+
         getAddress(c) || "",
         isActive(c) ? "Active" : "Inactive",
       ]),
