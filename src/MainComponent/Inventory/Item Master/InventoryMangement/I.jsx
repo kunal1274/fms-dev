@@ -42,6 +42,7 @@ const I = () => {
       [PAGE.ITEM_MASTER]: (
         <ItemMasterPage companies={companies} form={form} setForm={setForm} />
       ),
+      
       [PAGE.AISLES]: (
         <AislesPage companies={companies} form={form} setForm={setForm} />
       ),
