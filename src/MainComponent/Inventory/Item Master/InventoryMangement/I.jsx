@@ -7,7 +7,7 @@ import SerialPage from "../../Tracking Dimension/Serial/SerialPage";
 
 import AislesPage from "../../Storage Dimension/Aisles/AislesPage";
 import ItemMasterPage from "../Item/ItemPage";
-import ShelvesPage from "../../Storage Dimension/Shelves/ShelvesPage";
+
 import LocationPage from "../../Storage Dimension/Location/LocationPage";
 import BinPage from "../../../Inventory/Storage Dimension/Bin/BinPage";
 import ProductDimColor from "../../Product Dimension/Color/ProductDimColorPage";
@@ -17,6 +17,9 @@ import Style from "../../Product Dimension/Style/ProductDimStylePage";
 import Size from "../../Product Dimension/ProductDimSize/ProductDimSizePage";
 import RackPage from "../../Storage Dimension/Rack/RackPage";
 import WarehousePage from "../../Storage Dimension/Warehouse/WarehousePage";
+import ShelvesPage from "../../Storage Dimension/Shelves/ShelvesPage";
+
+
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
 };
