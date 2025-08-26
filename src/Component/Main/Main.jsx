@@ -3,7 +3,7 @@ import CustomerList from "../../MainComponent/Customer/CustomerPage";
 import CompanyPage from "../../MainComponent/Company/CompanyPage";
 import SalePage from "../../MainComponent/Sale/Sale/SaleManegment";
 import VendorPage from "../../MainComponent/Vendor/VendorPage";
-// import InventoryManegment from "../../MainComponent/Inventory/Item Master/Inventory Mangement/InventoryManegment";
+import InventoryManegment from "../../MainComponent/Inventory/Item Master/Inventory Mangement/InventoryManegment";
 import PurchasePage from "../../MainComponent/Purchase/Purchase/PurchaseManegment";
 import TaxManegment from "../../MainComponent/Tax/TaxMangement/TaxManegment";
 import BankManegment from "../../MainComponent/Bank/BankMangement/BankManegment";
