@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
+import BatchValuePage from "../../Tracking Dimension/BatchValue/BatchValuePage";
 import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
+import SerialPage from "../../Tracking Dimension/Serial/SerialPage";
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
 };
@@ -25,6 +27,12 @@ const I = () => {
     () => ({
       [PAGE.ITEM_MASTER]: (
         <ItemMasterPage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.SERIALS]: (
+        <SerialPage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.BATCHES]: (
+        <BatchValuePage companies={companies} form={form} setForm={setForm} />
       ),
     }),
     [companies, form]
