@@ -37,12 +37,12 @@ export default function Main({ sidebarOpen, selectedMenu, onAddNew, onView }) {
           <PurchasePage onAddNew={onAddNew} onView={onView} />
         </div>
       )}
-      {/* {selectedMenu === "Inventory" && (
-        // <InventoryManegment onAddNew={onAddNew} onView={onView} />
-      )} */}
-      {/* {selectedMenu === "itemPage" && (
+      {selectedMenu === "Inventory" && (
+        <InventoryManegment onAddNew={onAddNew} onView={onView} />
+      )}
+      {selectedMenu === "itemPage" && (
         <ItemPage onAddNew={onAddNew} onView={onView} />
-      )} */}
+      )}
       {selectedMenu === "Accounting And Tax" && (
         <TaxManegment onAddNew={onAddNew} onView={onView} />
       )}
