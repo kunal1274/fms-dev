@@ -72,9 +72,9 @@ export default function InventoryManegment() {
       [PAGE.SITE]: (
         <SitePage companies={companies} form={form} setForm={setForm} />
       ),
-      [PAGE.ZONE]: (
-        <ZonePage companies={companies} form={form} setForm={setForm} />
-      ),
+      // [PAGE.ZONE]: (
+      //   <ZonePage companies={companies} form={form} setForm={setForm} />
+      // ),
       [PAGE.SHELVES]: (
         <ShelvesPage companies={companies} form={form} setForm={setForm} />
       ),
