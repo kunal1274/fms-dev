@@ -4,6 +4,7 @@ import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
 import BatchValuePage from "../../Tracking Dimension/BatchValue/BatchValuePage";
 import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
 import SerialPage from "../../Tracking Dimension/Serial/SerialPage";
+import AislesPage from "../../Storage Dimension/Aisles/AislesPage";
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
 };
@@ -32,6 +33,9 @@ const I = () => {
     () => ({
       [PAGE.ITEM_MASTER]: (
         <ItemMasterPage companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.AISLES]: (
+        <AislesPage companies={companies} form={form} setForm={setForm} />
       ),
       [PAGE.SERIALS]: (
         <SerialPage companies={companies} form={form} setForm={setForm} />
