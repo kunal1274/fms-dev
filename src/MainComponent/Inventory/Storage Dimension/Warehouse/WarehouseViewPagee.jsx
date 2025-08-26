@@ -1,0 +1,308 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useParams } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "./c.css";
+
+const mergedUrl = `https://fms-qkmw.onrender.com/fms/api/v0/warehouses`;
+const siteUrl = `https://fms-qkmw.onrender.com/fms/api/v0/sites`;
+
+const WarehouseViewPage = ({ warehouseId, Warehouse, goBack }) => {
+  const { id } = useParams();
+  const effectiveId = warehouseId || id;
+
+  const initialForm = {
+    code: "",
+    name: "",
+    type: "Physical",
+    company: "",
+    description: "",
+    remarks: "",
+    active: false,
+    archived: false,
+    warehouse: "",
+    groups: [],
+    bankDetails: [],
+    siteId: "", // ✅ added
+  };
+
+  const [form, setForm] = useState(initialForm);
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [sites, setSites] = useState([]);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : value;
+    setForm((prev) => ({ ...prev, [name]: newValue }));
+  };
+
+  const handleUpdate = async () => {
+    const confirmUpdate = window.confirm(
+      "Are you sure you want to update this warehouse?"
+    );
+    if (!confirmUpdate) return;
+
+    if (!form.name || !form.siteId) {
+      toast.error("Please fill in required fields like name and site.");
+      return;
+    }
+
+    const toastId = toast.loading("Updating warehouse...");
+    try {
+      const response = await axios.put(`${mergedUrl}/${effectiveId}`, form);
+      if (response.status === 200) {
+        toast.update(toastId, {
+          render: "Warehouse updated successfully!",
+          type: "success",
+          isLoading: false,
+          autoClose: 3000,
+        });
+        setIsEditing(false);
+      }
+    } catch (err) {
+      toast.update(toastId, {
+        render: err.response?.data?.message || "Update failed",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    }
+  };
+
+  const handleEdit = () => setIsEditing(true);
+
+  useEffect(() => {
+    const fetchWarehouseDetail = async () => {
+      try {
+        const response = await axios.get(`${mergedUrl}/${effectiveId}`);
+        if (response.status === 200) {
+          setForm((prev) => ({
+            ...prev,
+            ...(response.data.data || {}),
+          }));
+        } else {
+          setError(`Unexpected response status: ${response.status}`);
+        }
+      } catch (err) {
+        setError(
+          err.response?.data?.message || "Error fetching warehouse data"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchSites = async () => {
+      try {
+        const res = await axios.get(siteUrl);
+        if (res.status === 200) setSites(res.data.data || []);
+      } catch (err) {
+        console.error("Failed to fetch sites", err);
+      }
+    };
+
+    fetchWarehouseDetail();
+    fetchSites();
+  }, [effectiveId]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-600">Error: {error}</div>;
+
+  return (
+    <div className="space-y-6">
+      <ToastContainer />
+      <div className="flex justify-between items-center">
+        <h3 className="text-xl font-semibold">Warehouse View Page</h3>
+      </div>
+
+      <form className="bg-white shadow-none rounded-lg divide-y divide-gray-200">
+        <section className="p-6">
+          <h2 className="text-lg font-medium text-gray-700 mb-4">
+            Warehouse Details
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Warehouse Code - Readonly */}
+            <div>
+              <label
+                htmlFor="code"
+                className="block text-sm font-medium text-gray-600"
+              >
+                Warehouse Code
+              </label>
+              <input
+                name="code"
+                value={form.code}
+                readOnly
+                disabled
+                className="mt-1 w-full p-2 border bg-gray-100 rounded cursor-not-allowed"
+              />
+            </div>
+
+            {/* Warehouse Name */}
+            <div>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-600"
+              >
+                Warehouse Name
+              </label>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-600"
+              >
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                rows={3}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            {/* Remarks */}
+            <div>
+              <label
+                htmlFor="remarks"
+                className="block text-sm font-medium text-gray-600"
+              >
+                Remarks
+              </label>
+              <textarea
+                name="remarks"
+                value={form.remarks}
+                onChange={handleChange}
+                rows={3}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            {/* Type */}
+            <div>
+              <label
+                htmlFor="type"
+                className="block text-sm font-medium text-gray-600"
+              >
+                Type
+              </label>
+              <select
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="">Select type</option>
+                <option value="Physical">Physical</option>
+                <option value="Virtual">Virtual</option>
+              </select>
+            </div>
+
+            {/* Site Dropdown */}
+            <div>
+              <label
+                htmlFor="siteId"
+                className="block text-sm font-medium text-gray-600"
+              >
+                Site
+              </label>
+              <select
+                name="siteId"
+                value={form.siteId}
+                onChange={handleChange}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded"
+              >
+                <option value="">Select a site…</option>
+                {sites.length ? (
+                  sites.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {(s.code || s.SiteAccountNo) + " – " + s.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading sites...</option>
+                )}
+              </select>
+            </div>
+
+            {/* Active Checkbox */}
+            <div className="flex items-center space-x-2 mt-6">
+              <label
+                className="text-sm font-medium text-gray-600"
+                htmlFor="active"
+              >
+                Active
+              </label>
+              <input
+                type="checkbox"
+                name="active"
+                checked={form.active}
+                onChange={handleChange}
+                disabled={!isEditing}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+              />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="py-6 flex justify-end gap-4">
+            {!isEditing ? (
+              <button
+                type="button"
+                onClick={handleEdit}
+                className="px-6 py-2 bg-green-200 rounded hover:bg-green-300 transition"
+              >
+                Edit
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="px-6 py-2 bg-red-200 rounded hover:bg-red-300 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUpdate}
+                  className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                >
+                  Update
+                </button>
+              </>
+            )}
+
+            <button
+              type="button"
+              onClick={goBack}
+              className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
+            >
+              Go Back
+            </button>
+          </div>
+        </section>
+      </form>
+    </div>
+  );
+};
+
+export default WarehouseViewPage;
