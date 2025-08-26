@@ -9,6 +9,7 @@ const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
 };
 import ItemMasterPage from "../Item/ItemPage";
+import LocationPage from "../../Storage Dimension/Location/LocationPage";
 import BinPage from "../../../Inventory/Storage Dimension/Bin/BinPage";
 import ProductDimColor from "../../Product Dimension/Color/ProductDimColorPage";
 import ProductDimConfig from "../../Product Dimension/Configuration/ProductDimConfPage";
@@ -46,6 +47,9 @@ const I = () => {
       ),
       [PAGE.COLOR]: (
         <ProductDimColor companies={companies} form={form} setForm={setForm} />
+      ),
+      [PAGE.LOCATION]: (
+        <LocationPage companies={companies} form={form} setForm={setForm} />
       ),
       [PAGE.BIN]: (
         <BinPage companies={companies} form={form} setForm={setForm} />
