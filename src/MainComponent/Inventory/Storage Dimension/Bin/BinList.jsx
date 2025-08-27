@@ -10,182 +10,225 @@ import "./c.css";
 
 import BinViewPage from "./BinViewPage";
 
-export default function BinList({ handleAddBin, onView }) {
+export default function BinsList({ handleAddBin, onView }) {
   /** ---------- API ---------- */
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/bins";
   const metricsUrl = `${baseUrl}/metrics`;
 
-  /** ---------- Helpers to normalize fields (match Postman) ---------- */
-  const getId = (c) => c?._id || c?.id || c?.code || "";
-  const getCode = (c) => c?.code || "";
-  const getName = (c) => c?.name || "";
-  const getType = (c) => c?.type || "";
-  const getDescription = (c) => c?.description || "";
-  const isActive = (c) => c?.active === true;
-  const isArchived = (c) => c?.archived === true;
-  // Leave onHold/status hooks intact if backend adds them later
-  const isOnHold = (c) => !!c?.onHold;
+  /** ---------- Helpers to normalize fields ---------- */
+  const getId = (c) => c?._id || c?.id || c?.binsId || c?.code || "";
+  const getCode = (c) => c?.binsCode || c?.code || "";
+  const gettype = (c) => c?.binstype || c?.type || "";
+
+  const getName = (c) => c?.binsName || c?.name || "";
+  const getdescription = (c) => c?.description || "";
+  const getCurrency = (c) => c?.currency || "";
+  const isActive = (c) => !!c?.active;
   const outstanding = (c) => Number(c?.outstandingBalance || 0);
   const getStatus = (c) => String(c?.status || "");
 
-  /** ---------- Date helpers (createdAt boundaries) ---------- */
-  const toStartOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
-    new Date(`${dateStrLocal}T00:00:00`).toISOString();
-  const toEndOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
-    new Date(`${dateStrLocal}T23:59:59.999`).toISOString();
+  /** ---------- Date helpers ---------- */
+  const toStartOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStr}T00:00:00.000Z`).toISOString();
+  const toEndOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStr}T23:59:59.999Z`).toISOString();
+
+  // addDays that is timezone-safe (strictly next day for 'min' on endDate)
+  const addDays = (dateStr, days) => {
+    if (!dateStr) return "";
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + days);
+    const yyyy = dt.getUTCFullYear();
+    const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getUTCDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  // NEW: today as YYYY-MM-DD in local time
+  const todayStr = () => {
+    const dt = new Date();
+    const yyyy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
 
   /** ---------- State ---------- */
-  const tabNames = ["Bin List", "Active Bin"];
+  const tabNames = [
+    "Bins List",
+    "Paid Bins",
+    "Active Bins",
+    "Hold Bins",
+    "Outstanding Bins",
+  ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  const [Bin, setBin] = useState([]);
+  const [companies, setBins] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [viewingBinId, setViewingBinId] = useState(null);
+  const [viewingBinsId, setViewingBinsId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
   const [sortOption, setSortOption] = useState(""); // name-asc | code-asc | code-desc
 
-  const [startDate, setStartDate] = useState(
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-  );
-  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+  // Start is blank; End defaults to TODAY  // CHANGED
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState(() => todayStr()); // NEW default
 
   const [summary, setSummary] = useState({
     count: 0,
-    activeBins: 0,
-    archivedBins: 0,
+    creditLimit: 0,
+    paidBinss: 0,
+    activeBinss: 0,
+    onHoldBinss: 0,
   });
 
   const [loading, setLoading] = useState(false);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchBin = useCallback(
-    async (fromDate = startDate, toDate = endDate) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const fromISO = toStartOfDayISO(fromDate);
-        const toISO = toEndOfDayISO(toDate);
+  /** ---------- Fetchers ---------- */
+  const fetchBins = useCallback(async ({ fromDate, toDate } = {}) => {
+    setLoading(true);
+    setError(null);
+    try {
+      let params = {};
+      let fromISO, toISO;
+      if (fromDate && toDate) {
+        fromISO = toStartOfDayISO(fromDate);
+        toISO = toEndOfDayISO(toDate);
+        params = { from: fromISO, to: toISO };
+      }
 
-        const { data: resp } = await axios.get(baseUrl, {
-          params: { from: fromISO, to: toISO },
-        });
+      const { data: resp } = await axios.get(baseUrl, { params });
 
-        // Normalize the list (support {data: []} or [] shapes)
-        const list = resp?.data || resp || [];
-        const arrayList = Array.isArray(list) ? list : [];
+      const list = resp?.data || resp || [];
+      const arrayList = Array.isArray(list) ? list : [];
 
-        // Defensive client-side filter by createdAt (include if missing)
+      let finalList = arrayList;
+      if (fromISO && toISO) {
         const fromMs = new Date(fromISO).getTime();
         const toMs = new Date(toISO).getTime();
-        const filteredByCreatedAt = arrayList.filter((c) => {
-          if (!c?.createdAt) return true;
+        finalList = arrayList.filter((c) => {
+          if (!c?.createdAt) return false;
           const t = new Date(c.createdAt).getTime();
           return t >= fromMs && t <= toMs;
         });
-
-        setBin(filteredByCreatedAt);
-
-        // Baseline summary (if metrics fail)
-        const activeCount = filteredByCreatedAt.filter((c) =>
-          isActive(c)
-        ).length;
-        const archivedCount = filteredByCreatedAt.filter((c) =>
-          isArchived(c)
-        ).length;
-
-        setSummary({
-          count: filteredByCreatedAt.length || 0,
-          activeBins: activeCount,
-          archivedBins: archivedCount,
-        });
-      } catch (err) {
-        console.error(err);
-        setError("Unable to load Bin data.");
-      } finally {
-        setLoading(false);
       }
-    },
-    [startDate, endDate]
-  );
 
-  const fetchMetrics = useCallback(
-    async (fromDate = startDate, toDate = endDate) => {
-      setLoadingMetrics(true);
-      try {
+      setBins(finalList);
+
+      setSummary((prev) => ({
+        ...prev,
+        count: finalList.length || 0,
+        creditLimit: finalList.reduce(
+          (s, c) => s + (Number(c?.creditLimit) || 0),
+          0
+        ),
+        paidBinss: finalList.filter((c) => getStatus(c) === "Paid").length,
+        activeBinss: finalList.filter((c) => isActive(c)).length,
+        onHoldBinss: finalList.filter((c) => !isActive(c)).length,
+      }));
+    } catch (err) {
+      console.error(err);
+      setError("Unable to load Bins data.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchMetrics = useCallback(async ({ fromDate, toDate } = {}) => {
+    setLoadingMetrics(true);
+    try {
+      let params = {};
+      if (fromDate && toDate) {
         const fromISO = toStartOfDayISO(fromDate);
         const toISO = toEndOfDayISO(toDate);
-
-        const { data: resp } = await axios.get(metricsUrl, {
-          params: { from: fromISO, to: toISO },
-        });
-
-        const m = (resp?.metrics && resp.metrics[0]) || {};
-        setSummary((prev) => ({
-          count: m?.totalBins ?? prev.count,
-          activeBins: m?.activeBins ?? prev.activeBins,
-          archivedBins: m?.archivedBins ?? prev.archivedBins,
-        }));
-      } catch (err) {
-        console.error(err);
-        // metrics optional
-      } finally {
-        setLoadingMetrics(false);
+        params = { from: fromISO, to: toISO };
       }
-    },
-    [startDate, endDate]
-  );
 
+      const { data: resp } = await axios.get(metricsUrl, { params });
+      const m = (resp?.metrics && resp.metrics[0]) || {};
+
+      setSummary((prev) => ({
+        ...prev,
+        count: m?.totalBinss ?? prev.count,
+        creditLimit: m?.creditLimit ?? prev.creditLimit,
+        paidBinss: m?.paidBinss ?? prev.paidBinss,
+        activeBinss: m?.activeBinss ?? prev.activeBinss,
+        onHoldBinss:
+          typeof m?.inactiveBinss === "number"
+            ? m.inactiveBinss
+            : m?.onHoldBinss ?? prev.onHoldBinss,
+      }));
+    } catch (err) {
+      console.error(err); // metrics optional
+    } finally {
+      setLoadingMetrics(false);
+    }
+  }, []);
+
+  // Keep endDate valid vs startDate
   useEffect(() => {
-    fetchBin();
+    if (!startDate) return;
+    setEndDate((prev) => {
+      const min = addDays(startDate, 1);
+      if (!prev || prev <= startDate) return min;
+      return prev;
+    });
+  }, [startDate]);
+
+  // Initial load — show ALL data (no date params)
+  useEffect(() => {
+    fetchBins();
     fetchMetrics();
-  }, [fetchBin, fetchMetrics]);
+  }, [fetchBins, fetchMetrics]);
 
   /** ---------- Derived: filtered + sorted list ---------- */
-  const filteredBin = useMemo(() => {
-    let list = [...Bin];
+  const filteredBins = useMemo(() => {
+    let list = [...companies];
 
-    // Tabs
     switch (activeTab) {
-      case "Bin List":
-        // no extra filter
-        break;
-      case "Paid Bin":
+      case "Paid Bins":
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
-      case "Active Bin":
+      case "Active Bins":
         list = list.filter((c) => isActive(c));
         break;
-      case "Hold Bin":
-        list = list.filter((c) => isOnHold(c));
+      case "Hold Bins":
+        list = list.filter((c) => !isActive(c));
         break;
-      case "Outstanding Bin":
+      case "Outstanding Bins":
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
         break;
     }
 
-    // Status filter (dropdown)
     if (statusFilter === "Active") list = list.filter((c) => isActive(c));
     else if (statusFilter === "Inactive")
       list = list.filter((c) => !isActive(c));
 
-    // Search (use Postman fields)
     const term = searchTerm.trim().toLowerCase();
     if (term) {
       list = list.filter((c) => {
-        const hay = [getName(c), getCode(c), getType(c), getDescription(c)]
+        const hay = [
+          getName(c),
+          getCode(c),
+          String(c?.email ?? ""),
+          String(c?.taxInfo?.gstNumber ?? ""),
+          String(c?.primaryGSTAddress ?? ""),
+          getBusinessType(c),
+          getCurrency(c),
+        ]
           .join(" | ")
           .toLowerCase();
         return hay.includes(term);
       });
     }
 
-    // Sort
     const cmpStr = (a, b) =>
       a.localeCompare(b, undefined, { sensitivity: "base" });
     if (sortOption === "name-asc")
@@ -198,36 +241,65 @@ export default function BinList({ handleAddBin, onView }) {
       list.sort((a, b) => cmpStr(getCode(b), getCode(a)));
 
     return list;
-  }, [Bin, activeTab, statusFilter, searchTerm, sortOption]);
+  }, [companies, activeTab, statusFilter, searchTerm, sortOption]);
+
+  /** ---------- Date-range validity ---------- */
+  const isRangeValid = useMemo(() => {
+    if (!startDate || !endDate) return false;
+    const s = new Date(startDate).getTime();
+    const e = new Date(endDate).getTime();
+    return e > s;
+  }, [startDate, endDate]);
+
+  /** ---------- Is ANY filter on? (dates count only if both picked) ---------- */
+  const anyFiltersOn = useMemo(
+    () =>
+      Boolean(
+        sortOption ||
+          searchTerm ||
+          statusFilter === "Active" ||
+          statusFilter === "Inactive" ||
+          (startDate && endDate) // CHANGED: only when both set
+      ),
+    [sortOption, searchTerm, statusFilter, startDate, endDate]
+  );
 
   /** ---------- Handlers ---------- */
   const onTabClick = (tab) => {
     setActiveTab(tab);
-    if (sortOption || statusFilter !== "All" || searchTerm) {
+    if (
+      sortOption ||
+      statusFilter !== "All" ||
+      searchTerm ||
+      (startDate && endDate) // CHANGED: matches anyFiltersOn
+    ) {
       resetFilters();
       setSelectedIds([]);
     }
   };
 
-  const handleBinClick = (siteId) => {
-    if (onView) onView(siteId);
-    setViewingBinId(siteId);
+  const handleBinsClick = (BinsId) => {
+    setViewingBinsId(BinsId);
   };
 
-  const resetFilters = () => {
+  /** ---------- Reset also restores endDate to today ---------- */
+  const resetFilters = async () => {
     setSearchTerm("");
     setStatusFilter("All");
     setSelectedIds([]);
     setSortOption("");
+    setStartDate("");
+    setEndDate(todayStr()); // CHANGED: keep default end date visible
+    await fetchBins();
+    await fetchMetrics();
   };
 
   const handleSortChange = (e) => {
     const v = e.target.value;
-    if (v === "name-asc" || v === "code-asc" || v === "code-desc") {
-      setSortOption(v);
-    } else {
-      setSortOption("");
-    }
+    if (v === "Bins Name") return setSortOption("name-asc");
+    if (v === "Bins Account in Ascending") return setSortOption("code-asc");
+    if (v === "Bins Account in Descending") return setSortOption("code-desc");
+    setSortOption(v);
   };
 
   const handleStatusChange = (e) => {
@@ -240,7 +312,7 @@ export default function BinList({ handleAddBin, onView }) {
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const toggleSelectAll = (e) => {
-    setSelectedIds(e.target.checked ? filteredBin.map((c) => getId(c)) : []);
+    setSelectedIds(e.target.checked ? filteredBins.map((c) => getId(c)) : []);
   };
 
   const handleCheckboxChange = (id) => {
@@ -251,13 +323,13 @@ export default function BinList({ handleAddBin, onView }) {
 
   const handleDeleteSelected = async () => {
     if (!selectedIds.length) {
-      toast.info("No site selected to delete");
+      toast.info("No companies selected to delete");
       return;
     }
     if (
       !window.confirm(
-        `Delete ${selectedIds.length} selected site${
-          selectedIds.length > 1 ? "s" : ""
+        `Delete ${selectedIds.length} selected compan${
+          selectedIds.length > 1 ? "ies" : "y"
         }?`
       )
     ) {
@@ -273,8 +345,14 @@ export default function BinList({ handleAddBin, onView }) {
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
-        await fetchBin(startDate, endDate);
-        await fetchMetrics(startDate, endDate);
+        if (startDate && endDate && isRangeValid) {
+          await fetchBins({ fromDate: startDate, toDate: endDate });
+          await fetchMetrics({ fromDate: startDate, toDate: endDate });
+        } else {
+          await fetchBins();
+          await fetchMetrics();
+        }
+        window.location.reload();
       }
       if (failed) toast.error(`${failed} failed — check console`);
     } catch (err) {
@@ -283,38 +361,19 @@ export default function BinList({ handleAddBin, onView }) {
     }
   };
 
-  /** ---------- Export (match Postman fields) ---------- */
+  /** ---------- Export ---------- */
   const exportToExcel = () => {
-    const rows = filteredBin.length ? filteredBin : Bin;
-    if (!rows.length) {
+    if (!companies.length) {
       toast.info("No data to export.");
       return;
     }
-    const data = rows.map((c, i) => ({
-      "#": i + 1,
-      Code: getCode(c),
-      Name: getName(c),
-      Type: getType(c),
-      Description: getDescription(c),
-      Active: isActive(c) ? "Yes" : "No",
-      Archived: isArchived(c) ? "Yes" : "No",
-      CreatedAt: c?.createdAt ? new Date(c.createdAt).toLocaleString() : "",
-      UpdatedAt: c?.updatedAt ? new Date(c.updatedAt).toLocaleString() : "",
-      _id: getId(c),
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(companies);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Bins");
-    XLSX.writeFile(wb, "Bin_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Binss");
+    XLSX.writeFile(wb, "Bins_list.xlsx");
   };
 
   const generatePDF = () => {
-    const rows = filteredBin.length ? filteredBin : Bin;
-    if (!rows.length) {
-      toast.info("No data to export.");
-      return;
-    }
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [
@@ -322,61 +381,65 @@ export default function BinList({ handleAddBin, onView }) {
           "#",
           "Code",
           "Name",
-          "Type",
-          "Description",
-          "Created At",
-          "Updated At",
+          "Email",
+          "Registration Number",
+          "Business Type",
+          "Currency",
+          "Address",
           "Status",
-          "Archived",
         ],
       ],
-      body: rows.map((c, i) => [
+      body: filteredBins.map((c, i) => [
         i + 1,
-        getCode(c),
-        getName(c),
-        getType(c),
-        getDescription(c),
-        c?.createdAt ? new Date(c.createdAt).toLocaleString() : "",
-        c?.updatedAt ? new Date(c.updatedAt).toLocaleString() : "",
+        getCode(c) || "",
+        getName(c) || "",
+        c?.email || "",
+        c?.taxInfo?.gstNumber || "",
+        getBusinessType(c) || "",
+        getCurrency(c) || "",
+        c?.primaryGSTAddress || "",
         isActive(c) ? "Active" : "Inactive",
-        isArchived(c) ? "Yes" : "No",
       ]),
     });
-    doc.save("Bin_list.pdf");
+    doc.save("Bins_list.pdf");
   };
 
   /** ---------- View toggle ---------- */
-  const goBack = () => setViewingBinId(null);
+  const goBack = () => {
+    setViewingBinsId(null);
+    window.location.reload();
+  };
 
   /** ---------- Render ---------- */
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingBinId) {
+  if (viewingBinsId) {
     return (
       <div className="p-4">
-        <BinViewPage BinId={viewingBinId} goBack={goBack} />
+        <BinViewPage BinsId={viewingBinsId} goBack={goBack} />
       </div>
     );
   }
+
+  const canApply = isRangeValid;
 
   return (
     <div>
       <div>
         <div>
-          {viewingBinId ? (
-            <BinViewPage BinId={viewingBinId} goBack={goBack} />
+          {viewingBinsId ? (
+            <BinViewPage BinsId={viewingBinsId} goBack={goBack} />
           ) : (
             <div className="space-y-6">
               <ToastContainer />
 
-              {/* Header Buttons (stack on small) */}
+              {/* Header Buttons */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-2 ">
-                  <h3 className="text-xl font-semibold">Bin List</h3>
+                  <h3 className="text-xl font-semibold">Bins List</h3>
                 </div>
 
-                {/* Buttons wrap on small */}
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <button
                     onClick={handleAddBin}
@@ -408,40 +471,15 @@ export default function BinList({ handleAddBin, onView }) {
 
               {/* Metrics */}
               <div className=" bg-white rounded-lg ">
-                {/* Date filters */}
-                <div className="flex flex-wrap gap-2">
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="border rounded px-2 py-1 w-full sm:w-auto"
-                  />
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="border rounded px-2 py-1 w-full sm:w-auto"
-                  />
-                  <button
-                    onClick={async () => {
-                      await fetchMetrics(startDate, endDate);
-                      await fetchBin(startDate, endDate);
-                    }}
-                    className="px-3 py-1 border rounded w-full sm:w-auto"
-                  >
-                    {loadingMetrics ? "Applying…" : "Apply"}
-                  </button>
-                </div>
+                {/* Date filters       /creation date  */}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Bins", summary.count],
-                    ["Active Bins", summary.activeBins],
-                    ["Archived Bins", summary.archivedBins],
-                    [
-                      "Inactive (calc)",
-                      Math.max(summary.count - summary.activeBins, 0),
-                    ],
+                    ["Total Binss", summary.count],
+                    ["Credit Limit", summary.creditLimit],
+                    ["Paid Binss", summary.paidBinss],
+                    ["Active Binss", summary.activeBinss],
+                    ["On-Hold Binss", summary.onHoldBinss],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -458,6 +496,22 @@ export default function BinList({ handleAddBin, onView }) {
               <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md  mb-2 space-y-3 md:space-y-0 md:space-x-4">
                 <div className="flex flex-wrap items-center gap-3 md:gap-4">
                   {/* Sort By */}
+                  <div className="relative w-full sm:w-60">
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                      onClick={() => {}}
+                    >
+                      <FaSearch className="w-5 h-5" />
+                    </button>
+                  </div>
                   <div className="relative">
                     <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <select
@@ -466,14 +520,15 @@ export default function BinList({ handleAddBin, onView }) {
                       className="w-full sm:w-56 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="name-asc">Bin Name</option>
-                      <option value="code-asc">Bin Account in Ascending</option>
+                      <option value="name-asc">Bins Name</option>
+                      <option value="code-asc">
+                        Bins Account in Ascending
+                      </option>
                       <option value="code-desc">
-                        Bin Account in Descending
+                        Bins Account in Descending
                       </option>
                     </select>
                   </div>
-
                   {/* Filter By Status */}
                   <div className="relative">
                     <FaFilter className=" text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -496,39 +551,66 @@ export default function BinList({ handleAddBin, onView }) {
                   </div>
 
                   {/* Search */}
-                  <div className="relative w-full sm:w-60">
+
+                  <div className="flex flex-wrap gap-2">
                     <input
-                      type="text"
-                      placeholder="Search..."
-                      value={searchTerm}
-                      onChange={handleSearchChange}
-                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => {
+                        setStartDate(e.target.value);
+                        if (
+                          endDate &&
+                          e.target.value &&
+                          endDate <= e.target.value
+                        ) {
+                          setEndDate("");
+                        }
+                      }}
+                      className="border rounded px-2 py-1 w-full sm:w-auto"
+                    />
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="border rounded px-2 py-1 w-full sm:w-auto"
+                      disabled={!startDate}
+                      min={startDate ? addDays(startDate, 1) : undefined}
+                      onFocus={() => {
+                        if (startDate && !endDate)
+                          setEndDate(addDays(startDate, 1));
+                      }}
                     />
                     <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                      onClick={async () => {
+                        if (!isRangeValid) {
+                          toast.error(
+                            "Please choose an end date after the start date."
+                          );
+                          return;
+                        }
+                        await fetchMetrics({
+                          fromDate: startDate,
+                          toDate: endDate,
+                        });
+                        await fetchBins({
+                          fromDate: startDate,
+                          toDate: endDate,
+                        });
+                      }}
+                      className="px-3 py-1 border rounded w-full sm:w-auto"
+                      disabled={!canApply || loadingMetrics}
                     >
-                      <FaSearch className="w-5 h-5" />
+                      {loadingMetrics ? "Applying…" : "Apply"}
                     </button>
                   </div>
                 </div>
 
                 <button
                   onClick={resetFilters}
-                  disabled={
-                    !(
-                      sortOption ||
-                      statusFilter === "Active" ||
-                      statusFilter === "Inactive" ||
-                      searchTerm
-                    )
-                  }
+                  disabled={!anyFiltersOn}
                   className={`font-medium w-full sm:w-auto transition
     ${
-      sortOption ||
-      statusFilter === "Active" ||
-      statusFilter === "Inactive" ||
-      searchTerm
+      anyFiltersOn
         ? "text-red-500 hover:text-red-600 cursor-pointer"
         : "text-gray-400 cursor-not-allowed"
     }`}
@@ -566,8 +648,8 @@ export default function BinList({ handleAddBin, onView }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedIds.length === filteredBin.length &&
-                            filteredBin.length > 0
+                            selectedIds.length === filteredBins.length &&
+                            filteredBins.length > 0
                           }
                           className="form-checkbox"
                         />
@@ -591,12 +673,13 @@ export default function BinList({ handleAddBin, onView }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredBin.length ? (
-                      filteredBin.map((c) => (
+                    {filteredBins.length ? (
+                      filteredBins.map((c) => (
                         <tr
                           key={getId(c)}
                           className="hover:bg-gray-100 transition-colors"
                         >
+                          {/* Checkbox */}
                           <td className="px-4 py-2">
                             <input
                               type="checkbox"
@@ -606,28 +689,24 @@ export default function BinList({ handleAddBin, onView }) {
                             />
                           </td>
 
-                          {/* Code (clickable) */}
+                          {/* Code (clickable for view) */}
                           <td className="px-6 py-4">
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() =>
-                                handleBinil.BinViewPageClick(getId(c))
-                              }
+                              onClick={() => handleBinsClick(getId(c))}
                             >
                               {getCode(c)}
                             </button>
                           </td>
 
                           {/* Type */}
-                          <td className="px-6 py-4">{getType(c)}</td>
+                          <td className="px-6 py-4">{gettype(c)}</td>
 
                           {/* Name */}
                           <td className="px-6 py-4">{getName(c)}</td>
 
-                          {/* */}
-                          <td className="px-6 py-3 truncate">
-                            {getDescription(c)}
-                          </td>
+                          {/* Description */}
+                          <td className="px-6 py-4">{getdescription(c)}</td>
 
                           {/* Created At */}
                           <td className="px-6 py-4">

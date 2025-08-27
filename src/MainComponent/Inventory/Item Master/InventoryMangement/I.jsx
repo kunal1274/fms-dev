@@ -58,6 +58,9 @@ const I = () => {
       [PAGE.COLOR]: (
         <ProductDimColor companies={companies} form={form} setForm={setForm} />
       ),
+        // [PAGE.SITE]: (
+        //       <SitePage companies={companies} form={form} setForm={setForm} />
+        //     ),
       [PAGE.RACK]: (
         <RackPage companies={companies} form={form} setForm={setForm} />
       ),

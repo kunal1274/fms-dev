@@ -14,7 +14,7 @@ export const PAGE = {
   TOGGLE: "TOGGLE",
   CUSTOMER: "CUSTOMER",
   SALE_ORDER: "SALE_ORDER",
-  RETURN_ORDER: "RETURN_ORDER",
+
   CREDIT_NOTE: "CREDIT_NOTE",
   DEBIT_NOTE: "DEBIT_NOTE",
   JOURNAL: "JOURNAL",
@@ -117,12 +117,7 @@ export const setupSections = [
         icon: <FaMap />,
         page: PAGE.SALE_ORDER,
       },
-      {
-        id: "Return order",
-        title: "Return order",
-        icon: <FaWarehouse />,
-        page: PAGE.RETURN_ORDER,
-      },
+  
       {
         id: "Debit note",
         title: "Debit note",

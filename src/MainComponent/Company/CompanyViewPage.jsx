@@ -26,7 +26,7 @@ const businessTypes = [
   "Others",
 ];
 const currency = ["INR", "USD", "EUR", "GBP"];
-const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", "UPI"];
+const bankTypes = ["BankAndUpi", "Cash", "Bank"];
 
 const CompanyViewPage = ({ CompaniesId, goBack }) => {
   const [formData, setFormData] = useState({
@@ -120,10 +120,27 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
     }));
   };
 
-  const handleBankDetailChange = (idx, field, raw) => {
-    const updated = [...formData.bankDetails];
-    updated[idx] = { ...updated[idx], [field]: raw };
-    setFormData((prev) => ({ ...prev, bankDetails: updated }));
+  const handleBankDetailChange = (index, field, value) => {
+    const updatedBankDetails = [...formData.bankDetails];
+    updatedBankDetails[index][field] = value;
+
+    if (field === "bankType") {
+      if (value === "Cash") {
+        // Cash → disable all
+        updatedBankDetails[index].isDisabled = true;
+        updatedBankDetails[index].disableUPI = true;
+      } else if (value === "Bank") {
+        // Bank → enable other fields, disable only UPI
+        updatedBankDetails[index].isDisabled = false;
+        updatedBankDetails[index].disableUPI = true;
+      } else if (value === "BankAndUpi") {
+        // Enable all fields
+        updatedBankDetails[index].isDisabled = false;
+        updatedBankDetails[index].disableUPI = false;
+      }
+    }
+
+    setFormData({ ...formData, bankDetails: updatedBankDetails });
   };
 
   const handleFileUpload = async (file) => {
@@ -308,16 +325,6 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                 prefix="+"
               />
             </div>{" "}
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Alternate Contact No
-              </label>
-              <input
-                type="text"
-                placeholder="eg. 7870462783"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>{" "} */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Company Email ID
@@ -504,10 +511,10 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                     <input
                       name="bankName"
                       value={b.bankName || ""}
+                      disabled={!isEditing || b.isDisabled} // ✅ disable if Cash
                       onChange={(e) =>
                         handleBankDetailChange(i, "bankName", e.target.value)
                       }
-                      disabled={!isEditing}
                       placeholder="e.g. HDFC Bank"
                       className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                     />
@@ -524,7 +531,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                       onChange={(e) =>
                         handleBankDetailChange(i, "bankAccNum", e.target.value)
                       }
-                      disabled={!isEditing}
+                      disabled={!isEditing || b.isDisabled} // ✅ disable if Cash
                       placeholder="e.g. 1234567890"
                       className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                     />
@@ -545,7 +552,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                           e.target.value
                         )
                       }
-                      disabled={!isEditing}
+                      disabled={!isEditing || b.isDisabled} // ✅ disable if Cash
                       placeholder="e.g. John Doe"
                       className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                     />
@@ -562,7 +569,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                       onChange={(e) =>
                         handleBankDetailChange(i, "ifsc", e.target.value)
                       }
-                      disabled={!isEditing}
+                      disabled={!isEditing || b.isDisabled} // ✅ disable if Cash
                       placeholder="e.g. SBIN0001234"
                       className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                     />
@@ -579,7 +586,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                       onChange={(e) =>
                         handleBankDetailChange(i, "swift", e.target.value)
                       }
-                      disabled={!isEditing}
+                      disabled={!isEditing || b.isDisabled} // ✅ disable if Cash
                       placeholder="e.g. SBININBBXXX"
                       className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                     />
@@ -596,7 +603,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                       onChange={(e) =>
                         handleBankDetailChange(i, "qrDetails", e.target.value)
                       }
-                      disabled={!isEditing}
+                      disabled={!isEditing || b.isDisabled} // ✅ disable if Cash
                       placeholder="e.g. user@upi"
                       className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                     />

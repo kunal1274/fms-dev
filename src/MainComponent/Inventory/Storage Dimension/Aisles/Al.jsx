@@ -8,7 +8,7 @@ import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react"; // kept to match your imports
 import "./c.css";
 
-import AisleViewPage from "../Aisles/AisleViewPage";
+import AisleViewPage from "./AisleViewPage";
 
 export default function AislesList({ handleAddAisle, onView }) {
   /** ---------- API ---------- */

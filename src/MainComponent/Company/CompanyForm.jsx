@@ -19,7 +19,7 @@ const businessTypes = [
 ];
 const currency = ["INR", "USD", "EUR", "GBP"];
 
-const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", " UPI"];
+const bankTypes = ["BankAndUpi", "Cash", "Bank"];
 export default function CompanyForm({ handleCancel }) {
   const [company, setCompany] = useState([]);
   const [form, setForm] = useState({
@@ -35,6 +35,17 @@ export default function CompanyForm({ handleCancel }) {
     panNumber: "",
     currency: "INR",
     remarks: "",
+    bankDetails: [
+      {
+        bankType: "",
+        bankName: "",
+        bankAccNum: "",
+        accountHolderName: "",
+        ifsc: "",
+        swift: "",
+        qrDetails: "",
+      },
+    ], // ✅ add this
     active: true,
     bankType: "",
     bankName: "",
@@ -143,6 +154,7 @@ export default function CompanyForm({ handleCancel }) {
     form.bankType === "Barter" ||
     form.bankType === " UPI" ||
     form.bankType === "Crypto";
+  const disableUpiField = form.bankType === "Bank";
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -189,10 +201,7 @@ export default function CompanyForm({ handleCancel }) {
     }
 
     // Reset bank-related fields if bankType is Cash-like
-    if (
-      name === "bankType" &&
-      ["Cash", "Barter", "Crypto", "UPI"].includes(val.trim())
-    ) {
+    if (name === "bankType" && ["Cash", "UPI"].includes(val.trim())) {
       setForm((prev) => ({
         ...prev,
         bankName: "",
@@ -289,7 +298,7 @@ export default function CompanyForm({ handleCancel }) {
     active: true,
   };
   const handleAddBank = () => {
-    setFormData((prev) => ({
+    setForm((prev) => ({
       ...prev,
       bankDetails: [
         ...prev.bankDetails,
@@ -304,6 +313,13 @@ export default function CompanyForm({ handleCancel }) {
         },
       ],
     }));
+  };
+  const handleBankChange = (index, field, value) => {
+    setForm((prev) => {
+      const updatedBanks = [...prev.bankDetails];
+      updatedBanks[index][field] = value;
+      return { ...prev, bankDetails: updatedBanks };
+    });
   };
   const handleReset = () => {
     const newCompanyCode = generateAccountNo(companys);
@@ -596,9 +612,6 @@ India"
         </section>
 
         <section className="p-6">
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Bank Details
-          </h2>{" "}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-medium text-gray-700">Bank Details</h2>
             <button
@@ -609,118 +622,130 @@ India"
               + Add Bank
             </button>{" "}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Bank Type
-              </label>
-              <select
-                name="bankType"
-                value={form.bankType}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
-              >
-                <option value="">Select type</option>
-                {bankTypes.map((type) => (
-                  <option key={type.trim()} value={type.trim()}>
-                    {type.trim() === "BankAndUpi"
-                      ? "Bank And UPI"
-                      : type.trim()}
-                  </option>
-                ))}
-              </select>
+          {form.bankDetails.map((bank, index) => (
+            <div
+              key={index}
+              className="grid grid-cols-1 sm:grid-cols-4 gap-6 mb-4"
+            >
+                {index> 0 && (
+              <h6 className="text-md font-semibold text-gray-700 mb-3">
+                Bank {index + 1}
+              </h6>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Bank Type
+                </label>
+                <select
+                  name="bankType"
+                  value={form.bankType}
+                  onChange={handleChange}
+                  className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
+                >
+                  <option value="">Select type</option>
+                  {bankTypes.map((type) => (
+                    <option key={type.trim()} value={type.trim()}>
+                      {type.trim() === "BankAndUpi"
+                        ? "Bank And UPI"
+                        : type.trim()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Bank Name
+                </label>
+                <input
+                  name="bankName"
+                  value={form.bankName}
+                  onChange={handleChange}
+                  placeholder="e.g. State Bank of India (Copy & Paste Not Allowed)"
+                  disabled={disableBankFields}
+                  className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
+                    disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
+                  }`}
+                />
+              </div>{" "}
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Bank Account
+                </label>
+                <input
+                  name="bankAccNum"
+                  value={form.bankAccNum}
+                  onChange={handleChange}
+                  placeholder="e.g. 0123456789012345"
+                  disabled={disableBankFields}
+                  className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
+                    disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
+                  }`}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Account Holder Name
+                </label>
+                <input
+                  name="accountHolderName"
+                  value={form.accountHolderName}
+                  onChange={handleChange}
+                  placeholder="e.g. ABC Company Pvt Ltd"
+                  disabled={disableBankFields}
+                  className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
+                    disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
+                  }`}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  IFSC
+                </label>
+                <input
+                  name="ifsc"
+                  value={form.ifsc}
+                  onChange={handleChange}
+                  placeholder="e.g. SBIN0001234"
+                  disabled={disableBankFields}
+                  className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
+                    disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
+                  }`}
+                />
+              </div>{" "}
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Swift Code
+                </label>
+                <input
+                  name="swift"
+                  value={form.swift}
+                  onChange={handleChange}
+                  placeholder="e.g. SBININBBXXX"
+                  disabled={disableBankFields}
+                  className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
+                    disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
+                  }`}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  UPI ID
+                </label>
+                <input
+                  name="qrDetails"
+                  value={form.qrDetails}
+                  onChange={handleChange}
+                  placeholder="e.g. abc@hdfcbank"
+                  disabled={disableBankFields || disableUpiField} // ✅ updated
+                  className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
+                    disableBankFields || disableUpiField
+                      ? "cursor-not-allowed bg-gray-100"
+                      : ""
+                  }`}
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Bank Name
-              </label>
-              <input
-                name="bankName"
-                value={form.bankName}
-                onChange={handleChange}
-                placeholder="e.g. State Bank of India (Copy & Paste Not Allowed)"
-                disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
-                  disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
-                }`}
-              />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Bank Account
-              </label>
-              <input
-                name="bankAccNum"
-                value={form.bankAccNum}
-                onChange={handleChange}
-                placeholder="e.g. 0123456789012345"
-                disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
-                  disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
-                }`}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Account Holder Name
-              </label>
-              <input
-                name="accountHolderName"
-                value={form.accountHolderName}
-                onChange={handleChange}
-                placeholder="e.g. ABC Company Pvt Ltd"
-                disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
-                  disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
-                }`}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                IFSC
-              </label>
-              <input
-                name="ifsc"
-                value={form.ifsc}
-                onChange={handleChange}
-                placeholder="e.g. SBIN0001234"
-                disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
-                  disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
-                }`}
-              />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Swift Code
-              </label>
-              <input
-                name="swift"
-                value={form.swift}
-                onChange={handleChange}
-                placeholder="e.g. SBININBBXXX"
-                disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
-                  disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
-                }`}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                UPI ID
-              </label>
-              <input
-                name="qrDetails"
-                value={form.qrDetails}
-                onChange={handleChange}
-                placeholder="e.g. abc@hdfcbank"
-                disabled={disableBankFields}
-                className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
-                  disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
-                }`}
-              />
-            </div>
-          </div>
+          ))}
         </section>
 
         {/* Tax Information */}
