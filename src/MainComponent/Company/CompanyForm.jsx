@@ -790,7 +790,7 @@ India"
                 key={index}
                 className="relative grid grid-cols-1 sm:grid-cols-4 gap-6 mb-6 border p-4 rounded-lg"
               >
-                {index > 0 && (
+                {i > 0 && (
                   <button
                     type="button"
                     onClick={() => handleDeleteBank(index)}

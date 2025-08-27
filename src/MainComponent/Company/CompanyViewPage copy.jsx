@@ -46,7 +46,6 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
     globalPartyId: { code: "" },
     bankDetails: [],
   });
-  const [prevFormData, setPrevFormData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   // const [isEditing, setIsEditing] = useState(false);
   const [isEdited, setIsEdited] = useState(false);
@@ -144,10 +143,11 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
 
     if (field === "bankType") {
       if (value === "Cash") {
-        // Store previous bank data and clear fields
+        // Save the old values in a temporary field
         updatedBankDetails[index] = {
+          ...currentBank,
+          _prevData: { ...currentBank }, // keep backup
           bankType: "Cash",
-          _prevData: { ...currentBank }, // store previous data
           bankName: "",
           bankAccNum: "",
           accountHolderName: "",
@@ -157,26 +157,16 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
           isDisabled: true,
           disableUPI: true,
         };
-      } else if (value === "Bank") {
-        // Restore previous data but disable UPI
+      } else if (value === "Bank" || value === "BankAndUpi") {
+        // Restore previous values if available
         const restoreData = currentBank._prevData || currentBank;
         updatedBankDetails[index] = {
           ...restoreData,
-          bankType: "Bank",
-          disableqrDetails: true,
-          isDisabled: false,
+          bankType: value,
+          isDisabled: value === "Bank" ? false : false,
+          disableUPI: value === "Bank" ? true : false,
         };
-        delete updatedBankDetails[index]._prevData;
-      } else if (value === "BankAndUpi") {
-        // Restore previous data and allow UPI
-        const restoreData = currentBank._prevData || currentBank;
-        updatedBankDetails[index] = {
-          ...restoreData,
-          bankType: "BankAndUpi",
-          disableUPI: false,
-          isDisabled: false,
-        };
-        delete updatedBankDetails[index]._prevData;
+        delete updatedBankDetails[index]._prevData; // cleanup
       }
     } else {
       updatedBankDetails[index][field] = value;
@@ -241,17 +231,9 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
 
   const handleEdit = () => {
     setIsEditing(!isEditing);
-    setPrevFormData(formData); // save current state
-    setIsEditing(true); // switch to edit mode
     setIsEdited(true);
-
+    setIsEditing(true);
     // You can also trigger your edit logic here
-  };
-  const handleCancel = () => {
-    if (prevFormData) {
-      setFormData(prevFormData); // restore saved data
-    }
-    setIsEditing(false);
   };
   return (
     <div>
@@ -511,180 +493,157 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
             </div>{" "}
           </div>
         </section>
+
+        {/* Bank Details */}
+
         <section className="p-6">
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Bank Details
-          </h2>
-          <button
-            type="button"
-            onClick={handleAddBank}
-            disabled={!isEditing} // ✅ disable unless editing
-            className={`mb-4 px-3 py-1 text-sm rounded 
-    ${
-      isEditing
-        ? "bg-green-500 text-white hover:bg-green-600"
-        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-    }`}
-          >
-            + Add Bank
-          </button>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-medium text-gray-700">Bank Details</h2>
+            <button
+              type="button"
+              onClick={handleAddBank}
+              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              + Add Bank
+            </button>{" "}
+          </div>
+          {formData.bankDetails?.length > 0 &&
+            formData.bankDetails.map((b, i) => (
+              <div key={i} className="rounded-lg mt-2">
+                <h3 className="text-sm font-semibold text-grey-700 "></h3>
+                <div className="grid grid-cols-1 mt-3 sm:grid-cols-3 gap-6">
+                  {/* Bank Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      Bank Type
+                    </label>
+                    <select
+                      name="bankType"
+                      value={b.bankType || ""}
+                      onChange={(e) =>
+                        handleBankDetailChange(i, "bankType", e.target.value)
+                      }
+                      disabled={!isEditing}
+                      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    >
+                      {bankTypes.map((type) => (
+                        <option key={type.trim()} value={type.trim()}>
+                          {type.trim() === "BankAndUpi"
+                            ? "Bank And UPI"
+                            : type.trim()}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-          {formData.bankDetails?.map((b, i) => {
-            const disableBankFields =
-              b.bankType === "Cash" ||
-              b.bankType === "Barter" ||
-              b.bankType === "UPI" ||
-              b.bankType === "Crypto";
+                  {/* Bank Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      Bank Name
+                    </label>
+                    <input
+                      name="bankName"
+                      value={b.bankName || ""}
+                      disabled={!isEditing || b.isDisabled} // ✅ disable if Cash
+                      onChange={(e) =>
+                        handleBankDetailChange(i, "bankName", e.target.value)
+                      }
+                      placeholder="e.g. HDFC Bank"
+                      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
 
-            return (
-              <div
-                key={b.id || i}
-                className="relative grid grid-cols-1 sm:grid-cols-4 gap-6 mb-6 border p-4 rounded-lg"
-              >
-                {i > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteBank(i)}
-                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                  >
-                    ✕
-                  </button>
-                )}
+                  {/* Account Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      Bank Account Number
+                    </label>
+                    <input
+                      name="bankAccNum"
+                      value={b.bankAccNum || ""}
+                      onChange={(e) =>
+                        handleBankDetailChange(i, "bankAccNum", e.target.value)
+                      }
+                      disabled={!isEditing || b.isDisabled} // ✅ disable if Cash
+                      placeholder="e.g. 1234567890"
+                      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
 
-                {/* Bank Type */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Bank Type
-                  </label>
-                  <select
-                    name="bankType"
-                    value={b.bankType || ""}
-                    onChange={(e) =>
-                      handleBankDetailChange(i, "bankType", e.target.value)
-                    }
-                    disabled={!isEditing}
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                  >
-                    {bankTypes.map((type) => (
-                      <option key={type.trim()} value={type.trim()}>
-                        {type.trim() === "BankAndUpi"
-                          ? "Bank And UPI"
-                          : type.trim()}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  {/* Account Holder Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      Account Holder Name
+                    </label>
+                    <input
+                      name="accountHolderName"
+                      value={b.accountHolderName || ""}
+                      onChange={(e) =>
+                        handleBankDetailChange(
+                          i,
+                          "accountHolderName",
+                          e.target.value
+                        )
+                      }
+                      disabled={!isEditing || b.isDisabled} // ✅ disable if Cash
+                      placeholder="e.g. John Doe"
+                      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
 
-                {/* Bank Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Bank Name
-                  </label>
-                  <input
-                    name="bankName"
-                    value={b.bankName || ""}
-                    onChange={(e) =>
-                      handleBankDetailChange(i, "bankName", e.target.value)
-                    }
-                    disabled={!isEditing || disableBankFields}
-                    placeholder="e.g. HDFC Bank"
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
+                  {/* IFSC Code */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      IFSC Code
+                    </label>
+                    <input
+                      name="ifsc"
+                      value={b.ifsc || ""}
+                      onChange={(e) =>
+                        handleBankDetailChange(i, "ifsc", e.target.value)
+                      }
+                      disabled={!isEditing || b.isDisabled} // ✅ disable if Cash
+                      placeholder="e.g. SBIN0001234"
+                      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
 
-                {/* Bank Account Number */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Bank Account Number
-                  </label>
-                  <input
-                    name="bankAccNum"
-                    value={b.bankAccNum || ""}
-                    onChange={(e) =>
-                      handleBankDetailChange(i, "bankAccNum", e.target.value)
-                    }
-                    disabled={!isEditing || disableBankFields}
-                    placeholder="e.g. 0123456789012345"
-                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                      disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
-                    }`}
-                  />
-                </div>
+                  {/* SWIFT Code */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      SWIFT Code
+                    </label>
+                    <input
+                      name="swift"
+                      value={b.swift || ""}
+                      onChange={(e) =>
+                        handleBankDetailChange(i, "swift", e.target.value)
+                      }
+                      disabled={!isEditing || b.isDisabled} // ✅ disable if Cash
+                      placeholder="e.g. SBININBBXXX"
+                      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
 
-                {/* Account Holder Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Account Holder Name
-                  </label>
-                  <input
-                    name="accountHolderName"
-                    value={b.accountHolderName || ""}
-                    onChange={(e) =>
-                      handleBankDetailChange(
-                        i,
-                        "accountHolderName",
-                        e.target.value
-                      )
-                    }
-                    disabled={!isEditing || disableBankFields}
-                    placeholder="e.g. John Doe"
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
-
-                {/* IFSC Code */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    IFSC Code
-                  </label>
-                  <input
-                    name="ifsc"
-                    value={b.ifsc || ""}
-                    onChange={(e) =>
-                      handleBankDetailChange(i, "ifsc", e.target.value)
-                    }
-                    disabled={!isEditing || disableBankFields}
-                    placeholder="e.g. SBIN0001234"
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
-
-                {/* SWIFT Code */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    SWIFT Code
-                  </label>
-                  <input
-                    name="swift"
-                    value={b.swift || ""}
-                    onChange={(e) =>
-                      handleBankDetailChange(i, "swift", e.target.value)
-                    }
-                    disabled={!isEditing || disableBankFields}
-                    placeholder="e.g. SBININBBXXX"
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
-
-                {/* UPI ID */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    UPI ID
-                  </label>
-                  <input
-                    name="qrDetails"
-                    value={b.qrDetails || ""}
-                    onChange={(e) =>
-                      handleBankDetailChange(i, "qrDetails", e.target.value)
-                    }
-                    disabled={!isEditing || disableBankFields}
-                    placeholder="e.g. user@upi"
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                  />
+                  {/* UPI ID */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      UPI ID
+                    </label>
+                    <input
+                      name="qrDetails"
+                      value={b.qrDetails || ""}
+                      onChange={(e) =>
+                        handleBankDetailChange(i, "qrDetails", e.target.value)
+                      }
+                      disabled={!isEditing || b.isDisabled} // ✅ disable if Cash
+                      placeholder="e.g. user@upi"
+                      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
                 </div>
               </div>
-            );
-          })}
+            ))}
         </section>
 
         {/* Tax Information */}
@@ -738,22 +697,9 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
 
           {/*  */}
         </section>
-
+        
         {/* Action Buttons */}
         <div className="py-6 flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={handleCancel}
-            disabled={!isEditing} // disable when not editing
-            className={`px-6 py-2 rounded transition ${
-              isEditing
-                ? "bg-red-400 text-white hover:bg-red-500" // editable → light red
-                : "bg-gray-300 text-gray-600 cursor-not-allowed" // not editable → grey
-            }`}
-          >
-            Cancel
-          </button>
-
           <button
             type="button"
             onClick={goBack}
@@ -761,7 +707,6 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
           >
             Go Back
           </button>
-
           <button
             type="button"
             onClick={() => {
