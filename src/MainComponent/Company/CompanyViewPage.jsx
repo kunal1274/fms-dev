@@ -83,7 +83,24 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let val = type === "checkbox" ? checked : value;
-
+    const validators = {
+      bankAccNum: /^[0-9]{0,15}$/,
+      bankName: /^[A-Z0-9\s]{0,50}$/, // ✅ Now allows spaces and longer names
+      panNumber: /^[A-Z0-9]{0,10}$/,
+      gstNumber: /^[A-Z0-9]{0,15}$/,
+      tanNumber: /^[A-Z0-9]{0,10}$/,
+      ifsc: /^[A-Z0-9]{0,12}$/,
+      swift: /^[A-Z0-9]{0,10}$/,
+      TanNumber: /^[A-Z0-9]{0,10}$/,
+      qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
+      companyName: /^[A-Za-z\s]*$/,
+      employeeName: /^[A-Za-z\s]*$/,
+      email: /^.{0,100}$/,
+      employeeEmail: /^.{0,100}$/,
+      contactNum: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
+      contactPersonPhone: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
+      creditLimit: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
+    };
     // example: uppercase tax codes
     if (name === "panNumber" || name === "gstNumber" || name === "tanNumber") {
       const sanitized = String(val)
@@ -122,22 +139,37 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
 
   const handleBankDetailChange = (index, field, value) => {
     const updatedBankDetails = [...formData.bankDetails];
-    updatedBankDetails[index][field] = value;
+    let currentBank = updatedBankDetails[index];
 
     if (field === "bankType") {
       if (value === "Cash") {
-        // Cash → disable all
-        updatedBankDetails[index].isDisabled = true;
-        updatedBankDetails[index].disableUPI = true;
-      } else if (value === "Bank") {
-        // Bank → enable other fields, disable only UPI
-        updatedBankDetails[index].isDisabled = false;
-        updatedBankDetails[index].disableUPI = true;
-      } else if (value === "BankAndUpi") {
-        // Enable all fields
-        updatedBankDetails[index].isDisabled = false;
-        updatedBankDetails[index].disableUPI = false;
+        // Save the old values in a temporary field
+        updatedBankDetails[index] = {
+          ...currentBank,
+          _prevData: { ...currentBank }, // keep backup
+          bankType: "Cash",
+          bankName: "",
+          bankAccNum: "",
+          accountHolderName: "",
+          ifsc: "",
+          swift: "",
+          qrDetails: "",
+          isDisabled: true,
+          disableUPI: true,
+        };
+      } else if (value === "Bank" || value === "BankAndUpi") {
+        // Restore previous values if available
+        const restoreData = currentBank._prevData || currentBank;
+        updatedBankDetails[index] = {
+          ...restoreData,
+          bankType: value,
+          isDisabled: value === "Bank" ? false : false,
+          disableUPI: value === "Bank" ? true : false,
+        };
+        delete updatedBankDetails[index]._prevData; // cleanup
       }
+    } else {
+      updatedBankDetails[index][field] = value;
     }
 
     setFormData({ ...formData, bankDetails: updatedBankDetails });
@@ -463,6 +495,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
         </section>
 
         {/* Bank Details */}
+
         <section className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-medium text-gray-700">Bank Details</h2>
