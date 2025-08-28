@@ -80,35 +80,71 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
     if (CompaniesId) fetchCompany();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [CompaniesId]);
+  const handleDeleteBank = (index) => {
+    if (!window.confirm("Are you sure you want to delete this bank detail?"))
+      return;
+    setFormData((prev) => ({
+      ...prev,
+      bankDetails: prev.bankDetails.filter((_, i) => i !== index),
+    }));
+  };
 
+  const validators = {
+    bankAccNum: /^[0-9]{0,15}$/,
+    bankName: /^[A-Z0-9\s]{0,50}$/,
+    panNumber: /^[A-Z0-9]{0,10}$/,
+    gstNumber: /^[A-Z0-9]{0,15}$/,
+    tanNumber: /^[A-Z0-9]{0,10}$/,
+    ifsc: /^[A-Z0-9]{0,12}$/,
+    swift: /^[A-Z0-9]{0,10}$/,
+    qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
+    companyName: /^[A-Za-z\s]*$/,
+    employeeName: /^[A-Za-z\s]*$/,
+    email: /^.{0,100}$/,
+    employeeEmail: /^.{0,100}$/,
+    contactNum: /^\d{0,10}$/,
+    contactPersonPhone: /^\d{0,10}$/,
+    creditLimit: /^\d{0,10}$/,
+  };
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let val = type === "checkbox" ? checked : value;
-    const validators = {
-      bankAccNum: /^[0-9]{0,15}$/,
-      bankName: /^[A-Z0-9\s]{0,50}$/, // ✅ Now allows spaces and longer names
-      panNumber: /^[A-Z0-9]{0,10}$/,
-      gstNumber: /^[A-Z0-9]{0,15}$/,
-      tanNumber: /^[A-Z0-9]{0,10}$/,
-      ifsc: /^[A-Z0-9]{0,12}$/,
-      swift: /^[A-Z0-9]{0,10}$/,
-      TanNumber: /^[A-Z0-9]{0,10}$/,
-      qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
-      companyName: /^[A-Za-z\s]*$/,
-      employeeName: /^[A-Za-z\s]*$/,
-      email: /^.{0,100}$/,
-      employeeEmail: /^.{0,100}$/,
-      contactNum: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
-      contactPersonPhone: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
-      creditLimit: /^\d{0,10}$/, // ✅ Numeric, max 10 digits
-    };
-    // example: uppercase tax codes
-    if (name === "panNumber" || name === "gstNumber" || name === "tanNumber") {
-      const sanitized = String(val)
-        .replace(/[^a-zA-Z0-9]/g, "")
-        .toUpperCase()
-        .slice(0, 10);
 
+    // Capitalize first letter for name fields
+    if (
+      [
+        "companyName",
+        "employeeName",
+        "accountHolderName",
+        "contactPersonName",
+      ].includes(name) &&
+      val
+    ) {
+      val = val.charAt(0).toUpperCase() + val.slice(1);
+    }
+
+    // Uppercase for tax and bank codes
+    if (
+      [
+        "panNumber",
+        "gstNumber",
+        "tanNumber",
+        "bankAccNum",
+        "bankName",
+        "companyCode",
+        "ifsc",
+        "swift",
+      ].includes(name)
+    ) {
+      val = val.toUpperCase();
+    }
+
+    // Validate input
+    if (validators[name] && !validators[name].test(val)) return;
+
+    // Handle taxInfo separately
+    if (["panNumber", "gstNumber", "tanNumber"].includes(name)) {
+      const sanitized = val.replace(/[^a-zA-Z0-9]/g, "").slice(0, 10);
       setFormData((prev) => ({
         ...prev,
         taxInfo: { ...prev.taxInfo, [name]: sanitized },
@@ -116,10 +152,30 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
       return;
     }
 
-    // default
+    // Handle checkbox
+    if (type === "checkbox") {
+      setFormData((prev) => ({ ...prev, [name]: checked }));
+      return;
+    }
+
+    // Reset bank fields if bankType is Cash or UPI
+    if (name === "bankType" && ["Cash", "UPI"].includes(val.trim())) {
+      setFormData((prev) => ({
+        ...prev,
+        bankName: "",
+        bankAccNum: "",
+        accountHolderName: "",
+        ifsc: "",
+        swift: "",
+        upi: "",
+        [name]: val,
+      }));
+      return;
+    }
+
+    // Default: update field
     setFormData((prev) => ({ ...prev, [name]: val }));
   };
-
   const handleAddBank = () => {
     setFormData((prev) => ({
       ...prev,
@@ -140,6 +196,36 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
 
   const handleBankDetailChange = (index, field, value) => {
     const updatedBankDetails = [...formData.bankDetails];
+
+    if (field === "bankName") {
+      // Uppercase, max 25 chars, allow spaces
+      value = value.toUpperCase().slice(0, 25);
+    }
+
+    if (field === "bankAccNum") {
+      // Only numbers, max 16 digits
+      value = value.replace(/\D/g, "").slice(0, 16);
+    }
+
+    if (field === "ifsc") {
+      // Uppercase, max 12 chars
+      value = value.toUpperCase().slice(0, 12);
+    }
+
+    if (field === "swift") {
+      // Uppercase, max 10 chars
+      value = value.toUpperCase().slice(0, 10);
+    }
+
+    if (field === "qrDetails") {
+      // Lowercase only
+      value = value.toLowerCase();
+    }
+
+    if (field === "accountHolderName") {
+      // Max 28 characters
+      value = value.slice(0, 28);
+    }
     let currentBank = updatedBankDetails[index];
 
     if (field === "bankType") {
@@ -158,15 +244,15 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
           disableUPI: true,
         };
       } else if (value === "Bank") {
-        // Restore previous data but disable UPI
-        const restoreData = currentBank._prevData || currentBank;
+        // Save QR before clearing
         updatedBankDetails[index] = {
-          ...restoreData,
+          ...currentBank,
+          _prevData: { ...currentBank }, // keep old QR and other data
           bankType: "Bank",
-          disableqrDetails: true,
+          qrDetails: "", // clear QR
+          disableUPI: true,
           isDisabled: false,
         };
-        delete updatedBankDetails[index]._prevData;
       } else if (value === "BankAndUpi") {
         // Restore previous data and allow UPI
         const restoreData = currentBank._prevData || currentBank;
@@ -345,10 +431,12 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
 
               {/* Country selector on the left + full world list */}
               <PhoneInput
-                country="in" // default India
+                country="in"
                 value={formData.contactNum || ""}
                 disabled={!isEditing}
-                onChange={handleChange}
+                onChange={(value) =>
+                  setFormData((prev) => ({ ...prev, contactNum: value }))
+                }
                 inputProps={{ name: "contactNum", required: true }}
                 containerClass="mt-1 w-full"
                 inputClass="!w-full !pl-18 !pr-7 !py-2 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
@@ -363,10 +451,16 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                 Alternate Contact No
               </label>
               <PhoneInput
-                country="in" // default India
-                onChange={handleChange}
+                country="in"
+                value={formData.alternateContactNum || ""}
                 disabled={!isEditing}
-                inputProps={{ name: "contactNum", required: true }}
+                onChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    alternateContactNum: value,
+                  }))
+                }
+                inputProps={{ name: "alternateContactNum" }}
                 containerClass="mt-1 w-full"
                 inputClass="!w-full !pl-18 !pr-7 !py-2 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
                 buttonClass="!border !rounded-l-lg "
@@ -374,7 +468,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                 enableSearch
                 prefix="+"
               />
-            </div>{" "}
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Company Email ID
@@ -588,7 +682,11 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                     }
                     disabled={!isEditing || disableBankFields}
                     placeholder="e.g. HDFC Bank"
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
                   />
                 </div>
 
@@ -606,7 +704,9 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                     disabled={!isEditing || disableBankFields}
                     placeholder="e.g. 0123456789012345"
                     className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                      disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
                     }`}
                   />
                 </div>
@@ -628,7 +728,11 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                     }
                     disabled={!isEditing || disableBankFields}
                     placeholder="e.g. John Doe"
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
                   />
                 </div>
 
@@ -645,7 +749,11 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                     }
                     disabled={!isEditing || disableBankFields}
                     placeholder="e.g. SBIN0001234"
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
                   />
                 </div>
 
@@ -662,7 +770,11 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                     }
                     disabled={!isEditing || disableBankFields}
                     placeholder="e.g. SBININBBXXX"
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
                   />
                 </div>
 
@@ -677,9 +789,17 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                     onChange={(e) =>
                       handleBankDetailChange(i, "qrDetails", e.target.value)
                     }
-                    disabled={!isEditing || disableBankFields}
+                    disabled={
+                      !isEditing ||
+                      b.bankType === "Bank" ||
+                      b.bankType === "Cash"
+                    } // disable when Bank or Cash
                     placeholder="e.g. user@upi"
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
                   />
                 </div>
               </div>
