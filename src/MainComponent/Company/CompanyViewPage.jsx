@@ -606,23 +606,23 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
           </div>
         </section>
         <section className="p-6">
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Bank Details
-          </h2>
-          <button
-            type="button"
-            onClick={handleAddBank}
-            disabled={!isEditing} // ✅ disable unless editing
-            className={`mb-4 px-3 py-1 text-sm rounded 
-    ${
-      isEditing
-        ? "bg-green-500 text-white hover:bg-green-600"
-        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-    }`}
-          >
-            + Add Bank
-          </button>
-
+          {" "}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-medium text-gray-700">Bank Details</h2>
+            <button
+              type="button"
+              onClick={handleAddBank}
+              disabled={!isEditing} // ✅ disable unless editing
+              className={`px-3 py-1 text-sm rounded 
+        ${
+          isEditing
+            ? "bg-green-500 text-white hover:bg-green-600"
+            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+        }`}
+            >
+              + Add Bank
+            </button>
+          </div>
           {formData.bankDetails?.map((b, i) => {
             const disableBankFields =
               b.bankType === "Cash" ||
