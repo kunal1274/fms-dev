@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "../../../../../src/Component/Button/Button";
 import LocationForm from "./LocationForm.jsx";
 import LocationViewpage from "./LocationViewpage.jsx";
-import Location from "./Location.jsx";
+import Location from "./LocationList.jsx";
 
 
 const LocationPage = () => {

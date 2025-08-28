@@ -8,198 +8,227 @@ import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react"; // kept to match your imports
 import "./c.css";
 
-import ShelvesViewPage from "./ShelvesViewPage.jsx";
+import AisleViewPage from "../Shelves/ShelvesViewPage";
 
-export default function ShelvesList({ handleAddShelves, onView }) {
+export default function ShelveList({ handleAddAisle, onView }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Shelves";
+   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Shelves";
   const metricsUrl = `${baseUrl}/metrics`;
 
-  /** ---------- Helpers to normalize fields (match Postman) ---------- */
-  const getId = (c) => c?._id || c?.id || c?.code || "";
-  const getCode = (c) => c?.code || "";
-  const getName = (c) => c?.name || "";
-  const getType = (c) => c?.type || "";
-  const getDescription = (c) => c?.description || "";
-  const isActive = (c) => c?.active === true;
-  const isArchived = (c) => c?.archived === true;
-  // Leave onHold/status hooks intact if backend adds them later
-  const isOnHold = (c) => !!c?.onHold;
+  /** ---------- Helpers to normalize fields ---------- */
+  const getId = (c) => c?._id || c?.id || c?.aislesId || c?.code || "";
+  const getCode = (c) => c?.aislesCode || c?.code || "";
+  const gettype = (c) => c?.aislestype || c?.type || "";
+
+  const getName = (c) => c?.aislesName || c?.name || "";
+  const getdescription = (c) => c?.description || "";
+  const getCurrency = (c) => c?.currency || "";
+  const isActive = (c) => !!c?.active;
   const outstanding = (c) => Number(c?.outstandingBalance || 0);
   const getStatus = (c) => String(c?.status || "");
 
-  /** ---------- Date helpers (createdAt boundaries) ---------- */
-  const toStartOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
-    new Date(`${dateStrLocal}T00:00:00`).toISOString();
-  const toEndOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
-    new Date(`${dateStrLocal}T23:59:59.999`).toISOString();
+  /** ---------- Date helpers ---------- */
+  const toStartOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStr}T00:00:00.000Z`).toISOString();
+  const toEndOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStr}T23:59:59.999Z`).toISOString();
+
+  // addDays that is timezone-safe (strictly next day for 'min' on endDate)
+  const addDays = (dateStr, days) => {
+    if (!dateStr) return "";
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + days);
+    const yyyy = dt.getUTCFullYear();
+    const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getUTCDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  // NEW: today as YYYY-MM-DD in local time
+  const todayStr = () => {
+    const dt = new Date();
+    const yyyy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
 
   /** ---------- State ---------- */
   const tabNames = [
-    "Shelves List",
-   
-
-
-
-
-
-
-
-
-
-
-    
+    "Shelve List",
+    "Paid Shelve",
+    "Active Shelve",
+    "Hold Shelve",
+    "Outstanding Shelve",
   ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  const [Shelves, setShelves] = useState([]);
+  const [companies, setShelve] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [viewingShelvesId, setViewingShelvesId] = useState(null);
+  const [viewingShelveId, setViewingShelveId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
   const [sortOption, setSortOption] = useState(""); // name-asc | code-asc | code-desc
 
-  const [startDate, setStartDate] = useState(
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-  );
-  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+  // Start is blank; End defaults to TODAY  // CHANGED
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState(() => todayStr()); // NEW default
 
   const [summary, setSummary] = useState({
     count: 0,
-    activeShelvess: 0,
-    archivedShelvess: 0,
+    creditLimit: 0,
+    paidShelves: 0,
+    activeShelves: 0,
+    onHoldShelves: 0,
   });
 
   const [loading, setLoading] = useState(false);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchShelves = useCallback(
-    async (fromDate = startDate, toDate = endDate) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const fromISO = toStartOfDayISO(fromDate);
-        const toISO = toEndOfDayISO(toDate);
+  /** ---------- Fetchers ---------- */
+  const fetchShelve = useCallback(async ({ fromDate, toDate } = {}) => {
+    setLoading(true);
+    setError(null);
+    try {
+      let params = {};
+      let fromISO, toISO;
+      if (fromDate && toDate) {
+        fromISO = toStartOfDayISO(fromDate);
+        toISO = toEndOfDayISO(toDate);
+        params = { from: fromISO, to: toISO };
+      }
 
-        const { data: resp } = await axios.get(baseUrl, {
-          params: { from: fromISO, to: toISO },
-        });
+      const { data: resp } = await axios.get(baseUrl, { params });
 
-        // Normalize the list (support {data: []} or [] shapes)
-        const list = resp?.data || resp || [];
-        const arrayList = Array.isArray(list) ? list : [];
+      const list = resp?.data || resp || [];
+      const arrayList = Array.isArray(list) ? list : [];
 
-        // Defensive client-side filter by createdAt (include if missing)
+      let finalList = arrayList;
+      if (fromISO && toISO) {
         const fromMs = new Date(fromISO).getTime();
         const toMs = new Date(toISO).getTime();
-        const filteredByCreatedAt = arrayList.filter((c) => {
-          if (!c?.createdAt) return true;
+        finalList = arrayList.filter((c) => {
+          if (!c?.createdAt) return false;
           const t = new Date(c.createdAt).getTime();
           return t >= fromMs && t <= toMs;
         });
-
-        setShelves(filteredByCreatedAt);
-
-        // Baseline summary (if metrics fail)
-        const activeCount = filteredByCreatedAt.filter((c) =>
-          isActive(c)
-        ).length;
-        const archivedCount = filteredByCreatedAt.filter((c) =>
-          isArchived(c)
-        ).length;
-
-        setSummary({
-          count: filteredByCreatedAt.length || 0,
-          activeShelvess: activeCount,
-          archivedShelvess: archivedCount,
-        });
-      } catch (err) {
-        console.error(err);
-        setError("Unable to load Shelves data.");
-      } finally {
-        setLoading(false);
       }
-    },
-    [startDate, endDate]
-  );
 
-  const fetchMetrics = useCallback(
-    async (fromDate = startDate, toDate = endDate) => {
-      setLoadingMetrics(true);
-      try {
+      setShelve(finalList);
+
+      setSummary((prev) => ({
+        ...prev,
+        count: finalList.length || 0,
+        creditLimit: finalList.reduce(
+          (s, c) => s + (Number(c?.creditLimit) || 0),
+          0
+        ),
+        paidShelves: finalList.filter((c) => getStatus(c) === "Paid").length,
+        activeShelves: finalList.filter((c) => isActive(c)).length,
+        onHoldShelves: finalList.filter((c) => !isActive(c)).length,
+      }));
+    } catch (err) {
+      console.error(err);
+      setError("Unable to load Shelve data.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchMetrics = useCallback(async ({ fromDate, toDate } = {}) => {
+    setLoadingMetrics(true);
+    try {
+      let params = {};
+      if (fromDate && toDate) {
         const fromISO = toStartOfDayISO(fromDate);
         const toISO = toEndOfDayISO(toDate);
-
-        const { data: resp } = await axios.get(metricsUrl, {
-          params: { from: fromISO, to: toISO },
-        });
-
-        const m = (resp?.metrics && resp.metrics[0]) || {};
-        setSummary((prev) => ({
-          count: m?.totalShelvess ?? prev.count,
-          activeShelvess: m?.activeShelvess ?? prev.activeShelvess,
-          archivedShelvess: m?.archivedShelvess ?? prev.archivedShelvess,
-        }));
-      } catch (err) {
-        console.error(err);
-        // metrics optional
-      } finally {
-        setLoadingMetrics(false);
+        params = { from: fromISO, to: toISO };
       }
-    },
-    [startDate, endDate]
-  );
 
+      const { data: resp } = await axios.get(metricsUrl, { params });
+      const m = (resp?.metrics && resp.metrics[0]) || {};
+
+      setSummary((prev) => ({
+        ...prev,
+        count: m?.totalShelves ?? prev.count,
+        creditLimit: m?.creditLimit ?? prev.creditLimit,
+        paidShelves: m?.paidShelves ?? prev.paidShelves,
+        activeShelves: m?.activeShelves ?? prev.activeShelves,
+        onHoldShelves:
+          typeof m?.inactiveShelves === "number"
+            ? m.inactiveShelves
+            : m?.onHoldShelves ?? prev.onHoldShelves,
+      }));
+    } catch (err) {
+      console.error(err); // metrics optional
+    } finally {
+      setLoadingMetrics(false);
+    }
+  }, []);
+
+  // Keep endDate valid vs startDate
   useEffect(() => {
-    fetchShelves();
+    if (!startDate) return;
+    setEndDate((prev) => {
+      const min = addDays(startDate, 1);
+      if (!prev || prev <= startDate) return min;
+      return prev;
+    });
+  }, [startDate]);
+
+  // Initial load — show ALL data (no date params)
+  useEffect(() => {
+    fetchShelve();
     fetchMetrics();
-  }, [fetchShelves, fetchMetrics]);
+  }, [fetchShelve, fetchMetrics]);
 
   /** ---------- Derived: filtered + sorted list ---------- */
-  const filteredShelves = useMemo(() => {
-    let list = [...Shelves];
+  const filteredShelve = useMemo(() => {
+    let list = [...companies];
 
-    // Tabs
     switch (activeTab) {
-      case "Shelves List":
-        // no extra filter
-        break;
-      case "Paid Shelves":
+      case "Paid Shelve":
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
-      case "Active Shelves":
+      case "Active Shelve":
         list = list.filter((c) => isActive(c));
         break;
-      case "Hold Shelves":
-        list = list.filter((c) => isOnHold(c));
+      case "Hold Shelve":
+        list = list.filter((c) => !isActive(c));
         break;
-      case "Outstanding Shelves":
+      case "Outstanding Shelve":
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
         break;
     }
 
-    // Status filter (dropdown)
     if (statusFilter === "Active") list = list.filter((c) => isActive(c));
     else if (statusFilter === "Inactive")
       list = list.filter((c) => !isActive(c));
 
-    // Search (use Postman fields)
     const term = searchTerm.trim().toLowerCase();
     if (term) {
       list = list.filter((c) => {
-        const hay = [getName(c), getCode(c), getType(c), getDescription(c)]
+        const hay = [
+          getName(c),
+          getCode(c),
+          String(c?.email ?? ""),
+          String(c?.taxInfo?.gstNumber ?? ""),
+          String(c?.primaryGSTAddress ?? ""),
+          getBusinessType(c),
+          getCurrency(c),
+        ]
           .join(" | ")
           .toLowerCase();
         return hay.includes(term);
       });
     }
 
-    // Sort
     const cmpStr = (a, b) =>
       a.localeCompare(b, undefined, { sensitivity: "base" });
     if (sortOption === "name-asc")
@@ -212,36 +241,65 @@ export default function ShelvesList({ handleAddShelves, onView }) {
       list.sort((a, b) => cmpStr(getCode(b), getCode(a)));
 
     return list;
-  }, [Shelves, activeTab, statusFilter, searchTerm, sortOption]);
+  }, [companies, activeTab, statusFilter, searchTerm, sortOption]);
+
+  /** ---------- Date-range validity ---------- */
+  const isRangeValid = useMemo(() => {
+    if (!startDate || !endDate) return false;
+    const s = new Date(startDate).getTime();
+    const e = new Date(endDate).getTime();
+    return e > s;
+  }, [startDate, endDate]);
+
+  /** ---------- Is ANY filter on? (dates count only if both picked) ---------- */
+  const anyFiltersOn = useMemo(
+    () =>
+      Boolean(
+        sortOption ||
+          searchTerm ||
+          statusFilter === "Active" ||
+          statusFilter === "Inactive" ||
+          (startDate && endDate) // CHANGED: only when both set
+      ),
+    [sortOption, searchTerm, statusFilter, startDate, endDate]
+  );
 
   /** ---------- Handlers ---------- */
   const onTabClick = (tab) => {
     setActiveTab(tab);
-    if (sortOption || statusFilter !== "All" || searchTerm) {
+    if (
+      sortOption ||
+      statusFilter !== "All" ||
+      searchTerm ||
+      (startDate && endDate) // CHANGED: matches anyFiltersOn
+    ) {
       resetFilters();
       setSelectedIds([]);
     }
   };
 
-  const handleShelvesClick = (siteId) => {
-    if (onView) onView(siteId);
-    setViewingShelvesId(siteId);
+  const handleShelveClick = (ShelveId) => {
+    setViewingShelveId(ShelveId);
   };
 
-  const resetFilters = () => {
+  /** ---------- Reset also restores endDate to today ---------- */
+  const resetFilters = async () => {
     setSearchTerm("");
     setStatusFilter("All");
     setSelectedIds([]);
     setSortOption("");
+    setStartDate("");
+    setEndDate(todayStr()); // CHANGED: keep default end date visible
+    await fetchShelve();
+    await fetchMetrics();
   };
 
   const handleSortChange = (e) => {
     const v = e.target.value;
-    if (v === "name-asc" || v === "code-asc" || v === "code-desc") {
-      setSortOption(v);
-    } else {
-      setSortOption("");
-    }
+    if (v === "Shelve Name") return setSortOption("name-asc");
+    if (v === "Shelve Account in Ascending") return setSortOption("code-asc");
+    if (v === "Shelve Account in Descending") return setSortOption("code-desc");
+    setSortOption(v);
   };
 
   const handleStatusChange = (e) => {
@@ -254,9 +312,7 @@ export default function ShelvesList({ handleAddShelves, onView }) {
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const toggleSelectAll = (e) => {
-    setSelectedIds(
-      e.target.checked ? filteredShelves.map((c) => getId(c)) : []
-    );
+    setSelectedIds(e.target.checked ? filteredShelve.map((c) => getId(c)) : []);
   };
 
   const handleCheckboxChange = (id) => {
@@ -267,13 +323,13 @@ export default function ShelvesList({ handleAddShelves, onView }) {
 
   const handleDeleteSelected = async () => {
     if (!selectedIds.length) {
-      toast.info("No site selected to delete");
+      toast.info("No companies selected to delete");
       return;
     }
     if (
       !window.confirm(
-        `Delete ${selectedIds.length} selected site${
-          selectedIds.length > 1 ? "s" : ""
+        `Delete ${selectedIds.length} selected compan${
+          selectedIds.length > 1 ? "ies" : "y"
         }?`
       )
     ) {
@@ -289,8 +345,14 @@ export default function ShelvesList({ handleAddShelves, onView }) {
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
-        await fetchShelves(startDate, endDate);
-        await fetchMetrics(startDate, endDate);
+        if (startDate && endDate && isRangeValid) {
+          await fetchShelve({ fromDate: startDate, toDate: endDate });
+          await fetchMetrics({ fromDate: startDate, toDate: endDate });
+        } else {
+          await fetchShelve();
+          await fetchMetrics();
+        }
+        window.location.reload();
       }
       if (failed) toast.error(`${failed} failed — check console`);
     } catch (err) {
@@ -299,38 +361,19 @@ export default function ShelvesList({ handleAddShelves, onView }) {
     }
   };
 
-  /** ---------- Export (match Postman fields) ---------- */
+  /** ---------- Export ---------- */
   const exportToExcel = () => {
-    const rows = filteredShelves.length ? filteredShelves : Shelves;
-    if (!rows.length) {
+    if (!companies.length) {
       toast.info("No data to export.");
       return;
     }
-    const data = rows.map((c, i) => ({
-      "#": i + 1,
-      Code: getCode(c),
-      Name: getName(c),
-      Type: getType(c),
-      Description: getDescription(c),
-      Active: isActive(c) ? "Yes" : "No",
-      Archived: isArchived(c) ? "Yes" : "No",
-      CreatedAt: c?.createdAt ? new Date(c.createdAt).toLocaleString() : "",
-      UpdatedAt: c?.updatedAt ? new Date(c.updatedAt).toLocaleString() : "",
-      _id: getId(c),
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(companies);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Shelvess");
-    XLSX.writeFile(wb, "Shelves_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Shelves");
+    XLSX.writeFile(wb, "Shelve_list.xlsx");
   };
 
   const generatePDF = () => {
-    const rows = filteredShelves.length ? filteredShelves : Shelves;
-    if (!rows.length) {
-      toast.info("No data to export.");
-      return;
-    }
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [
@@ -338,64 +381,68 @@ export default function ShelvesList({ handleAddShelves, onView }) {
           "#",
           "Code",
           "Name",
-          "Type",
-          "Description",
-          "Created At",
-          "Updated At",
+          "Email",
+          "Registration Number",
+          "Business Type",
+          "Currency",
+          "Address",
           "Status",
-          "Archived",
         ],
       ],
-      body: rows.map((c, i) => [
+      body: filteredShelve.map((c, i) => [
         i + 1,
-        getCode(c),
-        getName(c),
-        getType(c),
-        getDescription(c),
-        c?.createdAt ? new Date(c.createdAt).toLocaleString() : "",
-        c?.updatedAt ? new Date(c.updatedAt).toLocaleString() : "",
+        getCode(c) || "",
+        getName(c) || "",
+        c?.email || "",
+        c?.taxInfo?.gstNumber || "",
+        getBusinessType(c) || "",
+        getCurrency(c) || "",
+        c?.primaryGSTAddress || "",
         isActive(c) ? "Active" : "Inactive",
-        isArchived(c) ? "Yes" : "No",
       ]),
     });
-    doc.save("Shelves_list.pdf");
+    doc.save("Shelve_list.pdf");
   };
 
   /** ---------- View toggle ---------- */
-  const goBack = () => setViewingShelvesId(null);
+  const goBack = () => {
+    setViewingShelveId(null);
+    window.location.reload();
+  };
 
   /** ---------- Render ---------- */
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingShelvesId) {
+  if (viewingShelveId) {
     return (
       <div className="p-4">
-        <ShelvesViewPage ShelvesId={viewingShelvesId} goBack={goBack} />
+        <AisleViewPage ShelveId={viewingShelveId} goBack={goBack} />
       </div>
     );
   }
+
+  const canApply = isRangeValid;
 
   return (
     <div>
       <div>
         <div>
-          {viewingShelvesId ? (
-            <ShelvesViewPage ShelvesId={viewingShelvesId} goBack={goBack} />
+          {viewingShelveId ? (
+            <AisleViewPage ShelveId={viewingShelveId} goBack={goBack} />
           ) : (
             <div className="space-y-6">
               <ToastContainer />
 
-              {/* Header Buttons (stack on small) */}
+              {/* Header Buttons */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-2 ">
-                  <h3 className="text-xl font-semibold">Shelves List</h3>
+                  <h3 className="text-xl font-semibold">Shelve List</h3>
                 </div>
 
-                {/* Buttons wrap on small */}
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <button
-                    onClick={handleAddShelves}
+                    onClick={handleAddAisle}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     + Add
@@ -424,40 +471,15 @@ export default function ShelvesList({ handleAddShelves, onView }) {
 
               {/* Metrics */}
               <div className=" bg-white rounded-lg ">
-                {/* Date filters */}
-                <div className="flex flex-wrap gap-2">
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="border rounded px-2 py-1 w-full sm:w-auto"
-                  />
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="border rounded px-2 py-1 w-full sm:w-auto"
-                  />
-                  <button
-                    onClick={async () => {
-                      await fetchMetrics(startDate, endDate);
-                      await fetchShelves(startDate, endDate);
-                    }}
-                    className="px-3 py-1 border rounded w-full sm:w-auto"
-                  >
-                    {loadingMetrics ? "Applying…" : "Apply"}
-                  </button>
-                </div>
+                {/* Date filters       /creation date  */}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Shelvess", summary.count],
-                    ["Active Shelvess", summary.activeShelvess],
-                    ["Archived Shelvess", summary.archivedShelvess],
-                    [
-                      "Inactive (calc)",
-                      Math.max(summary.count - summary.activeShelvess, 0),
-                    ],
+                    ["Total Shelves", summary.count],
+                    ["Credit Limit", summary.creditLimit],
+                    ["Paid Shelves", summary.paidShelves],
+                    ["Active Shelves", summary.activeShelves],
+                    ["On-Hold Shelves", summary.onHoldShelves],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -474,6 +496,22 @@ export default function ShelvesList({ handleAddShelves, onView }) {
               <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md  mb-2 space-y-3 md:space-y-0 md:space-x-4">
                 <div className="flex flex-wrap items-center gap-3 md:gap-4">
                   {/* Sort By */}
+                  <div className="relative w-full sm:w-60">
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                      onClick={() => {}}
+                    >
+                      <FaSearch className="w-5 h-5" />
+                    </button>
+                  </div>
                   <div className="relative">
                     <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <select
@@ -482,16 +520,15 @@ export default function ShelvesList({ handleAddShelves, onView }) {
                       className="w-full sm:w-56 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="name-asc">Shelves Name</option>
+                      <option value="name-asc">Shelve Name</option>
                       <option value="code-asc">
-                        Shelves Account in Ascending
+                        Shelve Account in Ascending
                       </option>
                       <option value="code-desc">
-                        Shelves Account in Descending
+                        Shelve Account in Descending
                       </option>
                     </select>
                   </div>
-
                   {/* Filter By Status */}
                   <div className="relative">
                     <FaFilter className=" text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -514,39 +551,66 @@ export default function ShelvesList({ handleAddShelves, onView }) {
                   </div>
 
                   {/* Search */}
-                  <div className="relative w-full sm:w-60">
+
+                  <div className="flex flex-wrap gap-2">
                     <input
-                      type="text"
-                      placeholder="Search..."
-                      value={searchTerm}
-                      onChange={handleSearchChange}
-                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => {
+                        setStartDate(e.target.value);
+                        if (
+                          endDate &&
+                          e.target.value &&
+                          endDate <= e.target.value
+                        ) {
+                          setEndDate("");
+                        }
+                      }}
+                      className="border rounded px-2 py-1 w-full sm:w-auto"
+                    />
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="border rounded px-2 py-1 w-full sm:w-auto"
+                      disabled={!startDate}
+                      min={startDate ? addDays(startDate, 1) : undefined}
+                      onFocus={() => {
+                        if (startDate && !endDate)
+                          setEndDate(addDays(startDate, 1));
+                      }}
                     />
                     <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                      onClick={async () => {
+                        if (!isRangeValid) {
+                          toast.error(
+                            "Please choose an end date after the start date."
+                          );
+                          return;
+                        }
+                        await fetchMetrics({
+                          fromDate: startDate,
+                          toDate: endDate,
+                        });
+                        await fetchShelve({
+                          fromDate: startDate,
+                          toDate: endDate,
+                        });
+                      }}
+                      className="px-3 py-1 border rounded w-full sm:w-auto"
+                      disabled={!canApply || loadingMetrics}
                     >
-                      <FaSearch className="w-5 h-5" />
+                      {loadingMetrics ? "Applying…" : "Apply"}
                     </button>
                   </div>
                 </div>
 
                 <button
                   onClick={resetFilters}
-                  disabled={
-                    !(
-                      sortOption ||
-                      statusFilter === "Active" ||
-                      statusFilter === "Inactive" ||
-                      searchTerm
-                    )
-                  }
+                  disabled={!anyFiltersOn}
                   className={`font-medium w-full sm:w-auto transition
     ${
-      sortOption ||
-      statusFilter === "Active" ||
-      statusFilter === "Inactive" ||
-      searchTerm
+      anyFiltersOn
         ? "text-red-500 hover:text-red-600 cursor-pointer"
         : "text-gray-400 cursor-not-allowed"
     }`}
@@ -584,8 +648,8 @@ export default function ShelvesList({ handleAddShelves, onView }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedIds.length === filteredShelves.length &&
-                            filteredShelves.length > 0
+                            selectedIds.length === filteredShelve.length &&
+                            filteredShelve.length > 0
                           }
                           className="form-checkbox"
                         />
@@ -609,12 +673,13 @@ export default function ShelvesList({ handleAddShelves, onView }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredShelves.length ? (
-                      filteredShelves.map((c) => (
+                    {filteredShelve.length ? (
+                      filteredShelve.map((c) => (
                         <tr
                           key={getId(c)}
                           className="hover:bg-gray-100 transition-colors"
                         >
+                          {/* Checkbox */}
                           <td className="px-4 py-2">
                             <input
                               type="checkbox"
@@ -624,28 +689,24 @@ export default function ShelvesList({ handleAddShelves, onView }) {
                             />
                           </td>
 
-                          {/* Code (clickable) */}
+                          {/* Code (clickable for view) */}
                           <td className="px-6 py-4">
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() =>
-                                handleShelvesil.ShelvesViewPageClick(getId(c))
-                              }
+                              onClick={() => handleShelveClick(getId(c))}
                             >
                               {getCode(c)}
                             </button>
                           </td>
 
                           {/* Type */}
-                          <td className="px-6 py-4">{getType(c)}</td>
+                          <td className="px-6 py-4">{gettype(c)}</td>
 
                           {/* Name */}
                           <td className="px-6 py-4">{getName(c)}</td>
 
-                          {/* */}
-                          <td className="px-6 py-3 truncate">
-                            {getDescription(c)}
-                          </td>
+                          {/* Description */}
+                          <td className="px-6 py-4">{getdescription(c)}</td>
 
                           {/* Created At */}
                           <td className="px-6 py-4">

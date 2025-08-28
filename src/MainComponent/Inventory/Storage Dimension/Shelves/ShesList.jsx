@@ -8,227 +8,198 @@ import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react"; // kept to match your imports
 import "./c.css";
 
-import AisleViewPage from "../Warehouse/WarehouseViewPagee";
+import ShelvesViewPage from "./ShelvesViewPage.jsx";
 
-export default function WarehouseList({ handleAddAisle, onView }) {
+export default function ShelvesList({ handleAddShelves, onView }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Shelves";
   const metricsUrl = `${baseUrl}/metrics`;
 
-  /** ---------- Helpers to normalize fields ---------- */
-  const getId = (c) => c?._id || c?.id || c?.aislesId || c?.code || "";
-  const getCode = (c) => c?.aislesCode || c?.code || "";
-  const gettype = (c) => c?.aislestype || c?.type || "";
-
-  const getName = (c) => c?.aislesName || c?.name || "";
-  const getdescription = (c) => c?.description || "";
-  const getCurrency = (c) => c?.currency || "";
-  const isActive = (c) => !!c?.active;
+  /** ---------- Helpers to normalize fields (match Postman) ---------- */
+  const getId = (c) => c?._id || c?.id || c?.code || "";
+  const getCode = (c) => c?.code || "";
+  const getName = (c) => c?.name || "";
+  const getType = (c) => c?.type || "";
+  const getDescription = (c) => c?.description || "";
+  const isActive = (c) => c?.active === true;
+  const isArchived = (c) => c?.archived === true;
+  // Leave onHold/status hooks intact if backend adds them later
+  const isOnHold = (c) => !!c?.onHold;
   const outstanding = (c) => Number(c?.outstandingBalance || 0);
   const getStatus = (c) => String(c?.status || "");
 
-  /** ---------- Date helpers ---------- */
-  const toStartOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
-    new Date(`${dateStr}T00:00:00.000Z`).toISOString();
-  const toEndOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
-    new Date(`${dateStr}T23:59:59.999Z`).toISOString();
-
-  // addDays that is timezone-safe (strictly next day for 'min' on endDate)
-  const addDays = (dateStr, days) => {
-    if (!dateStr) return "";
-    const [y, m, d] = dateStr.split("-").map(Number);
-    const dt = new Date(Date.UTC(y, m - 1, d));
-    dt.setUTCDate(dt.getUTCDate() + days);
-    const yyyy = dt.getUTCFullYear();
-    const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
-    const dd = String(dt.getUTCDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
-
-  // NEW: today as YYYY-MM-DD in local time
-  const todayStr = () => {
-    const dt = new Date();
-    const yyyy = dt.getFullYear();
-    const mm = String(dt.getMonth() + 1).padStart(2, "0");
-    const dd = String(dt.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
+  /** ---------- Date helpers (createdAt boundaries) ---------- */
+  const toStartOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStrLocal}T00:00:00`).toISOString();
+  const toEndOfDayISO = (dateStrLocal /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStrLocal}T23:59:59.999`).toISOString();
 
   /** ---------- State ---------- */
   const tabNames = [
-    "Warehouse List",
-    "Paid Warehouse",
-    "Active Warehouse",
-    "Hold Warehouse",
-    "Outstanding Warehouse",
+    "Shelves List",
+   
+
+
+
+
+
+
+
+
+
+
+    
   ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  const [companies, setWarehouse] = useState([]);
+  const [Shelves, setShelves] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [viewingWarehouseId, setViewingWarehouseId] = useState(null);
+  const [viewingShelvesId, setViewingShelvesId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
   const [sortOption, setSortOption] = useState(""); // name-asc | code-asc | code-desc
 
-  // Start is blank; End defaults to TODAY  // CHANGED
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState(() => todayStr()); // NEW default
+  const [startDate, setStartDate] = useState(
+    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  );
+  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
 
   const [summary, setSummary] = useState({
     count: 0,
-    creditLimit: 0,
-    paidWarehouses: 0,
-    activeWarehouses: 0,
-    onHoldWarehouses: 0,
+    activeShelvess: 0,
+    archivedShelvess: 0,
   });
 
   const [loading, setLoading] = useState(false);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
 
-  /** ---------- Fetchers ---------- */
-  const fetchWarehouse = useCallback(async ({ fromDate, toDate } = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
-      let params = {};
-      let fromISO, toISO;
-      if (fromDate && toDate) {
-        fromISO = toStartOfDayISO(fromDate);
-        toISO = toEndOfDayISO(toDate);
-        params = { from: fromISO, to: toISO };
-      }
+  const fetchShelves = useCallback(
+    async (fromDate = startDate, toDate = endDate) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const fromISO = toStartOfDayISO(fromDate);
+        const toISO = toEndOfDayISO(toDate);
 
-      const { data: resp } = await axios.get(baseUrl, { params });
+        const { data: resp } = await axios.get(baseUrl, {
+          params: { from: fromISO, to: toISO },
+        });
 
-      const list = resp?.data || resp || [];
-      const arrayList = Array.isArray(list) ? list : [];
+        // Normalize the list (support {data: []} or [] shapes)
+        const list = resp?.data || resp || [];
+        const arrayList = Array.isArray(list) ? list : [];
 
-      let finalList = arrayList;
-      if (fromISO && toISO) {
+        // Defensive client-side filter by createdAt (include if missing)
         const fromMs = new Date(fromISO).getTime();
         const toMs = new Date(toISO).getTime();
-        finalList = arrayList.filter((c) => {
-          if (!c?.createdAt) return false;
+        const filteredByCreatedAt = arrayList.filter((c) => {
+          if (!c?.createdAt) return true;
           const t = new Date(c.createdAt).getTime();
           return t >= fromMs && t <= toMs;
         });
+
+        setShelves(filteredByCreatedAt);
+
+        // Baseline summary (if metrics fail)
+        const activeCount = filteredByCreatedAt.filter((c) =>
+          isActive(c)
+        ).length;
+        const archivedCount = filteredByCreatedAt.filter((c) =>
+          isArchived(c)
+        ).length;
+
+        setSummary({
+          count: filteredByCreatedAt.length || 0,
+          activeShelvess: activeCount,
+          archivedShelvess: archivedCount,
+        });
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load Shelves data.");
+      } finally {
+        setLoading(false);
       }
+    },
+    [startDate, endDate]
+  );
 
-      setWarehouse(finalList);
-
-      setSummary((prev) => ({
-        ...prev,
-        count: finalList.length || 0,
-        creditLimit: finalList.reduce(
-          (s, c) => s + (Number(c?.creditLimit) || 0),
-          0
-        ),
-        paidWarehouses: finalList.filter((c) => getStatus(c) === "Paid").length,
-        activeWarehouses: finalList.filter((c) => isActive(c)).length,
-        onHoldWarehouses: finalList.filter((c) => !isActive(c)).length,
-      }));
-    } catch (err) {
-      console.error(err);
-      setError("Unable to load Warehouse data.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchMetrics = useCallback(async ({ fromDate, toDate } = {}) => {
-    setLoadingMetrics(true);
-    try {
-      let params = {};
-      if (fromDate && toDate) {
+  const fetchMetrics = useCallback(
+    async (fromDate = startDate, toDate = endDate) => {
+      setLoadingMetrics(true);
+      try {
         const fromISO = toStartOfDayISO(fromDate);
         const toISO = toEndOfDayISO(toDate);
-        params = { from: fromISO, to: toISO };
+
+        const { data: resp } = await axios.get(metricsUrl, {
+          params: { from: fromISO, to: toISO },
+        });
+
+        const m = (resp?.metrics && resp.metrics[0]) || {};
+        setSummary((prev) => ({
+          count: m?.totalShelvess ?? prev.count,
+          activeShelvess: m?.activeShelvess ?? prev.activeShelvess,
+          archivedShelvess: m?.archivedShelvess ?? prev.archivedShelvess,
+        }));
+      } catch (err) {
+        console.error(err);
+        // metrics optional
+      } finally {
+        setLoadingMetrics(false);
       }
+    },
+    [startDate, endDate]
+  );
 
-      const { data: resp } = await axios.get(metricsUrl, { params });
-      const m = (resp?.metrics && resp.metrics[0]) || {};
-
-      setSummary((prev) => ({
-        ...prev,
-        count: m?.totalWarehouses ?? prev.count,
-        creditLimit: m?.creditLimit ?? prev.creditLimit,
-        paidWarehouses: m?.paidWarehouses ?? prev.paidWarehouses,
-        activeWarehouses: m?.activeWarehouses ?? prev.activeWarehouses,
-        onHoldWarehouses:
-          typeof m?.inactiveWarehouses === "number"
-            ? m.inactiveWarehouses
-            : m?.onHoldWarehouses ?? prev.onHoldWarehouses,
-      }));
-    } catch (err) {
-      console.error(err); // metrics optional
-    } finally {
-      setLoadingMetrics(false);
-    }
-  }, []);
-
-  // Keep endDate valid vs startDate
   useEffect(() => {
-    if (!startDate) return;
-    setEndDate((prev) => {
-      const min = addDays(startDate, 1);
-      if (!prev || prev <= startDate) return min;
-      return prev;
-    });
-  }, [startDate]);
-
-  // Initial load — show ALL data (no date params)
-  useEffect(() => {
-    fetchWarehouse();
+    fetchShelves();
     fetchMetrics();
-  }, [fetchWarehouse, fetchMetrics]);
+  }, [fetchShelves, fetchMetrics]);
 
   /** ---------- Derived: filtered + sorted list ---------- */
-  const filteredWarehouse = useMemo(() => {
-    let list = [...companies];
+  const filteredShelves = useMemo(() => {
+    let list = [...Shelves];
 
+    // Tabs
     switch (activeTab) {
-      case "Paid Warehouse":
+      case "Shelves List":
+        // no extra filter
+        break;
+      case "Paid Shelves":
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
-      case "Active Warehouse":
+      case "Active Shelves":
         list = list.filter((c) => isActive(c));
         break;
-      case "Hold Warehouse":
-        list = list.filter((c) => !isActive(c));
+      case "Hold Shelves":
+        list = list.filter((c) => isOnHold(c));
         break;
-      case "Outstanding Warehouse":
+      case "Outstanding Shelves":
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
         break;
     }
 
+    // Status filter (dropdown)
     if (statusFilter === "Active") list = list.filter((c) => isActive(c));
     else if (statusFilter === "Inactive")
       list = list.filter((c) => !isActive(c));
 
+    // Search (use Postman fields)
     const term = searchTerm.trim().toLowerCase();
     if (term) {
       list = list.filter((c) => {
-        const hay = [
-          getName(c),
-          getCode(c),
-          String(c?.email ?? ""),
-          String(c?.taxInfo?.gstNumber ?? ""),
-          String(c?.primaryGSTAddress ?? ""),
-          getBusinessType(c),
-          getCurrency(c),
-        ]
+        const hay = [getName(c), getCode(c), getType(c), getDescription(c)]
           .join(" | ")
           .toLowerCase();
         return hay.includes(term);
       });
     }
 
+    // Sort
     const cmpStr = (a, b) =>
       a.localeCompare(b, undefined, { sensitivity: "base" });
     if (sortOption === "name-asc")
@@ -241,65 +212,36 @@ export default function WarehouseList({ handleAddAisle, onView }) {
       list.sort((a, b) => cmpStr(getCode(b), getCode(a)));
 
     return list;
-  }, [companies, activeTab, statusFilter, searchTerm, sortOption]);
-
-  /** ---------- Date-range validity ---------- */
-  const isRangeValid = useMemo(() => {
-    if (!startDate || !endDate) return false;
-    const s = new Date(startDate).getTime();
-    const e = new Date(endDate).getTime();
-    return e > s;
-  }, [startDate, endDate]);
-
-  /** ---------- Is ANY filter on? (dates count only if both picked) ---------- */
-  const anyFiltersOn = useMemo(
-    () =>
-      Boolean(
-        sortOption ||
-          searchTerm ||
-          statusFilter === "Active" ||
-          statusFilter === "Inactive" ||
-          (startDate && endDate) // CHANGED: only when both set
-      ),
-    [sortOption, searchTerm, statusFilter, startDate, endDate]
-  );
+  }, [Shelves, activeTab, statusFilter, searchTerm, sortOption]);
 
   /** ---------- Handlers ---------- */
   const onTabClick = (tab) => {
     setActiveTab(tab);
-    if (
-      sortOption ||
-      statusFilter !== "All" ||
-      searchTerm ||
-      (startDate && endDate) // CHANGED: matches anyFiltersOn
-    ) {
+    if (sortOption || statusFilter !== "All" || searchTerm) {
       resetFilters();
       setSelectedIds([]);
     }
   };
 
-  const handleWarehouseClick = (WarehouseId) => {
-    setViewingWarehouseId(WarehouseId);
+  const handleShelvesClick = (siteId) => {
+    if (onView) onView(siteId);
+    setViewingShelvesId(siteId);
   };
 
-  /** ---------- Reset also restores endDate to today ---------- */
-  const resetFilters = async () => {
+  const resetFilters = () => {
     setSearchTerm("");
     setStatusFilter("All");
     setSelectedIds([]);
     setSortOption("");
-    setStartDate("");
-    setEndDate(todayStr()); // CHANGED: keep default end date visible
-    await fetchWarehouse();
-    await fetchMetrics();
   };
 
   const handleSortChange = (e) => {
     const v = e.target.value;
-    if (v === "Warehouse Name") return setSortOption("name-asc");
-    if (v === "Warehouse Account in Ascending") return setSortOption("code-asc");
-    if (v === "Warehouse Account in Descending") return setSortOption("code-desc");
-    setSortOption(v);
+    if (v === "name-asc" || v === "code-asc" || v === "code-desc") {
+      setSortOption(v);
+    } else {
+      setSortOption("");
+    }
   };
 
   const handleStatusChange = (e) => {
@@ -312,7 +254,9 @@ export default function WarehouseList({ handleAddAisle, onView }) {
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const toggleSelectAll = (e) => {
-    setSelectedIds(e.target.checked ? filteredWarehouse.map((c) => getId(c)) : []);
+    setSelectedIds(
+      e.target.checked ? filteredShelves.map((c) => getId(c)) : []
+    );
   };
 
   const handleCheckboxChange = (id) => {
@@ -323,13 +267,13 @@ export default function WarehouseList({ handleAddAisle, onView }) {
 
   const handleDeleteSelected = async () => {
     if (!selectedIds.length) {
-      toast.info("No companies selected to delete");
+      toast.info("No site selected to delete");
       return;
     }
     if (
       !window.confirm(
-        `Delete ${selectedIds.length} selected compan${
-          selectedIds.length > 1 ? "ies" : "y"
+        `Delete ${selectedIds.length} selected site${
+          selectedIds.length > 1 ? "s" : ""
         }?`
       )
     ) {
@@ -345,14 +289,8 @@ export default function WarehouseList({ handleAddAisle, onView }) {
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
-        if (startDate && endDate && isRangeValid) {
-          await fetchWarehouse({ fromDate: startDate, toDate: endDate });
-          await fetchMetrics({ fromDate: startDate, toDate: endDate });
-        } else {
-          await fetchWarehouse();
-          await fetchMetrics();
-        }
-        window.location.reload();
+        await fetchShelves(startDate, endDate);
+        await fetchMetrics(startDate, endDate);
       }
       if (failed) toast.error(`${failed} failed — check console`);
     } catch (err) {
@@ -361,19 +299,38 @@ export default function WarehouseList({ handleAddAisle, onView }) {
     }
   };
 
-  /** ---------- Export ---------- */
+  /** ---------- Export (match Postman fields) ---------- */
   const exportToExcel = () => {
-    if (!companies.length) {
+    const rows = filteredShelves.length ? filteredShelves : Shelves;
+    if (!rows.length) {
       toast.info("No data to export.");
       return;
     }
-    const ws = XLSX.utils.json_to_sheet(companies);
+    const data = rows.map((c, i) => ({
+      "#": i + 1,
+      Code: getCode(c),
+      Name: getName(c),
+      Type: getType(c),
+      Description: getDescription(c),
+      Active: isActive(c) ? "Yes" : "No",
+      Archived: isArchived(c) ? "Yes" : "No",
+      CreatedAt: c?.createdAt ? new Date(c.createdAt).toLocaleString() : "",
+      UpdatedAt: c?.updatedAt ? new Date(c.updatedAt).toLocaleString() : "",
+      _id: getId(c),
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Warehouses");
-    XLSX.writeFile(wb, "Warehouse_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Shelvess");
+    XLSX.writeFile(wb, "Shelves_list.xlsx");
   };
 
   const generatePDF = () => {
+    const rows = filteredShelves.length ? filteredShelves : Shelves;
+    if (!rows.length) {
+      toast.info("No data to export.");
+      return;
+    }
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [
@@ -381,68 +338,64 @@ export default function WarehouseList({ handleAddAisle, onView }) {
           "#",
           "Code",
           "Name",
-          "Email",
-          "Registration Number",
-          "Business Type",
-          "Currency",
-          "Address",
+          "Type",
+          "Description",
+          "Created At",
+          "Updated At",
           "Status",
+          "Archived",
         ],
       ],
-      body: filteredWarehouse.map((c, i) => [
+      body: rows.map((c, i) => [
         i + 1,
-        getCode(c) || "",
-        getName(c) || "",
-        c?.email || "",
-        c?.taxInfo?.gstNumber || "",
-        getBusinessType(c) || "",
-        getCurrency(c) || "",
-        c?.primaryGSTAddress || "",
+        getCode(c),
+        getName(c),
+        getType(c),
+        getDescription(c),
+        c?.createdAt ? new Date(c.createdAt).toLocaleString() : "",
+        c?.updatedAt ? new Date(c.updatedAt).toLocaleString() : "",
         isActive(c) ? "Active" : "Inactive",
+        isArchived(c) ? "Yes" : "No",
       ]),
     });
-    doc.save("Warehouse_list.pdf");
+    doc.save("Shelves_list.pdf");
   };
 
   /** ---------- View toggle ---------- */
-  const goBack = () => {
-    setViewingWarehouseId(null);
-    window.location.reload();
-  };
+  const goBack = () => setViewingShelvesId(null);
 
   /** ---------- Render ---------- */
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingWarehouseId) {
+  if (viewingShelvesId) {
     return (
       <div className="p-4">
-        <AisleViewPage WarehouseId={viewingWarehouseId} goBack={goBack} />
+        <ShelvesViewPage ShelvesId={viewingShelvesId} goBack={goBack} />
       </div>
     );
   }
-
-  const canApply = isRangeValid;
 
   return (
     <div>
       <div>
         <div>
-          {viewingWarehouseId ? (
-            <AisleViewPage WarehouseId={viewingWarehouseId} goBack={goBack} />
+          {viewingShelvesId ? (
+            <ShelvesViewPage ShelvesId={viewingShelvesId} goBack={goBack} />
           ) : (
             <div className="space-y-6">
               <ToastContainer />
 
-              {/* Header Buttons */}
+              {/* Header Buttons (stack on small) */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-2 ">
-                  <h3 className="text-xl font-semibold">Warehouse List</h3>
+                  <h3 className="text-xl font-semibold">Shelves List</h3>
                 </div>
 
+                {/* Buttons wrap on small */}
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <button
-                    onClick={handleAddAisle}
+                    onClick={handleAddShelves}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     + Add
@@ -471,15 +424,40 @@ export default function WarehouseList({ handleAddAisle, onView }) {
 
               {/* Metrics */}
               <div className=" bg-white rounded-lg ">
-                {/* Date filters       /creation date  */}
+                {/* Date filters */}
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="border rounded px-2 py-1 w-full sm:w-auto"
+                  />
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="border rounded px-2 py-1 w-full sm:w-auto"
+                  />
+                  <button
+                    onClick={async () => {
+                      await fetchMetrics(startDate, endDate);
+                      await fetchShelves(startDate, endDate);
+                    }}
+                    className="px-3 py-1 border rounded w-full sm:w-auto"
+                  >
+                    {loadingMetrics ? "Applying…" : "Apply"}
+                  </button>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Warehouses", summary.count],
-                    ["Credit Limit", summary.creditLimit],
-                    ["Paid Warehouses", summary.paidWarehouses],
-                    ["Active Warehouses", summary.activeWarehouses],
-                    ["On-Hold Warehouses", summary.onHoldWarehouses],
+                    ["Total Shelvess", summary.count],
+                    ["Active Shelvess", summary.activeShelvess],
+                    ["Archived Shelvess", summary.archivedShelvess],
+                    [
+                      "Inactive (calc)",
+                      Math.max(summary.count - summary.activeShelvess, 0),
+                    ],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -496,22 +474,6 @@ export default function WarehouseList({ handleAddAisle, onView }) {
               <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md  mb-2 space-y-3 md:space-y-0 md:space-x-4">
                 <div className="flex flex-wrap items-center gap-3 md:gap-4">
                   {/* Sort By */}
-                  <div className="relative w-full sm:w-60">
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      value={searchTerm}
-                      onChange={handleSearchChange}
-                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
-                      onClick={() => {}}
-                    >
-                      <FaSearch className="w-5 h-5" />
-                    </button>
-                  </div>
                   <div className="relative">
                     <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <select
@@ -520,15 +482,16 @@ export default function WarehouseList({ handleAddAisle, onView }) {
                       className="w-full sm:w-56 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="name-asc">Warehouse Name</option>
+                      <option value="name-asc">Shelves Name</option>
                       <option value="code-asc">
-                        Warehouse Account in Ascending
+                        Shelves Account in Ascending
                       </option>
                       <option value="code-desc">
-                        Warehouse Account in Descending
+                        Shelves Account in Descending
                       </option>
                     </select>
                   </div>
+
                   {/* Filter By Status */}
                   <div className="relative">
                     <FaFilter className=" text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -551,66 +514,39 @@ export default function WarehouseList({ handleAddAisle, onView }) {
                   </div>
 
                   {/* Search */}
-
-                  <div className="flex flex-wrap gap-2">
+                  <div className="relative w-full sm:w-60">
                     <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => {
-                        setStartDate(e.target.value);
-                        if (
-                          endDate &&
-                          e.target.value &&
-                          endDate <= e.target.value
-                        ) {
-                          setEndDate("");
-                        }
-                      }}
-                      className="border rounded px-2 py-1 w-full sm:w-auto"
-                    />
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="border rounded px-2 py-1 w-full sm:w-auto"
-                      disabled={!startDate}
-                      min={startDate ? addDays(startDate, 1) : undefined}
-                      onFocus={() => {
-                        if (startDate && !endDate)
-                          setEndDate(addDays(startDate, 1));
-                      }}
+                      type="text"
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                     <button
-                      onClick={async () => {
-                        if (!isRangeValid) {
-                          toast.error(
-                            "Please choose an end date after the start date."
-                          );
-                          return;
-                        }
-                        await fetchMetrics({
-                          fromDate: startDate,
-                          toDate: endDate,
-                        });
-                        await fetchWarehouse({
-                          fromDate: startDate,
-                          toDate: endDate,
-                        });
-                      }}
-                      className="px-3 py-1 border rounded w-full sm:w-auto"
-                      disabled={!canApply || loadingMetrics}
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
                     >
-                      {loadingMetrics ? "Applying…" : "Apply"}
+                      <FaSearch className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
 
                 <button
                   onClick={resetFilters}
-                  disabled={!anyFiltersOn}
+                  disabled={
+                    !(
+                      sortOption ||
+                      statusFilter === "Active" ||
+                      statusFilter === "Inactive" ||
+                      searchTerm
+                    )
+                  }
                   className={`font-medium w-full sm:w-auto transition
     ${
-      anyFiltersOn
+      sortOption ||
+      statusFilter === "Active" ||
+      statusFilter === "Inactive" ||
+      searchTerm
         ? "text-red-500 hover:text-red-600 cursor-pointer"
         : "text-gray-400 cursor-not-allowed"
     }`}
@@ -648,8 +584,8 @@ export default function WarehouseList({ handleAddAisle, onView }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedIds.length === filteredWarehouse.length &&
-                            filteredWarehouse.length > 0
+                            selectedIds.length === filteredShelves.length &&
+                            filteredShelves.length > 0
                           }
                           className="form-checkbox"
                         />
@@ -673,13 +609,12 @@ export default function WarehouseList({ handleAddAisle, onView }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredWarehouse.length ? (
-                      filteredWarehouse.map((c) => (
+                    {filteredShelves.length ? (
+                      filteredShelves.map((c) => (
                         <tr
                           key={getId(c)}
                           className="hover:bg-gray-100 transition-colors"
                         >
-                          {/* Checkbox */}
                           <td className="px-4 py-2">
                             <input
                               type="checkbox"
@@ -689,24 +624,28 @@ export default function WarehouseList({ handleAddAisle, onView }) {
                             />
                           </td>
 
-                          {/* Code (clickable for view) */}
+                          {/* Code (clickable) */}
                           <td className="px-6 py-4">
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleWarehouseClick(getId(c))}
+                              onClick={() =>
+                                handleShelvesil.ShelvesViewPageClick(getId(c))
+                              }
                             >
                               {getCode(c)}
                             </button>
                           </td>
 
                           {/* Type */}
-                          <td className="px-6 py-4">{gettype(c)}</td>
+                          <td className="px-6 py-4">{getType(c)}</td>
 
                           {/* Name */}
                           <td className="px-6 py-4">{getName(c)}</td>
 
-                          {/* Description */}
-                          <td className="px-6 py-4">{getdescription(c)}</td>
+                          {/* */}
+                          <td className="px-6 py-3 truncate">
+                            {getDescription(c)}
+                          </td>
 
                           {/* Created At */}
                           <td className="px-6 py-4">

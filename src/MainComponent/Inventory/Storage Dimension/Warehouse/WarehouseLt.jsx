@@ -8,11 +8,11 @@ import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react"; // kept to match your imports
 import "./c.css";
 
-import SiteViewPage from "./SiteViewPage";
+// import warehouseViewPage from "./WarehouseViewPagee";
 
-const Site = ({ handleAddSite, onView }) => {
+export default function warehouseList({ handleAddwarehouse, onView }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
   const metricsUrl = `${baseUrl}/metrics`;
 
   /** ---------- Helpers to normalize fields (match Postman) ---------- */
@@ -35,19 +35,13 @@ const Site = ({ handleAddSite, onView }) => {
     new Date(`${dateStrLocal}T23:59:59.999`).toISOString();
 
   /** ---------- State ---------- */
-  const tabNames = [
-    "Site List",
-    // "Paid Site",
-    "Active Site",
-    // "Hold Site",
-    // "Outstanding Site",
-  ];
+  const tabNames = ["All Warehouses"];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  const [Site, setSite] = useState([]);
+  const [warehouse, setwarehouse] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [viewingSiteId, setViewingSiteId] = useState(null);
+  const [viewingwarehouseId, setViewingwarehouseId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
@@ -60,15 +54,15 @@ const Site = ({ handleAddSite, onView }) => {
 
   const [summary, setSummary] = useState({
     count: 0,
-    activeSites: 0,
-    archivedSites: 0,
+    activewarehouses: 0,
+    archivedwarehouses: 0,
   });
 
   const [loading, setLoading] = useState(false);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchSite = useCallback(
+  const fetchwarehouse = useCallback(
     async (fromDate = startDate, toDate = endDate) => {
       setLoading(true);
       setError(null);
@@ -93,7 +87,7 @@ const Site = ({ handleAddSite, onView }) => {
           return t >= fromMs && t <= toMs;
         });
 
-        setSite(filteredByCreatedAt);
+        setwarehouse(filteredByCreatedAt);
 
         // Baseline summary (if metrics fail)
         const activeCount = filteredByCreatedAt.filter((c) =>
@@ -105,12 +99,12 @@ const Site = ({ handleAddSite, onView }) => {
 
         setSummary({
           count: filteredByCreatedAt.length || 0,
-          activeSites: activeCount,
-          archivedSites: archivedCount,
+          activewarehouses: activeCount,
+          archivedwarehouses: archivedCount,
         });
       } catch (err) {
         console.error(err);
-        setError("Unable to load Site data.");
+        setError("Unable to load warehouse data.");
       } finally {
         setLoading(false);
       }
@@ -131,9 +125,9 @@ const Site = ({ handleAddSite, onView }) => {
 
         const m = (resp?.metrics && resp.metrics[0]) || {};
         setSummary((prev) => ({
-          count: m?.totalSites ?? prev.count,
-          activeSites: m?.activeSites ?? prev.activeSites,
-          archivedSites: m?.archivedSites ?? prev.archivedSites,
+          count: m?.totalwarehouses ?? prev.count,
+          activewarehouses: m?.activewarehouses ?? prev.activewarehouses,
+          archivedwarehouses: m?.archivedwarehouses ?? prev.archivedwarehouses,
         }));
       } catch (err) {
         console.error(err);
@@ -146,29 +140,29 @@ const Site = ({ handleAddSite, onView }) => {
   );
 
   useEffect(() => {
-    fetchSite();
+    fetchwarehouse();
     fetchMetrics();
-  }, [fetchSite, fetchMetrics]);
+  }, [fetchwarehouse, fetchMetrics]);
 
   /** ---------- Derived: filtered + sorted list ---------- */
-  const filteredSite = useMemo(() => {
-    let list = [...Site];
+  const filteredwarehouse = useMemo(() => {
+    let list = [...warehouse];
 
     // Tabs
     switch (activeTab) {
-      case "Site List":
+      case "warehouse List":
         // no extra filter
         break;
-      case "Paid Site":
+      case "Paid warehouse":
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
-      case "Active Site":
+      case "Active warehouse":
         list = list.filter((c) => isActive(c));
         break;
-      case "Hold Site":
+      case "Hold warehouse":
         list = list.filter((c) => isOnHold(c));
         break;
-      case "Outstanding Site":
+      case "Outstanding warehouse":
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
@@ -204,7 +198,7 @@ const Site = ({ handleAddSite, onView }) => {
       list.sort((a, b) => cmpStr(getCode(b), getCode(a)));
 
     return list;
-  }, [Site, activeTab, statusFilter, searchTerm, sortOption]);
+  }, [warehouse, activeTab, statusFilter, searchTerm, sortOption]);
 
   /** ---------- Handlers ---------- */
   const onTabClick = (tab) => {
@@ -215,9 +209,9 @@ const Site = ({ handleAddSite, onView }) => {
     }
   };
 
-  const handleSiteClick = (siteId) => {
+  const handlewarehouseClick = (siteId) => {
     if (onView) onView(siteId);
-    setViewingSiteId(siteId);
+    setViewingwarehouseId(siteId);
   };
 
   const resetFilters = () => {
@@ -246,7 +240,9 @@ const Site = ({ handleAddSite, onView }) => {
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const toggleSelectAll = (e) => {
-    setSelectedIds(e.target.checked ? filteredSite.map((c) => getId(c)) : []);
+    setSelectedIds(
+      e.target.checked ? filteredwarehouse.map((c) => getId(c)) : []
+    );
   };
 
   const handleCheckboxChange = (id) => {
@@ -279,7 +275,7 @@ const Site = ({ handleAddSite, onView }) => {
       if (succeeded) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
-        await fetchSite(startDate, endDate);
+        await fetchwarehouse(startDate, endDate);
         await fetchMetrics(startDate, endDate);
       }
       if (failed) toast.error(`${failed} failed — check console`);
@@ -291,7 +287,7 @@ const Site = ({ handleAddSite, onView }) => {
 
   /** ---------- Export (match Postman fields) ---------- */
   const exportToExcel = () => {
-    const rows = filteredSite.length ? filteredSite : Site;
+    const rows = filteredwarehouse.length ? filteredwarehouse : warehouse;
     if (!rows.length) {
       toast.info("No data to export.");
       return;
@@ -311,12 +307,12 @@ const Site = ({ handleAddSite, onView }) => {
 
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Sites");
-    XLSX.writeFile(wb, "Site_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "warehouses");
+    XLSX.writeFile(wb, "warehouse_list.xlsx");
   };
 
   const generatePDF = () => {
-    const rows = filteredSite.length ? filteredSite : Site;
+    const rows = filteredwarehouse.length ? filteredwarehouse : warehouse;
     if (!rows.length) {
       toast.info("No data to export.");
       return;
@@ -348,20 +344,20 @@ const Site = ({ handleAddSite, onView }) => {
         isArchived(c) ? "Yes" : "No",
       ]),
     });
-    doc.save("Site_list.pdf");
+    doc.save("warehouse_list.pdf");
   };
 
   /** ---------- View toggle ---------- */
-  const goBack = () => setViewingSiteId(null);
+  const goBack = () => setViewingwarehouseId(null);
 
   /** ---------- Render ---------- */
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingSiteId) {
+  if (viewingwarehouseId) {
     return (
       <div className="p-4">
-        <SiteViewPage SiteId={viewingSiteId} goBack={goBack} />
+        <warehouseViewPage warehouseId={viewingwarehouseId} goBack={goBack} />
       </div>
     );
   }
@@ -370,8 +366,11 @@ const Site = ({ handleAddSite, onView }) => {
     <div>
       <div>
         <div>
-          {viewingSiteId ? (
-            <SiteViewPage SiteId={viewingSiteId} goBack={goBack} />
+          {viewingwarehouseId ? (
+            <warehouseViewPage
+              warehouseId={viewingwarehouseId}
+              goBack={goBack}
+            />
           ) : (
             <div className="space-y-6">
               <ToastContainer />
@@ -379,13 +378,13 @@ const Site = ({ handleAddSite, onView }) => {
               {/* Header Buttons (stack on small) */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-2 ">
-                  <h3 className="text-xl font-semibold">Site List</h3>
+                  <h3 className="text-xl font-semibold">warehouse List</h3>
                 </div>
 
                 {/* Buttons wrap on small */}
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <button
-                    onClick={handleAddSite}
+                    onClick={handleAddwarehouse}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     + Add
@@ -431,7 +430,7 @@ const Site = ({ handleAddSite, onView }) => {
                   <button
                     onClick={async () => {
                       await fetchMetrics(startDate, endDate);
-                      await fetchSite(startDate, endDate);
+                      await fetchwarehouse(startDate, endDate);
                     }}
                     className="px-3 py-1 border rounded w-full sm:w-auto"
                   >
@@ -441,12 +440,12 @@ const Site = ({ handleAddSite, onView }) => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Sites", summary.count],
-                    ["Active Sites", summary.activeSites],
-                    ["Archived Sites", summary.archivedSites],
+                    ["Total warehouses", summary.count],
+                    ["Active warehouses", summary.activewarehouses],
+                    ["Archived warehouses", summary.archivedwarehouses],
                     [
                       "Inactive (calc)",
-                      Math.max(summary.count - summary.activeSites, 0),
+                      Math.max(summary.count - summary.activewarehouses, 0),
                     ],
                   ].map(([label, value]) => (
                     <div
@@ -472,12 +471,12 @@ const Site = ({ handleAddSite, onView }) => {
                       className="w-full sm:w-56 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="name-asc">Site Name</option>
+                      <option value="name-asc">warehouse Name</option>
                       <option value="code-asc">
-                        Site Account in Ascending
+                        warehouse Account in Ascending
                       </option>
                       <option value="code-desc">
-                        Site Account in Descending
+                        warehouse Account in Descending
                       </option>
                     </select>
                   </div>
@@ -574,8 +573,8 @@ const Site = ({ handleAddSite, onView }) => {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedIds.length === filteredSite.length &&
-                            filteredSite.length > 0
+                            selectedIds.length === filteredwarehouse.length &&
+                            filteredwarehouse.length > 0
                           }
                           className="form-checkbox"
                         />
@@ -599,8 +598,8 @@ const Site = ({ handleAddSite, onView }) => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredSite.length ? (
-                      filteredSite.map((c) => (
+                    {filteredwarehouse.length ? (
+                      filteredwarehouse.map((c) => (
                         <tr
                           key={getId(c)}
                           className="hover:bg-gray-100 transition-colors"
@@ -618,7 +617,7 @@ const Site = ({ handleAddSite, onView }) => {
                           <td className="px-6 py-4">
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleSiteClick(getId(c))}
+                              onClick={() => handlewarehouseClick(getId(c))}
                             >
                               {getCode(c)}
                             </button>
@@ -682,6 +681,4 @@ const Site = ({ handleAddSite, onView }) => {
       </div>
     </div>
   );
-};
-
-export default Site;
+}

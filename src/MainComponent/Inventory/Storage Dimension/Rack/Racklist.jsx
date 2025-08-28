@@ -8,11 +8,11 @@ import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react"; // kept to match your imports
 import "./c.css";
 
-import AisleViewPage from "../Warehouse/WarehouseViewPagee";
+import AisleViewPage from "../Rack/RackViewPage";
 
-export default function WarehouseList({ handleAddAisle, onView }) {
+export default function RackList({ handleAddAisle, onView }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/warehouses";
+   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Racks";
   const metricsUrl = `${baseUrl}/metrics`;
 
   /** ---------- Helpers to normalize fields ---------- */
@@ -56,18 +56,18 @@ export default function WarehouseList({ handleAddAisle, onView }) {
 
   /** ---------- State ---------- */
   const tabNames = [
-    "Warehouse List",
-    "Paid Warehouse",
-    "Active Warehouse",
-    "Hold Warehouse",
-    "Outstanding Warehouse",
+    "Rack List",
+    "Paid Rack",
+    "Active Rack",
+    "Hold Rack",
+    "Outstanding Rack",
   ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  const [companies, setWarehouse] = useState([]);
+  const [companies, setRack] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [viewingWarehouseId, setViewingWarehouseId] = useState(null);
+  const [viewingRackId, setViewingRackId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
@@ -80,9 +80,9 @@ export default function WarehouseList({ handleAddAisle, onView }) {
   const [summary, setSummary] = useState({
     count: 0,
     creditLimit: 0,
-    paidWarehouses: 0,
-    activeWarehouses: 0,
-    onHoldWarehouses: 0,
+    paidRacks: 0,
+    activeRacks: 0,
+    onHoldRacks: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -90,7 +90,7 @@ export default function WarehouseList({ handleAddAisle, onView }) {
   const [error, setError] = useState(null);
 
   /** ---------- Fetchers ---------- */
-  const fetchWarehouse = useCallback(async ({ fromDate, toDate } = {}) => {
+  const fetchRack = useCallback(async ({ fromDate, toDate } = {}) => {
     setLoading(true);
     setError(null);
     try {
@@ -118,7 +118,7 @@ export default function WarehouseList({ handleAddAisle, onView }) {
         });
       }
 
-      setWarehouse(finalList);
+      setRack(finalList);
 
       setSummary((prev) => ({
         ...prev,
@@ -127,13 +127,13 @@ export default function WarehouseList({ handleAddAisle, onView }) {
           (s, c) => s + (Number(c?.creditLimit) || 0),
           0
         ),
-        paidWarehouses: finalList.filter((c) => getStatus(c) === "Paid").length,
-        activeWarehouses: finalList.filter((c) => isActive(c)).length,
-        onHoldWarehouses: finalList.filter((c) => !isActive(c)).length,
+        paidRacks: finalList.filter((c) => getStatus(c) === "Paid").length,
+        activeRacks: finalList.filter((c) => isActive(c)).length,
+        onHoldRacks: finalList.filter((c) => !isActive(c)).length,
       }));
     } catch (err) {
       console.error(err);
-      setError("Unable to load Warehouse data.");
+      setError("Unable to load Rack data.");
     } finally {
       setLoading(false);
     }
@@ -154,14 +154,14 @@ export default function WarehouseList({ handleAddAisle, onView }) {
 
       setSummary((prev) => ({
         ...prev,
-        count: m?.totalWarehouses ?? prev.count,
+        count: m?.totalRacks ?? prev.count,
         creditLimit: m?.creditLimit ?? prev.creditLimit,
-        paidWarehouses: m?.paidWarehouses ?? prev.paidWarehouses,
-        activeWarehouses: m?.activeWarehouses ?? prev.activeWarehouses,
-        onHoldWarehouses:
-          typeof m?.inactiveWarehouses === "number"
-            ? m.inactiveWarehouses
-            : m?.onHoldWarehouses ?? prev.onHoldWarehouses,
+        paidRacks: m?.paidRacks ?? prev.paidRacks,
+        activeRacks: m?.activeRacks ?? prev.activeRacks,
+        onHoldRacks:
+          typeof m?.inactiveRacks === "number"
+            ? m.inactiveRacks
+            : m?.onHoldRacks ?? prev.onHoldRacks,
       }));
     } catch (err) {
       console.error(err); // metrics optional
@@ -182,25 +182,25 @@ export default function WarehouseList({ handleAddAisle, onView }) {
 
   // Initial load — show ALL data (no date params)
   useEffect(() => {
-    fetchWarehouse();
+    fetchRack();
     fetchMetrics();
-  }, [fetchWarehouse, fetchMetrics]);
+  }, [fetchRack, fetchMetrics]);
 
   /** ---------- Derived: filtered + sorted list ---------- */
-  const filteredWarehouse = useMemo(() => {
+  const filteredRack = useMemo(() => {
     let list = [...companies];
 
     switch (activeTab) {
-      case "Paid Warehouse":
+      case "Paid Rack":
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
-      case "Active Warehouse":
+      case "Active Rack":
         list = list.filter((c) => isActive(c));
         break;
-      case "Hold Warehouse":
+      case "Hold Rack":
         list = list.filter((c) => !isActive(c));
         break;
-      case "Outstanding Warehouse":
+      case "Outstanding Rack":
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
@@ -278,8 +278,8 @@ export default function WarehouseList({ handleAddAisle, onView }) {
     }
   };
 
-  const handleWarehouseClick = (WarehouseId) => {
-    setViewingWarehouseId(WarehouseId);
+  const handleRackClick = (RackId) => {
+    setViewingRackId(RackId);
   };
 
   /** ---------- Reset also restores endDate to today ---------- */
@@ -290,15 +290,15 @@ export default function WarehouseList({ handleAddAisle, onView }) {
     setSortOption("");
     setStartDate("");
     setEndDate(todayStr()); // CHANGED: keep default end date visible
-    await fetchWarehouse();
+    await fetchRack();
     await fetchMetrics();
   };
 
   const handleSortChange = (e) => {
     const v = e.target.value;
-    if (v === "Warehouse Name") return setSortOption("name-asc");
-    if (v === "Warehouse Account in Ascending") return setSortOption("code-asc");
-    if (v === "Warehouse Account in Descending") return setSortOption("code-desc");
+    if (v === "Rack Name") return setSortOption("name-asc");
+    if (v === "Rack Account in Ascending") return setSortOption("code-asc");
+    if (v === "Rack Account in Descending") return setSortOption("code-desc");
     setSortOption(v);
   };
 
@@ -312,7 +312,7 @@ export default function WarehouseList({ handleAddAisle, onView }) {
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const toggleSelectAll = (e) => {
-    setSelectedIds(e.target.checked ? filteredWarehouse.map((c) => getId(c)) : []);
+    setSelectedIds(e.target.checked ? filteredRack.map((c) => getId(c)) : []);
   };
 
   const handleCheckboxChange = (id) => {
@@ -346,10 +346,10 @@ export default function WarehouseList({ handleAddAisle, onView }) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
         if (startDate && endDate && isRangeValid) {
-          await fetchWarehouse({ fromDate: startDate, toDate: endDate });
+          await fetchRack({ fromDate: startDate, toDate: endDate });
           await fetchMetrics({ fromDate: startDate, toDate: endDate });
         } else {
-          await fetchWarehouse();
+          await fetchRack();
           await fetchMetrics();
         }
         window.location.reload();
@@ -369,8 +369,8 @@ export default function WarehouseList({ handleAddAisle, onView }) {
     }
     const ws = XLSX.utils.json_to_sheet(companies);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Warehouses");
-    XLSX.writeFile(wb, "Warehouse_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Racks");
+    XLSX.writeFile(wb, "Rack_list.xlsx");
   };
 
   const generatePDF = () => {
@@ -389,7 +389,7 @@ export default function WarehouseList({ handleAddAisle, onView }) {
           "Status",
         ],
       ],
-      body: filteredWarehouse.map((c, i) => [
+      body: filteredRack.map((c, i) => [
         i + 1,
         getCode(c) || "",
         getName(c) || "",
@@ -401,12 +401,12 @@ export default function WarehouseList({ handleAddAisle, onView }) {
         isActive(c) ? "Active" : "Inactive",
       ]),
     });
-    doc.save("Warehouse_list.pdf");
+    doc.save("Rack_list.pdf");
   };
 
   /** ---------- View toggle ---------- */
   const goBack = () => {
-    setViewingWarehouseId(null);
+    setViewingRackId(null);
     window.location.reload();
   };
 
@@ -414,10 +414,10 @@ export default function WarehouseList({ handleAddAisle, onView }) {
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingWarehouseId) {
+  if (viewingRackId) {
     return (
       <div className="p-4">
-        <AisleViewPage WarehouseId={viewingWarehouseId} goBack={goBack} />
+        <AisleViewPage RackId={viewingRackId} goBack={goBack} />
       </div>
     );
   }
@@ -428,8 +428,8 @@ export default function WarehouseList({ handleAddAisle, onView }) {
     <div>
       <div>
         <div>
-          {viewingWarehouseId ? (
-            <AisleViewPage WarehouseId={viewingWarehouseId} goBack={goBack} />
+          {viewingRackId ? (
+            <AisleViewPage RackId={viewingRackId} goBack={goBack} />
           ) : (
             <div className="space-y-6">
               <ToastContainer />
@@ -437,7 +437,7 @@ export default function WarehouseList({ handleAddAisle, onView }) {
               {/* Header Buttons */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-2 ">
-                  <h3 className="text-xl font-semibold">Warehouse List</h3>
+                  <h3 className="text-xl font-semibold">Rack List</h3>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -475,11 +475,11 @@ export default function WarehouseList({ handleAddAisle, onView }) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Warehouses", summary.count],
+                    ["Total Racks", summary.count],
                     ["Credit Limit", summary.creditLimit],
-                    ["Paid Warehouses", summary.paidWarehouses],
-                    ["Active Warehouses", summary.activeWarehouses],
-                    ["On-Hold Warehouses", summary.onHoldWarehouses],
+                    ["Paid Racks", summary.paidRacks],
+                    ["Active Racks", summary.activeRacks],
+                    ["On-Hold Racks", summary.onHoldRacks],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -520,12 +520,12 @@ export default function WarehouseList({ handleAddAisle, onView }) {
                       className="w-full sm:w-56 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="name-asc">Warehouse Name</option>
+                      <option value="name-asc">Rack Name</option>
                       <option value="code-asc">
-                        Warehouse Account in Ascending
+                        Rack Account in Ascending
                       </option>
                       <option value="code-desc">
-                        Warehouse Account in Descending
+                        Rack Account in Descending
                       </option>
                     </select>
                   </div>
@@ -592,7 +592,7 @@ export default function WarehouseList({ handleAddAisle, onView }) {
                           fromDate: startDate,
                           toDate: endDate,
                         });
-                        await fetchWarehouse({
+                        await fetchRack({
                           fromDate: startDate,
                           toDate: endDate,
                         });
@@ -648,8 +648,8 @@ export default function WarehouseList({ handleAddAisle, onView }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedIds.length === filteredWarehouse.length &&
-                            filteredWarehouse.length > 0
+                            selectedIds.length === filteredRack.length &&
+                            filteredRack.length > 0
                           }
                           className="form-checkbox"
                         />
@@ -673,8 +673,8 @@ export default function WarehouseList({ handleAddAisle, onView }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredWarehouse.length ? (
-                      filteredWarehouse.map((c) => (
+                    {filteredRack.length ? (
+                      filteredRack.map((c) => (
                         <tr
                           key={getId(c)}
                           className="hover:bg-gray-100 transition-colors"
@@ -693,7 +693,7 @@ export default function WarehouseList({ handleAddAisle, onView }) {
                           <td className="px-6 py-4">
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleWarehouseClick(getId(c))}
+                              onClick={() => handleRackClick(getId(c))}
                             >
                               {getCode(c)}
                             </button>
