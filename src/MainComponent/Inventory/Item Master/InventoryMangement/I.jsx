@@ -7,7 +7,7 @@ import SerialPage from "../../Tracking Dimension/Serial/SerialPage";
 
 import AislesPage from "../../Storage Dimension/Aisles/AislesPage";
 import ItemMasterPage from "../Item/ItemPage";
-
+import SitePage from "../../Storage Dimension/Site/SitePage";
 import LocationPage from "../../Storage Dimension/Location/LocationPage";
 import BinPage from "../../../Inventory/Storage Dimension/Bin/BinPage";
 import ProductDimColor from "../../Product Dimension/Color/ProductDimColorPage";
@@ -18,7 +18,6 @@ import Size from "../../Product Dimension/ProductDimSize/ProductDimSizePage";
 import RackPage from "../../Storage Dimension/Rack/RackPage";
 import WarehousePage from "../../Storage Dimension/Warehouse/WarehousePage";
 import ShelvesPage from "../../Storage Dimension/Shelves/ShelvesPage";
-
 
 const initialForm = {
   company: localStorage.getItem("selectedCompany") || "",
@@ -58,9 +57,9 @@ const I = () => {
       [PAGE.COLOR]: (
         <ProductDimColor companies={companies} form={form} setForm={setForm} />
       ),
-        // [PAGE.SITE]: (
-        //       <SitePage companies={companies} form={form} setForm={setForm} />
-        //     ),
+      [PAGE.SITE]: (
+        <SitePage companies={companies} form={form} setForm={setForm} />
+      ),
       [PAGE.RACK]: (
         <RackPage companies={companies} form={form} setForm={setForm} />
       ),

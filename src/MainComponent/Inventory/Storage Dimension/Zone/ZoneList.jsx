@@ -8,11 +8,11 @@ import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react"; // kept to match your imports
 import "./c.css";
 
-import AisleViewPage from "../Sit/SiteViewPage";
+import AisleViewPage from "../Location/LocationViewpage";
 
-export default function SiteList({ handleAddAisle, onView }) {
+export default function LocationList({ handleAddAisle, onView }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Locations";
   const metricsUrl = `${baseUrl}/metrics`;
 
   /** ---------- Helpers to normalize fields ---------- */
@@ -56,18 +56,18 @@ export default function SiteList({ handleAddAisle, onView }) {
 
   /** ---------- State ---------- */
   const tabNames = [
-    "Site List",
-    "Paid Site",
-    "Active Site",
-    "Hold Site",
-    "Outstanding Site",
+    "Location List",
+    "Paid Location",
+    "Active Location",
+    "Hold Location",
+    "Outstanding Location",
   ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  const [companies, setSite] = useState([]);
+  const [companies, setLocation] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [viewingSiteId, setViewingSiteId] = useState(null);
+  const [viewingLocationId, setViewingLocationId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
@@ -80,9 +80,9 @@ export default function SiteList({ handleAddAisle, onView }) {
   const [summary, setSummary] = useState({
     count: 0,
     creditLimit: 0,
-    paidSites: 0,
-    activeSites: 0,
-    onHoldSites: 0,
+    paidLocations: 0,
+    activeLocations: 0,
+    onHoldLocations: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -90,7 +90,7 @@ export default function SiteList({ handleAddAisle, onView }) {
   const [error, setError] = useState(null);
 
   /** ---------- Fetchers ---------- */
-  const fetchSite = useCallback(async ({ fromDate, toDate } = {}) => {
+  const fetchLocation = useCallback(async ({ fromDate, toDate } = {}) => {
     setLoading(true);
     setError(null);
     try {
@@ -118,7 +118,7 @@ export default function SiteList({ handleAddAisle, onView }) {
         });
       }
 
-      setSite(finalList);
+      setLocation(finalList);
 
       setSummary((prev) => ({
         ...prev,
@@ -127,13 +127,13 @@ export default function SiteList({ handleAddAisle, onView }) {
           (s, c) => s + (Number(c?.creditLimit) || 0),
           0
         ),
-        paidSites: finalList.filter((c) => getStatus(c) === "Paid").length,
-        activeSites: finalList.filter((c) => isActive(c)).length,
-        onHoldSites: finalList.filter((c) => !isActive(c)).length,
+        paidLocations: finalList.filter((c) => getStatus(c) === "Paid").length,
+        activeLocations: finalList.filter((c) => isActive(c)).length,
+        onHoldLocations: finalList.filter((c) => !isActive(c)).length,
       }));
     } catch (err) {
       console.error(err);
-      setError("Unable to load Site data.");
+      setError("Unable to load Location data.");
     } finally {
       setLoading(false);
     }
@@ -154,14 +154,14 @@ export default function SiteList({ handleAddAisle, onView }) {
 
       setSummary((prev) => ({
         ...prev,
-        count: m?.totalSites ?? prev.count,
+        count: m?.totalLocations ?? prev.count,
         creditLimit: m?.creditLimit ?? prev.creditLimit,
-        paidSites: m?.paidSites ?? prev.paidSites,
-        activeSites: m?.activeSites ?? prev.activeSites,
-        onHoldSites:
-          typeof m?.inactiveSites === "number"
-            ? m.inactiveSites
-            : m?.onHoldSites ?? prev.onHoldSites,
+        paidLocations: m?.paidLocations ?? prev.paidLocations,
+        activeLocations: m?.activeLocations ?? prev.activeLocations,
+        onHoldLocations:
+          typeof m?.inactiveLocations === "number"
+            ? m.inactiveLocations
+            : m?.onHoldLocations ?? prev.onHoldLocations,
       }));
     } catch (err) {
       console.error(err); // metrics optional
@@ -182,25 +182,25 @@ export default function SiteList({ handleAddAisle, onView }) {
 
   // Initial load — show ALL data (no date params)
   useEffect(() => {
-    fetchSite();
+    fetchLocation();
     fetchMetrics();
-  }, [fetchSite, fetchMetrics]);
+  }, [fetchLocation, fetchMetrics]);
 
   /** ---------- Derived: filtered + sorted list ---------- */
-  const filteredSite = useMemo(() => {
+  const filteredLocation = useMemo(() => {
     let list = [...companies];
 
     switch (activeTab) {
-      case "Paid Site":
+      case "Paid Location":
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
-      case "Active Site":
+      case "Active Location":
         list = list.filter((c) => isActive(c));
         break;
-      case "Hold Site":
+      case "Hold Location":
         list = list.filter((c) => !isActive(c));
         break;
-      case "Outstanding Site":
+      case "Outstanding Location":
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
@@ -278,8 +278,8 @@ export default function SiteList({ handleAddAisle, onView }) {
     }
   };
 
-  const handleSiteClick = (SiteId) => {
-    setViewingSiteId(SiteId);
+  const handleLocationClick = (LocationId) => {
+    setViewingLocationId(LocationId);
   };
 
   /** ---------- Reset also restores endDate to today ---------- */
@@ -290,15 +290,15 @@ export default function SiteList({ handleAddAisle, onView }) {
     setSortOption("");
     setStartDate("");
     setEndDate(todayStr()); // CHANGED: keep default end date visible
-    await fetchSite();
+    await fetchLocation();
     await fetchMetrics();
   };
 
   const handleSortChange = (e) => {
     const v = e.target.value;
-    if (v === "Site Name") return setSortOption("name-asc");
-    if (v === "Site Account in Ascending") return setSortOption("code-asc");
-    if (v === "Site Account in Descending") return setSortOption("code-desc");
+    if (v === "Location Name") return setSortOption("name-asc");
+    if (v === "Location Account in Ascending") return setSortOption("code-asc");
+    if (v === "Location Account in Descending") return setSortOption("code-desc");
     setSortOption(v);
   };
 
@@ -312,7 +312,7 @@ export default function SiteList({ handleAddAisle, onView }) {
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const toggleSelectAll = (e) => {
-    setSelectedIds(e.target.checked ? filteredSite.map((c) => getId(c)) : []);
+    setSelectedIds(e.target.checked ? filteredLocation.map((c) => getId(c)) : []);
   };
 
   const handleCheckboxChange = (id) => {
@@ -346,10 +346,10 @@ export default function SiteList({ handleAddAisle, onView }) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
         if (startDate && endDate && isRangeValid) {
-          await fetchSite({ fromDate: startDate, toDate: endDate });
+          await fetchLocation({ fromDate: startDate, toDate: endDate });
           await fetchMetrics({ fromDate: startDate, toDate: endDate });
         } else {
-          await fetchSite();
+          await fetchLocation();
           await fetchMetrics();
         }
         window.location.reload();
@@ -369,8 +369,8 @@ export default function SiteList({ handleAddAisle, onView }) {
     }
     const ws = XLSX.utils.json_to_sheet(companies);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Sites");
-    XLSX.writeFile(wb, "Site_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Locations");
+    XLSX.writeFile(wb, "Location_list.xlsx");
   };
 
   const generatePDF = () => {
@@ -389,7 +389,7 @@ export default function SiteList({ handleAddAisle, onView }) {
           "Status",
         ],
       ],
-      body: filteredSite.map((c, i) => [
+      body: filteredLocation.map((c, i) => [
         i + 1,
         getCode(c) || "",
         getName(c) || "",
@@ -401,12 +401,12 @@ export default function SiteList({ handleAddAisle, onView }) {
         isActive(c) ? "Active" : "Inactive",
       ]),
     });
-    doc.save("Site_list.pdf");
+    doc.save("Location_list.pdf");
   };
 
   /** ---------- View toggle ---------- */
   const goBack = () => {
-    setViewingSiteId(null);
+    setViewingLocationId(null);
     window.location.reload();
   };
 
@@ -414,10 +414,10 @@ export default function SiteList({ handleAddAisle, onView }) {
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingSiteId) {
+  if (viewingLocationId) {
     return (
       <div className="p-4">
-        <AisleViewPage SiteId={viewingSiteId} goBack={goBack} />
+        <AisleViewPage LocationId={viewingLocationId} goBack={goBack} />
       </div>
     );
   }
@@ -428,8 +428,8 @@ export default function SiteList({ handleAddAisle, onView }) {
     <div>
       <div>
         <div>
-          {viewingSiteId ? (
-            <AisleViewPage SiteId={viewingSiteId} goBack={goBack} />
+          {viewingLocationId ? (
+            <AisleViewPage LocationId={viewingLocationId} goBack={goBack} />
           ) : (
             <div className="space-y-6">
               <ToastContainer />
@@ -437,7 +437,7 @@ export default function SiteList({ handleAddAisle, onView }) {
               {/* Header Buttons */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-2 ">
-                  <h3 className="text-xl font-semibold">Site List</h3>
+                  <h3 className="text-xl font-semibold">Location List</h3>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -475,11 +475,11 @@ export default function SiteList({ handleAddAisle, onView }) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Sites", summary.count],
+                    ["Total Locations", summary.count],
                     ["Credit Limit", summary.creditLimit],
-                    ["Paid Sites", summary.paidSites],
-                    ["Active Sites", summary.activeSites],
-                    ["On-Hold Sites", summary.onHoldSites],
+                    ["Paid Locations", summary.paidLocations],
+                    ["Active Locations", summary.activeLocations],
+                    ["On-Hold Locations", summary.onHoldLocations],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -520,12 +520,12 @@ export default function SiteList({ handleAddAisle, onView }) {
                       className="w-full sm:w-56 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="name-asc">Site Name</option>
+                      <option value="name-asc">Location Name</option>
                       <option value="code-asc">
-                        Site Account in Ascending
+                        Location Account in Ascending
                       </option>
                       <option value="code-desc">
-                        Site Account in Descending
+                        Location Account in Descending
                       </option>
                     </select>
                   </div>
@@ -592,7 +592,7 @@ export default function SiteList({ handleAddAisle, onView }) {
                           fromDate: startDate,
                           toDate: endDate,
                         });
-                        await fetchSite({
+                        await fetchLocation({
                           fromDate: startDate,
                           toDate: endDate,
                         });
@@ -648,8 +648,8 @@ export default function SiteList({ handleAddAisle, onView }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedIds.length === filteredSite.length &&
-                            filteredSite.length > 0
+                            selectedIds.length === filteredLocation.length &&
+                            filteredLocation.length > 0
                           }
                           className="form-checkbox"
                         />
@@ -673,8 +673,8 @@ export default function SiteList({ handleAddAisle, onView }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredSite.length ? (
-                      filteredSite.map((c) => (
+                    {filteredLocation.length ? (
+                      filteredLocation.map((c) => (
                         <tr
                           key={getId(c)}
                           className="hover:bg-gray-100 transition-colors"
@@ -693,7 +693,7 @@ export default function SiteList({ handleAddAisle, onView }) {
                           <td className="px-6 py-4">
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleSiteClick(getId(c))}
+                              onClick={() => handleLocationClick(getId(c))}
                             >
                               {getCode(c)}
                             </button>

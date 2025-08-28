@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import ItemViewPage from "./ItemViewPage";
 import ItemForm from "./ItemForm";
-import ItemList from "./Itemlist";
+import ItemList from "./Customerlist";
 import { Button } from "../../../../../src/Component/Button/Button";
 
 import CompanyContext from "../../../../context/CompanyContext";
@@ -89,7 +89,7 @@ const ItemPage = () => {
   return (
     <div className="">
       {/* {renderHeader()} */}
-     
+
       <div className="">
         {view === "list" && (
           <ItemList
