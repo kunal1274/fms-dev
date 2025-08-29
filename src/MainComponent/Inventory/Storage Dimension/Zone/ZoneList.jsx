@@ -8,11 +8,11 @@ import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react"; // kept to match your imports
 import "./c.css";
 
-import AisleViewPage from "../Location/LocationViewpage";
+import ZoneViewPage from "../Zone/ZoneViewPagee";
 
-export default function LocationList({ handleAddAisle, onView }) {
+export default function ZoneList({ handleAddZone, onView }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Locations";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/zones";
   const metricsUrl = `${baseUrl}/metrics`;
 
   /** ---------- Helpers to normalize fields ---------- */
@@ -56,18 +56,18 @@ export default function LocationList({ handleAddAisle, onView }) {
 
   /** ---------- State ---------- */
   const tabNames = [
-    "Location List",
-    "Paid Location",
-    "Active Location",
-    "Hold Location",
-    "Outstanding Location",
+    "Zone List",
+    "Paid Zone",
+    "Active Zone",
+    "Hold Zone",
+    "Outstanding Zone",
   ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  const [companies, setLocation] = useState([]);
+  const [companies, setZone] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [viewingLocationId, setViewingLocationId] = useState(null);
+  const [viewingZoneId, setViewingZoneId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
@@ -80,9 +80,9 @@ export default function LocationList({ handleAddAisle, onView }) {
   const [summary, setSummary] = useState({
     count: 0,
     creditLimit: 0,
-    paidLocations: 0,
-    activeLocations: 0,
-    onHoldLocations: 0,
+    paidZones: 0,
+    activeZones: 0,
+    onHoldZones: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -90,7 +90,7 @@ export default function LocationList({ handleAddAisle, onView }) {
   const [error, setError] = useState(null);
 
   /** ---------- Fetchers ---------- */
-  const fetchLocation = useCallback(async ({ fromDate, toDate } = {}) => {
+  const fetchZone = useCallback(async ({ fromDate, toDate } = {}) => {
     setLoading(true);
     setError(null);
     try {
@@ -118,7 +118,7 @@ export default function LocationList({ handleAddAisle, onView }) {
         });
       }
 
-      setLocation(finalList);
+      setZone(finalList);
 
       setSummary((prev) => ({
         ...prev,
@@ -127,13 +127,13 @@ export default function LocationList({ handleAddAisle, onView }) {
           (s, c) => s + (Number(c?.creditLimit) || 0),
           0
         ),
-        paidLocations: finalList.filter((c) => getStatus(c) === "Paid").length,
-        activeLocations: finalList.filter((c) => isActive(c)).length,
-        onHoldLocations: finalList.filter((c) => !isActive(c)).length,
+        paidZones: finalList.filter((c) => getStatus(c) === "Paid").length,
+        activeZones: finalList.filter((c) => isActive(c)).length,
+        onHoldZones: finalList.filter((c) => !isActive(c)).length,
       }));
     } catch (err) {
       console.error(err);
-      setError("Unable to load Location data.");
+      setError("Unable to load Zone data.");
     } finally {
       setLoading(false);
     }
@@ -154,14 +154,14 @@ export default function LocationList({ handleAddAisle, onView }) {
 
       setSummary((prev) => ({
         ...prev,
-        count: m?.totalLocations ?? prev.count,
+        count: m?.totalZones ?? prev.count,
         creditLimit: m?.creditLimit ?? prev.creditLimit,
-        paidLocations: m?.paidLocations ?? prev.paidLocations,
-        activeLocations: m?.activeLocations ?? prev.activeLocations,
-        onHoldLocations:
-          typeof m?.inactiveLocations === "number"
-            ? m.inactiveLocations
-            : m?.onHoldLocations ?? prev.onHoldLocations,
+        paidZones: m?.paidZones ?? prev.paidZones,
+        activeZones: m?.activeZones ?? prev.activeZones,
+        onHoldZones:
+          typeof m?.inactiveZones === "number"
+            ? m.inactiveZones
+            : m?.onHoldZones ?? prev.onHoldZones,
       }));
     } catch (err) {
       console.error(err); // metrics optional
@@ -182,25 +182,25 @@ export default function LocationList({ handleAddAisle, onView }) {
 
   // Initial load — show ALL data (no date params)
   useEffect(() => {
-    fetchLocation();
+    fetchZone();
     fetchMetrics();
-  }, [fetchLocation, fetchMetrics]);
+  }, [fetchZone, fetchMetrics]);
 
   /** ---------- Derived: filtered + sorted list ---------- */
-  const filteredLocation = useMemo(() => {
+  const filteredZone = useMemo(() => {
     let list = [...companies];
 
     switch (activeTab) {
-      case "Paid Location":
+      case "Paid Zone":
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
-      case "Active Location":
+      case "Active Zone":
         list = list.filter((c) => isActive(c));
         break;
-      case "Hold Location":
+      case "Hold Zone":
         list = list.filter((c) => !isActive(c));
         break;
-      case "Outstanding Location":
+      case "Outstanding Zone":
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
@@ -278,8 +278,8 @@ export default function LocationList({ handleAddAisle, onView }) {
     }
   };
 
-  const handleLocationClick = (LocationId) => {
-    setViewingLocationId(LocationId);
+  const handleZoneClick = (ZoneId) => {
+    setViewingZoneId(ZoneId);
   };
 
   /** ---------- Reset also restores endDate to today ---------- */
@@ -290,15 +290,15 @@ export default function LocationList({ handleAddAisle, onView }) {
     setSortOption("");
     setStartDate("");
     setEndDate(todayStr()); // CHANGED: keep default end date visible
-    await fetchLocation();
+    await fetchZone();
     await fetchMetrics();
   };
 
   const handleSortChange = (e) => {
     const v = e.target.value;
-    if (v === "Location Name") return setSortOption("name-asc");
-    if (v === "Location Account in Ascending") return setSortOption("code-asc");
-    if (v === "Location Account in Descending") return setSortOption("code-desc");
+    if (v === "Zone Name") return setSortOption("name-asc");
+    if (v === "Zone Account in Ascending") return setSortOption("code-asc");
+    if (v === "Zone Account in Descending") return setSortOption("code-desc");
     setSortOption(v);
   };
 
@@ -312,7 +312,7 @@ export default function LocationList({ handleAddAisle, onView }) {
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const toggleSelectAll = (e) => {
-    setSelectedIds(e.target.checked ? filteredLocation.map((c) => getId(c)) : []);
+    setSelectedIds(e.target.checked ? filteredZone.map((c) => getId(c)) : []);
   };
 
   const handleCheckboxChange = (id) => {
@@ -346,10 +346,10 @@ export default function LocationList({ handleAddAisle, onView }) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
         if (startDate && endDate && isRangeValid) {
-          await fetchLocation({ fromDate: startDate, toDate: endDate });
+          await fetchZone({ fromDate: startDate, toDate: endDate });
           await fetchMetrics({ fromDate: startDate, toDate: endDate });
         } else {
-          await fetchLocation();
+          await fetchZone();
           await fetchMetrics();
         }
         window.location.reload();
@@ -369,8 +369,8 @@ export default function LocationList({ handleAddAisle, onView }) {
     }
     const ws = XLSX.utils.json_to_sheet(companies);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Locations");
-    XLSX.writeFile(wb, "Location_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Zones");
+    XLSX.writeFile(wb, "Zone_list.xlsx");
   };
 
   const generatePDF = () => {
@@ -389,7 +389,7 @@ export default function LocationList({ handleAddAisle, onView }) {
           "Status",
         ],
       ],
-      body: filteredLocation.map((c, i) => [
+      body: filteredZone.map((c, i) => [
         i + 1,
         getCode(c) || "",
         getName(c) || "",
@@ -401,12 +401,12 @@ export default function LocationList({ handleAddAisle, onView }) {
         isActive(c) ? "Active" : "Inactive",
       ]),
     });
-    doc.save("Location_list.pdf");
+    doc.save("Zone_list.pdf");
   };
 
   /** ---------- View toggle ---------- */
   const goBack = () => {
-    setViewingLocationId(null);
+    setViewingZoneId(null);
     window.location.reload();
   };
 
@@ -414,10 +414,10 @@ export default function LocationList({ handleAddAisle, onView }) {
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingLocationId) {
+  if (viewingZoneId) {
     return (
       <div className="p-4">
-        <AisleViewPage LocationId={viewingLocationId} goBack={goBack} />
+        <ZoneViewPage ZoneId={viewingZoneId} goBack={goBack} />
       </div>
     );
   }
@@ -428,8 +428,8 @@ export default function LocationList({ handleAddAisle, onView }) {
     <div>
       <div>
         <div>
-          {viewingLocationId ? (
-            <AisleViewPage LocationId={viewingLocationId} goBack={goBack} />
+          {viewingZoneId ? (
+            <ZoneViewPage ZoneId={viewingZoneId} goBack={goBack} />
           ) : (
             <div className="space-y-6">
               <ToastContainer />
@@ -437,12 +437,12 @@ export default function LocationList({ handleAddAisle, onView }) {
               {/* Header Buttons */}
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-2 ">
-                  <h3 className="text-xl font-semibold">Location List</h3>
+                  <h3 className="text-xl font-semibold">Zone List</h3>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <button
-                    onClick={handleAddAisle}
+                    onClick={handleAddZone}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     + Add
@@ -475,11 +475,11 @@ export default function LocationList({ handleAddAisle, onView }) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Locations", summary.count],
+                    ["Total Zones", summary.count],
                     ["Credit Limit", summary.creditLimit],
-                    ["Paid Locations", summary.paidLocations],
-                    ["Active Locations", summary.activeLocations],
-                    ["On-Hold Locations", summary.onHoldLocations],
+                    ["Paid Zones", summary.paidZones],
+                    ["Active Zones", summary.activeZones],
+                    ["On-Hold Zones", summary.onHoldZones],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -520,12 +520,12 @@ export default function LocationList({ handleAddAisle, onView }) {
                       className="w-full sm:w-56 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="name-asc">Location Name</option>
+                      <option value="name-asc">Zone Name</option>
                       <option value="code-asc">
-                        Location Account in Ascending
+                        Zone Account in Ascending
                       </option>
                       <option value="code-desc">
-                        Location Account in Descending
+                        Zone Account in Descending
                       </option>
                     </select>
                   </div>
@@ -592,7 +592,7 @@ export default function LocationList({ handleAddAisle, onView }) {
                           fromDate: startDate,
                           toDate: endDate,
                         });
-                        await fetchLocation({
+                        await fetchZone({
                           fromDate: startDate,
                           toDate: endDate,
                         });
@@ -648,8 +648,8 @@ export default function LocationList({ handleAddAisle, onView }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedIds.length === filteredLocation.length &&
-                            filteredLocation.length > 0
+                            selectedIds.length === filteredZone.length &&
+                            filteredZone.length > 0
                           }
                           className="form-checkbox"
                         />
@@ -673,8 +673,8 @@ export default function LocationList({ handleAddAisle, onView }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredLocation.length ? (
-                      filteredLocation.map((c) => (
+                    {filteredZone.length ? (
+                      filteredZone.map((c) => (
                         <tr
                           key={getId(c)}
                           className="hover:bg-gray-100 transition-colors"
@@ -693,7 +693,7 @@ export default function LocationList({ handleAddAisle, onView }) {
                           <td className="px-6 py-4">
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleLocationClick(getId(c))}
+                              onClick={() => handleZoneClick(getId(c))}
                             >
                               {getCode(c)}
                             </button>

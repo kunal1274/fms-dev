@@ -8,6 +8,7 @@ import SerialPage from "../../Tracking Dimension/Serial/SerialPage";
 import AislesPage from "../../Storage Dimension/Aisles/AislesPage";
 import ItemMasterPage from "../Item/ItemPage";
 import SitePage from "../../Storage Dimension/Site/SitePage";
+import ZonePage from "../../Storage Dimension/Zone/ZonePage";
 import LocationPage from "../../Storage Dimension/Location/LocationPage";
 import BinPage from "../../../Inventory/Storage Dimension/Bin/BinPage";
 import ProductDimColor from "../../Product Dimension/Color/ProductDimColorPage";
@@ -60,6 +61,9 @@ const I = () => {
       [PAGE.SITE]: (
         <SitePage companies={companies} form={form} setForm={setForm} />
       ),
+      [PAGE.ZONE]: (
+           <ZonePage companies={companies} form={form} setForm={setForm} />
+         ),
       [PAGE.RACK]: (
         <RackPage companies={companies} form={form} setForm={setForm} />
       ),

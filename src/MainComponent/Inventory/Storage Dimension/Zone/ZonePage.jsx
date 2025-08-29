@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ZoneList from "./ZonList";
+import ZoneList from "./ZoneList";
 import ZoneForm from "./ZoneForm";
 // import ZoneViewPage from "./ZoneViewPagee";
 
