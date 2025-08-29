@@ -194,46 +194,170 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
     }));
   };
 
-  const handleBankDetailChange = (index, field, value) => {
+  // const handleBankDetailChange = (index, field, value) => {
+  //   const updatedBankDetails = [...formData.bankDetails];
+
+  //   if (field === "bankName") {
+  //     // Uppercase, max 25 chars, allow spaces
+  //     value = value.toUpperCase().slice(0, 25);
+  //   }
+
+  //   if (field === "bankAccNum") {
+  //     // Only numbers, max 16 digits
+  //     value = value.replace(/\D/g, "").slice(0, 16);
+  //   }
+
+  //   if (field === "ifsc") {
+  //     // Uppercase, max 12 chars
+  //     value = value.toUpperCase().slice(0, 12);
+  //   }
+
+  //   if (field === "swift") {
+  //     // Uppercase, max 10 chars
+  //     value = value.toUpperCase().slice(0, 10);
+  //   }
+
+  //   if (field === "qrDetails") {
+  //     // Lowercase only
+  //     value = value.toLowerCase();
+  //   }
+
+  //   if (field === "accountHolderName") {
+  //     // Max 28 characters
+  //     value = value.slice(0, 28);
+  //   }
+  //   let currentBank = updatedBankDetails[index];
+
+  //   if (field === "bankType") {
+  //     if (value === "Cash") {
+  //       // Store previous bank data and clear fields
+  //       updatedBankDetails[index] = {
+  //         bankType: "Cash",
+  //         _prevData: { ...currentBank }, // store previous data
+  //         bankName: "",
+  //         bankAccNum: "",
+  //         accountHolderName: "",
+  //         ifsc: "",
+  //         swift: "",
+  //         qrDetails: "",
+  //         isDisabled: true,
+  //         disableUPI: true,
+  //       };
+  //     } else if (value === "Bank") {
+  //       // Save QR before clearing
+  //       updatedBankDetails[index] = {
+  //         ...currentBank,
+  //         _prevData: { ...currentBank }, // keep old QR and other data
+  //         bankType: "Bank",
+  //         qrDetails: "", // clear QR
+  //         disableUPI: true,
+  //         isDisabled: false,
+  //       };
+  //     }  else if (value === "BankAndUpi") {
+  //     // Restore everything including QR
+  //     const restoreData = currentBank._prevData || currentBank;
+  //     updatedBankDetails[index] = {
+  //       ...restoreData,
+  //       bankType: "BankAndUpi",
+  //       isDisabled: false,
+  //       disableUPI: false,
+  //     };
+  //     delete updatedBankDetails[index]._prevData; // not needed anymore
+  //   }
+  // }else {
+  //     updatedBankDetails[index][field] = value;
+  //   }
+
+  //   setFormData({ ...formData, bankDetails: updatedBankDetails });
+  // };
+  // const handleBankDetailChange = (index, field, value) => {
+  //   const updatedBankDetails = [...formData.bankDetails];
+  //   let currentBank = updatedBankDetails[index];
+
+  //   // --- Input formatting rules ---
+  //   if (field === "bankName") {
+  //     value = value.toUpperCase().slice(0, 25);
+  //   }
+  //   if (field === "bankAccNum") {
+  //     value = value.replace(/\D/g, "").slice(0, 16);
+  //   }
+  //   if (field === "ifsc") {
+  //     value = value.toUpperCase().slice(0, 12);
+  //   }
+  //   if (field === "swift") {
+  //     value = value.toUpperCase().slice(0, 10);
+  //   }
+  //   if (field === "qrDetails") {
+  //     value = value.toLowerCase();
+  //   }
+  //   if (field === "accountHolderName") {
+  //     value = value.slice(0, 28);
+  //   }
+
+  //   // --- Handle special logic for bankType ---
+  //   if (field === "bankType") {
+  //     if (value === "Cash") {
+  //       // Save current data before clearing everything
+  //       updatedBankDetails[index] = {
+  //         bankType: "Cash",
+  //         _prevData: { ...currentBank }, // full backup
+  //         bankName: "",
+  //         bankAccNum: "",
+  //         accountHolderName: "",
+  //         ifsc: "",
+  //         swift: "",
+  //         qrDetails: "",
+  //         isDisabled: true,
+  //         disableUPI: true,
+  //       };
+  //     } else if (value === "Bank") {
+  //       // Restore data but clear QR
+  //       const restoreData = currentBank._prevData || currentBank;
+  //       updatedBankDetails[index] = {
+  //         ...restoreData,
+  //         bankType: "Bank",
+  //         qrDetails: "", // exclude QR
+  //         isDisabled: false,
+  //         disableUPI: true,
+  //       };
+  //       updatedBankDetails[index]._prevData = { ...restoreData }; // keep backup safe
+  //     } else if (value === "BankAndUpi") {
+  //       // Restore everything including QR
+  //       const restoreData = currentBank._prevData || currentBank;
+  //       updatedBankDetails[index] = {
+  //         ...restoreData,
+  //         bankType: "BankAndUpi",
+  //         isDisabled: false,
+  //         disableUPI: false,
+  //       };
+  //       delete updatedBankDetails[index]._prevData; // cleanup
+  //     }
+  //   } else {
+  //     // Normal field update
+  //     updatedBankDetails[index][field] = value;
+  //   }
+
+  //   setFormData({ ...formData, bankDetails: updatedBankDetails });
+  // };
+
+  const handleBankDetailChange = async (index, field, value) => {
     const updatedBankDetails = [...formData.bankDetails];
-
-    if (field === "bankName") {
-      // Uppercase, max 25 chars, allow spaces
-      value = value.toUpperCase().slice(0, 25);
-    }
-
-    if (field === "bankAccNum") {
-      // Only numbers, max 16 digits
-      value = value.replace(/\D/g, "").slice(0, 16);
-    }
-
-    if (field === "ifsc") {
-      // Uppercase, max 12 chars
-      value = value.toUpperCase().slice(0, 12);
-    }
-
-    if (field === "swift") {
-      // Uppercase, max 10 chars
-      value = value.toUpperCase().slice(0, 10);
-    }
-
-    if (field === "qrDetails") {
-      // Lowercase only
-      value = value.toLowerCase();
-    }
-
-    if (field === "accountHolderName") {
-      // Max 28 characters
-      value = value.slice(0, 28);
-    }
     let currentBank = updatedBankDetails[index];
 
+    // --- Input formatting rules ---
+    if (field === "bankName") value = value.toUpperCase().slice(0, 25);
+    if (field === "bankAccNum") value = value.replace(/\D/g, "").slice(0, 16);
+    if (field === "ifsc") value = value.toUpperCase().slice(0, 12);
+    if (field === "swift") value = value.toUpperCase().slice(0, 10);
+    if (field === "qrDetails") value = value.toLowerCase();
+    if (field === "accountHolderName") value = value.slice(0, 28);
+
+    // --- Handle special logic for bankType ---
     if (field === "bankType") {
       if (value === "Cash") {
-        // Store previous bank data and clear fields
         updatedBankDetails[index] = {
           bankType: "Cash",
-          _prevData: { ...currentBank }, // store previous data
+          _prevData: { ...currentBank },
           bankName: "",
           bankAccNum: "",
           accountHolderName: "",
@@ -244,33 +368,44 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
           disableUPI: true,
         };
       } else if (value === "Bank") {
-        // Save QR before clearing
+        const restoreData = currentBank._prevData || currentBank;
         updatedBankDetails[index] = {
-          ...currentBank,
-          _prevData: { ...currentBank }, // keep old QR and other data
+          ...restoreData,
           bankType: "Bank",
-          qrDetails: "", // clear QR
-          disableUPI: true,
+          qrDetails: "",
           isDisabled: false,
+          disableUPI: true,
         };
+        updatedBankDetails[index]._prevData = { ...restoreData };
       } else if (value === "BankAndUpi") {
-        // Restore previous data and allow UPI
         const restoreData = currentBank._prevData || currentBank;
         updatedBankDetails[index] = {
           ...restoreData,
           bankType: "BankAndUpi",
-          disableUPI: false,
           isDisabled: false,
+          disableUPI: false,
         };
         delete updatedBankDetails[index]._prevData;
+
+        // 🔥 Re-fetch QR details from API when BankAndUpi is selected
+        try {
+          const res = await axios.get(`${mergedUrl}/${CompaniesId}`);
+          const latestData = res.data.data || res.data;
+
+          if (latestData.bankDetails?.[index]?.qrDetails) {
+            updatedBankDetails[index].qrDetails =
+              latestData.bankDetails[index].qrDetails;
+          }
+        } catch (err) {
+          toast.error("Failed to fetch latest QR details");
+        }
       }
     } else {
       updatedBankDetails[index][field] = value;
     }
 
-    setFormData({ ...formData, bankDetails: updatedBankDetails });
+    setFormData((prev) => ({ ...prev, bankDetails: updatedBankDetails }));
   };
-
   const handleFileUpload = async (file) => {
     if (!file) return toast.error("No file selected!");
     setLogoUploading(true);
@@ -778,10 +913,9 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                   />
                 </div>
 
-                {/* UPI ID */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    UPI ID
+                    UPI ID / QR Details
                   </label>
                   <input
                     name="qrDetails"
@@ -791,12 +925,14 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                     }
                     disabled={
                       !isEditing ||
-                      b.bankType === "Bank" ||
-                      b.bankType === "Cash"
-                    } // disable when Bank or Cash
-                    placeholder="e.g. user@upi"
+                      b.bankType === "Cash" ||
+                      b.bankType === "Bank"
+                    }
+                    placeholder="e.g. username@upi"
                     className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                      !isEditing || disableBankFields
+                      !isEditing ||
+                      b.bankType === "Cash" ||
+                      b.bankType === "Bank"
                         ? "cursor-not-allowed bg-gray-100"
                         : ""
                     }`}

@@ -32,7 +32,7 @@ const paymentTerms = [
   "Net90D",
   "Advance",
 ];
-const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", " UPI"];
+const bankTypes = ["BankAndUpi", "Cash", "Bank", ];
 const CustomerViewPagee = ({
   customerId,
   customer,
@@ -130,24 +130,73 @@ const CustomerViewPagee = ({
     active: true,
   });
 
-  const addBankDetail = () => {
-    setFormData((prev) => ({
-      ...prev,
-      bankDetails: [
-        ...(prev.bankDetails || []),
-        {
-          type: "",
+
+  const handleBankDetailChange = async (index, field, value) => {
+    const updatedBankDetails = [...formData.bankDetails];
+    let currentBank = updatedBankDetails[index];
+
+    // --- Input formatting rules ---
+    if (field === "bankName") value = value.toUpperCase().slice(0, 25);
+    if (field === "bankAccNum") value = value.replace(/\D/g, "").slice(0, 16);
+    if (field === "ifsc") value = value.toUpperCase().slice(0, 12);
+    if (field === "swift") value = value.toUpperCase().slice(0, 10);
+    if (field === "qrDetails") value = value.toLowerCase();
+    if (field === "accountHolderName") value = value.slice(0, 28);
+
+    // --- Handle special logic for bankType ---
+    if (field === "bankType") {
+      if (value === "Cash") {
+        updatedBankDetails[index] = {
+          bankType: "Cash",
+          _prevData: { ...currentBank },
           bankName: "",
           bankAccNum: "",
           accountHolderName: "",
           ifsc: "",
           swift: "",
           qrDetails: "",
-        },
-      ],
-    }));
-  };
+          isDisabled: true,
+          disableUPI: true,
+        };
+      } else if (value === "Bank") {
+        const restoreData = currentBank._prevData || currentBank;
+        updatedBankDetails[index] = {
+          ...restoreData,
+          bankType: "Bank",
+          qrDetails: "",
+          isDisabled: false,
+          disableUPI: true,
+        };
+        updatedBankDetails[index]._prevData = { ...restoreData };
+      } else if (value === "BankAndUpi") {
+        const restoreData = currentBank._prevData || currentBank;
+        updatedBankDetails[index] = {
+          ...restoreData,
+          bankType: "BankAndUpi",
+          isDisabled: false,
+          disableUPI: false,
+        };
+        delete updatedBankDetails[index]._prevData;
 
+        // 🔥 Re-fetch QR details from API when BankAndUpi is selected
+        try {
+          const res = await axios.get(`${mergedUrl}/${customerId}`);
+          const latestData = res.data.data || res.data;
+
+          if (latestData.bankDetails?.[index]?.qrDetails) {
+            updatedBankDetails[index].qrDetails =
+              latestData.bankDetails[index].qrDetails;
+          }
+        } catch (err) {
+          toast.error("Failed to fetch latest QR details");
+        }
+      }
+    } else {
+      updatedBankDetails[index][field] = value;
+    }
+
+    setFormData((prev) => ({ ...prev, bankDetails: updatedBankDetails }));
+  };
   const sanitizeBankField = (field, raw) => {
     let v = raw;
     switch (field) {
@@ -196,50 +245,6 @@ const CustomerViewPagee = ({
     }
   };
 
-  const handleBankDetailChange = (index, field, rawValue) => {
-    const clean = sanitizeBankField(field, rawValue);
-
-    setFormData((prev) => {
-      const copy = [...(prev.bankDetails || [])];
-      let row = { ...copy[index] };
-
-      if (field === "type") {
-        const newType = clean;
-        const isNoBank = ["Cash", "Barter"].includes(newType);
-
-        if (isNoBank) {
-          // stash the old data
-          bankDetailsBackup.current[index] = { ...row };
-          // clear out
-          row = {
-            type: newType,
-            bankName: "",
-            bankAccNum: "",
-            accountHolderName: "",
-            ifsc: "",
-            swift: "",
-            qrDetails: "",
-          };
-        } else {
-          // restoring if we have a backup
-          const backed = bankDetailsBackup.current[index];
-          if (backed) {
-            row = { ...backed, type: newType };
-            delete bankDetailsBackup.current[index];
-          } else {
-            row.type = newType;
-          }
-        }
-      } else {
-        // normal field edit
-        row = { ...row, [field]: clean };
-      }
-
-      copy[index] = row;
-      return { ...prev, bankDetails: copy };
-    });
-  };
-
   const disableBankFields =
     formData.bankType === "Cash" ||
     formData.bankType === "Barter" ||
@@ -261,7 +266,23 @@ const CustomerViewPagee = ({
       })
       .catch(() => toast.error("Update failed"));
   };
-
+  const handleAddBank = () => {
+    setFormData((prev) => ({
+      ...prev,
+      bankDetails: [
+        ...prev.bankDetails,
+        {
+          bankType: "",
+          bankName: "",
+          bankAccNum: "",
+          accountHolderName: "",
+          ifsc: "",
+          swift: "",
+          qrDetails: "",
+        },
+      ],
+    }));
+  };
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let val = value.replace(/^\s+/, " ");
@@ -503,37 +524,22 @@ const CustomerViewPagee = ({
   }
 
   return (
-    <div className="">
-      <ToastContainer />
-      {/* Header Buttons */}
-      <div className="flex justify-between ">
-        <div className="flex items-center space-x-2">
-          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-            {" "}
-            <button
-              type="button"
-              className="text-blue-600 mt-2 text-sm hover:underline"
-            >
-              Upload Photo
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
-                />
-              </svg>{" "}
-            </button>
-          </div>
-          <h3 className="text-xl font-semibold">Customer View Page</h3>
-        </div>
-      </div>
+     <div>
+         <ToastContainer />
+         {/* Header Buttons */}
+         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+           <div className="flex items-center space-x-2 ">
+             <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center  justify-center">
+               <button
+                 type="button"
+                 className="text-blue-600 mt-1 text-xs hover:underline"
+               >
+                 Upload Photo
+               </button>
+             </div>
+             <h3 className="text-xl font-semibold">Customer View Page</h3>
+           </div>
+         </div>
 
       <form className="bg-white shadow-none rounded-lg divide-y divide-gray-200">
         {/* Business Details */}
@@ -585,6 +591,25 @@ const CustomerViewPagee = ({
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
+                Business Type
+              </label>
+              <select
+                name="businessType"
+                value={formData.businessType || ""} // ✅ Correct binding
+                onChange={handleChange}
+                required
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              >
+                {businessTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
                 Contact No
               </label>
               <PhoneInput
@@ -620,25 +645,6 @@ const CustomerViewPagee = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Business Type
-              </label>
-              <select
-                name="businessType"
-                value={formData.businessType || ""} // ✅ Correct binding
-                onChange={handleChange}
-                required
-                disabled={!isEditing}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              >
-                {businessTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
                 Address
               </label>
               <textarea
@@ -664,6 +670,20 @@ const CustomerViewPagee = ({
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Group
+              </label>
+              <input
+                name="group"
+                value={formData.groups || ""}
+                maxLength={10}
+                onChange={handleChange}
+                placeholder="e.g. Retail, Wholesale"
+                disabled
+                className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
             <div className="flex gap-3 ml-1">
               <label className="block h-5  mt-1  font-large text-blue-600">
                 Active
@@ -678,27 +698,6 @@ const CustomerViewPagee = ({
               />
             </div>
           </div>{" "}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div className="space-y-4"></div>
-          </div>{" "}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Group
-                </label>
-                <input
-                  name="group"
-                  value={formData.groups || ""}
-                  maxLength={10}
-                  onChange={handleChange}
-                  placeholder="e.g. Retail, Wholesale"
-                  disabled
-                  className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                />
-              </div>
-            </div>{" "}
-          </div>
         </section>
         <section className="p-6">
           <h2 className="text-lg font-medium text-gray-700 mb-4">
@@ -717,14 +716,14 @@ const CustomerViewPagee = ({
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
-  <div>
+            <div>
               <label className="block text-sm font-medium text-gray-600">
                 Phone No.
               </label>
               <PhoneInput
                 country="in"
                 // CHANGED: keep storage as +E164, show without "+"
-               name="contactPersonPhone"
+                name="contactPersonPhone"
                 inputMode="numeric"
                 value={formData.contactPersonPhone}
                 onChange={handleChange}
@@ -738,8 +737,6 @@ const CustomerViewPagee = ({
                 prefix="+"
               />
             </div>{" "}
-          
-
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Email.id
@@ -819,226 +816,207 @@ const CustomerViewPagee = ({
           </div>
         </section>
         {/* Bank Details */}
-        <section className="p-6 ">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium text-gray-700 mb-4">
-              Bank Details
-            </h2>{" "}
+
+        <section className="p-6">
+          {" "}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-medium text-gray-700">Bank Details</h2>
             <button
               type="button"
-              onClick={addBankDetail}
-              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+              onClick={handleAddBank}
+              disabled={!isEditing} // ✅ disable unless editing
+              className={`px-3 py-1 text-sm rounded 
+        ${
+          isEditing
+            ? "bg-green-500 text-white hover:bg-green-600"
+            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+        }`}
             >
               + Add Bank
-            </button>{" "}
+            </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
-                <div key={i}>
-                  {/* … other fields … */}
+          {formData.bankDetails?.map((b, i) => {
+            const disableBankFields =
+              b.bankType === "Cash" ||
+              b.bankType === "Barter" ||
+              b.bankType === "UPI" ||
+              b.bankType === "Crypto";
 
-                  {/* Account Holder Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Bank Type
-                    </label>
-                    <select
-                      name="bankType"
-                      value={formData.bankType || form.bankType || " "}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                      required
-                      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                    >
-                      {bankTypes.map((type) => (
-                        <option key={type.trim()} value={type.trim()}>
-                          {type.trim() === "BankAndUpi"
-                            ? "Bank And UPI"
-                            : type.trim()}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              ))}
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
-                <div key={i}>
-                  {/* … other fields … */}
+            return (
+              <div
+                key={b.id || i}
+                className="relative grid grid-cols-1 sm:grid-cols-4 gap-6 mb-6 border p-4 rounded-lg"
+              >
+                {i > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteBank(i)}
+                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                  >
+                    ✕
+                  </button>
+                )}
 
-                  {/* Account Holder Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Bank Name
-                    </label>
-                    <input
-                      name="bankName"
-                      value={b.bankName || ""}
-                      maxLength={50}
-                      onChange={(e) =>
-                        handleBankDetailChange(i, "bankName", e.target.value)
-                      }
-                      disabled={disableBankFields || !isEditing}
-                      className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                        disableBankFields
-                          ? "cursor-not-allowed bg-gray-100"
-                          : ""
-                      }`}
-                    />
-                  </div>
-                </div>
-              ))}
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
+                {/* Bank Type */}
                 <div>
-                  {/* … other inputs … */}
+                  <label className="block text-sm font-medium text-gray-600">
+                    Bank Type
+                  </label>
+                  <select
+                    name="bankType"
+                    value={b.bankType || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(i, "bankType", e.target.value)
+                    }
+                    disabled={!isEditing}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  >
+                    {bankTypes.map((type) => (
+                      <option key={type.trim()} value={type.trim()}>
+                        {type.trim() === "BankAndUpi"
+                          ? "Bank And UPI"
+                          : type.trim()}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                  {/* IFSC */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Bank Account
-                    </label>
-                    <input
-                      name="bankAccNum"
-                      value={b.bankAccNum || ""}
-                      maxLength={20}
-                      onChange={(e) => {
-                        const rawValue = e.target.value;
-                        const sanitizedValue = rawValue
-                          .toUpperCase()
-                          .replace(/[^0-9]/g, "") // Remove all non-alphanumeric characters except uppercase letters and digits
-                          .slice(0, 20); // Ensure max 20 chars even after sanitize
-                        handleBankDetailChange(i, "bankAccNum", sanitizedValue);
-                      }}
-                      placeholder="e.g. SBIN0001234"
-                      disabled={disableBankFields || !isEditing}
-                      className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                        disableBankFields
-                          ? "cursor-not-allowed bg-gray-100"
-                          : ""
-                      }`}
-                    />
-                  </div>
-                </div>
-              ))}
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
+                {/* Bank Name */}
                 <div>
-                  {/* … other inputs … */}
+                  <label className="block text-sm font-medium text-gray-600">
+                    Bank Name
+                  </label>
+                  <input
+                    name="bankName"
+                    value={b.bankName || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(i, "bankName", e.target.value)
+                    }
+                    disabled={!isEditing || disableBankFields}
+                    placeholder="e.g. HDFC Bank"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
+                  />
+                </div>
 
-                  {/* IFSC */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Account Holder Name
-                    </label>
-                    <input
-                      name="accountHolderName"
-                      value={b.accountHolderName || ""}
-                      maxLength={30}
-                      onChange={(e) =>
-                        handleBankDetailChange(
-                          i,
-                          "accountHolderName",
-                          e.target.value
-                        )
-                      }
-                      placeholder="e.g. SBIN0001234"
-                      disabled={disableBankFields || !isEditing}
-                      className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                        disableBankFields
-                          ? "cursor-not-allowed bg-gray-100"
-                          : ""
-                      }`}
-                    />
-                  </div>
-                </div>
-              ))}
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
+                {/* Bank Account Number */}
                 <div>
-                  {/* … other inputs … */}
+                  <label className="block text-sm font-medium text-gray-600">
+                    Bank Account Number
+                  </label>
+                  <input
+                    name="bankAccNum"
+                    value={b.bankAccNum || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(i, "bankAccNum", e.target.value)
+                    }
+                    disabled={!isEditing || disableBankFields}
+                    placeholder="e.g. 0123456789012345"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
+                  />
+                </div>
 
-                  {/* IFSC */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      IFSC
-                    </label>
-                    <input
-                      name="ifsc"
-                      maxLength={20}
-                      value={b.ifsc || ""}
-                      onChange={(e) =>
-                        handleBankDetailChange(i, "ifsc", e.target.value)
-                      }
-                      placeholder="e.g. SBIN0001234"
-                      disabled={disableBankFields || !isEditing}
-                      className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                        disableBankFields
-                          ? "cursor-not-allowed bg-gray-100"
-                          : ""
-                      }`}
-                    />
-                  </div>
-                </div>
-              ))}
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
+                {/* Account Holder Name */}
                 <div>
-                  {/* … other inputs … */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Swift
-                    </label>
-                    <input
-                      name="swift"
-                      value={b.swift || ""}
-                      maxLength={11}
-                      onChange={(e) =>
-                        handleBankDetailChange(i, "swift", e.target.value)
-                      }
-                      placeholder="e.g. SBININBBXXX"
-                      disabled={disableBankFields || !isEditing}
-                      className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                        disableBankFields
-                          ? "cursor-not-allowed bg-gray-100"
-                          : ""
-                      }`}
-                    />
-                  </div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Account Holder Name
+                  </label>
+                  <input
+                    name="accountHolderName"
+                    value={b.accountHolderName || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(
+                        i,
+                        "accountHolderName",
+                        e.target.value
+                      )
+                    }
+                    disabled={!isEditing || disableBankFields}
+                    placeholder="e.g. John Doe"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
+                  />
                 </div>
-              ))}
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
+
+                {/* IFSC Code */}
                 <div>
-                  {/* … other fields … */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      UPI ID
-                    </label>
-                    <input
-                      name="qrDetails"
-                      value={
-                        b.qrDetails && b.qrDetails.trim() !== ""
-                          ? b.qrDetails
-                          : "-"
-                      }
-                      onChange={(e) =>
-                        handleBankDetailChange(i, "qrDetails", e.target.value)
-                      }
-                      placeholder="e.g. abc@hdfcbank"
-                      maxLength={25}
-                      disabled={disableBankFields || !isEditing}
-                      className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                        disableBankFields
-                          ? "cursor-not-allowed bg-gray-100"
-                          : ""
-                      }`}
-                    />
-                  </div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    IFSC Code
+                  </label>
+                  <input
+                    name="ifsc"
+                    value={b.ifsc || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(i, "ifsc", e.target.value)
+                    }
+                    disabled={!isEditing || disableBankFields}
+                    placeholder="e.g. SBIN0001234"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
+                  />
                 </div>
-              ))}
-          </div>
+
+                {/* SWIFT Code */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    SWIFT Code
+                  </label>
+                  <input
+                    name="swift"
+                    value={b.swift || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(i, "swift", e.target.value)
+                    }
+                    disabled={!isEditing || disableBankFields}
+                    placeholder="e.g. SBININBBXXX"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
+                  />
+                </div>
+
+                {/* UPI ID */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    UPI ID
+                  </label>
+                  <input
+                    name="qrDetails"
+                    value={b.qrDetails || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(i, "qrDetails", e.target.value)
+                    }
+                    disabled={
+                      !isEditing ||
+                      b.bankType === "Bank" ||
+                      b.bankType === "Cash"
+                    } // disable when Bank or Cash
+                    placeholder="e.g. user@upi"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </section>
 
         <section className="p-6">

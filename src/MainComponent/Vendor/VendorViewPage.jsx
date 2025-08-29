@@ -83,7 +83,72 @@ const VendorViewPage = ({
       }, 500); // 0.5 second delay
     }
   };
+ const handleBankDetailChange = async (index, field, value) => {
+    const updatedBankDetails = [...formData.bankDetails];
+    let currentBank = updatedBankDetails[index];
 
+    // --- Input formatting rules ---
+    if (field === "bankName") value = value.toUpperCase().slice(0, 25);
+    if (field === "bankAccNum") value = value.replace(/\D/g, "").slice(0, 16);
+    if (field === "ifsc") value = value.toUpperCase().slice(0, 12);
+    if (field === "swift") value = value.toUpperCase().slice(0, 10);
+    if (field === "qrDetails") value = value.toLowerCase();
+    if (field === "accountHolderName") value = value.slice(0, 28);
+
+    // --- Handle special logic for bankType ---
+    if (field === "bankType") {
+      if (value === "Cash") {
+        updatedBankDetails[index] = {
+          bankType: "Cash",
+          _prevData: { ...currentBank },
+          bankName: "",
+          bankAccNum: "",
+          accountHolderName: "",
+          ifsc: "",
+          swift: "",
+          qrDetails: "",
+          isDisabled: true,
+          disableUPI: true,
+        };
+      } else if (value === "Bank") {
+        const restoreData = currentBank._prevData || currentBank;
+        updatedBankDetails[index] = {
+          ...restoreData,
+          bankType: "Bank",
+          qrDetails: "",
+          isDisabled: false,
+          disableUPI: true,
+        };
+        updatedBankDetails[index]._prevData = { ...restoreData };
+      } else if (value === "BankAndUpi") {
+        const restoreData = currentBank._prevData || currentBank;
+        updatedBankDetails[index] = {
+          ...restoreData,
+          bankType: "BankAndUpi",
+          isDisabled: false,
+          disableUPI: false,
+        };
+        delete updatedBankDetails[index]._prevData;
+
+        // 🔥 Re-fetch QR details from API when BankAndUpi is selected
+        try {
+          const res = await axios.get(`${mergedUrl}/${CompaniesId}`);
+          const latestData = res.data.data || res.data;
+
+          if (latestData.bankDetails?.[index]?.qrDetails) {
+            updatedBankDetails[index].qrDetails =
+              latestData.bankDetails[index].qrDetails;
+          }
+        } catch (err) {
+          toast.error("Failed to fetch latest QR details");
+        }
+      }
+    } else {
+      updatedBankDetails[index][field] = value;
+    }
+
+    setFormData((prev) => ({ ...prev, bankDetails: updatedBankDetails }));
+  };
   const [formData, setFormData] = useState({ ...vendor });
   const [error, setError] = useState(null);
   const [form, setForm] = useState({
@@ -229,14 +294,9 @@ const VendorViewPage = ({
     // Final state update
     setFormData((prev) => ({ ...prev, [name]: val }));
   };
-  const handleBankDetailChange = (index, field, rawValue) => {
-    const clean = sanitizeBankField(field, rawValue);
-    setFormData((prev) => {
-      const copy = [...(prev.bankDetails || [])];
-      copy[index] = { ...copy[index], [field]: clean };
-      return { ...prev, bankDetails: copy };
-    });
-  };
+
+
+  
   const disableBankFields =
     formData.bankType === "Cash" ||
     formData.bankType === "Barter" ||
@@ -683,212 +743,207 @@ const VendorViewPage = ({
             </div>
           </div>
         </section>
-        <section className="p-6">
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Bank Details
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
-                <div key={i}>
-                  {/* … other fields … */}
-
-                  {/* Account Holder Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Bank Type
-                    </label>
-                    <select
-                      name="bankType"
-                      value={formData.bankType || ""}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                      required
-                      className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-                    >
-                      {bankTypes.map((type) => (
-                        <option key={type.trim()} value={type.trim()}>
-                          {type.trim() === "BankAndUpi"
-                            ? "Bank And UPI"
-                            : type.trim()}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              ))}
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
-                <div key={i}>
-                  {/* … other fields … */}
-
-                  {/* Account Holder Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Bank Name
-                    </label>
-                    <input
-                      name="bankName"
-                      value={b.bankName || ""}
-                      maxLength={50}
-                      onChange={(e) =>
-                        handleBankDetailChange(i, "bankName", e.target.value)
-                      }
-                      disabled={disableBankFields || !isEditing}
-                      className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                        disableBankFields
-                          ? "cursor-not-allowed bg-gray-100"
-                          : ""
-                      }`}
-                    />
-                  </div>
-                </div>
-              ))}
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
-                <div>
-                  {/* … other inputs … */}
-
-                  {/* IFSC */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Bank Account
-                    </label>
-                    <input
-                      name="bankAccNum"
-                      value={b.bankAccNum || ""}
-                      maxLength={30}
-                      onChange={(e) =>
-                        handleBankDetailChange(i, "bankAccNum", e.target.value)
-                      }
-                      placeholder="e.g. SBIN0001234"
-                      disabled={disableBankFields || !isEditing}
-                      className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                        disableBankFields
-                          ? "cursor-not-allowed bg-gray-100"
-                          : ""
-                      }`}
-                    />
-                  </div>
-                </div>
-              ))}
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
-                <div>
-                  {/* … other inputs … */}
-
-                  {/* IFSC */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Account Holder Name
-                    </label>
-                    <input
-                      name="accountHolderName"
-                      value={b.accountHolderName || ""}
-                      maxLength={30}
-                      onChange={(e) =>
-                        handleBankDetailChange(
-                          i,
-                          "accountHolderName",
-                          e.target.value
-                        )
-                      }
-                      placeholder="e.g. SBIN0001234"
-                      disabled={disableBankFields || !isEditing}
-                      className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                        disableBankFields
-                          ? "cursor-not-allowed bg-gray-100"
-                          : ""
-                      }`}
-                    />
-                  </div>
-                </div>
-              ))}
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
-                <div>
-                  {/* … other inputs … */}
-
-                  {/* IFSC */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      IFSC
-                    </label>
-                    <input
-                      name="ifsc"
-                      maxLength={20}
-                      value={b.ifsc || ""}
-                      onChange={(e) =>
-                        handleBankDetailChange(i, "ifsc", e.target.value)
-                      }
-                      placeholder="e.g. SBIN0001234"
-                      disabled={disableBankFields || !isEditing}
-                      className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                        disableBankFields
-                          ? "cursor-not-allowed bg-gray-100"
-                          : ""
-                      }`}
-                    />
-                  </div>
-                </div>
-              ))}
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
-                <div>
-                  {/* … other inputs … */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Swift
-                    </label>
-                    <input
-                      name="swift"
-                      value={b.swift || ""}
-                      maxLength={20}
-                      onChange={(e) =>
-                        handleBankDetailChange(i, "swift", e.target.value)
-                      }
-                      placeholder="e.g. SBININBBXXX"
-                      disabled={disableBankFields || !isEditing}
-                      className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                        disableBankFields
-                          ? "cursor-not-allowed bg-gray-100"
-                          : ""
-                      }`}
-                    />
-                  </div>
-                </div>
-              ))}
-            {formData.bankDetails?.length > 0 &&
-              formData.bankDetails.map((b, i) => (
-                <div>
-                  {/* … other fields … */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      UPI ID
-                    </label>
-                    <input
-                      name="qrDetails"
-                      value={
-                        b.qrDetails && b.qrDetails.trim() !== ""
-                          ? b.qrDetails
-                          : "-"
-                      }
-                      onChange={(e) =>
-                        handleBankDetailChange(i, "qrDetails", e.target.value)
-                      }
-                      placeholder="e.g. abc@hdfcbank"
-                      maxLength={25}
-                      disabled={disableBankFields || !isEditing}
-                      className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
-                        disableBankFields
-                          ? "cursor-not-allowed bg-gray-100"
-                          : ""
-                      }`}
-                    />
-                  </div>
-                </div>
-              ))}
+    <section className="p-6">
+          {" "}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-medium text-gray-700">Bank Details</h2>
+            <button
+              type="button"
+              onClick={handleAddBank}
+              disabled={!isEditing} // ✅ disable unless editing
+              className={`px-3 py-1 text-sm rounded 
+        ${
+          isEditing
+            ? "bg-green-500 text-white hover:bg-green-600"
+            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+        }`}
+            >
+              + Add Bank
+            </button>
           </div>
+          {formData.bankDetails?.map((b, i) => {
+            const disableBankFields =
+              b.bankType === "Cash" ||
+              b.bankType === "Barter" ||
+              b.bankType === "UPI" ||
+              b.bankType === "Crypto";
+
+            return (
+              <div
+                key={b.id || i}
+                className="relative grid grid-cols-1 sm:grid-cols-4 gap-6 mb-6 border p-4 rounded-lg"
+              >
+                {i > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteBank(i)}
+                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                  >
+                    ✕
+                  </button>
+                )}
+
+                {/* Bank Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Bank Type
+                  </label>
+                  <select
+                    name="bankType"
+                    value={b.bankType || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(i, "bankType", e.target.value)
+                    }
+                    disabled={!isEditing}
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                  >
+                    {bankTypes.map((type) => (
+                      <option key={type.trim()} value={type.trim()}>
+                        {type.trim() === "BankAndUpi"
+                          ? "Bank And UPI"
+                          : type.trim()}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Bank Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Bank Name
+                  </label>
+                  <input
+                    name="bankName"
+                    value={b.bankName || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(i, "bankName", e.target.value)
+                    }
+                    disabled={!isEditing || disableBankFields}
+                    placeholder="e.g. HDFC Bank"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
+                  />
+                </div>
+
+                {/* Bank Account Number */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Bank Account Number
+                  </label>
+                  <input
+                    name="bankAccNum"
+                    value={b.bankAccNum || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(i, "bankAccNum", e.target.value)
+                    }
+                    disabled={!isEditing || disableBankFields}
+                    placeholder="e.g. 0123456789012345"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
+                  />
+                </div>
+
+                {/* Account Holder Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Account Holder Name
+                  </label>
+                  <input
+                    name="accountHolderName"
+                    value={b.accountHolderName || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(
+                        i,
+                        "accountHolderName",
+                        e.target.value
+                      )
+                    }
+                    disabled={!isEditing || disableBankFields}
+                    placeholder="e.g. John Doe"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
+                  />
+                </div>
+
+                {/* IFSC Code */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    IFSC Code
+                  </label>
+                  <input
+                    name="ifsc"
+                    value={b.ifsc || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(i, "ifsc", e.target.value)
+                    }
+                    disabled={!isEditing || disableBankFields}
+                    placeholder="e.g. SBIN0001234"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
+                  />
+                </div>
+
+                {/* SWIFT Code */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    SWIFT Code
+                  </label>
+                  <input
+                    name="swift"
+                    value={b.swift || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(i, "swift", e.target.value)
+                    }
+                    disabled={!isEditing || disableBankFields}
+                    placeholder="e.g. SBININBBXXX"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing || disableBankFields
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    UPI ID / QR Details
+                  </label>
+                  <input
+                    name="qrDetails"
+                    value={b.qrDetails || ""}
+                    onChange={(e) =>
+                      handleBankDetailChange(i, "qrDetails", e.target.value)
+                    }
+                    disabled={
+                      !isEditing ||
+                      b.bankType === "Cash" ||
+                      b.bankType === "Bank"
+                    }
+                    placeholder="e.g. username@upi"
+                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200 ${
+                      !isEditing ||
+                      b.bankType === "Cash" ||
+                      b.bankType === "Bank"
+                        ? "cursor-not-allowed bg-gray-100"
+                        : ""
+                    }`}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </section>
         {/* Tax Information */}
         <section className="p-6">

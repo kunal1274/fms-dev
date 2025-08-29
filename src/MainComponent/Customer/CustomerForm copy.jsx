@@ -190,7 +190,17 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     }));
   };
 
-
+  const handleBankChange = (index, e) => {
+    const { name, value } = e.target;
+    setForm((prev) => {
+      const updatedBanks = [...prev.bankDetails];
+      updatedBanks[index] = {
+        ...updatedBanks[index],
+        [name]: value,
+      };
+      return { ...prev, bankDetails: updatedBanks };
+    });
+  };
 
   const handleFileUpload = async (file) => {
     if (!file) {
@@ -318,30 +328,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     // Set form state
     setForm((prev) => ({ ...prev, [name]: val }));
   };
-  const handleAddBank = () => {
-    setForm((prev) => ({
-      ...prev,
-      bankDetails: [
-        ...prev.bankDetails,
-        {
-          bankType: "",
-          bankName: "",
-          bankAccNum: "",
-          accountHolderName: "",
-          ifsc: "",
-          swift: "",
-          qrDetails: "",
-        },
-      ],
-    }));
-  };
-  const handleBankChange = (index, field, value) => {
-    setForm((prev) => {
-      const updatedBanks = [...prev.bankDetails];
-      updatedBanks[index][field] = value;
-      return { ...prev, bankDetails: updatedBanks };
-    });
-  };
+
   const createCustomer = async (e) => {
     e.preventDefault();
 
@@ -799,7 +786,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
             <h2 className="text-lg font-medium text-gray-700">Bank Details</h2>
             <button
               type="button"
-              onClick={handleAddBank}
+              onClick={addBankDetail}
               className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
             >
               + Add Bank
@@ -807,162 +794,163 @@ export default function CustomerForm({ handleCancel, onSaved }) {
           </div>
 
           {form.bankDetails.map((bank, index) => {
-            // disable rules based on THIS bank row
-            const disableBankFields =
-              bank.bankType === "Cash" ||
-              bank.bankType === "Barter" ||
-              bank.bankType === "UPI" ||
-              bank.bankType === "Crypto";
-
-            const disableUpiField = bank.bankType === "Bank";
-
+            const rowDisabled = isBankFieldsDisabled(bank.type);
             return (
               <div
                 key={index}
-                className="relative grid grid-cols-1 sm:grid-cols-4 gap-6 mb-6 border p-4 rounded-lg"
+                className="grid grid-cols-1 sm:grid-cols-4 gap-6 mb-6 border-b pb-4"
               >
-                {index > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteBank(index)}
-                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                  >
-                    ✕
-                  </button>
-                )}
-
-                {/* Bank Type */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Bank Type
                   </label>
                   <select
-                    value={bank.bankType}
-                    onChange={(e) =>
-                      handleBankChange(index, "bankType", e.target.value)
-                    }
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200"
+                    name="type"
+                    value={bank.type ?? ""}
+                    onChange={(e) => handleBankChange(index, e)}
+                    required
+                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
                   >
                     <option value="">Select type</option>
                     {bankTypes.map((type) => (
-                      <option key={type.trim()} value={type.trim()}>
-                        {type.trim() === "BankAndUpi"
-                          ? "Bank And UPI"
-                          : type.trim()}
+                      <option key={type} value={type}>
+                        {type === "BankAndUpi" ? "Bank And UPI" : type}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                {/* Bank Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Bank Name
                   </label>
                   <input
+                    name="bankName"
                     value={bank.bankName}
                     onChange={(e) =>
-                      handleBankChange(index, "bankName", e.target.value)
+                      handleBankChange(index, {
+                        target: {
+                          name: "bankName",
+                          value: e.target.value.toUpperCase(), // force uppercase
+                        },
+                      })
                     }
-                    placeholder="e.g. State Bank of India"
-                    disabled={disableBankFields}
-                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
-                      disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
+                    disabled={rowDisabled}
+                    placeholder="e.g. HDFC BANK"
+                    className={`mt-1 w-full p-2 border rounded uppercase ${
+                      rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
                   />
                 </div>
 
-                {/* Bank Account */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Bank Account
+                    Account Number
                   </label>
                   <input
+                    name="bankAccNum"
                     value={bank.bankAccNum}
-                    onChange={(e) =>
-                      handleBankChange(index, "bankAccNum", e.target.value)
-                    }
-                    placeholder="e.g. 0123456789012345"
-                    disabled={disableBankFields}
-                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
-                      disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
+                    onChange={(e) => {
+                      // remove non-digits and limit to 16
+                      const onlyNums = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 16);
+                      handleBankChange(index, {
+                        target: { name: "bankAccNum", value: onlyNums },
+                      });
+                    }}
+                    maxLength={16} // extra safeguard
+                    disabled={rowDisabled}
+                    className={`mt-1 w-full p-2 border rounded ${
+                      rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
                   />
                 </div>
 
-                {/* Account Holder Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Account Holder Name
                   </label>
                   <input
+                    name="accountHolderName"
                     value={bank.accountHolderName}
-                    onChange={(e) =>
-                      handleBankChange(
-                        index,
-                        "accountHolderName",
-                        e.target.value
-                      )
-                    }
-                    placeholder="e.g. ABC Company Pvt Ltd"
-                    disabled={disableBankFields}
-                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
-                      disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      // Capitalize first character if present
+                      if (val.length > 0) {
+                        val = val.charAt(0).toUpperCase() + val.slice(1);
+                      }
+                      handleBankChange(index, {
+                        target: { name: "accountHolderName", value: val },
+                      });
+                    }}
+                    disabled={rowDisabled}
+                    className={`mt-1 w-full p-2 border rounded ${
+                      rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
                   />
                 </div>
 
-                {/* IFSC */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     IFSC
                   </label>
                   <input
+                    name="ifsc"
                     value={bank.ifsc}
                     onChange={(e) =>
-                      handleBankChange(index, "ifsc", e.target.value)
+                      handleBankChange(index, {
+                        target: {
+                          name: "ifsc",
+                          value: e.target.value.toUpperCase().slice(0, 12),
+                        },
+                      })
                     }
-                    placeholder="e.g. SBIN0001234"
-                    disabled={disableBankFields}
-                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
-                      disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
+                    disabled={rowDisabled}
+                    maxLength={12} // extra safeguard for typing
+                    className={`mt-1 w-full p-2 border rounded ${
+                      rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
+                    style={{ textTransform: "uppercase" }} // display stays uppercase
                   />
                 </div>
 
-                {/* Swift */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Swift Code
+                    SWIFT
                   </label>
                   <input
+                    name="swift"
                     value={bank.swift}
                     onChange={(e) =>
-                      handleBankChange(index, "swift", e.target.value)
+                      handleBankChange(index, {
+                        target: {
+                          name: "swift",
+                          value: e.target.value.toUpperCase().slice(0, 10),
+                        },
+                      })
                     }
-                    placeholder="e.g. SBININBBXXX"
-                    disabled={disableBankFields}
-                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
-                      disableBankFields ? "cursor-not-allowed bg-gray-100" : ""
+                    disabled={rowDisabled}
+                    maxLength={10} // HTML safeguard
+                    className={`mt-1 w-full p-2 border rounded ${
+                      rowDisabled ? "bg-gray-100 cursor-not-allowed" : ""
                     }`}
+                    style={{ textTransform: "uppercase" }}
                   />
                 </div>
 
-                {/* UPI */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     UPI ID
                   </label>
                   <input
+                    name="qrDetails"
                     value={bank.qrDetails}
-                    onChange={(e) =>
-                      handleBankChange(index, "qrDetails", e.target.value)
-                    }
-                    placeholder="e.g. abc@hdfcbank"
-                    disabled={disableBankFields || disableUpiField}
-                    className={`mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-black-200 ${
-                      disableBankFields || disableUpiField
-                        ? "cursor-not-allowed bg-gray-100"
+                    onChange={(e) => handleBankChange(index, e)}
+                    disabled={!isUpiEnabled(bank.type)}
+                    className={`mt-1 w-full p-2 border rounded ${
+                      !isUpiEnabled(bank.type)
+                        ? "bg-gray-100 cursor-not-allowed"
                         : ""
                     }`}
                   />

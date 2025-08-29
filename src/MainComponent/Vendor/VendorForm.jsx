@@ -25,7 +25,7 @@ const paymentTerms = [
   "Advance",
 ];
 
-const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", " UPI"];
+const bankTypes = ["BankAndUpi", "Cash", "Bank", ];
 export default function VendorForm({ handleCancel }) {
   const [form, setForm] = useState({
     code: "",
