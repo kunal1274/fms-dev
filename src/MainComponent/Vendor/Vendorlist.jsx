@@ -15,7 +15,7 @@ import VendorViewPage from "./VendorViewPage";
 
 export default function VendorList({ handleAddVendor }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/vendors";
   const metricsUrl = `${baseUrl}/metrics`;
 
   /** ---------- Helpers to normalize fields ---------- */

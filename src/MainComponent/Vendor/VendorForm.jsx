@@ -29,7 +29,7 @@ const paymentTerms = [
   "Net90D",
   "Advance",
 ];
-const bankTypes = ["BankAndUpi", "Cash", "Bank", ];
+const bankTypes = ["BankAndUpi", "Cash", "Bank"];
 
 /* ---------- Helpers (put OUTSIDE the component) ---------- */
 // disable all bank fields when type is non-bank
@@ -80,7 +80,7 @@ const nextVendorCode = (list = []) => {
 
   let maxN = 0;
   for (const c of Array.isArray(list) ? list : []) {
-    const n1 = takeNum(c?.customerAccountNo);
+    const n1 = takeNum(c?.vendorAccountNo);
     const n2 = takeNum(c?.code);
     if (!Number.isNaN(n1)) maxN = Math.max(maxN, n1);
     if (!Number.isNaN(n2)) maxN = Math.max(maxN, n2);
@@ -131,16 +131,16 @@ export default function VendorForm({ handleCancel, onSaved }) {
     globalPartyId: "",
     active: true,
     qrDetails: "",
-    customerAccountNo: "", // will be generated
+    vendorAccountNo: "", // will be generated
   });
 
-  const [customers, setVendors] = useState([]);
+  const [vendors, setVendors] = useState([]);
 
   /* ---------- NEW: uploader states referenced by handleFileUpload ---------- */
   const [logoUploading, setLogoUploading] = useState(false); // logic only; UI unchanged
   const [uploadProgress, setUploadProgress] = useState({}); // logic only; UI unchanged
 
-  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
+  const apiBase = "https://fms-qkmw.onrender.com/fms/api/v0/vendors";
 
   /* ---------- Helpers ---------- */
   const generateAccountNo = useCallback((list) => {
@@ -155,15 +155,15 @@ export default function VendorForm({ handleCancel, onSaved }) {
       setVendors(arr);
       setForm((prev) => ({
         ...prev,
-        customerAccountNo: prev.customerAccountNo || generateAccountNo(arr), // don't overwrite if already set
+        vendorAccountNo: prev.vendorAccountNo || generateAccountNo(arr), // don't overwrite if already set
       }));
     } catch (err) {
-      console.error("Fetch customers failed:", {
+      console.error("Fetch vendors failed:", {
         status: err.response?.status,
         data: err.response?.data,
       });
       toast.error(
-        err.response?.data?.message || err.message || "Couldn’t fetch customers"
+        err.response?.data?.message || err.message || "Couldn’t fetch vendors"
       );
     }
   }, [apiBase, generateAccountNo]);
@@ -189,8 +189,6 @@ export default function VendorForm({ handleCancel, onSaved }) {
       ],
     }));
   };
-
-
 
   const handleFileUpload = async (file) => {
     if (!file) {
@@ -347,7 +345,7 @@ export default function VendorForm({ handleCancel, onSaved }) {
 
     // Map and sanitize bank details from the array actually used in the UI
     const banks = (form.bankDetails || [])
-      .map((b) => sanitizeBank(b, form.code || form.customerAccountNo))
+      .map((b) => sanitizeBank(b, form.code || form.vendorAccountNo))
       .filter((b) => b.type); // drop empty rows (no type)
 
     // Client guardrails
@@ -378,7 +376,7 @@ export default function VendorForm({ handleCancel, onSaved }) {
 
     // Build payload (avoid unused top-level bank fields)
     const payload = {
-      code: form.code || form.customerAccountNo, // fall back to generated if code is empty
+      code: form.code || form.vendorAccountNo, // fall back to generated if code is empty
       name: form.name,
       businessType: form.businessType,
       address: form.address,
@@ -422,10 +420,10 @@ export default function VendorForm({ handleCancel, onSaved }) {
       // Optionally bump the code for the next entry locally
       setForm((prev) => ({
         ...prev,
-        customerAccountNo: nextVendorCode([...customers, newVendor]),
+        vendorAccountNo: nextVendorCode([...vendors, newVendor]),
       }));
     } catch (err) {
-      console.error("Error creating customer:", {
+      console.error("Error creating vendor:", {
         status: err.response?.status,
         data: err.response?.data,
       });
@@ -433,7 +431,7 @@ export default function VendorForm({ handleCancel, onSaved }) {
         err.response?.data?.message ||
         err.response?.data?.error ||
         err.message ||
-        "Couldn’t save customer";
+        "Couldn’t save vendor";
       toast.error(msg, { autoClose: 2500 });
     }
   };
@@ -484,14 +482,14 @@ export default function VendorForm({ handleCancel, onSaved }) {
   const resetForm = (nextAccNo) =>
     setForm((prev) => ({
       ...initialForm,
-      customerAccountNo: nextAccNo ?? generateAccountNo(customers),
+      vendorAccountNo: nextAccNo ?? generateAccountNo(vendors),
       // keep globalPartyId if you want it preserved
       globalPartyId: prev.globalPartyId || "",
     }));
 
   const handleReset = () => {
-    const newVendorCode = generateAccountNo(customers);
-    setForm({ ...initialForm, customerAccountNo: newVendorCode });
+    const newVendorCode = generateAccountNo(vendors);
+    setForm({ ...initialForm, vendorAccountNo: newVendorCode });
   };
 
   /* ---------- Render ---------- */
@@ -529,8 +527,8 @@ export default function VendorForm({ handleCancel, onSaved }) {
                 Vendor Code
               </label>
               <input
-                name="customercode"
-                value={form.customerAccountNo}
+                name="vendorcode"
+                value={form.vendorAccountNo}
                 readOnly
                 placeholder="Auto-generated"
                 className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
