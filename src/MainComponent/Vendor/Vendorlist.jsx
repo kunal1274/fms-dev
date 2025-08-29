@@ -397,7 +397,7 @@ export default function VendorList({ handleAddVendor }) {
   if (viewingVendorId) {
     return (
       <div className="p-4">
-        <VendorViewPage customerId={viewingVendorId} goBack={goBack} />
+        <VendorViewPage vendorId={viewingVendorId} goBack={goBack} />
       </div>
     );
   }
