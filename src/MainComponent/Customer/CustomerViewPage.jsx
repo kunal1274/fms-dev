@@ -32,7 +32,7 @@ const paymentTerms = [
   "Net90D",
   "Advance",
 ];
-const bankTypes = ["BankAndUpi", "Cash", "Bank", ];
+const bankTypes = ["BankAndUpi", "Cash", "Bank"];
 const CustomerViewPagee = ({
   customerId,
   customer,
@@ -129,7 +129,6 @@ const CustomerViewPagee = ({
     }, // ← add this
     active: true,
   });
-
 
   const handleBankDetailChange = async (index, field, value) => {
     const updatedBankDetails = [...formData.bankDetails];
@@ -283,6 +282,9 @@ const CustomerViewPagee = ({
       ],
     }));
   };
+  const handlePhoneChange = (value) => {
+    handleChange({ target: { name: "contactNum", value } });
+  };
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let val = value.replace(/^\s+/, " ");
@@ -298,13 +300,13 @@ const CustomerViewPagee = ({
       "bankAccNum",
       "creditLimit",
       "contactNum",
-      "contactPersonPhone",
+      "contactNum",
     ];
-    const phoneFields = ["contactNum", "contactPersonPhone"];
+    const phoneFields = ["contactNum", "contactNum"];
     const maxLengths = {
       bankAccNum: 18,
       contactNum: 10,
-      contactPersonPhone: 10,
+      contactNum: 10,
       email: 100,
       employeeEmail: 100,
     };
@@ -325,9 +327,9 @@ const CustomerViewPagee = ({
       ["name", "contactPersonName", "accountHolderName"].includes(name) &&
       val
     ) {
-      // Capitalize first letter, leave the rest as-is
       val = val.charAt(0).toUpperCase() + val.slice(1);
     }
+
     // Always uppercase for these fields
     const toUpper = [
       "bankName",
@@ -347,12 +349,10 @@ const CustomerViewPagee = ({
     const patternValidators = {
       ifsc: /^[A-Z0-9]{0,12}$/,
       swift: /^[A-Z0-9]{0,10}$/,
-
       Tannumber: /^[A-Z0-9]{0,10}$/,
       panNum: /^[A-Z0-9]{0,10}$/,
       registrationNum: /^[A-Z0-9]{0,15}$/,
     };
-
     if (patternValidators[name] && !patternValidators[name].test(val)) return;
 
     // Handle bankType logic
@@ -524,22 +524,22 @@ const CustomerViewPagee = ({
   }
 
   return (
-     <div>
-         <ToastContainer />
-         {/* Header Buttons */}
-         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-           <div className="flex items-center space-x-2 ">
-             <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center  justify-center">
-               <button
-                 type="button"
-                 className="text-blue-600 mt-1 text-xs hover:underline"
-               >
-                 Upload Photo
-               </button>
-             </div>
-             <h3 className="text-xl font-semibold">Customer View Page</h3>
-           </div>
-         </div>
+    <div>
+      <ToastContainer />
+      {/* Header Buttons */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center space-x-2 ">
+          <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center  justify-center">
+            <button
+              type="button"
+              className="text-blue-600 mt-1 text-xs hover:underline"
+            >
+              Upload Photo
+            </button>
+          </div>
+          <h3 className="text-xl font-semibold">Customer View Page</h3>
+        </div>
+      </div>
 
       <form className="bg-white shadow-none rounded-lg divide-y divide-gray-200">
         {/* Business Details */}
@@ -618,7 +618,7 @@ const CustomerViewPagee = ({
                 inputMode="numeric"
                 value={formData.contactNum || ""}
                 disabled={!isEditing}
-                onChange={handleChange}
+                onChange={handlePhoneChange}
                 inputProps={{ name: "contactNum", required: true }}
                 containerClass="mt-1 w-full"
                 inputClass="!w-full !pl-18 !pr-7 !py-3 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
@@ -723,10 +723,14 @@ const CustomerViewPagee = ({
               <PhoneInput
                 country="in"
                 // CHANGED: keep storage as +E164, show without "+"
-                name="contactPersonPhone"
-                inputMode="numeric"
-                value={formData.contactPersonPhone}
-                onChange={handleChange}
+                value={formData.contactPersonPhone || ""}
+                onChange={(val, country) => {
+                  const e164 = val ? `+${val}` : "";
+                  setForm((prev) => ({
+                    ...prev,
+                    contactPersonPhone: e164,
+                  }));
+                }}
                 inputProps={{ name: "contactPersonPhone", required: true }}
                 containerClass="mt-1 w-full"
                 inputClass="!w-full !pl-18 !pr-7 !py-4 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"

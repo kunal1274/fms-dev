@@ -6,14 +6,16 @@ import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
+
 import "./c.css";
 
-// NOTE: change this import back to "./VendorViewPagee" if your file is named that.
+
+
 import VendorViewPage from "./VendorViewPage";
 
 export default function VendorList({ handleAddVendor }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/vendors";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
   const metricsUrl = `${baseUrl}/metrics`;
 
   /** ---------- Helpers to normalize fields ---------- */
@@ -73,7 +75,7 @@ export default function VendorList({ handleAddVendor }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const [vendors, setVendors] = useState([]);
+  const [customers, setVendors] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [viewingVendorId, setViewingVendorId] = useState(null);
 
@@ -144,7 +146,8 @@ export default function VendorList({ handleAddVendor }) {
             (s, c) => s + (Number(c?.creditLimit) || 0),
             0
           ),
-          paidVendors: finalList.filter((c) => getStatus(c) === "Paid").length,
+          paidVendors: finalList.filter((c) => getStatus(c) === "Paid")
+            .length,
           activeVendors: finalList.filter(isActive).length,
           onHoldVendors: finalList.filter((c) => isInactive(c) || isOnHold(c))
             .length,
@@ -203,7 +206,7 @@ export default function VendorList({ handleAddVendor }) {
 
   /** ---------- Derived: filtered + sorted list ---------- */
   const filteredVendors = useMemo(() => {
-    let list = [...vendors];
+    let list = [...customers];
 
     // Tabs
     switch (activeTab) {
@@ -257,7 +260,7 @@ export default function VendorList({ handleAddVendor }) {
       list.sort((a, b) => cmpStr(getCode(b), getCode(a)));
 
     return list;
-  }, [vendors, activeTab, statusFilter, searchTerm, sortOption]);
+  }, [customers, activeTab, statusFilter, searchTerm, sortOption]);
 
   /** ---------- Date-range validity ---------- */
   const isRangeValid = useMemo(() => {
@@ -288,7 +291,8 @@ export default function VendorList({ handleAddVendor }) {
     const v = e.target.value;
     if (v === "Vendor Name") return setSortOption("name-asc");
     if (v === "Vendor Account in Ascending") return setSortOption("code-asc");
-    if (v === "Vendor Account in descending") return setSortOption("code-desc");
+    if (v === "Vendor Account in descending")
+      return setSortOption("code-desc");
     setSortOption(v || "");
   };
 
@@ -302,12 +306,6 @@ export default function VendorList({ handleAddVendor }) {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  };
-
-  const resetFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("All");
-    setSortOption("");
   };
 
   const handleDeleteSelected = async () => {
@@ -345,12 +343,12 @@ export default function VendorList({ handleAddVendor }) {
 
   /** ---------- Export ---------- */
   const exportToExcel = () => {
-    if (!vendors.length) {
+    if (!customers.length) {
       toast.info("No data to export.");
       return;
     }
     const ws = XLSX.utils.json_to_sheet(
-      vendors.map((c) => ({
+      customers.map((c) => ({
         Code: getCode(c),
         Name: getName(c),
         Email: getEmail(c),
@@ -366,28 +364,28 @@ export default function VendorList({ handleAddVendor }) {
     );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Vendors");
-    XLSX.writeFile(wb, "vendor_list.xlsx");
+    XLSX.writeFile(wb, "customer_list.xlsx");
   };
 
   const generatePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
-      head: [["#", "Code", "Name", "Email", "GST", "Address", "Status"]],
+      head: [["#", "Code", "Name", "Email", "Address", "Status"]],
       body: filteredVendors.map((c, i) => [
         i + 1,
         getCode(c) || "",
         getName(c) || "",
         getEmail(c) || "",
-        getGST(c) || "",
+
         getAddress(c) || "",
         isActive(c) ? "Active" : "Inactive",
       ]),
     });
-    doc.save("vendor_list.pdf");
+    doc.save("customer_list.pdf");
   };
 
-  const handleVendorClick = (vendorId) => {
-    setViewingVendorId(vendorId);
+  const handleVendorClick = (customerId) => {
+    setViewingVendorId(customerId);
   };
 
   const goBack = () => setViewingVendorId(null);
@@ -399,11 +397,19 @@ export default function VendorList({ handleAddVendor }) {
   if (viewingVendorId) {
     return (
       <div className="p-4">
-        {/* Keeping prop name as 'customerId' for compatibility with your ViewPage */}
         <VendorViewPage customerId={viewingVendorId} goBack={goBack} />
       </div>
     );
   }
+
+  const anyFiltersOn = Boolean(
+    sortOption ||
+      searchTerm ||
+      statusFilter === "Active" ||
+      statusFilter === "Inactive" ||
+      startDate ||
+      endDate
+  );
 
   return (
     <div>
@@ -456,19 +462,20 @@ export default function VendorList({ handleAddVendor }) {
           <input
             type="date"
             value={endDate}
+            min={startDate ? addDays(startDate, 1) : undefined}
             onChange={(e) => setEndDate(e.target.value)}
             className="border rounded px-2 py-1"
           />
           <button
             onClick={() => {
-              if (isRangeValid) {
-                fetchMetrics({ fromDate: startDate, toDate: endDate });
-                fetchVendors({ fromDate: startDate, toDate: endDate });
-              } else {
-                fetchMetrics();
-                fetchVendors();
+              if (!isRangeValid) {
+                toast.info("Pick a valid Start and End date (End > Start).");
+                return;
               }
+              fetchMetrics({ fromDate: startDate, toDate: endDate });
+              fetchVendors({ fromDate: startDate, toDate: endDate });
             }}
+            disabled={!isRangeValid || loadingMetrics}
             className="px-3 py-1 border rounded"
           >
             {loadingMetrics ? "Applying…" : "Apply"}
@@ -565,7 +572,7 @@ export default function VendorList({ handleAddVendor }) {
             setSortOption("");
             setStartDate("");
             setEndDate("");
-            await fetchCustomers(); // all
+            await fetchVendors(); // all
             await fetchMetrics(); // all
           }}
           disabled={!anyFiltersOn}

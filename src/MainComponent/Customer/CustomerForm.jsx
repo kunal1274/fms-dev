@@ -29,7 +29,7 @@ const paymentTerms = [
   "Net90D",
   "Advance",
 ];
-const bankTypes = ["BankAndUpi", "Cash", "Bank", "Crypto", "Barter", "UPI"];
+const bankTypes = ["BankAndUpi", "Cash", "Bank", ];
 
 /* ---------- Helpers (put OUTSIDE the component) ---------- */
 // disable all bank fields when type is non-bank
