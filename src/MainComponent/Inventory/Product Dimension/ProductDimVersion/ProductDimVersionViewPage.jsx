@@ -10,6 +10,18 @@ const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/versions";
 const ProductDimVersionViewPage = ({
   ProductVersionId: propProductVersionId,
   toggleView,
+
+
+
+
+
+
+
+
+
+
+
+  
   goBack,
 }) => {
   const { id } = useParams();

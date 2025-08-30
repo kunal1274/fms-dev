@@ -8,11 +8,11 @@ import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react"; // kept to match your imports
 import "./c.css";
 
-import ColorViewPage from "../Color/ColorViewPage";
+import ColorViewPage from "./ColorViewPage";
 
 export default function ColorsList({ handleAddColor, onView }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sizes";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/colors";
   const metricsUrl = `${baseUrl}/metrics`;
 
   /** ---------- Helpers to normalize fields ---------- */
@@ -429,13 +429,13 @@ export default function ColorsList({ handleAddColor, onView }) {
       <div>
         <div>
           {viewingColorsId ? (
-            <ColorViewPage ColorId={viewingColorsId} goBack={goBack} />
+            <ColorViewPage ColorsId={viewingColorsId} goBack={goBack} />
           ) : (
             <div className="space-y-6">
               <ToastContainer />
 
               {/* Header Buttons */}
-              <div className="flex flex-ol gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-2 ">
                   <h3 className="text-xl font-semibold">Colors List</h3>
                 </div>

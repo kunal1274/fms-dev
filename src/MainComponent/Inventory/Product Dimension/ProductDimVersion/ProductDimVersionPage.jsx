@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ProductVersionList from "./ProductDimVersionList";
+import ProductVersionList from "./ProductDimVersionList.jsx";
 import ProductVersionForm from "./productDimVersionForm";
 // import ProductVersionViewPage from "./ProductDimVersionViewPage";
 

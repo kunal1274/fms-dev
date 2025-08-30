@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ProductStyleList from "./ProductDimStyleList";
+import ProductStyleList from "./ProductDimStyleList.jsx";
 import ProductStyleForm from "./productDimStyleForm";
 import ProductStyleViewPage from "./ProductDimStyleViewPage";
 

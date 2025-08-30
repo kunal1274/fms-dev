@@ -12,7 +12,7 @@ import ColorViewPage from "../Color/ColorViewPage";
 
 export default function ColorsList({ handleAddColor, onView }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sizes";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Styles";
   const metricsUrl = `${baseUrl}/metrics`;
 
   /** ---------- Helpers to normalize fields ---------- */

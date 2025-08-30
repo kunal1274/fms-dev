@@ -5,7 +5,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
 
-const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/colors";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/colors";
 
 const ColorViewPage = ({ ColorId, goBack, toggleView }) => {
   const { id } = useParams();
@@ -27,6 +27,12 @@ const ColorViewPage = ({ ColorId, goBack, toggleView }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+
+
+
+
+
+  
   // Fetch color data
   useEffect(() => {
     const fetchColor = async () => {
