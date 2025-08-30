@@ -8,19 +8,19 @@ import autoTable from "jspdf-autotable";
 import { Tabs } from "flowbite-react"; // kept to match your imports
 import "./c.css";
 
-import ColorViewPage from "../Color/ColorViewPage";
+import StylesViewPage from "../Style/ProductDimStyleViewPage";
 
-export default function ColorsList({ handleAddColor, onView }) {
+export default function StylessList({ handleAddStyles, onView }) {
   /** ---------- API ---------- */
   const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Styles";
   const metricsUrl = `${baseUrl}/metrics`;
 
   /** ---------- Helpers to normalize fields ---------- */
-  const getId = (c) => c?._id || c?.id || c?.colorsId || c?.code || "";
-  const getCode = (c) => c?.colorsCode || c?.code || "";
-  const gettype = (c) => c?.colorstype || c?.type || "";
+  const getId = (c) => c?._id || c?.id || c?.stylessId || c?.code || "";
+  const getCode = (c) => c?.stylessCode || c?.code || "";
+  const gettype = (c) => c?.stylesstype || c?.type || "";
 
-  const getName = (c) => c?.colorsName || c?.name || "";
+  const getName = (c) => c?.stylessName || c?.name || "";
   const getdescription = (c) => c?.description || "";
   const getCurrency = (c) => c?.currency || "";
   const isActive = (c) => !!c?.active;
@@ -56,18 +56,18 @@ export default function ColorsList({ handleAddColor, onView }) {
 
   /** ---------- State ---------- */
   const tabNames = [
-    "Colors List",
-    "Paid Colors",
-    "Active Colors",
-    "Hold Colors",
-    "Outstanding Colors",
+    "Styless List",
+    "Paid Styless",
+    "Active Styless",
+    "Hold Styless",
+    "Outstanding Styless",
   ];
 
   const [activeTab, setActiveTab] = useState(tabNames[0]);
 
-  const [companies, setColors] = useState([]);
+  const [companies, setStyless] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [viewingColorsId, setViewingColorsId] = useState(null);
+  const [viewingStylessId, setViewingStylessId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
@@ -80,9 +80,9 @@ export default function ColorsList({ handleAddColor, onView }) {
   const [summary, setSummary] = useState({
     count: 0,
     creditLimit: 0,
-    paidColorss: 0,
-    activeColorss: 0,
-    onHoldColorss: 0,
+    paidStylesss: 0,
+    activeStylesss: 0,
+    onHoldStylesss: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -90,7 +90,7 @@ export default function ColorsList({ handleAddColor, onView }) {
   const [error, setError] = useState(null);
 
   /** ---------- Fetchers ---------- */
-  const fetchColors = useCallback(async ({ fromDate, toDate } = {}) => {
+  const fetchStyless = useCallback(async ({ fromDate, toDate } = {}) => {
     setLoading(true);
     setError(null);
     try {
@@ -118,7 +118,7 @@ export default function ColorsList({ handleAddColor, onView }) {
         });
       }
 
-      setColors(finalList);
+      setStyless(finalList);
 
       setSummary((prev) => ({
         ...prev,
@@ -127,13 +127,13 @@ export default function ColorsList({ handleAddColor, onView }) {
           (s, c) => s + (Number(c?.creditLimit) || 0),
           0
         ),
-        paidColorss: finalList.filter((c) => getStatus(c) === "Paid").length,
-        activeColorss: finalList.filter((c) => isActive(c)).length,
-        onHoldColorss: finalList.filter((c) => !isActive(c)).length,
+        paidStylesss: finalList.filter((c) => getStatus(c) === "Paid").length,
+        activeStylesss: finalList.filter((c) => isActive(c)).length,
+        onHoldStylesss: finalList.filter((c) => !isActive(c)).length,
       }));
     } catch (err) {
       console.error(err);
-      setError("Unable to load Colors data.");
+      setError("Unable to load Styless data.");
     } finally {
       setLoading(false);
     }
@@ -154,14 +154,14 @@ export default function ColorsList({ handleAddColor, onView }) {
 
       setSummary((prev) => ({
         ...prev,
-        count: m?.totalColorss ?? prev.count,
+        count: m?.totalStylesss ?? prev.count,
         creditLimit: m?.creditLimit ?? prev.creditLimit,
-        paidColorss: m?.paidColorss ?? prev.paidColorss,
-        activeColorss: m?.activeColorss ?? prev.activeColorss,
-        onHoldColorss:
-          typeof m?.inactiveColorss === "number"
-            ? m.inactiveColorss
-            : m?.onHoldColorss ?? prev.onHoldColorss,
+        paidStylesss: m?.paidStylesss ?? prev.paidStylesss,
+        activeStylesss: m?.activeStylesss ?? prev.activeStylesss,
+        onHoldStylesss:
+          typeof m?.inactiveStylesss === "number"
+            ? m.inactiveStylesss
+            : m?.onHoldStylesss ?? prev.onHoldStylesss,
       }));
     } catch (err) {
       console.error(err); // metrics optional
@@ -182,25 +182,25 @@ export default function ColorsList({ handleAddColor, onView }) {
 
   // Initial load — show ALL data (no date params)
   useEffect(() => {
-    fetchColors();
+    fetchStyless();
     fetchMetrics();
-  }, [fetchColors, fetchMetrics]);
+  }, [fetchStyless, fetchMetrics]);
 
   /** ---------- Derived: filtered + sorted list ---------- */
-  const filteredColors = useMemo(() => {
+  const filteredStyless = useMemo(() => {
     let list = [...companies];
 
     switch (activeTab) {
-      case "Paid Colors":
+      case "Paid Styless":
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
-      case "Active Colors":
+      case "Active Styless":
         list = list.filter((c) => isActive(c));
         break;
-      case "Hold Colors":
+      case "Hold Styless":
         list = list.filter((c) => !isActive(c));
         break;
-      case "Outstanding Colors":
+      case "Outstanding Styless":
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
@@ -278,8 +278,8 @@ export default function ColorsList({ handleAddColor, onView }) {
     }
   };
 
-  const handleColorsClick = (ColorsId) => {
-    setViewingColorsId(ColorsId);
+  const handleStylessClick = (StylessId) => {
+    setViewingStylessId(StylessId);
   };
 
   /** ---------- Reset also restores endDate to today ---------- */
@@ -290,15 +290,15 @@ export default function ColorsList({ handleAddColor, onView }) {
     setSortOption("");
     setStartDate("");
     setEndDate(todayStr()); // CHANGED: keep default end date visible
-    await fetchColors();
+    await fetchStyless();
     await fetchMetrics();
   };
 
   const handleSortChange = (e) => {
     const v = e.target.value;
-    if (v === "Colors Name") return setSortOption("name-asc");
-    if (v === "Colors Account in Ascending") return setSortOption("code-asc");
-    if (v === "Colors Account in Descending") return setSortOption("code-desc");
+    if (v === "Styless Name") return setSortOption("name-asc");
+    if (v === "Styless Account in Ascending") return setSortOption("code-asc");
+    if (v === "Styless Account in Descending") return setSortOption("code-desc");
     setSortOption(v);
   };
 
@@ -312,7 +312,7 @@ export default function ColorsList({ handleAddColor, onView }) {
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const toggleSelectAll = (e) => {
-    setSelectedIds(e.target.checked ? filteredColors.map((c) => getId(c)) : []);
+    setSelectedIds(e.target.checked ? filteredStyless.map((c) => getId(c)) : []);
   };
 
   const handleCheckboxChange = (id) => {
@@ -346,10 +346,10 @@ export default function ColorsList({ handleAddColor, onView }) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
         if (startDate && endDate && isRangeValid) {
-          await fetchColors({ fromDate: startDate, toDate: endDate });
+          await fetchStyless({ fromDate: startDate, toDate: endDate });
           await fetchMetrics({ fromDate: startDate, toDate: endDate });
         } else {
-          await fetchColors();
+          await fetchStyless();
           await fetchMetrics();
         }
         window.location.reload();
@@ -369,8 +369,8 @@ export default function ColorsList({ handleAddColor, onView }) {
     }
     const ws = XLSX.utils.json_to_sheet(companies);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Colorss");
-    XLSX.writeFile(wb, "Colors_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Stylesss");
+    XLSX.writeFile(wb, "Styless_list.xlsx");
   };
 
   const generatePDF = () => {
@@ -389,7 +389,7 @@ export default function ColorsList({ handleAddColor, onView }) {
           "Status",
         ],
       ],
-      body: filteredColors.map((c, i) => [
+      body: filteredStyless.map((c, i) => [
         i + 1,
         getCode(c) || "",
         getName(c) || "",
@@ -401,12 +401,12 @@ export default function ColorsList({ handleAddColor, onView }) {
         isActive(c) ? "Active" : "Inactive",
       ]),
     });
-    doc.save("Colors_list.pdf");
+    doc.save("Styless_list.pdf");
   };
 
   /** ---------- View toggle ---------- */
   const goBack = () => {
-    setViewingColorsId(null);
+    setViewingStylessId(null);
     window.location.reload();
   };
 
@@ -414,10 +414,10 @@ export default function ColorsList({ handleAddColor, onView }) {
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingColorsId) {
+  if (viewingStylessId) {
     return (
       <div className="p-4">
-        <ColorViewPage ColorsId={viewingColorsId} goBack={goBack} />
+        <StylesViewPage StylessId={viewingStylessId} goBack={goBack} />
       </div>
     );
   }
@@ -428,8 +428,8 @@ export default function ColorsList({ handleAddColor, onView }) {
     <div>
       <div>
         <div>
-          {viewingColorsId ? (
-            <ColorViewPage ColorId={viewingColorsId} goBack={goBack} />
+          {viewingStylessId ? (
+            <StylesViewPage StylesId={viewingStylessId} goBack={goBack} />
           ) : (
             <div className="space-y-6">
               <ToastContainer />
@@ -437,12 +437,12 @@ export default function ColorsList({ handleAddColor, onView }) {
               {/* Header Buttons */}
               <div className="flex flex-ol gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-2 ">
-                  <h3 className="text-xl font-semibold">Colors List</h3>
+                  <h3 className="text-xl font-semibold">Styless List</h3>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <button
-                    onClick={handleAddColor}
+                    onClick={handleAddStyles}
                     className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02] w-full sm:w-auto"
                   >
                     + Add
@@ -475,11 +475,11 @@ export default function ColorsList({ handleAddColor, onView }) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
-                    ["Total Colorss", summary.count],
+                    ["Total Stylesss", summary.count],
                     ["Credit Limit", summary.creditLimit],
-                    ["Paid Colorss", summary.paidColorss],
-                    ["Active Colorss", summary.activeColorss],
-                    ["On-Hold Colorss", summary.onHoldColorss],
+                    ["Paid Stylesss", summary.paidStylesss],
+                    ["Active Stylesss", summary.activeStylesss],
+                    ["On-Hold Stylesss", summary.onHoldStylesss],
                   ].map(([label, value]) => (
                     <div
                       key={label}
@@ -520,12 +520,12 @@ export default function ColorsList({ handleAddColor, onView }) {
                       className="w-full sm:w-56 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
                       <option value="">Sort By</option>
-                      <option value="name-asc">Colors Name</option>
+                      <option value="name-asc">Styless Name</option>
                       <option value="code-asc">
-                        Colors Account in Ascending
+                        Styless Account in Ascending
                       </option>
                       <option value="code-desc">
-                        Colors Account in Descending
+                        Styless Account in Descending
                       </option>
                     </select>
                   </div>
@@ -592,7 +592,7 @@ export default function ColorsList({ handleAddColor, onView }) {
                           fromDate: startDate,
                           toDate: endDate,
                         });
-                        await fetchColors({
+                        await fetchStyless({
                           fromDate: startDate,
                           toDate: endDate,
                         });
@@ -626,7 +626,7 @@ export default function ColorsList({ handleAddColor, onView }) {
                     <li
                       key={tab}
                       onClick={() => onTabClick(tab)}
-                      className={`cursor-pointer pb-2 transition-colors ${
+                      className={`cursor-pointer pb-2 transition-styless ${
                         activeTab === tab
                           ? "text-green-600 border-b-2 border-green-600"
                           : "text-gray-600 hover:text-gray-800"
@@ -648,8 +648,8 @@ export default function ColorsList({ handleAddColor, onView }) {
                           type="checkbox"
                           onChange={toggleSelectAll}
                           checked={
-                            selectedIds.length === filteredColors.length &&
-                            filteredColors.length > 0
+                            selectedIds.length === filteredStyless.length &&
+                            filteredStyless.length > 0
                           }
                           className="form-checkbox"
                         />
@@ -673,11 +673,11 @@ export default function ColorsList({ handleAddColor, onView }) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredColors.length ? (
-                      filteredColors.map((c) => (
+                    {filteredStyless.length ? (
+                      filteredStyless.map((c) => (
                         <tr
                           key={getId(c)}
-                          className="hover:bg-gray-100 transition-colors"
+                          className="hover:bg-gray-100 transition-styless"
                         >
                           {/* Checkbox */}
                           <td className="px-4 py-2">
@@ -693,7 +693,7 @@ export default function ColorsList({ handleAddColor, onView }) {
                           <td className="px-6 py-4">
                             <button
                               className="text-blue-600 hover:underline focus:outline-none"
-                              onClick={() => handleColorsClick(getId(c))}
+                              onClick={() => handleStylessClick(getId(c))}
                             >
                               {getCode(c)}
                             </button>
