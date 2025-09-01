@@ -47,7 +47,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
     bankDetails: [],
   });
   const [prevFormData, setPrevFormData] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
   // const [isEditing, setIsEditing] = useState(false);
   const [isEdited, setIsEdited] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -490,6 +490,46 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
           </div>
           <h3 className="text-xl font-semibold">Company View Page</h3>
         </div>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={!isEditing} // disable when not editing
+            className={` h-8 px-3 border  rounded transition ${
+              isEditing
+                ? "bg-red-400 text-white hover:bg-red-500" // editable → light red
+                : "bg-gray-300 text-gray-600 cursor-not-allowed" // not editable → grey
+            }`}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={goBack}
+            className=" h-8 px-3 border  bg-gray-200 rounded hover:bg-gray-300 transition"
+          >
+            Go Back
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (isEditing) {
+                handleUpdate(); // already editing → update
+              } else {
+                handleEdit(); // not editing → switch to edit mode
+              }
+            }}
+            className={` h-8 px-3 border rounded transition ${
+              isEditing
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-green-200 hover:bg-gray-300"
+            }`}
+          >
+            {isEditing ? "Update" : "Edit"}
+          </button>
+        </div>
       </div>
 
       <form className="bg-white shadow-none rounded-lg divide-y divide-gray-200">
@@ -508,7 +548,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                 value={formData.companyCode}
                 readOnly
                 placeholder="Auto-generated"
-                className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full bg-gray-100 text-gray-500 cursor-not-allowed p-2 border rounded focus:ring-0"
               />
             </div>
             <div>
@@ -537,7 +577,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                 onChange={handleChange}
                 placeholder="Auto-generated"
                 disabled
-                className="mt-1 cursor-not-allowed w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+               className="mt-1 w-full bg-gray-100 text-gray-500 cursor-not-allowed p-2 border rounded focus:ring-0"
               />
             </div>{" "}
             <div>
@@ -996,46 +1036,6 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
         </section>
 
         {/* Action Buttons */}
-        <div className="py-6 flex justify-end gap-4">
-          <button
-            type="button"
-            onClick={handleCancel}
-            disabled={!isEditing} // disable when not editing
-            className={`px-6 py-2 rounded transition ${
-              isEditing
-                ? "bg-red-400 text-white hover:bg-red-500" // editable → light red
-                : "bg-gray-300 text-gray-600 cursor-not-allowed" // not editable → grey
-            }`}
-          >
-            Cancel
-          </button>
-
-          <button
-            type="button"
-            onClick={goBack}
-            className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
-          >
-            Go Back
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              if (isEditing) {
-                handleUpdate(); // already editing → update
-              } else {
-                handleEdit(); // not editing → switch to edit mode
-              }
-            }}
-            className={`px-6 py-2 rounded transition ${
-              isEditing
-                ? "bg-blue-500 text-white hover:bg-blue-600"
-                : "bg-green-200 hover:bg-gray-300"
-            }`}
-          >
-            {isEditing ? "Update" : "Edit"}
-          </button>
-        </div>
       </form>
     </div>
   );

@@ -73,7 +73,7 @@ export default function CompaniesList({ handleAddCompany, onView }) {
 
   // Start is blank; End defaults to TODAY  // CHANGED
   const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState(() => todayStr()); // NEW default
+const [endDate, setEndDate] = useState("");
 
   const [summary, setSummary] = useState({
     count: 0,
@@ -555,6 +555,9 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                   {/* Search */}
                 
                   <div className="flex flex-wrap gap-2">
+                       <label className="block text-sm font-medium text-gray-600 mb-1 mt-2">
+  Form
+</label>
                     <input
                       type="date"
                       value={startDate}
@@ -570,6 +573,9 @@ export default function CompaniesList({ handleAddCompany, onView }) {
                       }}
                       className="border rounded px-2 py-1 w-full sm:w-auto"
                     />
+                   <label className="block text-sm font-medium text-gray-600 mb-1 mt-2">
+  To
+</label>
                     <input
                       type="date"
                       value={endDate}
