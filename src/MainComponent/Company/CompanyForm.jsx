@@ -191,7 +191,7 @@ export default function CompanyForm({ handleCancel }) {
       swift: /^[A-Z0-9]{0,10}$/,
       TanNumber: /^[A-Z0-9]{0,10}$/,
       qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
-      companyName: /^[A-Za-z\s]*$/,
+      companyName: /^[A-Za-z0-9\s.&()-]*$/, 
       employeeName: /^[A-Za-z\s]*$/,
       email: /^.{0,100}$/,
       employeeEmail: /^.{0,100}$/,
@@ -450,7 +450,7 @@ export default function CompanyForm({ handleCancel }) {
               </label>
               <PhoneInput
                 country="in" // default India
-                value={form.contactNum} // keep the "+91..." format here
+                value={form.AlternatecontactNum} // keep the "+91..." format here
                 onChange={(val, country, e, formattedValue) => {
                   const dial = country?.dialCode ? `+${country.dialCode}` : "";
                   const e164 = val ? `+${val}` : "";
