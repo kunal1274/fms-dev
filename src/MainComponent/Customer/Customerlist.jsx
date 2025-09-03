@@ -73,7 +73,7 @@ export default function CustomerList({ handleAddCustomer }) {
 
   // Dates start empty => initial fetch = ALL data
   const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+const [endDate, setEndDate] = useState("");
 
   const [customers, setCustomers] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -452,35 +452,7 @@ export default function CustomerList({ handleAddCustomer }) {
 
       {/* Date + Metrics */}
       <div className="bg-white rounded-lg">
-        <div className="flex gap-2">
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border rounded px-2 py-1"
-          />
-          <input
-            type="date"
-            value={endDate}
-            min={startDate ? addDays(startDate, 1) : undefined}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border rounded px-2 py-1"
-          />
-          <button
-            onClick={() => {
-              if (!isRangeValid) {
-                toast.info("Pick a valid Start and End date (End > Start).");
-                return;
-              }
-              fetchMetrics({ fromDate: startDate, toDate: endDate });
-              fetchCustomers({ fromDate: startDate, toDate: endDate });
-            }}
-            disabled={!isRangeValid || loadingMetrics}
-            className="px-3 py-1 border rounded"
-          >
-            {loadingMetrics ? "Applying…" : "Apply"}
-          </button>
-        </div>
+       
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
           {[
@@ -561,6 +533,41 @@ export default function CustomerList({ handleAddCustomer }) {
               <FaSearch className="w-5 h-5" />
             </div>
           </div>
+           <div className="flex gap-2">
+              <label className="block text-sm font-medium text-gray-600 mb-1 mt-2">
+To
+</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="border rounded px-2 py-1"
+          />
+           <label className="block text-sm font-medium text-gray-600 mb-1 mt-2">
+From
+</label>
+          <input
+            type="date"
+            value={endDate}
+            min={startDate ? addDays(startDate, 1) : undefined}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="border rounded px-2 py-1"
+          />
+          <button
+            onClick={() => {
+              if (!isRangeValid) {
+                toast.info("Pick a valid Start and End date (End > Start).");
+                return;
+              }
+              fetchMetrics({ fromDate: startDate, toDate: endDate });
+              fetchCustomers({ fromDate: startDate, toDate: endDate });
+            }}
+            disabled={!isRangeValid || loadingMetrics}
+            className="px-3 py-1 border rounded"
+          >
+            {loadingMetrics ? "Applying…" : "Apply"}
+          </button>
+        </div>
         </div>
 
         {/* Reset */}

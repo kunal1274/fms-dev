@@ -191,7 +191,7 @@ export default function CompanyForm({ handleCancel }) {
       swift: /^[A-Z0-9]{0,10}$/,
       TanNumber: /^[A-Z0-9]{0,10}$/,
       qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
-      companyName: /^[A-Za-z0-9\s.&()-]*$/, 
+      companyName: /^[A-Za-z0-9\s.&()-]*$/,
       employeeName: /^[A-Za-z\s]*$/,
       email: /^.{0,100}$/,
       employeeEmail: /^.{0,100}$/,
@@ -790,15 +790,13 @@ India"
                 key={index}
                 className="relative grid grid-cols-1 sm:grid-cols-4 gap-6 mb-6 border p-4 rounded-lg"
               >
-                {index > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteBank(index)}
-                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                  >
-                    ✕
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => handleDeleteBank(index)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                >
+                  ✕
+                </button>
 
                 {/* Bank Type */}
                 <div>

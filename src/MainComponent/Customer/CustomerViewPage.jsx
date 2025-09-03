@@ -40,8 +40,9 @@ const CustomerViewPagee = ({
   handleSaveCustomer,
   toggleView,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isEdited, setIsEdited] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
+  const [isEdited, setIsEdited] = useState(true);
+  const [prevFormData, setPrevFormData] = useState(null);
   const bankDetailsBackup = useRef({});
   const [name, setName] = useState(0);
   const [bankAccount, setBankAccount] = useState(0);
@@ -129,7 +130,12 @@ const CustomerViewPagee = ({
     }, // ← add this
     active: true,
   });
-
+  const handleCancel = () => {
+    if (prevFormData) {
+      setFormData(prevFormData); // restore saved data
+    }
+    setIsEditing(false);
+  };
   const handleBankDetailChange = async (index, field, value) => {
     const updatedBankDetails = [...formData.bankDetails];
     let currentBank = updatedBankDetails[index];
@@ -539,6 +545,46 @@ const CustomerViewPagee = ({
           </div>
           <h3 className="text-xl font-semibold">Customer View Page</h3>
         </div>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={!isEditing} // disable when not editing
+            className={` h-8 px-3 border  rounded transition ${
+              isEditing
+                ? "bg-red-400 text-white hover:bg-red-500" // editable → light red
+                : "bg-gray-300 text-gray-600 cursor-not-allowed" // not editable → grey
+            }`}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={goBack}
+            className=" h-8 px-3 border  bg-gray-200 rounded hover:bg-gray-300 transition"
+          >
+            Go Back
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (isEditing) {
+                handleUpdate(); // already editing → update
+              } else {
+                handleEdit(); // not editing → switch to edit mode
+              }
+            }}
+            className={` h-8 px-3 border rounded transition ${
+              isEditing
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-green-200 hover:bg-gray-300"
+            }`}
+          >
+            {isEditing ? "Update" : "Edit"}
+          </button>
+        </div>
       </div>
 
       <form className="bg-white shadow-none rounded-lg divide-y divide-gray-200">
@@ -610,24 +656,49 @@ const CustomerViewPagee = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Contact No
+                Company Contact No
               </label>
+
+              {/* Country selector on the left + full world list */}
               <PhoneInput
                 country="in"
-                name="contactNum"
-                inputMode="numeric"
                 value={formData.contactNum || ""}
                 disabled={!isEditing}
-                onChange={handlePhoneChange}
+                onChange={(value) =>
+                  setFormData((prev) => ({ ...prev, contactNum: value }))
+                }
                 inputProps={{ name: "contactNum", required: true }}
                 containerClass="mt-1 w-full"
-                inputClass="!w-full !pl-18 !pr-7 !py-3 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
+                inputClass="!w-full !pl-18 !pr-7 !py-2 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
                 buttonClass="!border !rounded-l-lg "
                 dropdownClass="!shadow-lg"
                 enableSearch
                 prefix="+"
               />
-            </div>{" "}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Alternate Contact No
+              </label>
+              <PhoneInput
+                country="in"
+                value={formData.alternateContactNum || ""}
+                disabled={!isEditing}
+                onChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    alternateContactNum: value,
+                  }))
+                }
+                inputProps={{ name: "alternateContactNum" }}
+                containerClass="mt-1 w-full"
+                inputClass="!w-full !pl-18 !pr-7 !py-2 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
+                buttonClass="!border !rounded-l-lg "
+                dropdownClass="!shadow-lg"
+                enableSearch
+                prefix="+"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Email ID
@@ -642,10 +713,36 @@ const CustomerViewPagee = ({
                 disabled={!isEditing}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
-            </div>
+            </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Address
+                Alternate Email ID
+              </label>
+              <input
+                name="email"
+                type="email"
+                placeholder="e.g. info@xyzenterprises.com"
+                required
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Billing Address
+              </label>
+              <textarea
+                name="address"
+                value={formData.address || ""}
+                onChange={handleChange}
+                disabled={!isEditing}
+                rows="4"
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Shipping Address
               </label>
               <textarea
                 name="address"
@@ -680,7 +777,7 @@ const CustomerViewPagee = ({
                 maxLength={10}
                 onChange={handleChange}
                 placeholder="e.g. Retail, Wholesale"
-                disabled
+                disabled={!isEditing}
                 className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
@@ -851,15 +948,13 @@ const CustomerViewPagee = ({
                 key={b.id || i}
                 className="relative grid grid-cols-1 sm:grid-cols-4 gap-6 mb-6 border p-4 rounded-lg"
               >
-                {i > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteBank(i)}
-                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                  >
-                    ✕
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => handleDeleteBank(i)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                >
+                  ✕
+                </button>
 
                 {/* Bank Type */}
                 <div>
@@ -1087,33 +1182,6 @@ const CustomerViewPagee = ({
           {/*  */}
         </section>
         {/* Action Buttons */}
-        <div className="py-6 flex justify-end gap-4">
-          {" "}
-          <button
-            type="button"
-            onClick={goBack}
-            className="px-6 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
-          >
-            Go Back
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (isEditing) {
-                handleUpdate(); // already editing → update
-              } else {
-                handleEdit(); // not editing → switch to edit mode
-              }
-            }}
-            className={`px-6 py-2 rounded transition ${
-              isEditing
-                ? "bg-blue-500 text-white hover:bg-blue-600"
-                : "bg-green-200 hover:bg-gray-300"
-            }`}
-          >
-            {isEditing ? "Update" : "Edit"}
-          </button>
-        </div>
       </form>
     </div>
   );

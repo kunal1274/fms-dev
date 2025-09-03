@@ -49,7 +49,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
   const [prevFormData, setPrevFormData] = useState(null);
   const [isEditing, setIsEditing] = useState(true);
   // const [isEditing, setIsEditing] = useState(false);
-  const [isEdited, setIsEdited] = useState(false);
+  const [isEdited, setIsEdited] = useState(true);
   const [loading, setLoading] = useState(true);
   const [logoUploading, setLogoUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({});
@@ -577,7 +577,7 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                 onChange={handleChange}
                 placeholder="Auto-generated"
                 disabled
-               className="mt-1 w-full bg-gray-100 text-gray-500 cursor-not-allowed p-2 border rounded focus:ring-0"
+                className="mt-1 w-full bg-gray-100 text-gray-500 cursor-not-allowed p-2 border rounded focus:ring-0"
               />
             </div>{" "}
             <div>
@@ -682,8 +682,8 @@ const CompanyViewPage = ({ CompaniesId, goBack }) => {
                 value={formData.website || ""}
                 onChange={handleChange}
                 placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                disabled={!isEditing}
+            className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
             <div>

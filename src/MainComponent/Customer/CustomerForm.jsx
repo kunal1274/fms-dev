@@ -29,7 +29,7 @@ const paymentTerms = [
   "Net90D",
   "Advance",
 ];
-const bankTypes = ["BankAndUpi", "Cash", "Bank", ];
+const bankTypes = ["BankAndUpi", "Cash", "Bank"];
 
 /* ---------- Helpers (put OUTSIDE the component) ---------- */
 // disable all bank fields when type is non-bank
@@ -190,8 +190,6 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     }));
   };
 
-
-
   const handleFileUpload = async (file) => {
     if (!file) {
       toast.error("No file selected!");
@@ -257,7 +255,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
       swift: /^[A-Z0-9]{0,10}$/,
       tanNumber: /^[A-Z0-9]{0,10}$/,
       qrDetails: /^[A-Za-z0-9.@]{0,25}$/,
-      name: /^[A-Za-z\s]*$/,
+      name: /^.*$/,
       employeeName: /^[A-Za-z\s]*$/,
       email: /^.{0,100}$/,
       employeeEmail: /^.{0,100}$/,
@@ -313,7 +311,14 @@ export default function CustomerForm({ handleCancel, onSaved }) {
     }
 
     // Validate input
-    if (validators[name] && !validators[name].test(val)) return;
+    if (validators[name] && !validators[name].test(val)) {
+      if (name === "name") {
+        toast.error(
+          "Invalid characters in Customer Name. Allowed: letters, numbers, spaces, . & ( ) -"
+        );
+      }
+      return;
+    }
 
     // Set form state
     setForm((prev) => ({ ...prev, [name]: val }));
@@ -533,7 +538,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 value={form.customerAccountNo}
                 readOnly
                 placeholder="Auto-generated"
-                className="mt-1 w-full cursor-not-allowed  p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded bg-gray-100 cursor-not-allowed focus:ring-0"
               />
             </div>
             <div>
@@ -559,7 +564,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 onChange={handleChange}
                 placeholder="Auto-generated"
                 readOnly
-                className="mt-1 cursor-not-allowed  w-full p-2 curser-notallow border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border rounded bg-gray-100 cursor-not-allowed focus:ring-0"
               />
             </div>
             <div>
@@ -581,6 +586,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 ))}
               </select>
             </div>{" "}
+            <input type="text" value={form.contactNum} />
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Contact No
@@ -609,6 +615,33 @@ export default function CustomerForm({ handleCancel, onSaved }) {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
+                Alternate Contact No
+              </label>
+
+              {/* Country selector on the left + full world list */}
+              <PhoneInput
+                country="in" // default India
+                value={form.contactNum} // keep the "+91..." format here
+                onChange={(val, country, e, formattedValue) => {
+                  const dial = country?.dialCode ? `+${country.dialCode}` : "";
+                  const e164 = val ? `+${val}` : "";
+                  setForm((prev) => ({
+                    ...prev,
+                    countryCode: dial,
+                    contactNum: e164, // always store with "+"
+                  }));
+                }}
+                inputProps={{ name: "contactNum", required: true }}
+                containerClass="mt-1 w-full"
+                inputClass="!w-full !pl-18 !pr-7 !py-2 !border !rounded-lg !focus:ring-2 !focus:ring-black-200"
+                buttonClass="!border !rounded-l-lg "
+                dropdownClass="!shadow-lg"
+                enableSearch
+                prefix="+"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
                 Email ID
               </label>
               <input
@@ -623,7 +656,35 @@ export default function CustomerForm({ handleCancel, onSaved }) {
             </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Address
+                Alternate Email ID
+              </label>
+              <input
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="e.g. info@xyzenterprises.com"
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Billing Address
+              </label>
+              <textarea
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                placeholder="e.g. 123 MG Road, Bengaluru, Karnataka, 560001"
+                rows={4}
+                required
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+              />
+            </div>{" "}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Shipping Address
               </label>
               <textarea
                 name="address"
@@ -657,8 +718,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 value={form.group}
                 onChange={handleChange}
                 placeholder="e.g. Retail, Wholesale"
-                disabled
-                className="mt-1 w-full p-2 border cursor-not-allowed  rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-1 w-full p-2 border   rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>
             <div className="flex items-center gap-2 ml-1">
@@ -821,16 +881,13 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 key={index}
                 className="relative grid grid-cols-1 sm:grid-cols-4 gap-6 mb-6 border p-4 rounded-lg"
               >
-                {index > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteBank(index)}
-                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                  >
-                    ✕
-                  </button>
-                )}
-
+                <button
+                  type="button"
+                  onClick={() => handleDeleteBank(index)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                >
+                  ✕
+                </button>
                 {/* Bank Type */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
@@ -986,6 +1043,14 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 name="panNum"
                 value={form.panNum}
                 onChange={handleChange}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const pasted = e.clipboardData
+                    .getData("text")
+                    .toUpperCase()
+                    .trim();
+                  setForm((prev) => ({ ...prev, panNum: pasted }));
+                }}
                 placeholder="e.g. ABCDE1234F"
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
@@ -999,6 +1064,14 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 label="Registration No."
                 name="registrationNum"
                 value={form.registrationNum}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const pasted = e.clipboardData
+                    .getData("text")
+                    .toUpperCase()
+                    .trim();
+                  setForm((prev) => ({ ...prev, registrationNum: pasted }));
+                }}
                 onChange={handleChange}
                 placeholder="e.g.  REG123456789"
                 required
@@ -1013,6 +1086,14 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 name="tanNumber"
                 value={form.tanNumber}
                 onChange={handleChange}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const pasted = e.clipboardData
+                    .getData("text")
+                    .toUpperCase()
+                    .trim();
+                  setForm((prev) => ({ ...prev, tanNumber: pasted }));
+                }}
                 placeholder="e.g. ABCDE1234F"
                 required
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"

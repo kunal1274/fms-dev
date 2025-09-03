@@ -556,7 +556,7 @@ const [endDate, setEndDate] = useState("");
                 
                   <div className="flex flex-wrap gap-2">
                        <label className="block text-sm font-medium text-gray-600 mb-1 mt-2">
-  Form
+From
 </label>
                     <input
                       type="date"
