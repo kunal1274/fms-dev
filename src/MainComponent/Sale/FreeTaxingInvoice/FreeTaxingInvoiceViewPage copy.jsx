@@ -4,13 +4,74 @@ import axios from "axios";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+
+const data = {
+  invoiceId: "INV-1001",
+  status: "Draft",
+  creationDate: "2025-09-11T10:00:00Z",
+  customer: {
+    id: "CUST-001",
+    name: "ABC Pvt Ltd",
+    currency: "INR",
+    address: "123 Business Street, Bengaluru, India",
+    email: "accounts@abcpvt.com",
+    contactNum: "+91-9876543210",
+  },
+  remarks: "Sample free taxing invoice for demo.",
+  transactionType: "Credit Note",
+  ledgerAccount: "Sales Return Ledger",
+  invoiceDate: "2025-09-11",
+  items: [
+    {
+      id: "ITEM-001",
+      code: "PRD-100",
+      name: "Product A",
+      description: "Sample product A",
+      site: "Site-01",
+      warehouse: "WH-01",
+      unit: "PCS",
+      quantity: 10,
+      price: 250,
+      discount: 5,
+      tax: 18,
+      tcs: 1,
+      amountBeforeTax: 2375,
+      totalAmount: 2801.5,
+    },
+    {
+      id: "ITEM-002",
+      code: "PRD-200",
+      name: "Product B",
+      description: "Sample product B",
+      site: "Site-01",
+      warehouse: "WH-02",
+      unit: "BOX",
+      quantity: 5,
+      price: 500,
+      discount: 0,
+      tax: 12,
+      tcs: 0,
+      amountBeforeTax: 2500,
+      totalAmount: 2800,
+    },
+  ],
+  summary: {
+    totalLines: 2,
+    totalNetAmount: 4875,
+    totalDiscountAmount: 125,
+    totalTaxAmount: 801.5,
+    totalWithholdingTax: 23.75,
+    totalLineAmount: 5601.5,
+  },
+};
+
 const SummaryCard = ({ label, value }) => (
   <div className="flex flex-col">
     <span className="text-sm text-gray-600">{label}</span>
     <span className="text-lg font-semibold text-gray-800">{value}</span>
   </div>
 );
-const PurchaseOrderForm = ({ handleCancel }) => {
+const FreeTaxingInvoice = (  ) => {
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const CustomersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Customers";
   const PurchasesOrderUrl =
@@ -73,6 +134,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   // -------------------------
   // Line Items State (for detailed items table)
   // -------------------------
+
   const [lineItems, setLineItems] = useState([
     {
       id: Date.now(),
@@ -128,6 +190,88 @@ const PurchaseOrderForm = ({ handleCancel }) => {
     fetchCustomers();
     fetchItems();
   }, []);
+  const [isEditing, setIsEditing] = useState(true);
+  const handleCancel = () => {
+    if (prevFormData) {
+      setFormData(prevFormData); // restore saved data
+    }
+    setIsEditing(false);
+  };
+  const handleUpdate = async () => {
+    if (window.confirm("Are you sure you want to update this customer?")) {
+      setLoading(true);
+
+      // Create a custom green spinner icon for the toast
+      const loaderIcon = (
+        <div
+          style={{
+            display: "inline-block",
+            width: "20px",
+            height: "20px",
+            border: "3px solid #4CAF50",
+            borderTop: "3px solid transparent",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+          }}
+        ></div>
+      );
+
+      // Show a loading toast with our custom icon
+      const toastId = toast.loading("Updating...", {
+        icon: loaderIcon,
+        position: "top-right",
+        autoClose: false,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        progress: undefined,
+      });
+
+      try {
+        const response = await axios.put(
+          `${mergedUrl}/${customerId}`,
+          formData,
+          { withCredentials: false }
+        );
+
+        if (response.status === 200) {
+          setCustomerDetail(response.data);
+          setIsEditing(false);
+          toast.update(toastId, {
+            render: "Customer updated successfully!",
+            type: "success",
+            isLoading: false,
+            autoClose: 3000,
+            progress: undefined,
+          });
+        } else {
+          console.error(`Unexpected response status: ${response.status}`);
+          toast.update(toastId, {
+            render: "Failed to update customer. Please try again.",
+            type: "error",
+            isLoading: false,
+            autoClose: 3000,
+            progress: undefined,
+          });
+        }
+      } catch (err) {
+        const errorMessage =
+          err.response?.data?.message || "An unexpected error occurred.";
+        console.error("Error updating customer:", err);
+        toast.update(toastId, {
+          render: errorMessage,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+          progress: undefined,
+        });
+      } finally {
+        setLoading(false);
+        // toggleView();
+      }
+    }
+  };
 
   // -------------------------
   // Basic Form Validation
@@ -171,95 +315,6 @@ const PurchaseOrderForm = ({ handleCancel }) => {
     return true;
   };
 
-  const handleCreate = async (e) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      toast.warn("⚠️ Please fill all the mandatory fields correctly.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
-
-      return;
-    }
-    if (!selectedItem) {
-      toast.warn("⚠️ Please select an item.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
-
-      return;
-    }
-
-    // Construct payload from global fields
-    const payload = {
-      Customer: selectedCustomer,
-      item: selectedItem._id || selectedItem.id || "",
-      quantity: Number(quantity) || 1,
-      price: Number(price) || 0,
-      discount: Number(discount) || 0,
-      remarks: remarks,
-      tax: Number(tax) || 0,
-      withholdingTax: Number(tcs) || 0,
-      charges: Number(charges) || 0,
-      advance: Number(advance) || 0,
-      purchasesAddress: purchasesAddress,
-    };
-
-    console.log("📌 Payload being sent:", payload);
-
-    try {
-      setLoading(true);
-      const { data } = await axios.post(purchasesOrderUrl, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
-      // Set purchase order number and mark as created/editable.
-      setPurchaseOrderNum(data.data.orderNum);
-      set_id(data.data._id);
-      console.log(data.data._id, "id");
-      setIsEdited(true);
-      toast.success(
-        `Purchases Order Created Successfully! Order Number: ${data.data.orderNum}`,
-        {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        }
-      );
-    } catch (error) {
-      console.error("🚨 Error response:", error.response);
-      toast.error(
-        `Error: ${
-          error.response?.data?.message || "Failed to create Purchases Order"
-        }`,
-        {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: "colored",
-        }
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const calculateTotalAmount = (item) => {
     const quantityVal = Number(item.quantity) || 1;
@@ -514,11 +569,51 @@ const PurchaseOrderForm = ({ handleCancel }) => {
           </div>
           <h3 className="text-xl font-semibold"> Free Taxing Invoice</h3>
         </div>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={!isEditing} // disable when not editing
+            className={` h-8 px-3 border  rounded transition ${
+              isEditing
+                ? "bg-red-400 text-white hover:bg-red-500" // editable → light red
+                : "bg-gray-300 text-gray-600 cursor-not-allowed" // not editable → grey
+            }`}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={goBack}
+            className=" h-8 px-3 border  bg-gray-200 rounded hover:bg-gray-300 transition"
+          >
+            Go Back
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (isEditing) {
+                handleUpdate(); // already editing → update
+              } else {
+                handleEdit(); // not editing → switch to edit mode
+              }
+            }}
+            className={` h-8 px-3 border rounded transition ${
+              isEditing
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-green-200 hover:bg-gray-300"
+            }`}
+          >
+            {isEditing ? "Update" : "Edit"}
+          </button>
+        </div>
       </div>
 
       {/* Form */}
       <form
-        onSubmit={handleCreate}
+  
         className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
       >
         {/* Business Details */}
@@ -526,39 +621,7 @@ const PurchaseOrderForm = ({ handleCancel }) => {
           <div className="flex flex-wrap w-full gap-2">
             <div className="p-2 h-17 bg-white">
               <div className="grid grid-cols-1 md:grid-cols-3 w-full">
-                <div className="flex flex-nowrap gap-2">
-                  {purchaseOrderNum ? (
-                    <>
-                      <button
-                        type="button"
-                        disabled
-                        className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-gray-200 cursor-not-allowed"
-                      >
-                        Create
-                      </button>
-                      <button
-                        onClick={handleEdit}
-                        type="button"
-                        className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
-                      >
-                        Edit
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      type="submit"
-                      className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
-                    >
-                      Create
-                    </button>
-                  )}
-                  <button
-                    onClick={handleCancel}
-                    className="px-3 py-2 w-36 text-xs font-medium text-red-600 bg-white border border-red-400 rounded-md hover:bg-red-50"
-                  >
-                    Close
-                  </button>
-                </div>
+             
               </div>
             </div>
           </div>
@@ -966,4 +1029,4 @@ const PurchaseOrderForm = ({ handleCancel }) => {
   );
 };
 
-export default PurchaseOrderForm;
+export default FreeTaxingInvoice;

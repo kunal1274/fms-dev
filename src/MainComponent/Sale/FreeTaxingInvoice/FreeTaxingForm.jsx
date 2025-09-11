@@ -10,7 +10,11 @@ const SummaryCard = ({ label, value }) => (
     <span className="text-lg font-semibold text-gray-800">{value}</span>
   </div>
 );
-const noteOrderForm = ({ handleCancel }) => {
+const FreeTaxingInvoice = ({ handleCancel }) => {
+  const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
+  const CustomersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Customers";
+  const PurchasesOrderUrl =
+    "https://fms-qkmw.onrender.com/fms/api/v0/purchasesorders";
   const paymentTerms = [
     "COD",
     "Net30D",
@@ -21,16 +25,16 @@ const noteOrderForm = ({ handleCancel }) => {
     "Net90D",
     "Advance",
   ];
-  const [goForInvoice, setGonoteInvoice] = useState(null);
+  const [goForInvoice, setGoPurchaseInvoice] = useState(null);
   const [advance, setAdvance] = useState(0);
   const [Customer, setCustomer] = useState([]);
   const [Customers, setCustomers] = useState([]);
-  const [viewingnoteId, setViewingnoteId] = useState(null);
-  const [selectednoteOrderId, setSelectednoteOrderId] = useState("");
+  const [viewingPurchaseId, setViewingPurchaseId] = useState(null);
+  const [selectedPurchaseOrderId, setSelectedPurchaseOrderId] = useState("");
   const [items, setItems] = useState([]);
   const [remarks, setRemarks] = useState("");
 
-  const [noteOrderNum, setnoteOrderNum] = useState(null);
+  const [purchaseOrderNum, setPurchaseOrderNum] = useState(null);
   // Global form states (for a single order line)
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
@@ -41,7 +45,7 @@ const noteOrderForm = ({ handleCancel }) => {
   const [tcs, setTcs] = useState(0);
   const [charges, setCharges] = useState(0);
   const [lineAmt, setLineAmt] = useState("0.00");
-  const [notesAddress, setnotesAddress] = useState(null);
+  const [purchasesAddress, setPurchasesAddress] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Editing and status management states
@@ -55,10 +59,14 @@ const noteOrderForm = ({ handleCancel }) => {
 
   // If coming back in edit mode, pre-populate form fields accordingly
   useEffect(() => {
-    if (location.state && location.state.edit && location.state.noteOrderNum) {
-      setnoteOrderNum(location.state.noteOrderNum);
+    if (
+      location.state &&
+      location.state.edit &&
+      location.state.purchaseOrderNum
+    ) {
+      setPurchaseOrderNum(location.state.purchaseOrderNum);
       setIsEdited(true);
-      // Optionally, fetch note order details here from your API.
+      // Optionally, fetch purchase order details here from your API.
     }
   }, [location.state]);
 
@@ -126,7 +134,7 @@ const noteOrderForm = ({ handleCancel }) => {
   // -------------------------
   const validateForm = () => {
     if (!selectedCustomer) {
-      toast.warn("⚠️ No note order selected to delete.", {
+      toast.warn("⚠️ No purchase order selected to delete.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -205,23 +213,23 @@ const noteOrderForm = ({ handleCancel }) => {
       withholdingTax: Number(tcs) || 0,
       charges: Number(charges) || 0,
       advance: Number(advance) || 0,
-      notesAddress: notesAddress,
+      purchasesAddress: purchasesAddress,
     };
 
     console.log("📌 Payload being sent:", payload);
 
     try {
       setLoading(true);
-      const { data } = await axios.post(notesOrderUrl, payload, {
+      const { data } = await axios.post(purchasesOrderUrl, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      // Set note order number and mark as created/editable.
-      setnoteOrderNum(data.data.orderNum);
+      // Set purchase order number and mark as created/editable.
+      setPurchaseOrderNum(data.data.orderNum);
       set_id(data.data._id);
       console.log(data.data._id, "id");
       setIsEdited(true);
       toast.success(
-        `notes Order Created Successfully! Order Number: ${data.data.orderNum}`,
+        `Purchases Order Created Successfully! Order Number: ${data.data.orderNum}`,
         {
           position: "top-right",
           autoClose: 3000,
@@ -236,7 +244,7 @@ const noteOrderForm = ({ handleCancel }) => {
       console.error("🚨 Error response:", error.response);
       toast.error(
         `Error: ${
-          error.response?.data?.message || "Failed to create notes Order"
+          error.response?.data?.message || "Failed to create Purchases Order"
         }`,
         {
           position: "top-right",
@@ -458,10 +466,10 @@ const noteOrderForm = ({ handleCancel }) => {
 
   // -------------------------
   // Handle Edit button click:
-  // Navigate to the note Order View Page with the note order identifier.
+  // Navigate to the purchase Order View Page with the purchase order identifier.
   // -------------------------
   const handleEdit = () => {
-    setViewingnoteId(_id);
+    setViewingPurchaseId(_id);
   };
 
   // -------------------------
@@ -504,7 +512,7 @@ const noteOrderForm = ({ handleCancel }) => {
               </svg>
             </button>
           </div>
-          <h3 className="text-xl font-semibold"> Debit Note</h3>
+          <h3 className="text-xl font-semibold"> Free Taxing Invoice</h3>
         </div>
       </div>
 
@@ -514,13 +522,12 @@ const noteOrderForm = ({ handleCancel }) => {
         className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
       >
         {/* Business Details */}
-        <section className="p-6">
-          {/* Top Action Buttons */}
-          <div className="flex flex-wrap w-full gap-2 mb-4">
-            <div className=" bg-white w-full">
-              <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-6">
-                <div className="flex gap-2">
-                  {noteOrderNum ? (
+        <section className="p-3">
+          <div className="flex flex-wrap w-full gap-2">
+            <div className="p-2 h-17 bg-white">
+              <div className="grid grid-cols-1 md:grid-cols-3 w-full">
+                <div className="flex flex-nowrap gap-2">
+                  {purchaseOrderNum ? (
                     <>
                       <button
                         type="button"
@@ -556,48 +563,46 @@ const noteOrderForm = ({ handleCancel }) => {
             </div>
           </div>
 
-          {/* Heading */}
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Debit Note Details
+          <h2 className="text-lg font-medium text-gray-700 mb-4 mt-4">
+            Free Taxing Invoice
           </h2>
 
-          {/* Form Fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Debit Note ID
+                Free Tax Invoice no/ ID
               </label>
               <input
                 type="text"
-                name="noteOrder"
-                value={noteOrderNum || ""}
-                placeholder="Debit Note ID"
+                name="purchaseOrder"
+                value={purchaseOrderNum || ""}
+                placeholder="Purchase Order"
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
               />
-            </div>
-
+            </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Reference Transaction ID
+                Invoice ID
               </label>
               <input
                 type="text"
-                readOnly
-                className="w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="mt-1 w-full p-2 border rounded"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Issue Date & Time
+                Creation Date & Time
               </label>
               <input
-                type="datetime-local"
-                className="w-full p-2 border rounded"
+                type="text"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="mt-1 w-full p-2 border rounded"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Customer Account
@@ -615,7 +620,6 @@ const noteOrderForm = ({ handleCancel }) => {
                 ))}
               </select>
             </div>
-
             <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-4 h-full">
                 {/* Name */}
@@ -640,7 +644,7 @@ const noteOrderForm = ({ handleCancel }) => {
                   <input
                     type="text"
                     value={selectedCustomerDetails.email}
-                    placeholder="Contact Email"
+                    placeholder=" Currency"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
@@ -661,38 +665,16 @@ const noteOrderForm = ({ handleCancel }) => {
 
               {/* Name + Currency */}
             </div>
-            {selectedCustomerDetails && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Reason
-                  </label>
-                  <input type="text" className="w-full p-2 border rounded" />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Return Status
-                  </label>
-                  <input
-                    type="text"
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-              </>
-            )}
-
             <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-4 h-full">
                 {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Debit Amount
+                    Order Status
                   </label>
                   <input
                     type="text"
+                    value={selectedCustomerDetails?.account || ""}
                     placeholder="Customer Account"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
@@ -702,12 +684,12 @@ const noteOrderForm = ({ handleCancel }) => {
                 {/* Currency */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Order ID
+                    Purchase Agreement No (if applicable)
                   </label>
                   <input
                     type="text"
                     value={selectedCustomerDetails.email}
-                    placeholder="Contact Email"
+                    placeholder=" Currency"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
@@ -725,13 +707,43 @@ const noteOrderForm = ({ handleCancel }) => {
                   className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Posted Ledger Account
-                </label>
-                <input type="number" className="w-full p-2 border rounded" />
-              </div>
+
               {/* Name + Currency */}
+            </div>
+            {selectedCustomerDetails && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Transaction type
+                  </label>
+                  <input type="text" className="w-full p-2 border rounded" />
+                </div>
+              </>
+            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Total Invoice Amount
+              </label>
+              <input type="text" className="w-full p-2 border rounded" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Posted Ledger Account
+              </label>
+              <input
+                type="text"
+                value={advance}
+                onChange={(e) =>
+                  setAdvance(Number(e.target.value.replace(/\D/g, "")) || 0)
+                }
+                className="w-full p-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Invoice_date
+              </label>
+              <input type="text" className="w-full p-2 border rounded" />
             </div>
           </div>
         </section>
@@ -747,9 +759,11 @@ const noteOrderForm = ({ handleCancel }) => {
                       "S.N",
                       "Item Code",
                       "Item Name",
-
+                      "Description",
+                      "Posting Account",
                       "Site",
                       "Warehouse",
+
                       "Qty",
                       "Unit",
                       "Price",
@@ -770,7 +784,7 @@ const noteOrderForm = ({ handleCancel }) => {
                 </thead>
 
                 <tbody className="divide-y divide-gray-200">
-                  <tr key="note-order-row" className="hover:bg-gray-50">
+                  <tr key="purchase-order-row" className="hover:bg-gray-50">
                     <td className="border text-center px-2 py-1">1</td>
 
                     <td className="border px-2 py-1 text-center">
@@ -780,7 +794,7 @@ const noteOrderForm = ({ handleCancel }) => {
                     <td className="border px-2 py-1">
                       <select
                         value={selectedItem?._id || ""}
-                        disabled={!isEdited && noteOrderNum}
+                        disabled={!isEdited && purchaseOrderNum}
                         onChange={(e) => {
                           const sel = items.find(
                             (item) => item._id === e.target.value
@@ -809,6 +823,12 @@ const noteOrderForm = ({ handleCancel }) => {
                     </td>
 
                     <td className="border px-2 py-1 text-center">
+                      <input
+                        type="text"
+                        placeholder="Site"
+                        className="w-full border rounded text-center px-2 py-1"
+                      />
+                    </td>   <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
                         placeholder="Site"
@@ -952,4 +972,4 @@ const noteOrderForm = ({ handleCancel }) => {
   );
 };
 
-export default noteOrderForm;
+export default FreeTaxingInvoice;
