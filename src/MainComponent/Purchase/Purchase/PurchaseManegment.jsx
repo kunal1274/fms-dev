@@ -13,7 +13,7 @@ import JournalPage from "../../Purchase/JournalRevenue copy/JournaRevenuePage";
 import FreeTaxInvoice from "../FreeTaxingInvoice/FreeTaxingPage";
 import PurchaseTransaction from "../../Purchase/Purchase/Transaction/VendortransactionDummy";
 import PurchaseBalance from "../../Purchase/Purchase/Transaction/VendorbalanceDummy";
-import PurchaseAgingReport from "../../Purchase/Purchase/Transaction/VendorAgingReport";
+import PurchaseAgingReport from "../../Purchase/Purchase/Transaction/VendorAgingReportdummy";
 import PurchasesAccountingTransaction from "../../Purchase/Purchase/Transaction/VendorAccountingTransaction";
 import PurchasesAccountingBalance from "../../Purchase/Purchase/Transaction/VendorAccountingTransaction";
 
