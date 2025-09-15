@@ -6,19 +6,22 @@ import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
+
 import "./c.css";
-import VendorViewPage from "./VendorViewPage";
 
 
-export default function VendorList({ handleAddVendor }) {
+
+import ReturnOrderViewPage from "./ReturnOrderViewPage";
+
+export default function ReturnOrderList({ handleAddReturnOrder }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/vendors";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/returnOrders";
   const metricsUrl = `${baseUrl}/metrics`;
 
   /** ---------- Helpers to normalize fields ---------- */
-  const getId = (c) => c?._id || c?.id || c?.customerId || c?.code || "";
-  const getCode = (c) => c?.customerCode || c?.code || "";
-  const getName = (c) => c?.customerName || c?.name || "";
+  const getId = (c) => c?._id || c?.id || c?.returnOrderId || c?.code || "";
+  const getCode = (c) => c?.returnOrderCode || c?.code || "";
+  const getName = (c) => c?.returnOrderName || c?.name || "";
   const getEmail = (c) => c?.email || "";
   const getGST = (c) => c?.taxInfo?.gstNumber || "";
   const getAddress = (c) => c?.primaryGSTAddress || c?.address || "";
@@ -58,11 +61,11 @@ export default function VendorList({ handleAddVendor }) {
 
   /** ---------- Tabs ---------- */
   const tabNames = [
-    "Vendor List",
-    "Paid Vendor",
-    "Active Vendor",
-    "Hold Vendor",
-    "Outstanding Vendor",
+    "ReturnOrder List",
+    "Paid ReturnOrder",
+    "Active ReturnOrder",
+    "Hold ReturnOrder",
+    "Outstanding ReturnOrder",
   ];
 
   /** ---------- State ---------- */
@@ -70,11 +73,11 @@ export default function VendorList({ handleAddVendor }) {
 
   // Dates start empty => initial fetch = ALL data
   const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+const [endDate, setEndDate] = useState("");
 
-  const [customers, setVendors] = useState([]);
+  const [returnOrders, setReturnOrders] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [viewingVendorId, setViewingVendorId] = useState(null);
+  const [viewingReturnOrderId, setViewingReturnOrderId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
@@ -83,9 +86,9 @@ export default function VendorList({ handleAddVendor }) {
   const [summary, setSummary] = useState({
     count: 0,
     creditLimit: 0,
-    paidVendors: 0,
-    activeVendors: 0,
-    onHoldVendors: 0,
+    paidReturnOrders: 0,
+    activeReturnOrders: 0,
+    onHoldReturnOrders: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -103,7 +106,7 @@ export default function VendorList({ handleAddVendor }) {
   }, [startDate]);
 
   /** ---------- Fetchers ---------- */
-  const fetchVendors = useCallback(
+  const fetchReturnOrders = useCallback(
     async ({ fromDate, toDate } = {}) => {
       setLoading(true);
       setError(null);
@@ -133,7 +136,7 @@ export default function VendorList({ handleAddVendor }) {
           });
         }
 
-        setVendors(finalList);
+        setReturnOrders(finalList);
 
         // Fallback local summary (metrics may override later)
         setSummary((prev) => ({
@@ -143,15 +146,15 @@ export default function VendorList({ handleAddVendor }) {
             (s, c) => s + (Number(c?.creditLimit) || 0),
             0
           ),
-          paidVendors: finalList.filter((c) => getStatus(c) === "Paid")
+          paidReturnOrders: finalList.filter((c) => getStatus(c) === "Paid")
             .length,
-          activeVendors: finalList.filter(isActive).length,
-          onHoldVendors: finalList.filter((c) => isInactive(c) || isOnHold(c))
+          activeReturnOrders: finalList.filter(isActive).length,
+          onHoldReturnOrders: finalList.filter((c) => isInactive(c) || isOnHold(c))
             .length,
         }));
       } catch (err) {
         console.error(err);
-        setError("Unable to load Vendor data.");
+        setError("Unable to load ReturnOrder data.");
       } finally {
         setLoading(false);
       }
@@ -176,17 +179,17 @@ export default function VendorList({ handleAddVendor }) {
 
         setSummary((prev) => ({
           ...prev,
-          count: m?.totalVendors ?? prev.count,
+          count: m?.totalReturnOrders ?? prev.count,
           creditLimit: m?.creditLimit ?? prev.creditLimit,
-          paidVendors: m?.paidVendors ?? prev.paidVendors,
-          activeVendors: m?.activeVendors ?? prev.activeVendors,
-          onHoldVendors:
-            typeof m?.inactiveVendors === "number"
-              ? m.inactiveVendors
-              : m?.onHoldVendors ?? prev.onHoldVendors,
+          paidReturnOrders: m?.paidReturnOrders ?? prev.paidReturnOrders,
+          activeReturnOrders: m?.activeReturnOrders ?? prev.activeReturnOrders,
+          onHoldReturnOrders:
+            typeof m?.inactiveReturnOrders === "number"
+              ? m.inactiveReturnOrders
+              : m?.onHoldReturnOrders ?? prev.onHoldReturnOrders,
         }));
       } catch (err) {
-     
+        // metrics optional; do not block UI
         console.error(err);
       } finally {
         setLoadingMetrics(false);
@@ -197,26 +200,26 @@ export default function VendorList({ handleAddVendor }) {
 
   /** ---------- Initial load: fetch ALL (no dates) ---------- */
   useEffect(() => {
-    fetchVendors(); // all
+    fetchReturnOrders(); // all
     fetchMetrics(); // all
-  }, [fetchVendors, fetchMetrics]);
+  }, [fetchReturnOrders, fetchMetrics]);
 
   /** ---------- Derived: filtered + sorted list ---------- */
-  const filteredVendors = useMemo(() => {
-    let list = [...customers];
+  const filteredReturnOrders = useMemo(() => {
+    let list = [...returnOrders];
 
     // Tabs
     switch (activeTab) {
-      case "Paid Vendor":
+      case "Paid ReturnOrder":
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
-      case "Active Vendor":
+      case "Active ReturnOrder":
         list = list.filter(isActive);
         break;
-      case "Hold Vendor":
+      case "Hold ReturnOrder":
         list = list.filter((c) => isInactive(c) || isOnHold(c));
         break;
-      case "Outstanding Vendor":
+      case "Outstanding ReturnOrder":
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
@@ -257,7 +260,7 @@ export default function VendorList({ handleAddVendor }) {
       list.sort((a, b) => cmpStr(getCode(b), getCode(a)));
 
     return list;
-  }, [customers, activeTab, statusFilter, searchTerm, sortOption]);
+  }, [returnOrders, activeTab, statusFilter, searchTerm, sortOption]);
 
   /** ---------- Date-range validity ---------- */
   const isRangeValid = useMemo(() => {
@@ -286,9 +289,9 @@ export default function VendorList({ handleAddVendor }) {
 
   const handleSortChange = (e) => {
     const v = e.target.value;
-    if (v === "Vendor Name") return setSortOption("name-asc");
-    if (v === "Vendor Account in Ascending") return setSortOption("code-asc");
-    if (v === "Vendor Account in descending")
+    if (v === "ReturnOrder Name") return setSortOption("name-asc");
+    if (v === "ReturnOrder Account in Ascending") return setSortOption("code-asc");
+    if (v === "ReturnOrder Account in descending")
       return setSortOption("code-desc");
     setSortOption(v || "");
   };
@@ -296,7 +299,7 @@ export default function VendorList({ handleAddVendor }) {
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const toggleSelectAll = (e) => {
-    setSelectedIds(e.target.checked ? filteredVendors.map(getId) : []);
+    setSelectedIds(e.target.checked ? filteredReturnOrders.map(getId) : []);
   };
 
   const handleCheckboxChange = (id) => {
@@ -307,7 +310,7 @@ export default function VendorList({ handleAddVendor }) {
 
   const handleDeleteSelected = async () => {
     if (!selectedIds.length) {
-      toast.info("No customers selected to delete");
+      toast.info("No returnOrders selected to delete");
       return;
     }
     if (!window.confirm(`Delete ${selectedIds.length} selected item(s)?`)) {
@@ -324,10 +327,10 @@ export default function VendorList({ handleAddVendor }) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
         if (isRangeValid) {
-          await fetchVendors({ fromDate: startDate, toDate: endDate });
+          await fetchReturnOrders({ fromDate: startDate, toDate: endDate });
           await fetchMetrics({ fromDate: startDate, toDate: endDate });
         } else {
-          await fetchVendors();
+          await fetchReturnOrders();
           await fetchMetrics();
         }
       }
@@ -340,12 +343,12 @@ export default function VendorList({ handleAddVendor }) {
 
   /** ---------- Export ---------- */
   const exportToExcel = () => {
-    if (!customers.length) {
+    if (!returnOrders.length) {
       toast.info("No data to export.");
       return;
     }
     const ws = XLSX.utils.json_to_sheet(
-      customers.map((c) => ({
+      returnOrders.map((c) => ({
         Code: getCode(c),
         Name: getName(c),
         Email: getEmail(c),
@@ -360,15 +363,15 @@ export default function VendorList({ handleAddVendor }) {
       }))
     );
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Vendors");
-    XLSX.writeFile(wb, "customer_list.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "ReturnOrders");
+    XLSX.writeFile(wb, "returnOrder_list.xlsx");
   };
 
   const generatePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [["#", "Code", "Name", "Email", "Address", "Status"]],
-      body: filteredVendors.map((c, i) => [
+      body: filteredReturnOrders.map((c, i) => [
         i + 1,
         getCode(c) || "",
         getName(c) || "",
@@ -378,23 +381,23 @@ export default function VendorList({ handleAddVendor }) {
         isActive(c) ? "Active" : "Inactive",
       ]),
     });
-    doc.save("customer_list.pdf");
+    doc.save("returnOrder_list.pdf");
   };
 
-  const handleVendorClick = (customerId) => {
-    setViewingVendorId(customerId);
+  const handleReturnOrderClick = (returnOrderId) => {
+    setViewingReturnOrderId(returnOrderId);
   };
 
-  const goBack = () => setViewingVendorId(null);
+  const goBack = () => setViewingReturnOrderId(null);
 
   /** ---------- Render ---------- */
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingVendorId) {
+  if (viewingReturnOrderId) {
     return (
       <div className="p-4">
-        <VendorViewPage vendorId={viewingVendorId} goBack={goBack} />
+        <ReturnOrderViewPage returnOrderId={viewingReturnOrderId} goBack={goBack} />
       </div>
     );
   }
@@ -415,12 +418,12 @@ export default function VendorList({ handleAddVendor }) {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-2 ">
-          <h3 className="text-xl font-semibold mb-6">Vendor List</h3>
+          <h3 className="text-xl font-semibold mb-6">ReturnOrder List</h3>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
-            onClick={handleAddVendor}
+            onClick={handleAddReturnOrder}
             className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
           >
             + Add
@@ -449,43 +452,15 @@ export default function VendorList({ handleAddVendor }) {
 
       {/* Date + Metrics */}
       <div className="bg-white rounded-lg">
-        <div className="flex gap-2">
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border rounded px-2 py-1"
-          />
-          <input
-            type="date"
-            value={endDate}
-            min={startDate ? addDays(startDate, 1) : undefined}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border rounded px-2 py-1"
-          />
-          <button
-            onClick={() => {
-              if (!isRangeValid) {
-                toast.info("Pick a valid Start and End date (End > Start).");
-                return;
-              }
-              fetchMetrics({ fromDate: startDate, toDate: endDate });
-              fetchVendors({ fromDate: startDate, toDate: endDate });
-            }}
-            disabled={!isRangeValid || loadingMetrics}
-            className="px-3 py-1 border rounded"
-          >
-            {loadingMetrics ? "Applying…" : "Apply"}
-          </button>
-        </div>
+       
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
           {[
-            ["Total Vendors", summary.count],
+            ["Total ReturnOrders", summary.count],
             ["Credit Limit", summary.creditLimit],
-            ["Paid Vendors", summary.paidVendors],
-            ["Active Vendors", summary.activeVendors],
-            ["On-Hold Vendors", summary.onHoldVendors],
+            ["Paid ReturnOrders", summary.paidReturnOrders],
+            ["Active ReturnOrders", summary.activeReturnOrders],
+            ["On-Hold ReturnOrders", summary.onHoldReturnOrders],
           ].map(([label, value]) => (
             <div key={label} className="p-4 bg-gray-50 rounded-lg text-center">
               <div className="text-2xl font-bold">{value}</div>
@@ -504,23 +479,23 @@ export default function VendorList({ handleAddVendor }) {
             <select
               value={
                 sortOption === "name-asc"
-                  ? "Vendor Name"
+                  ? "ReturnOrder Name"
                   : sortOption === "code-asc"
-                  ? "Vendor Account in Ascending"
+                  ? "ReturnOrder Account in Ascending"
                   : sortOption === "code-desc"
-                  ? "Vendor Account in descending"
+                  ? "ReturnOrder Account in descending"
                   : ""
               }
               onChange={handleSortChange}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
             >
               <option value="">Sort By</option>
-              <option value="Vendor Name">Vendor Name</option>
-              <option value="Vendor Account in Ascending">
-                Vendor Account in Ascending
+              <option value="ReturnOrder Name">ReturnOrder Name</option>
+              <option value="ReturnOrder Account in Ascending">
+                ReturnOrder Account in Ascending
               </option>
-              <option value="Vendor Account in descending">
-                Vendor Account in descending
+              <option value="ReturnOrder Account in descending">
+                ReturnOrder Account in descending
               </option>
             </select>
           </div>
@@ -558,6 +533,41 @@ export default function VendorList({ handleAddVendor }) {
               <FaSearch className="w-5 h-5" />
             </div>
           </div>
+           <div className="flex gap-2">
+              <label className="block text-sm font-medium text-gray-600 mb-1 mt-2">
+To
+</label>
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="border rounded px-2 py-1"
+          />
+           <label className="block text-sm font-medium text-gray-600 mb-1 mt-2">
+From
+</label>
+          <input
+            type="date"
+            value={endDate}
+            min={startDate ? addDays(startDate, 1) : undefined}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="border rounded px-2 py-1"
+          />
+          <button
+            onClick={() => {
+              if (!isRangeValid) {
+                toast.info("Pick a valid Start and End date (End > Start).");
+                return;
+              }
+              fetchMetrics({ fromDate: startDate, toDate: endDate });
+              fetchReturnOrders({ fromDate: startDate, toDate: endDate });
+            }}
+            disabled={!isRangeValid || loadingMetrics}
+            className="px-3 py-1 border rounded"
+          >
+            {loadingMetrics ? "Applying…" : "Apply"}
+          </button>
+        </div>
         </div>
 
         {/* Reset */}
@@ -569,7 +579,7 @@ export default function VendorList({ handleAddVendor }) {
             setSortOption("");
             setStartDate("");
             setEndDate("");
-            await fetchVendors(); // all
+            await fetchReturnOrders(); // all
             await fetchMetrics(); // all
           }}
           disabled={!anyFiltersOn}
@@ -613,8 +623,8 @@ export default function VendorList({ handleAddVendor }) {
                   type="checkbox"
                   onChange={toggleSelectAll}
                   checked={
-                    selectedIds.length === filteredVendors.length &&
-                    filteredVendors.length > 0
+                    selectedIds.length === filteredReturnOrders.length &&
+                    filteredReturnOrders.length > 0
                   }
                   className="form-checkbox"
                 />
@@ -637,8 +647,8 @@ export default function VendorList({ handleAddVendor }) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredVendors.length ? (
-              filteredVendors.map((c) => (
+            {filteredReturnOrders.length ? (
+              filteredReturnOrders.map((c) => (
                 <tr
                   key={getId(c)}
                   className="hover:bg-gray-100 transition-colors"
@@ -654,7 +664,7 @@ export default function VendorList({ handleAddVendor }) {
                   <td className="px-6 py-4">
                     <button
                       className="text-blue-600 hover:underline focus:outline-none"
-                      onClick={() => handleVendorClick(getId(c))}
+                      onClick={() => handleReturnOrderClick(getId(c))}
                     >
                       {getCode(c)}
                     </button>

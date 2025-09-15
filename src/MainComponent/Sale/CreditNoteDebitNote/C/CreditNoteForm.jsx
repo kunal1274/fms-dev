@@ -1,9 +1,10 @@
+
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 // If you have it, uncomment:
-// import CreditnoteViewPage from "./";
+import CreditnoteViewPage from "./CreditNotelist";
 
 const SummaryCard = ({ label, value }) => (
   <div className="flex flex-col">
@@ -22,6 +23,8 @@ const CreditNoteform = ({ handleCancel }) => {
   const siteBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
   const customersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
   const salesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
+
+
 
   // -------------------------
   // UI/loaders
@@ -432,7 +435,8 @@ const CreditNoteform = ({ handleCancel }) => {
       {/* Header */}
       <div className="flex justify-between ">
         <div className="flex items-center space-x-2">
-          <h3 className="text-xl font-semibold"> Credit Note Details</h3>
+        
+          <h3 className="text-xl font-semibold">            Credit Note Details</h3>
         </div>
       </div>
 
@@ -486,22 +490,22 @@ const CreditNoteform = ({ handleCancel }) => {
 
           {/* Sale details */}
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Credit Note Details
+                      Credit Note Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Credit Note ID
+               Credit Note ID
               </label>
               <input
                 type="text"
                 name="saleOrder"
+               
                 placeholder="Sale Order"
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
               />
-            </div>{" "}
-            <div>
+            </div> <div>
               <label className="block text-sm font-medium text-gray-600">
                 Reference Transaction ID
               </label>
@@ -510,8 +514,7 @@ const CreditNoteform = ({ handleCancel }) => {
                 readOnly
                 className="w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
-            </div>{" "}
-            <div>
+            </div>     <div>
               <label className="block text-sm font-medium text-gray-600">
                 Issue Date & Time
               </label>
@@ -553,19 +556,21 @@ const CreditNoteform = ({ handleCancel }) => {
                     readOnly
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Currency
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedCustomerDetails.currency}
-                    placeholder="Currency"
-                    readOnly
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                  />
-                </div>
+  <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Currency
+              </label>
+              <input
+                type="text"
+                value={selectedCustomerDetails.currency}
+                placeholder="Currency"
+                readOnly
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
+            </div>
+     
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-600">
                   Customer Address
@@ -576,33 +581,34 @@ const CreditNoteform = ({ handleCancel }) => {
                   readOnly
                   className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 />
-              </div>{" "}
-              {selectedCustomerDetails && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Reason
-                    </label>
-                    <input type="text" className="w-full p-2 border rounded" />
-                  </div>
+              </div>    {selectedCustomerDetails && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Reason
+                  </label>
+                  <input type="text" className="w-full p-2 border rounded" />
+                </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Credit Note Status
-                    </label>
-                    <input
-                      type="text"
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      className="w-full p-2 border rounded"
-                    />
-                  </div>
-                </>
-              )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Credit Note Status
+                  </label>
+                  <input
+                    type="text"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                
+              </>
+            )}
             </div>
+       
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Total Credit Amount
+           Total Credit Amount
               </label>
               <input
                 type="text"
@@ -624,6 +630,7 @@ const CreditNoteform = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
             </div>
+     
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Order Id
@@ -636,6 +643,7 @@ const CreditNoteform = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded"
               />
             </div>
+      
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Remarks
@@ -649,6 +657,7 @@ const CreditNoteform = ({ handleCancel }) => {
                 className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
+             
           </div>
         </section>
 

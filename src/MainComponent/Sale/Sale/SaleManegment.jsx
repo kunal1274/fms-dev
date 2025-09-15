@@ -9,9 +9,9 @@ import SalesProformaInvoice from "../../Sale/Transaction/SalesProformaInvoice/Sa
 import ReturnOrder from "../ReturnOrder/ReturnOrderlistDummy.jsx";
 import CreditNote from "../CreditNoteDebitNote/CreditNote/CreditNotelistDummy.jsx";
 import DebitNote from "../../Sale/CreditNoteDebitNote/DebitNote/DebitNotelistDummy.jsx";
-import JournalPage from "../JournalRevenue/JournalRevenueForm.jsx";
-import FreeTaxInvoice from "../../Sale/FreeTaxingInvoice/FreeTaxingPage.jsx";
-import CustomerTransaction from "../Transaction/Customer transaction/CustomerTransaction";
+import JournalPage from "../../Sale/JournalRevenue/JournaRevenuePage.jsx";
+import FreeTaxInvoice from "../../Sale/FreeTaxingInvoice/FreeTaxinglistDummy.jsx";
+import CustomerTransaction from "../Transaction/Customer transaction/CustomerTransactionDummy.jsx";
 import CustomerBalance from "../../Sale/Transaction/Customer balance/CustomerBalance";
 import CustomerAgingReport from "../Transaction/Customer Aging Report/CustomerAgingReport";
 import SalesAccountingTransaction from "../../Sale/Transaction/Sales Accounting Transaction/SalesAccountingTransaction";

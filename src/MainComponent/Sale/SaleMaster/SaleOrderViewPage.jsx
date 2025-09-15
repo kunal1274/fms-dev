@@ -690,7 +690,7 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
       setLoading(false);
     }
   };
-
+const [loadingCustomers, setLoadingCustomers] = useState(false);
   const onSelectItem = (itemId) => {
     const found = items.find((it) => String(it._id) === String(itemId));
     setSelectedItem(found || null);
@@ -1010,8 +1010,8 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
               <input
                 type="text"
                 name="saleAgreementNo"
-                value={form.saleAgreementNo ?? ""}
-                onChange={handleSimpleChange}
+                // value={form.saleAgreementNo ?? ""}
+                // onChange={handleSimpleChange}
                 disabled={!isEditing}
                 className="mt-1 w-full p-2 border rounded"
               />

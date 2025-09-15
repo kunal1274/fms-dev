@@ -3,33 +3,79 @@ import axios from "axios";
 // import Invoice from "./Invoice"; // Uncomment if you have an Invoice component
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
+const data = {
+  invoiceId: "INV-1001",
+  status: "Draft",
+  creationDate: "2025-09-11T10:00:00Z",
+  customer: {
+    id: "CUST-001",
+    name: "ABC Pvt Ltd",
+    currency: "INR",
+    address: "123 Business Street, Bengaluru, India",
+    email: "accounts@abcpvt.com",
+    contactNum: "+91-9876543210",
+  },
+  remarks: "Sample free taxing invoice for demo.",
+  transactionType: "Credit Note",
+  ledgerAccount: "Sales Return Ledger",
+  invoiceDate: "2025-09-11",
+  items: [
+    {
+      id: "ITEM-001",
+      code: "PRD-100",
+      name: "Product A",
+      description: "Sample product A",
+      site: "Site-01",
+      warehouse: "WH-01",
+      unit: "PCS",
+      quantity: 10,
+      price: 250,
+      discount: 5,
+      tax: 18,
+      tcs: 1,
+      amountBeforeTax: 2375,
+      totalAmount: 2801.5,
+    },
+    {
+      id: "ITEM-002",
+      code: "PRD-200",
+      name: "Product B",
+      description: "Sample product B",
+      site: "Site-01",
+      warehouse: "WH-02",
+      unit: "BOX",
+      quantity: 5,
+      price: 500,
+      discount: 0,
+      tax: 12,
+      tcs: 0,
+      amountBeforeTax: 2500,
+      totalAmount: 2800,
+    },
+  ],
+  summary: {
+    totalLines: 2,
+    totalNetAmount: 4875,
+    totalDiscountAmount: 125,
+    totalTaxAmount: 801.5,
+    totalWithholdingTax: 23.75,
+    totalLineAmount: 5601.5,
+  },
+};
+
 const SummaryCard = ({ label, value }) => (
   <div className="flex flex-col">
     <span className="text-sm text-gray-600">{label}</span>
     <span className="text-lg font-semibold text-gray-800">{value}</span>
   </div>
 );
-const ReturnForm = ({ handleCancel }) => {
+const FreeTaxingInvoice = (  ) => {
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-  const VendorsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Vendors";
-  const returnsOrderUrl =
-    "https://fms-qkmw.onrender.com/fms/api/v0/returnsorders";
-  const [form, setForm] = useState({
-    returnOrderNo: "",
-    returnDateTime: "",
-    VendorAccount: "",
-    agreementNo: "",
-    paymentTerms: "",
-    status: "",
-    orderId: "",
-    returnAmount: "",
-    remarks: "",
-  });
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
+  const CustomersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Customers";
+  const PurchasesOrderUrl =
+    "https://fms-qkmw.onrender.com/fms/api/v0/purchasesorders";
   const paymentTerms = [
     "COD",
     "Net30D",
@@ -40,18 +86,18 @@ const ReturnForm = ({ handleCancel }) => {
     "Net90D",
     "Advance",
   ];
-  const [goForInvoice, setGoreturnInvoice] = useState(null);
+  const [goForInvoice, setGoPurchaseInvoice] = useState(null);
   const [advance, setAdvance] = useState(0);
-  const [Vendor, setVendor] = useState([]);
-  const [Vendors, setVendors] = useState([]);
-  const [viewingreturnId, setViewingreturnId] = useState(null);
-  const [selectedreturnreturnId, setSelectedreturnreturnId] = useState("");
+  const [Customer, setCustomer] = useState([]);
+  const [Customers, setCustomers] = useState([]);
+  const [viewingPurchaseId, setViewingPurchaseId] = useState(null);
+  const [selectedPurchaseOrderId, setSelectedPurchaseOrderId] = useState("");
   const [items, setItems] = useState([]);
   const [remarks, setRemarks] = useState("");
-  const [returnOrderNum, setReturnOrderNum] = useState(null);
 
+  const [purchaseOrderNum, setPurchaseOrderNum] = useState(null);
   // Global form states (for a single order line)
-  const [selectedVendor, setSelectedVendor] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState(0);
@@ -60,7 +106,7 @@ const ReturnForm = ({ handleCancel }) => {
   const [tcs, setTcs] = useState(0);
   const [charges, setCharges] = useState(0);
   const [lineAmt, setLineAmt] = useState("0.00");
-  const [returnsAddress, setreturnsAddress] = useState(null);
+  const [purchasesAddress, setPurchasesAddress] = useState(null);
   const [loading, setLoading] = useState(false);
 
   // Editing and status management states
@@ -77,17 +123,18 @@ const ReturnForm = ({ handleCancel }) => {
     if (
       location.state &&
       location.state.edit &&
-      location.state.returnreturnNum
+      location.state.purchaseOrderNum
     ) {
-      setreturnreturnNum(location.state.returnreturnNum);
+      setPurchaseOrderNum(location.state.purchaseOrderNum);
       setIsEdited(true);
-      // Optionally, fetch return order details here from your API.
+      // Optionally, fetch purchase order details here from your API.
     }
   }, [location.state]);
 
   // -------------------------
   // Line Items State (for detailed items table)
   // -------------------------
+
   const [lineItems, setLineItems] = useState([
     {
       id: Date.now(),
@@ -119,15 +166,15 @@ const ReturnForm = ({ handleCancel }) => {
   });
 
   // -------------------------
-  // Fetch Vendors & Items
+  // Fetch Customers & Items
   // -------------------------
   useEffect(() => {
-    const fetchVendors = async () => {
+    const fetchCustomers = async () => {
       try {
-        const response = await axios.get(VendorsBaseUrl);
-        setVendors(response.data.data || []);
+        const response = await axios.get(CustomersBaseUrl);
+        setCustomers(response.data.data || []);
       } catch (error) {
-        console.error("Error fetching Vendors:", error);
+        console.error("Error fetching Customers:", error);
       }
     };
 
@@ -140,16 +187,98 @@ const ReturnForm = ({ handleCancel }) => {
       }
     };
 
-    fetchVendors();
+    fetchCustomers();
     fetchItems();
   }, []);
+  const [isEditing, setIsEditing] = useState(true);
+  const handleCancel = () => {
+    if (prevFormData) {
+      setFormData(prevFormData); // restore saved data
+    }
+    setIsEditing(false);
+  };
+  const handleUpdate = async () => {
+    if (window.confirm("Are you sure you want to update this customer?")) {
+      setLoading(true);
+
+      // Create a custom green spinner icon for the toast
+      const loaderIcon = (
+        <div
+          style={{
+            display: "inline-block",
+            width: "20px",
+            height: "20px",
+            border: "3px solid #4CAF50",
+            borderTop: "3px solid transparent",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+          }}
+        ></div>
+      );
+
+      // Show a loading toast with our custom icon
+      const toastId = toast.loading("Updating...", {
+        icon: loaderIcon,
+        position: "top-right",
+        autoClose: false,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        progress: undefined,
+      });
+
+      try {
+        const response = await axios.put(
+          `${mergedUrl}/${customerId}`,
+          formData,
+          { withCredentials: false }
+        );
+
+        if (response.status === 200) {
+          setCustomerDetail(response.data);
+          setIsEditing(false);
+          toast.update(toastId, {
+            render: "Customer updated successfully!",
+            type: "success",
+            isLoading: false,
+            autoClose: 3000,
+            progress: undefined,
+          });
+        } else {
+          console.error(`Unexpected response status: ${response.status}`);
+          toast.update(toastId, {
+            render: "Failed to update customer. Please try again.",
+            type: "error",
+            isLoading: false,
+            autoClose: 3000,
+            progress: undefined,
+          });
+        }
+      } catch (err) {
+        const errorMessage =
+          err.response?.data?.message || "An unexpected error occurred.";
+        console.error("Error updating customer:", err);
+        toast.update(toastId, {
+          render: errorMessage,
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+          progress: undefined,
+        });
+      } finally {
+        setLoading(false);
+        // toggleView();
+      }
+    }
+  };
 
   // -------------------------
   // Basic Form Validation
   // -------------------------
   const validateForm = () => {
-    if (!selectedVendor) {
-      toast.warn("⚠️ No return order selected to delete.", {
+    if (!selectedCustomer) {
+      toast.warn("⚠️ No purchase order selected to delete.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -158,7 +287,7 @@ const ReturnForm = ({ handleCancel }) => {
         draggable: true,
         theme: "colored",
       });
-      toast.warn("⚠️ Vendor selection is required.", {
+      toast.warn("⚠️ Customer selection is required.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -185,96 +314,7 @@ const ReturnForm = ({ handleCancel }) => {
     }
     return true;
   };
-  // const navigate = useNavigate();
-  const handleReturn = async (e) => {
-    e.preventDefault();
 
-    if (!validateForm()) {
-      toast.warn("⚠️ Please fill all the mandatory fields correctly.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
-
-      return;
-    }
-    if (!selectedItem) {
-      toast.warn("⚠️ Please select an item.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
-
-      return;
-    }
-
-    // Construct payload from global fields
-    const payload = {
-      Vendor: selectedVendor,
-      item: selectedItem._id || selectedItem.id || "",
-      quantity: Number(quantity) || 1,
-      price: Number(price) || 0,
-      discount: Number(discount) || 0,
-      remarks: remarks,
-      tax: Number(tax) || 0,
-      withholdingTax: Number(tcs) || 0,
-      charges: Number(charges) || 0,
-      advance: Number(advance) || 0,
-      returnsAddress: returnsAddress,
-    };
-
-    console.log("📌 Payload being sent:", payload);
-
-    try {
-      setLoading(true);
-      const { data } = await axios.post(returnsOrderUrl, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
-      // Set return order number and mark as returnd/editable.
-      setreturnreturnNum(data.data.orderNum);
-      set_id(data.data._id);
-      console.log(data.data._id, "id");
-      setIsEdited(true);
-      toast.success(
-        `returns Order returnd Successfully! Order Number: ${data.data.orderNum}`,
-        {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        }
-      );
-    } catch (error) {
-      console.error("🚨 Error response:", error.response);
-      toast.error(
-        `Error: ${
-          error.response?.data?.message || "Failed to return returns Order"
-        }`,
-        {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          theme: "colored",
-        }
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const calculateTotalAmount = (item) => {
     const quantityVal = Number(item.quantity) || 1;
@@ -387,34 +427,34 @@ const ReturnForm = ({ handleCancel }) => {
   }, [lineItems]);
 
   // -------------------------
-  // Fetch Vendor Details on Vendor Selection
+  // Fetch Customer Details on Customer Selection
   // -------------------------
-  const [selectedVendorDetails, setSelectedVendorDetails] = useState({
+  const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
     contactNum: "",
     currency: "",
     address: "",
     email: "",
   });
   useEffect(() => {
-    if (selectedVendor) {
-      const Vendor = Vendors.find((c) => c._id === selectedVendor);
-      if (Vendor) {
-        setSelectedVendorDetails({
-          contactNum: Vendor.contactNum || "",
-          currency: Vendor.currency || "",
-          address: Vendor.address || "",
-          email: Vendor.email || "", // ← correct!
+    if (selectedCustomer) {
+      const Customer = Customers.find((c) => c._id === selectedCustomer);
+      if (Customer) {
+        setSelectedCustomerDetails({
+          contactNum: Customer.contactNum || "",
+          currency: Customer.currency || "",
+          address: Customer.address || "",
+          email: Customer.email || "", // ← correct!
         });
       }
     } else {
-      setSelectedVendorDetails({
+      setSelectedCustomerDetails({
         contactNum: "",
         currency: "",
         address: "",
         email: "",
       });
     }
-  }, [selectedVendor, Vendors]);
+  }, [selectedCustomer, Customers]);
 
   // -------------------------
   // Fetch Item Details on Global Item Selection
@@ -481,10 +521,10 @@ const ReturnForm = ({ handleCancel }) => {
 
   // -------------------------
   // Handle Edit button click:
-  // Navigate to the return Order View Page with the return order identifier.
+  // Navigate to the purchase Order View Page with the purchase order identifier.
   // -------------------------
   const handleEdit = () => {
-    setViewingreturnId(_id);
+    setViewingPurchaseId(_id);
   };
 
   // -------------------------
@@ -501,11 +541,11 @@ const ReturnForm = ({ handleCancel }) => {
   return (
     <div className="">
       <ToastContainer />
+
       {/* Header Buttons */}
-      <div className="flex justify-between ">
+      <div className="flex justify-between mb-4">
         <div className="flex items-center space-x-2">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-            {" "}
             <button
               type="button"
               className="text-blue-600 mt-2 text-sm hover:underline"
@@ -524,232 +564,254 @@ const ReturnForm = ({ handleCancel }) => {
                   strokeWidth={2}
                   d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
                 />
-              </svg>{" "}
+              </svg>
             </button>
           </div>
-          <h3 className="text-xl font-semibold">Return Order Form</h3>
+          <h3 className="text-xl font-semibold"> Free Taxing Invoice</h3>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={!isEditing} // disable when not editing
+            className={` h-8 px-3 border  rounded transition ${
+              isEditing
+                ? "bg-red-400 text-white hover:bg-red-500" // editable → light red
+                : "bg-gray-300 text-gray-600 cursor-not-allowed" // not editable → grey
+            }`}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            onClick={goBack}
+            className=" h-8 px-3 border  bg-gray-200 rounded hover:bg-gray-300 transition"
+          >
+            Go Back
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (isEditing) {
+                handleUpdate(); // already editing → update
+              } else {
+                handleEdit(); // not editing → switch to edit mode
+              }
+            }}
+            className={` h-8 px-3 border rounded transition ${
+              isEditing
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-green-200 hover:bg-gray-300"
+            }`}
+          >
+            {isEditing ? "Update" : "Edit"}
+          </button>
         </div>
       </div>
 
+      {/* Form */}
       <form
-        onSubmit={handleReturn}
-        className="bg-white shadowshhshhshh-none rounded-lg divide-y divide-gray-200"
+  
+        className="bg-white shadow-none rounded-lg divide-y divide-gray-200"
       >
         {/* Business Details */}
-        <section className="p-6">
+        <section className="p-3">
           <div className="flex flex-wrap w-full gap-2">
-            {/* Maintain Section */}
             <div className="p-2 h-17 bg-white">
-              <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-6">
-                <div className="flex flex-nowrap gap-2">
-                  {returnOrderNum ? (
-                    <>
-                      <button
-                        type="button"
-                        disabled
-                        className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-gray-200 cursor-not-allowed"
-                      >
-                        Create
-                      </button>
-                      <button
-                        onClick={handleEdit}
-                        type="button"
-                        className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
-                      >
-                        Edit
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={handleReturn}
-                      type="submit"
-                      className="px-3 py-2 w-36 text-xs font-medium border border-gray-300 rounded-md bg-white hover:bg-gray-100"
-                    >
-                      Create
-                    </button>
-                  )}
-                  <button
-                    onClick={handleCancel}
-                    className="px-3 py-2 w-36 text-xs font-medium text-red-600 bg-white border border-red-400 rounded-md hover:bg-red-50"
-                  >
-                    Close
-                  </button>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 w-full">
+             
               </div>
             </div>
           </div>
 
-          <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Return Details
+          <h2 className="text-lg font-medium text-gray-700 mb-4 mt-4">
+            Free Taxing Invoice
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Purchase Order
+                Free Tax Invoice no/ ID
               </label>
               <input
                 type="text"
-                name="returnOrderNum"
-                value={returnOrderNum || ""}
-                placeholder="Return Order"
+                name="purchaseOrder"
+                value={purchaseOrderNum || ""}
+                placeholder="Purchase Order"
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
               />
-            </div>
-
+            </div>{" "}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Return Order No
+                Invoice ID
               </label>
               <input
-                name="returnOrderNo"
-                value={form.returnOrderNo || ""}
-                onChange={handleChange}
-                placeholder="e.g. RET-0001"
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                type="text"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="mt-1 w-full p-2 border rounded"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Return Date & Time
+                Creation Date & Time
               </label>
               <input
-                type="datetime-local"
-                name="returnDateTime"
-                value={form.returnDateTime || ""}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                type="text"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="mt-1 w-full p-2 border rounded"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Vendor Name
+                Customer Account
               </label>
               <select
-                value={selectedVendor}
-                onChange={(e) => setselectedVendor(e.target.value)}
+                value={selectedCustomer}
+                onChange={(e) => setselectedCustomer(e.target.value)}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
-                <option value="">Select Vendor</option>
-                {Vendors.map((Vendor) => (
-                  <option key={Vendor._id} value={Vendor._id}>
-                    {Vendor.name}
+                <option value="">Select Customer</option>
+                {Customers.map((Customer) => (
+                  <option key={Customer._id} value={Customer._id}>
+                    {Customer.name}
                   </option>
                 ))}
               </select>
             </div>
+            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4 h-full">
+                {/* Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Customer Name
+                  </label>
+                  <input
+                    type="text"
+                    value={selectedCustomerDetails?.account || ""}
+                    placeholder="Customer Account"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Vendor Account
-              </label>
-              <input
-                type="text"
-                name="VendorAccount"
-                value={form.VendorAccount || ""}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-
-            {selectedVendorDetails && (
-              <>
+                {/* Currency */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Currency
                   </label>
                   <input
                     type="text"
-                    value={selectedVendorDetails.currency}
-                    readOnly
+                    value={selectedCustomerDetails.email}
+                    placeholder=" Currency"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
                   />
                 </div>
+              </div>
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Customer Address
+                </label>
+                <textarea
+                  rows="4"
+                  value={selectedCustomerDetails?.address || ""}
+                  readOnly
+                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                />
+              </div>
 
+              {/* Name + Currency */}
+            </div>
+            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-4 h-full">
+                {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Vendor Address
-                  </label>
-                  <textarea
-                    rows="4"
-                    value={selectedVendorDetails.address}
-                    readOnly
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Remarks
-                  </label>
-                  <textarea
-                    rows="4"
-                    value={selectedVendorDetails.address}
-                    readOnly
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Return reason
+                    Order Status
                   </label>
                   <input
                     type="text"
-                    name="status"
-                    value={form.status || ""}
-                    onChange={handleChange}
-                    placeholder="e.g. NoT good"
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    value={selectedCustomerDetails?.account || ""}
+                    placeholder="Customer Account"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
                   />
                 </div>
 
+                {/* Currency */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Return Status
+                    Purchase Agreement No (if applicable)
                   </label>
                   <input
                     type="text"
-                    name="status"
-                    value={form.status || ""}
-                    onChange={handleChange}
-                    placeholder="e.g. Draft, Confirmed"
-                    className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                    value={selectedCustomerDetails.email}
+                    placeholder=" Currency"
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    readOnly
                   />
+                </div>
+              </div>
+              {/* Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  Remarks
+                </label>
+                <textarea
+                  rows="4"
+                  value={selectedCustomerDetails?.address || ""}
+                  readOnly
+                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
+              {/* Name + Currency */}
+            </div>
+            {selectedCustomerDetails && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Transaction type
+                  </label>
+                  <input type="text" className="w-full p-2 border rounded" />
                 </div>
               </>
             )}
-
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Order ID
+                Total Invoice Amount
+              </label>
+              <input type="text" className="w-full p-2 border rounded" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Posted Ledger Account
               </label>
               <input
                 type="text"
-                name="orderId"
-                value={form.orderId || ""}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                value={advance}
+                onChange={(e) =>
+                  setAdvance(Number(e.target.value.replace(/\D/g, "")) || 0)
+                }
+                className="w-full p-2 border rounded"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Total Return Amount
+                Invoice_date
               </label>
-              <input
-                type="number"
-                name="returnAmount"
-                value={form.returnAmount || ""}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
-              />
+              <input type="text" className="w-full p-2 border rounded" />
             </div>
           </div>
         </section>
 
+        {/* ...Line Items Table and Summary goes here (already provided) */}
         <section className="p-6">
           <div className="max-h-96 overflow-y-auto mt-4 border rounded-lg bg-white">
             <div className="space-y-6 p-4">
@@ -758,13 +820,14 @@ const ReturnForm = ({ handleCancel }) => {
                   <tr>
                     {[
                       "S.N",
-                      "Purchase Order ID (Against Return)",
                       "Item Code",
                       "Item Name",
                       "Description",
-                      "Qty",
+                      "Posting Account",
                       "Site",
                       "Warehouse",
+
+                      "Qty",
                       "Unit",
                       "Price",
                       "Discount %",
@@ -782,13 +845,10 @@ const ReturnForm = ({ handleCancel }) => {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
-                  <tr key="return-order-row" className="hover:bg-gray-50">
-                    <td className="border text-center px-2 py-1">1</td>
 
-                    <td className="border text-center px-2 py-1">
-                      {returnOrderNum || ""}
-                    </td>
+                <tbody className="divide-y divide-gray-200">
+                  <tr key="purchase-order-row" className="hover:bg-gray-50">
+                    <td className="border text-center px-2 py-1">1</td>
 
                     <td className="border px-2 py-1 text-center">
                       {selectedItem?.code || ""}
@@ -797,7 +857,7 @@ const ReturnForm = ({ handleCancel }) => {
                     <td className="border px-2 py-1">
                       <select
                         value={selectedItem?._id || ""}
-                        disabled={!isEdited && returnOrderNum}
+                        disabled={!isEdited && purchaseOrderNum}
                         onChange={(e) => {
                           const sel = items.find(
                             (item) => item._id === e.target.value
@@ -817,15 +877,35 @@ const ReturnForm = ({ handleCancel }) => {
                     </td>
 
                     <td className="border px-2 py-1 text-center">
-                      {selectedItem?.description || "-"}
+                      <input
+                        type="text"
+                        value={selectedItem?.description || ""}
+                        readOnly
+                        className="w-full border rounded text-center px-2 py-1 bg-gray-100"
+                      />
+                    </td>
+
+                    <td className="border px-2 py-1 text-center">
+                      <input
+                        type="text"
+                        placeholder="Site"
+                        className="w-full border rounded text-center px-2 py-1"
+                      />
+                    </td>
+
+                    <td className="border px-2 py-1 text-center">
+                      <input
+                        type="text"
+                        placeholder="Warehouse"
+                        className="w-full border rounded text-center px-2 py-1"
+                      />
                     </td>
 
                     <td className="border px-2 py-1">
                       <input
-                        type="number"
-                        min="0"
+                        type="text"
                         className="w-full border rounded text-center px-2 py-1"
-                        value={quantity || ""}
+                        value={quantity}
                         onChange={(e) =>
                           setQuantity(Number(e.target.value) || 0)
                         }
@@ -833,14 +913,6 @@ const ReturnForm = ({ handleCancel }) => {
                     </td>
 
                     <td className="border px-2 py-1 text-center">
-                      {selectedItem?.site || "-"}
-                    </td>
-
-                    <td className="border px-2 py-1 text-center">
-                      {selectedItem?.warehouse || "-"}
-                    </td>
-
-                    <td className="border px-2 py-1">
                       <input
                         type="text"
                         value={selectedItem?.unit || ""}
@@ -851,20 +923,18 @@ const ReturnForm = ({ handleCancel }) => {
 
                     <td className="border px-2 py-1">
                       <input
-                        type="number"
-                        min="0"
+                        type="text"
                         className="w-full border rounded text-center px-2 py-1"
-                        value={price || ""}
+                        value={price}
                         onChange={(e) => setPrice(Number(e.target.value) || 0)}
                       />
                     </td>
 
                     <td className="border px-2 py-1">
                       <input
-                        type="number"
-                        min="0"
+                        type="text"
                         className="w-full border rounded text-center px-2 py-1"
-                        value={discount || ""}
+                        value={discount}
                         onChange={(e) =>
                           setDiscount(Number(e.target.value) || 0)
                         }
@@ -879,48 +949,55 @@ const ReturnForm = ({ handleCancel }) => {
 
                     <td className="border px-2 py-1">
                       <input
-                        type="number"
-                        min="0"
+                        type="text"
                         className="w-full border rounded text-center px-2 py-1"
-                        value={tax || ""}
+                        value={tax}
                         onChange={(e) => setTax(Number(e.target.value) || 0)}
                       />
                     </td>
 
                     <td className="border px-2 py-1">
                       <input
-                        type="number"
-                        min="0"
+                        type="text"
                         className="w-full border rounded text-center px-2 py-1"
-                        value={tcs || ""}
+                        value={tcs}
                         onChange={(e) => setTcs(Number(e.target.value) || 0)}
                       />
                     </td>
 
-                    <td className="border px-2 py-1 text-center"></td>
+                    <td className="border px-2 py-1 text-center">{lineAmt}</td>
                   </tr>
                 </tbody>
               </table>
 
               {/* Summary Section */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
-                <SummaryCard label="Advance" value={advance || 0} />
+                <SummaryCard label="Advance" value={advance} />
                 <SummaryCard
-                  label="Amount"
+                  label="Subtotal /  line amount"
                   value={
                     isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
                   }
                 />
-                <SummaryCard label="Discount" value={discount || 0} />
-                <SummaryCard label="Line Amount" />
+                <SummaryCard label="Discount" value={discount} />
+                <SummaryCard label="Total Tax" value={lineAmt} />
+                <SummaryCard
+                  label="Total Tds/ Tcs"
+                  value={
+                    isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
+                  }
+                />
+                <SummaryCard
+                  label="Grand Total"
+                  value={isNaN(lineAmt) ? "0.00" : lineAmt}
+                />
               </div>
             </div>
           </div>
         </section>
 
         {/* Action Buttons */}
-        <div className="py-6 flex items-center justify-between">
-          {/* Left side - Reset Button */}
+        <div className="py-6 flex items-center justify-between px-6">
           <div>
             <button
               type="button"
@@ -931,7 +1008,6 @@ const ReturnForm = ({ handleCancel }) => {
             </button>
           </div>
 
-          {/* Right side - Go Back and return Buttons */}
           <div className="flex gap-4">
             <button
               type="button"
@@ -944,7 +1020,7 @@ const ReturnForm = ({ handleCancel }) => {
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
             >
-              return
+              Create
             </button>
           </div>
         </div>
@@ -953,4 +1029,4 @@ const ReturnForm = ({ handleCancel }) => {
   );
 };
 
-export default ReturnForm;
+export default FreeTaxingInvoice;

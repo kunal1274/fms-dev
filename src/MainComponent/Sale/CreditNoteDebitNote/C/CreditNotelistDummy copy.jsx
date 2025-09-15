@@ -19,7 +19,7 @@ export default function CreditNoteList() {
     onHoldCreditNotes: 2,
   });
 
-  // Dummy debit notes
+  // Dummy credit notes
   const [filteredCreditNotes, setFilteredCreditNotes] = useState([
     {
       id: "DN001",
@@ -64,202 +64,7 @@ export default function CreditNoteList() {
       warehouse: "WH-02",
       contactNum: "321-654-9870",
       status: "Inactive",
-    },  {
-    id: "DN003",
-    code: "CRN-103",
-    referenceTransactionID: "TXN-5003",
-    customerAccount: "AC-9003",
-    customerName: "Michael Johnson",
-    createdAt: new Date().toISOString(),
-    creditNoteStatus: "Approved",
-    invoiceId: "INV-778",
-    itemName: "Laptop",
-    orderQty: 2,
-    uom: "pcs",
-    unitPrice: 1200,
-    subtotal: 2400,
-    grandTotal: 2500,
-    currency: "USD",
-    orderId: "ORD-103",
-    site: "NY",
-    warehouse: "WH-03",
-    contactNum: "555-123-4567",
-    status: "Active",
-  },  {
-    id: "DN004",
-    code: "CRN-104",
-    referenceTransactionID: "TXN-5004",
-    customerAccount: "AC-9004",
-    customerName: "Emily Davis",
-    createdAt: new Date().toISOString(),
-    creditNoteStatus: "Rejected",
-    invoiceId: "INV-779",
-    itemName: "Tablet",
-    orderQty: 3,
-    uom: "pcs",
-    unitPrice: 300,
-    subtotal: 900,
-    grandTotal: 950,
-    currency: "USD",
-    orderId: "ORD-104",
-    site: "SF",
-    warehouse: "WH-04",
-    contactNum: "987-654-3210",
-    status: "Inactive",
-  }, {
-    id: "DN005",
-    code: "CRN-105",
-    referenceTransactionID: "TXN-5005",
-    customerAccount: "AC-9005",
-    customerName: "Robert Brown",
-    createdAt: new Date().toISOString(),
-    creditNoteStatus: "Pending",
-    invoiceId: "INV-780",
-    itemName: "Monitor",
-    orderQty: 4,
-    uom: "pcs",
-    unitPrice: 200,
-    subtotal: 800,
-    grandTotal: 850,
-    currency: "USD",
-    orderId: "ORD-105",
-    site: "TX",
-    warehouse: "WH-05",
-    contactNum: "654-321-0987",
-    status: "Active",
-  },
-  {
-    id: "DN006",
-    code: "CRN-106",
-    referenceTransactionID: "TXN-5006",
-    customerAccount: "AC-9006",
-    customerName: "Sophia Wilson",
-    createdAt: new Date().toISOString(),
-    creditNoteStatus: "Approved",
-    invoiceId: "INV-781",
-    itemName: "Headphones",
-    orderQty: 10,
-    uom: "pcs",
-    unitPrice: 50,
-    subtotal: 500,
-    grandTotal: 550,
-    currency: "USD",
-    orderId: "ORD-106",
-    site: "LA",
-    warehouse: "WH-06",
-    contactNum: "123-456-7890",
-    status: "Inactive",
-  },
-  {
-    id: "DN007",
-    code: "CRN-107",
-    referenceTransactionID: "TXN-5007",
-    customerAccount: "AC-9007",
-    customerName: "Daniel Martinez",
-    createdAt: new Date().toISOString(),
-    creditNoteStatus: "Pending",
-    invoiceId: "INV-782",
-    itemName: "Keyboard",
-    orderQty: 7,
-    uom: "pcs",
-    unitPrice: 80,
-    subtotal: 560,
-    grandTotal: 600,
-    currency: "USD",
-    orderId: "ORD-107",
-    site: "NY",
-    warehouse: "WH-07",
-    contactNum: "321-987-6543",
-    status: "Active",
-  },
-  {
-    id: "DN008",
-    code: "CRN-108",
-    referenceTransactionID: "TXN-5008",
-    customerAccount: "AC-9008",
-    customerName: "Olivia Garcia",
-    createdAt: new Date().toISOString(),
-    creditNoteStatus: "Approved",
-    invoiceId: "INV-783",
-    itemName: "Printer",
-    orderQty: 1,
-    uom: "pcs",
-    unitPrice: 400,
-    subtotal: 400,
-    grandTotal: 420,
-    currency: "USD",
-    orderId: "ORD-108",
-    site: "SF",
-    warehouse: "WH-08",
-    contactNum: "444-555-6666",
-    status: "Inactive",
-  },
-  {
-    id: "DN009",
-    code: "CRN-109",
-    referenceTransactionID: "TXN-5009",
-    customerAccount: "AC-9009",
-    customerName: "William Lee",
-    createdAt: new Date().toISOString(),
-    creditNoteStatus: "Rejected",
-    invoiceId: "INV-784",
-    itemName: "Smartwatch",
-    orderQty: 6,
-    uom: "pcs",
-    unitPrice: 150,
-    subtotal: 900,
-    grandTotal: 950,
-    currency: "USD",
-    orderId: "ORD-109",
-    site: "TX",
-    warehouse: "WH-09",
-    contactNum: "111-222-3333",
-    status: "Active",
-  },
-  {
-    id: "DN010",
-    code: "CRN-110",
-    referenceTransactionID: "TXN-5010",
-    customerAccount: "AC-9010",
-    customerName: "Ava Taylor",
-    createdAt: new Date().toISOString(),
-    creditNoteStatus: "Pending",
-    invoiceId: "INV-785",
-    itemName: "Camera",
-    orderQty: 2,
-    uom: "pcs",
-    unitPrice: 800,
-    subtotal: 1600,
-    grandTotal: 1700,
-    currency: "USD",
-    orderId: "ORD-110",
-    site: "LA",
-    warehouse: "WH-10",
-    contactNum: "777-888-9999",
-    status: "Inactive",
-  },
-  {
-    id: "DN011",
-    code: "CRN-111",
-    referenceTransactionID: "TXN-5011",
-    customerAccount: "AC-9011",
-    customerName: "James Anderson",
-    createdAt: new Date().toISOString(),
-    creditNoteStatus: "Approved",
-    invoiceId: "INV-786",
-    itemName: "Speaker",
-    orderQty: 8,
-    uom: "pcs",
-    unitPrice: 120,
-    subtotal: 960,
-    grandTotal: 1000,
-    currency: "USD",
-    orderId: "ORD-111",
-    site: "NY",
-    warehouse: "WH-11",
-    contactNum: "999-000-1111",
-    status: "Active",
-  }
+    },
   ]);
   // Dummy state handlers
   const [selectedIds, setSelectedIds] = useState([]);
@@ -315,12 +120,12 @@ export default function CreditNoteList() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-2 ">
-          <h3 className="text-xl font-semibold mb-6">Credit Note List</h3>
+          <h3 className="text-xl font-semibold mb-6">Debit Note List</h3>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
-            onClick={handleAddCreditNote}
+            onClick={handleAddDebitNote}
             className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
           >
             + Add
@@ -351,11 +156,11 @@ export default function CreditNoteList() {
       <div className="bg-white rounded-lg">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
           {[
-            ["Total CreditNotes", summary.count],
+            ["Total DebitNotes", summary.count],
             ["Credit Limit", summary.creditLimit],
-            ["Paid CreditNotes", summary.paidCreditNotes],
-            ["Active CreditNotes", summary.activeCreditNotes],
-            ["On-Hold CreditNotes", summary.onHoldCreditNotes],
+            ["Paid DebitNotes", summary.paidDebitNotes],
+            ["Active DebitNotes", summary.activeDebitNotes],
+            ["On-Hold DebitNotes", summary.onHoldDebitNotes],
           ].map(([label, value]) => (
             <div key={label} className="p-4 bg-gray-50 rounded-lg text-center">
               <div className="text-2xl font-bold">{value}</div>
@@ -374,23 +179,23 @@ export default function CreditNoteList() {
             <select
               value={
                 sortOption === "name-asc"
-                  ? "CreditNote Name"
+                  ? "DebitNote Name"
                   : sortOption === "code-asc"
-                  ? "CreditNote Account in Ascending"
+                  ? "DebitNote Account in Ascending"
                   : sortOption === "code-desc"
-                  ? "CreditNote Account in descending"
+                  ? "DebitNote Account in descending"
                   : ""
               }
               onChange={handleSortChange}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
             >
               <option value="">Sort By</option>
-              <option value="CreditNote Name">CreditNote Name</option>
-              <option value="CreditNote Account in Ascending">
-                CreditNote Account in Ascending
+              <option value="DebitNote Name">DebitNote Name</option>
+              <option value="DebitNote Account in Ascending">
+                DebitNote Account in Ascending
               </option>
-              <option value="CreditNote Account in descending">
-                CreditNote Account in descending
+              <option value="DebitNote Account in descending">
+                DebitNote Account in descending
               </option>
             </select>
           </div>
@@ -455,7 +260,7 @@ export default function CreditNoteList() {
                   return;
                 }
                 fetchMetrics({ fromDate: startDate, toDate: endDate });
-                fetchCreditNotes({ fromDate: startDate, toDate: endDate });
+                fetchDebitNotes({ fromDate: startDate, toDate: endDate });
               }}
               disabled={!isRangeValid || loadingMetrics}
               className="px-3 py-1 border rounded"
@@ -474,7 +279,7 @@ export default function CreditNoteList() {
             setSortOption("");
             setStartDate("");
             setEndDate("");
-            await fetchCreditNotes(); // all
+            await fetchDebitNotes(); // all
             await fetchMetrics(); // all
           }}
           disabled={!anyFiltersOn}
@@ -519,8 +324,8 @@ export default function CreditNoteList() {
                     type="checkbox"
                     onChange={toggleSelectAll}
                     checked={
-                      selectedIds.length === filteredCreditNotes.length &&
-                      filteredCreditNotes.length > 0
+                      selectedIds.length === filteredDebitNotes.length &&
+                      filteredDebitNotes.length > 0
                     }
                     className="form-checkbox"
                   />
@@ -554,8 +359,8 @@ export default function CreditNoteList() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredCreditNotes.length ? (
-                filteredCreditNotes.map((c) => (
+              {filteredDebitNotes.length ? (
+                filteredDebitNotes.map((c) => (
                   <tr
                     key={getId(c)}
                     className="hover:bg-gray-100 transition-colors"
@@ -571,7 +376,7 @@ export default function CreditNoteList() {
                     <td className="px-6 py-4">
                       <button
                         className="text-blue-600 hover:underline focus:outline-none"
-                        onClick={() => handleCreditNoteClick(getId(c))}
+                        onClick={() => handleDebitNoteClick(getId(c))}
                       >
                         {c.code}
                       </button>

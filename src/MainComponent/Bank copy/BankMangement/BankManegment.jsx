@@ -1,82 +1,34 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { PAGE, VIEW_MODES, groups } from "./constants";
 import { FaThLarge, FaListUl, FaTh, FaArrowLeft } from "react-icons/fa";
 
-import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
+// === Page Components (adjust paths if your folders differ) ===
+import BankForm from "../BankMaster/BankForm";
+import BankBalanceReport from "../Bank Balance report/Bank Balance report";
+import BankTransactionReport from "../BankTransaction/Bank Transaction Report";
 
-// Component Imports
-import Vendor from "../../Vendor/VendorPage";
-import PurchaseOrderPage from "../../Purchase/PurchaseMaster/PurchasePage";
-import ReturnOrder from "../../Purchase/ReturnOrder/ReturnOrderPage";
-import CreditNote from "../CreditNoteDebitNote/CreditNote/CreditNotePage";
-import DebitNote from "../CreditNoteDebitNote/DebitNote/DebitNotePage";
-import JournalPage from "../../Purchase/JournalRevenue copy/JournaRevenuePage";
-import FreeTaxInvoice from "../FreeTaxingInvoice/FreeTaxingPage";
-import PurchaseTransaction from "../../Purchase/Purchase/Transaction/VendortransactionDummy";
-import PurchaseBalance from "../../Purchase/Purchase/Transaction/VendorbalanceDummy";
-import PurchaseAgingReport from "../../Purchase/Purchase/Transaction/VendorAgingReport";
-import PurchasesAccountingTransaction from "../../Purchase/Purchase/Transaction/VendorAccountingTransaction";
-import PurchasesAccountingBalance from "../../Purchase/Purchase/Transaction/VendorAccountingTransaction";
-
-import PurchaseConfirmationInvoice from "../Purchase/Transaction/p/PurchaseConfirmationInvoice";
-import PurchaseInvoice from "../Purchase/Transaction/p/PurchaseInvoice";
-import PurchaseProformaConfirmationInvoice from "../Purchase/Transaction/p/PurchaseProformaConfirmationInvoice";
-import PurchaseProformaInvoice from "../Purchase/Transaction/p/PurchaseProformaInvoice ";
-
-const initialForm = {
-  company: localStorage.getItem("selectedCompany") || "",
-};
-
-export default function ViewTogglePage() {
-  // If you don't use `form`, feel free to remove it.
-  const [form] = useState(initialForm);
+export default function InventoryManagement() {
   const [page, setPage] = useState(PAGE.TOGGLE);
   const [viewMode, setViewMode] = useState(VIEW_MODES.GRID);
   const [hiddenGroups, setHiddenGroups] = useState({});
-  const [hiddenSections, setHiddenSections] = useState({});
   const [hiddenSubgroups, setHiddenSubgroups] = useState({});
 
   const goBack = () => setPage(PAGE.TOGGLE);
   const toggleGroup = (id) =>
     setHiddenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
-  const toggleSection = (id) =>
-    setHiddenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   const toggleSubgroup = (id) =>
     setHiddenSubgroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  // Shared styles
-  const baseCard =
-    "cursor-pointer select-none bg-white rounded-2xl ring-1 ring-gray-100 shadow-sm hover:shadow-lg hover:ring-gray-200 transition-all duration-200";
-  const baseRow =
-    "cursor-pointer flex items-center w-full rounded-xl ring-1 ring-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-200";
+  const componentMap = useMemo(
+    () => ({
+      [PAGE.BANK_FORM]: <BankForm />,
+      [PAGE.BANK_BALANCE_REPORT]: <BankBalanceReport />,
+      [PAGE.BANK_TRANSACTION_REPORT]: <BankTransactionReport />,
+    }),
+    []
+  );
 
-  const cardStyles = {
-    LIST: `${baseRow} p-3 text-left`,
-    ICON: `${baseCard} flex flex-col items-center justify-center w-[76px] h-[76px] p-2`,
-    GRID: `${baseCard} flex flex-col items-center justify-center text-sm min-h-[104px] p-2.5`,
-  };
-
-  const componentMap = {
-    [PAGE.VENDOR]: <Vendor />,
-    [PAGE.PURCHASE_ORDER]: <PurchaseOrderPage />,
-    [PAGE.RETURN_ORDER]: <ReturnOrder />,
-    [PAGE.CREDIT_NOTE]: <CreditNote />,
-    [PAGE.DEBIT_NOTE]: <DebitNote />,
-    [PAGE.JOURNAL]: <JournalPage />,
-    [PAGE.FREE_TAX_INVOICE]: <FreeTaxInvoice />,
-    [PAGE.VENDOR_TRANSACTION]: <PurchaseTransaction />,
-    [PAGE.VENDOR_BALANCE]: <PurchaseBalance />,
-    [PAGE.VENDOR_AGING_REPORT]: <PurchaseAgingReport />,
-    [PAGE.PURCHASE_ACCOUNTING_TRANSACTION]: <PurchasesAccountingTransaction />,
-    [PAGE.PURCHASE_ACCOUNTING_BALANCE]: <PurchasesAccountingBalance />,
-    [PAGE.PURCHASE_PROFORMA_CONFIRMATION_INVOICE]: (
-      <PurchaseProformaConfirmationInvoice />
-    ),
-    [PAGE.PURCHASE_PROFORMA_INVOICE]: <PurchaseProformaInvoice />,
-    [PAGE.PURCHASE_INVOICE]: <PurchaseInvoice />,
-    [PAGE.PURCHASE_CONFIRMATION_INVOICE]: <PurchaseConfirmationInvoice />,
-  };
-
-  // === Simple item renderer supporting LIST / ICON / GRID ===
+  // ---------- Render helpers ----------
   const Card = ({ item }) => (
     <button
       onClick={() => item.page && setPage(item.page)}
@@ -153,7 +105,7 @@ export default function ViewTogglePage() {
     }
 
     // GRID
-    const cols = colsOverride || 4; // default 4, caller can override for subgroups/sections
+    const cols = colsOverride || 4;
     const gridClass =
       cols === 1
         ? "grid-cols-1"
@@ -171,7 +123,7 @@ export default function ViewTogglePage() {
       </div>
     );
   };
-  // ---------------------------------------------------------------------------
+  // ------------------------------------
 
   // === Page switch
   if (page !== PAGE.TOGGLE) {
@@ -198,7 +150,7 @@ export default function ViewTogglePage() {
   return (
     <div className="p-3 sm:p-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Item Dashboard</h2>
+        <h2 className="text-xl font-semibold">Bank Dashboard</h2>
         <div className="flex items-center space-x-3">
           <div className="flex bg-gray-100 rounded-xl overflow-hidden ring-1 ring-gray-200">
             {modes.map((mode, index) => (
@@ -236,33 +188,7 @@ export default function ViewTogglePage() {
           </div>
 
           {!hiddenGroups[grp.id] &&
-            (grp.id === "setups"
-              ? setupSections.map((section) => (
-                  <div key={section.id} className="mb-6">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-md font-medium">{section.title}</h4>
-                      <button
-                        onClick={() => toggleSection(section.id)}
-                        className="text-gray-600 hover:text-gray-800"
-                        aria-label={`Toggle ${section.title}`}
-                        title={
-                          hiddenSections[section.id] ? "Expand" : "Collapse"
-                        }
-                      >
-                        {hiddenSections[section.id] ? "▸" : "▾"}
-                      </button>
-                    </div>
-                    {!hiddenSections[section.id] &&
-                      renderItems(
-                        section.items,
-                        section.cols ||
-                          (viewMode === VIEW_MODES.GRID
-                            ? 4
-                            : section.items?.length || 4)
-                      )}
-                  </div>
-                ))
-              : grp.subgroups
+            (grp.subgroups
               ? grp.subgroups.map((sub) => (
                   <div key={sub.id} className="mb-6">
                     <div className="flex justify-between items-center mb-2">

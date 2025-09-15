@@ -6,13 +6,14 @@ import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
+
 import "./c.css";
-import VendorViewPage from "./VendorViewPage";
 
+import FreeTaxingViewPage from "./FreeTaxingViewPage";
 
-export default function VendorList({ handleAddVendor }) {
+export default function FreeTaxingList({ handleAddFreeTaxing }) {
   /** ---------- API ---------- */
-  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/vendors";
+  const baseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
   const metricsUrl = `${baseUrl}/metrics`;
 
   /** ---------- Helpers to normalize fields ---------- */
@@ -58,11 +59,11 @@ export default function VendorList({ handleAddVendor }) {
 
   /** ---------- Tabs ---------- */
   const tabNames = [
-    "Vendor List",
-    "Paid Vendor",
-    "Active Vendor",
-    "Hold Vendor",
-    "Outstanding Vendor",
+    "FreeTaxing List",
+    "Paid FreeTaxing",
+    "Active FreeTaxing",
+    "Hold FreeTaxing",
+    "Outstanding FreeTaxing",
   ];
 
   /** ---------- State ---------- */
@@ -72,9 +73,9 @@ export default function VendorList({ handleAddVendor }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const [customers, setVendors] = useState([]);
+  const [customers, setFreeTaxings] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [viewingVendorId, setViewingVendorId] = useState(null);
+  const [viewingFreeTaxingId, setViewingFreeTaxingId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All"); // All | Active | Inactive
@@ -83,9 +84,9 @@ export default function VendorList({ handleAddVendor }) {
   const [summary, setSummary] = useState({
     count: 0,
     creditLimit: 0,
-    paidVendors: 0,
-    activeVendors: 0,
-    onHoldVendors: 0,
+    paidFreeTaxings: 0,
+    activeFreeTaxings: 0,
+    onHoldFreeTaxings: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -103,7 +104,7 @@ export default function VendorList({ handleAddVendor }) {
   }, [startDate]);
 
   /** ---------- Fetchers ---------- */
-  const fetchVendors = useCallback(
+  const fetchFreeTaxings = useCallback(
     async ({ fromDate, toDate } = {}) => {
       setLoading(true);
       setError(null);
@@ -133,7 +134,7 @@ export default function VendorList({ handleAddVendor }) {
           });
         }
 
-        setVendors(finalList);
+        setFreeTaxings(finalList);
 
         // Fallback local summary (metrics may override later)
         setSummary((prev) => ({
@@ -143,15 +144,16 @@ export default function VendorList({ handleAddVendor }) {
             (s, c) => s + (Number(c?.creditLimit) || 0),
             0
           ),
-          paidVendors: finalList.filter((c) => getStatus(c) === "Paid")
+          paidFreeTaxings: finalList.filter((c) => getStatus(c) === "Paid")
             .length,
-          activeVendors: finalList.filter(isActive).length,
-          onHoldVendors: finalList.filter((c) => isInactive(c) || isOnHold(c))
-            .length,
+          activeFreeTaxings: finalList.filter(isActive).length,
+          onHoldFreeTaxings: finalList.filter(
+            (c) => isInactive(c) || isOnHold(c)
+          ).length,
         }));
       } catch (err) {
         console.error(err);
-        setError("Unable to load Vendor data.");
+        setError("Unable to load FreeTaxing data.");
       } finally {
         setLoading(false);
       }
@@ -176,17 +178,17 @@ export default function VendorList({ handleAddVendor }) {
 
         setSummary((prev) => ({
           ...prev,
-          count: m?.totalVendors ?? prev.count,
+          count: m?.totalFreeTaxings ?? prev.count,
           creditLimit: m?.creditLimit ?? prev.creditLimit,
-          paidVendors: m?.paidVendors ?? prev.paidVendors,
-          activeVendors: m?.activeVendors ?? prev.activeVendors,
-          onHoldVendors:
-            typeof m?.inactiveVendors === "number"
-              ? m.inactiveVendors
-              : m?.onHoldVendors ?? prev.onHoldVendors,
+          paidFreeTaxings: m?.paidFreeTaxings ?? prev.paidFreeTaxings,
+          activeFreeTaxings: m?.activeFreeTaxings ?? prev.activeFreeTaxings,
+          onHoldFreeTaxings:
+            typeof m?.inactiveFreeTaxings === "number"
+              ? m.inactiveFreeTaxings
+              : m?.onHoldFreeTaxings ?? prev.onHoldFreeTaxings,
         }));
       } catch (err) {
-     
+        // metrics optional; do not block UI
         console.error(err);
       } finally {
         setLoadingMetrics(false);
@@ -197,26 +199,26 @@ export default function VendorList({ handleAddVendor }) {
 
   /** ---------- Initial load: fetch ALL (no dates) ---------- */
   useEffect(() => {
-    fetchVendors(); // all
+    fetchFreeTaxings(); // all
     fetchMetrics(); // all
-  }, [fetchVendors, fetchMetrics]);
+  }, [fetchFreeTaxings, fetchMetrics]);
 
   /** ---------- Derived: filtered + sorted list ---------- */
-  const filteredVendors = useMemo(() => {
+  const filteredFreeTaxings = useMemo(() => {
     let list = [...customers];
 
     // Tabs
     switch (activeTab) {
-      case "Paid Vendor":
+      case "Paid FreeTaxing":
         list = list.filter((c) => getStatus(c) === "Paid");
         break;
-      case "Active Vendor":
+      case "Active FreeTaxing":
         list = list.filter(isActive);
         break;
-      case "Hold Vendor":
+      case "Hold FreeTaxing":
         list = list.filter((c) => isInactive(c) || isOnHold(c));
         break;
-      case "Outstanding Vendor":
+      case "Outstanding FreeTaxing":
         list = list.filter((c) => outstanding(c) > 0);
         break;
       default:
@@ -286,9 +288,10 @@ export default function VendorList({ handleAddVendor }) {
 
   const handleSortChange = (e) => {
     const v = e.target.value;
-    if (v === "Vendor Name") return setSortOption("name-asc");
-    if (v === "Vendor Account in Ascending") return setSortOption("code-asc");
-    if (v === "Vendor Account in descending")
+    if (v === "FreeTaxing Name") return setSortOption("name-asc");
+    if (v === "FreeTaxing Account in Ascending")
+      return setSortOption("code-asc");
+    if (v === "FreeTaxing Account in descending")
       return setSortOption("code-desc");
     setSortOption(v || "");
   };
@@ -296,7 +299,7 @@ export default function VendorList({ handleAddVendor }) {
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
   const toggleSelectAll = (e) => {
-    setSelectedIds(e.target.checked ? filteredVendors.map(getId) : []);
+    setSelectedIds(e.target.checked ? filteredFreeTaxings.map(getId) : []);
   };
 
   const handleCheckboxChange = (id) => {
@@ -324,10 +327,10 @@ export default function VendorList({ handleAddVendor }) {
         toast.success(`${succeeded} deleted`);
         setSelectedIds([]);
         if (isRangeValid) {
-          await fetchVendors({ fromDate: startDate, toDate: endDate });
+          await fetchFreeTaxings({ fromDate: startDate, toDate: endDate });
           await fetchMetrics({ fromDate: startDate, toDate: endDate });
         } else {
-          await fetchVendors();
+          await fetchFreeTaxings();
           await fetchMetrics();
         }
       }
@@ -360,7 +363,7 @@ export default function VendorList({ handleAddVendor }) {
       }))
     );
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Vendors");
+    XLSX.utils.book_append_sheet(wb, ws, "FreeTaxings");
     XLSX.writeFile(wb, "customer_list.xlsx");
   };
 
@@ -368,7 +371,7 @@ export default function VendorList({ handleAddVendor }) {
     const doc = new jsPDF({ orientation: "landscape" });
     autoTable(doc, {
       head: [["#", "Code", "Name", "Email", "Address", "Status"]],
-      body: filteredVendors.map((c, i) => [
+      body: filteredFreeTaxings.map((c, i) => [
         i + 1,
         getCode(c) || "",
         getName(c) || "",
@@ -381,20 +384,20 @@ export default function VendorList({ handleAddVendor }) {
     doc.save("customer_list.pdf");
   };
 
-  const handleVendorClick = (customerId) => {
-    setViewingVendorId(customerId);
+  const handleFreeTaxingClick = (customerId) => {
+    setViewingFreeTaxingId(customerId);
   };
 
-  const goBack = () => setViewingVendorId(null);
+  const goBack = () => setViewingFreeTaxingId(null);
 
   /** ---------- Render ---------- */
   if (loading) return <div>Loading…</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  if (viewingVendorId) {
+  if (viewingFreeTaxingId) {
     return (
       <div className="p-4">
-        <VendorViewPage vendorId={viewingVendorId} goBack={goBack} />
+        <FreeTaxingViewPage customerId={viewingFreeTaxingId} goBack={goBack} />
       </div>
     );
   }
@@ -415,12 +418,12 @@ export default function VendorList({ handleAddVendor }) {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-2 ">
-          <h3 className="text-xl font-semibold mb-6">Vendor List</h3>
+          <h3 className="text-xl font-semibold mb-6">FreeTaxing List</h3>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
-            onClick={handleAddVendor}
+            onClick={handleAddFreeTaxing}
             className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
           >
             + Add
@@ -449,43 +452,13 @@ export default function VendorList({ handleAddVendor }) {
 
       {/* Date + Metrics */}
       <div className="bg-white rounded-lg">
-        <div className="flex gap-2">
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border rounded px-2 py-1"
-          />
-          <input
-            type="date"
-            value={endDate}
-            min={startDate ? addDays(startDate, 1) : undefined}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border rounded px-2 py-1"
-          />
-          <button
-            onClick={() => {
-              if (!isRangeValid) {
-                toast.info("Pick a valid Start and End date (End > Start).");
-                return;
-              }
-              fetchMetrics({ fromDate: startDate, toDate: endDate });
-              fetchVendors({ fromDate: startDate, toDate: endDate });
-            }}
-            disabled={!isRangeValid || loadingMetrics}
-            className="px-3 py-1 border rounded"
-          >
-            {loadingMetrics ? "Applying…" : "Apply"}
-          </button>
-        </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
           {[
-            ["Total Vendors", summary.count],
+            ["Total FreeTaxings", summary.count],
             ["Credit Limit", summary.creditLimit],
-            ["Paid Vendors", summary.paidVendors],
-            ["Active Vendors", summary.activeVendors],
-            ["On-Hold Vendors", summary.onHoldVendors],
+            ["Paid FreeTaxings", summary.paidFreeTaxings],
+            ["Active FreeTaxings", summary.activeFreeTaxings],
+            ["On-Hold FreeTaxings", summary.onHoldFreeTaxings],
           ].map(([label, value]) => (
             <div key={label} className="p-4 bg-gray-50 rounded-lg text-center">
               <div className="text-2xl font-bold">{value}</div>
@@ -504,23 +477,23 @@ export default function VendorList({ handleAddVendor }) {
             <select
               value={
                 sortOption === "name-asc"
-                  ? "Vendor Name"
+                  ? "FreeTaxing Name"
                   : sortOption === "code-asc"
-                  ? "Vendor Account in Ascending"
+                  ? "FreeTaxing Account in Ascending"
                   : sortOption === "code-desc"
-                  ? "Vendor Account in descending"
+                  ? "FreeTaxing Account in descending"
                   : ""
               }
               onChange={handleSortChange}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
             >
               <option value="">Sort By</option>
-              <option value="Vendor Name">Vendor Name</option>
-              <option value="Vendor Account in Ascending">
-                Vendor Account in Ascending
+              <option value="FreeTaxing Name">FreeTaxing Name</option>
+              <option value="FreeTaxing Account in Ascending">
+                FreeTaxing Account in Ascending
               </option>
-              <option value="Vendor Account in descending">
-                Vendor Account in descending
+              <option value="FreeTaxing Account in descending">
+                FreeTaxing Account in descending
               </option>
             </select>
           </div>
@@ -558,6 +531,41 @@ export default function VendorList({ handleAddVendor }) {
               <FaSearch className="w-5 h-5" />
             </div>
           </div>
+          <div className="flex gap-2">
+            <label className="block text-sm font-medium text-gray-600 mb-1 mt-2">
+              To
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border rounded px-2 py-1"
+            />
+            <label className="block text-sm font-medium text-gray-600 mb-1 mt-2">
+              From
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              min={startDate ? addDays(startDate, 1) : undefined}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border rounded px-2 py-1"
+            />
+            <button
+              onClick={() => {
+                if (!isRangeValid) {
+                  toast.info("Pick a valid Start and End date (End > Start).");
+                  return;
+                }
+                fetchMetrics({ fromDate: startDate, toDate: endDate });
+                fetchFreeTaxings({ fromDate: startDate, toDate: endDate });
+              }}
+              disabled={!isRangeValid || loadingMetrics}
+              className="px-3 py-1 border rounded"
+            >
+              {loadingMetrics ? "Applying…" : "Apply"}
+            </button>
+          </div>
         </div>
 
         {/* Reset */}
@@ -569,7 +577,7 @@ export default function VendorList({ handleAddVendor }) {
             setSortOption("");
             setStartDate("");
             setEndDate("");
-            await fetchVendors(); // all
+            await fetchFreeTaxings(); // all
             await fetchMetrics(); // all
           }}
           disabled={!anyFiltersOn}
@@ -613,19 +621,32 @@ export default function VendorList({ handleAddVendor }) {
                   type="checkbox"
                   onChange={toggleSelectAll}
                   checked={
-                    selectedIds.length === filteredVendors.length &&
-                    filteredVendors.length > 0
+                    selectedIds.length === filteredFreeTaxings.length &&
+                    filteredFreeTaxings.length > 0
                   }
                   className="form-checkbox"
                 />
               </th>
               {[
-                "Code",
-                "Name",
-                "Address",
-                "Created At",
-                "Contact",
-                "Status",
+                "Free Tax Invoice ID",
+
+                "ReferenceTransactionID",
+                "Cust Account",
+                "Customer Name",
+                " Status",
+                "Transaction type",
+                "Item Code ",
+                " Name",
+                "Posting Account",
+                "Order Qty",
+                "Unit of Measure (UOM)",
+                "Unit Price",
+                " Subtotal /  line amount",
+                "Grand Total",
+                " Currency ",
+                "Order Id",
+                "Site ",
+                "Warehouse",
               ].map((h) => (
                 <th
                   key={h}
@@ -637,8 +658,8 @@ export default function VendorList({ handleAddVendor }) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredVendors.length ? (
-              filteredVendors.map((c) => (
+            {filteredFreeTaxings.length ? (
+              filteredFreeTaxings.map((c) => (
                 <tr
                   key={getId(c)}
                   className="hover:bg-gray-100 transition-colors"
@@ -654,7 +675,7 @@ export default function VendorList({ handleAddVendor }) {
                   <td className="px-6 py-4">
                     <button
                       className="text-blue-600 hover:underline focus:outline-none"
-                      onClick={() => handleVendorClick(getId(c))}
+                      onClick={() => handleFreeTaxingClick(getId(c))}
                     >
                       {getCode(c)}
                     </button>
@@ -665,6 +686,17 @@ export default function VendorList({ handleAddVendor }) {
                     {c?.createdAt ? new Date(c.createdAt).toLocaleString() : ""}
                   </td>
                   <td className="px-6 py-4">{c?.contactNum || ""}</td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        isActive(c)
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {isActive(c) ? "Active" : "Inactive"}
+                    </span>
+                  </td>{" "}
                   <td className="px-6 py-4">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

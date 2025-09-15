@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 // If you have it, uncomment:
-// import CreditnoteViewPage from "./";
+// import DebitnoteViewPage from "./DebitnoteViewPage.jsx";
 
 const SummaryCard = ({ label, value }) => (
   <div className="flex flex-col">
@@ -12,7 +12,7 @@ const SummaryCard = ({ label, value }) => (
   </div>
 );
 
-const CreditNoteform = ({ handleCancel }) => {
+const SaleOrderform = ({ handleCancel }) => {
   // -------------------------
   // API endpoints
   // -------------------------
@@ -23,24 +23,26 @@ const CreditNoteform = ({ handleCancel }) => {
   const customersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
   const salesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
 
+
+
   // -------------------------
   // UI/loaders
   // -------------------------
   const [loading, setLoading] = useState(false);
   const [loadingWarehouses, setLoadingWarehouses] = useState(false);
   const [loadingSites, setLoadingSites] = useState(false);
-  const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [loadingDebitNotes, setLoadingDebitNotes] = useState(false);
   const [loadingItems, setLoadingItems] = useState(false);
 
   // -------------------------
   // Top-level choices
   // -------------------------
-  const [customers, setCustomers] = useState([]);
+  const [customers, setDebitNotes] = useState([]);
   const [sites, setSites] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [items, setItems] = useState([]);
 
-  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [selectedDebitNote, setSelectedDebitNote] = useState("");
   const [selectedSite, setSelectedSite] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -77,7 +79,7 @@ const CreditNoteform = ({ handleCancel }) => {
   const [remarks, setRemarks] = useState("");
   const status = "Draft";
   const [docId, setDocId] = useState("");
-  const [debitnote, setCreditnote] = useState(null);
+  const [debitnote, setDebitnote] = useState(null);
   const [viewingSaleId, setViewingSaleId] = useState(null);
 
   // One line-item fields
@@ -90,8 +92,8 @@ const CreditNoteform = ({ handleCancel }) => {
   const [advance, setAdvance] = useState(0);
   const [lineAmt, setLineAmt] = useState("0.00");
 
-  // Customer preview card
-  const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
+  // DebitNote preview card
+  const [selectedDebitNoteDetails, setSelectedDebitNoteDetails] = useState({
     name: "",
     contactNum: "",
     currency: "",
@@ -166,20 +168,20 @@ const CreditNoteform = ({ handleCancel }) => {
         { setLoading: setLoadingItems }
       );
 
-    const fetchCustomers = () =>
+    const fetchDebitNotes = () =>
       withToast(
-        "Customers",
+        "DebitNotes",
         async () => {
           const res = await axios.get(customersBaseUrl);
           const list = listFromApi(res);
-          setCustomers(list);
+          setDebitNotes(list);
           return list;
         },
-        { setLoading: setLoadingCustomers }
+        { setLoading: setLoadingDebitNotes }
       );
 
     // run in parallel
-    Promise.allSettled([fetchSites(), fetchItems(), fetchCustomers()]).catch(
+    Promise.allSettled([fetchSites(), fetchItems(), fetchDebitNotes()]).catch(
       () => {}
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -214,11 +216,11 @@ const CreditNoteform = ({ handleCancel }) => {
   }, [selectedSite]);
 
   // -------------------------
-  // Customer details preview
+  // DebitNote details preview
   // -------------------------
   useEffect(() => {
-    if (!selectedCustomer) {
-      setSelectedCustomerDetails({
+    if (!selectedDebitNote) {
+      setSelectedDebitNoteDetails({
         name: "",
         contactNum: "",
         currency: "",
@@ -227,15 +229,15 @@ const CreditNoteform = ({ handleCancel }) => {
       });
       return;
     }
-    const c = customers.find((x) => String(x._id) === String(selectedCustomer));
-    setSelectedCustomerDetails({
+    const c = customers.find((x) => String(x._id) === String(selectedDebitNote));
+    setSelectedDebitNoteDetails({
       name: c?.name || "",
       contactNum: c?.contactNum || "",
       currency: c?.currency || "",
       address: c?.address || "",
       email: c?.email || "",
     });
-  }, [selectedCustomer, customers]);
+  }, [selectedDebitNote, customers]);
 
   // -------------------------
   // Item pick → default numbers
@@ -312,10 +314,10 @@ const CreditNoteform = ({ handleCancel }) => {
     }
   };
 
-  const onSelectCustomer = (id) => {
-    setSelectedCustomer(id);
+  const onSelectDebitNote = (id) => {
+    setSelectedDebitNote(id);
     const c = customers.find((x) => String(x._id) === String(id));
-    toast.success(`Customer selected: ${c?.name || id}`);
+    toast.success(`DebitNote selected: ${c?.name || id}`);
   };
 
   const clean = (obj) =>
@@ -333,8 +335,8 @@ const CreditNoteform = ({ handleCancel }) => {
     e.preventDefault();
 
     // Validations
-    if (!selectedCustomer) {
-      toast.warn("⚠️ Customer selection is required.");
+    if (!selectedDebitNote) {
+      toast.warn("⚠️ DebitNote selection is required.");
       return;
     }
     if (!selectedItem?._id) {
@@ -344,7 +346,7 @@ const CreditNoteform = ({ handleCancel }) => {
 
     const lineTotal = Number(lineAmt || 0);
     const payloadRaw = {
-      customer: selectedCustomer,
+      customer: selectedDebitNote,
       item: selectedItem._id || selectedItem.id || "",
       quantity: Number(quantity) || 1,
       price: Number(price) || 0,
@@ -366,7 +368,7 @@ const CreditNoteform = ({ handleCancel }) => {
         headers: { "Content-Type": "application/json" },
       });
       const newNum = data?.data?.orderNum;
-      setCreditnote(newNum || null);
+      setDebitnote(newNum || null);
       setDocId(data?.data?._id || "");
       toast.update(id, {
         render: `Sales Order Created Successfully! Order Number: ${
@@ -395,17 +397,17 @@ const CreditNoteform = ({ handleCancel }) => {
     setViewingSaleId(docId);
   };
 
-  // If you have CreditnoteViewPage, this allows instant view after create.
+  // If you have DebitnoteViewPage, this allows instant view after create.
   if (viewingSaleId) {
     return (
       <div>
-        {/* <CreditnoteViewPage
+        {/* <DebitnoteViewPage
           saleId={viewingSaleId}
           onClose={() => setViewingSaleId(null)}
         /> */}
         <div className="p-6 border rounded-lg">
           <p className="mb-4 text-sm text-gray-600">
-            Replace this with your <code>CreditnoteViewPage</code> component.
+            Replace this with your <code>DebitnoteViewPage</code> component.
           </p>
           <button
             onClick={() => setViewingSaleId(null)}
@@ -432,7 +434,8 @@ const CreditNoteform = ({ handleCancel }) => {
       {/* Header */}
       <div className="flex justify-between ">
         <div className="flex items-center space-x-2">
-          <h3 className="text-xl font-semibold"> Credit Note Details</h3>
+        
+          <h3 className="text-xl font-semibold">            Debit Note Details</h3>
         </div>
       </div>
 
@@ -486,22 +489,22 @@ const CreditNoteform = ({ handleCancel }) => {
 
           {/* Sale details */}
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-            Credit Note Details
+                      Debit Note Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Credit Note ID
+               Debit Note ID
               </label>
               <input
                 type="text"
                 name="saleOrder"
+               
                 placeholder="Sale Order"
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
               />
-            </div>{" "}
-            <div>
+            </div> <div>
               <label className="block text-sm font-medium text-gray-600">
                 Reference Transaction ID
               </label>
@@ -510,8 +513,7 @@ const CreditNoteform = ({ handleCancel }) => {
                 readOnly
                 className="w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
-            </div>{" "}
-            <div>
+            </div>     <div>
               <label className="block text-sm font-medium text-gray-600">
                 Issue Date & Time
               </label>
@@ -522,15 +524,15 @@ const CreditNoteform = ({ handleCancel }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Customer Account
+                DebitNote Account
               </label>
               <select
-                value={selectedCustomer}
-                onChange={(e) => onSelectCustomer(e.target.value)}
+                value={selectedDebitNote}
+                onChange={(e) => onSelectDebitNote(e.target.value)}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">
-                  {loadingCustomers ? "Loading…" : "Select Customer"}
+                  {loadingDebitNotes ? "Loading…" : "Select DebitNote"}
                 </option>
                 {customers.map((c) => (
                   <option key={c._id} value={c._id}>
@@ -543,70 +545,97 @@ const CreditNoteform = ({ handleCancel }) => {
               <div className="flex flex-col gap-4 h-full">
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Customer Name
+                    DebitNote Name
                   </label>
                   <input
                     type="text"
-                    value={selectedCustomerDetails.name}
-                    placeholder="Customer Name"
+                    value={selectedDebitNoteDetails.name}
+                    placeholder="DebitNote Name"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Currency
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedCustomerDetails.currency}
-                    placeholder="Currency"
-                    readOnly
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Customer Address
-                </label>
-                <textarea
-                  rows="4"
-                  value={selectedCustomerDetails.address}
-                  readOnly
-                  className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                />
-              </div>{" "}
-              {selectedCustomerDetails && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Reason
-                    </label>
-                    <input type="text" className="w-full p-2 border rounded" />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600">
-                      Credit Note Status
-                    </label>
-                    <input
-                      type="text"
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                      className="w-full p-2 border rounded"
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-            <div>
+  <div>
               <label className="block text-sm font-medium text-gray-600">
-                Total Credit Amount
+                Currency
               </label>
               <input
                 type="text"
-                value={selectedCustomerDetails.currency}
+                value={selectedDebitNoteDetails.currency}
+                placeholder="Currency"
+                readOnly
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
+            </div>
+     
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-600">
+                  DebitNote Address
+                </label>
+                <textarea
+                  rows="4"
+                  value={selectedDebitNoteDetails.address}
+                  readOnly
+                  className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                />
+              </div>    {selectedDebitNoteDetails && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Reason
+                  </label>
+                  <input type="text" className="w-full p-2 border rounded" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Debit Note Status
+                  </label>
+                  <input
+                    type="text"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    className="w-full p-2 border rounded"
+                  />
+                </div>
+                
+              </>
+            )}
+            </div>
+            {/* <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Contact Details
+              </label>
+              <input
+                type="text"
+                value={selectedDebitNoteDetails.contactNum}
+                placeholder="Contact Number"
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                readOnly
+              />
+            </div> */}
+          
+            {/* <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Sale Order no
+              </label>
+              <input
+                type="text"
+                value={selectedDebitNoteDetails.currency}
+                placeholder="Currency"
+                readOnly
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
+            </div> */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+           Total Debit Amount
+              </label>
+              <input
+                type="text"
+                value={selectedDebitNoteDetails.currency}
                 placeholder="Currency"
                 readOnly
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
@@ -618,12 +647,72 @@ const CreditNoteform = ({ handleCancel }) => {
               </label>
               <input
                 type="text"
-                value={selectedCustomerDetails.currency}
+                value={selectedDebitNoteDetails.currency}
                 placeholder="Currency"
                 readOnly
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
             </div>
+            {/* <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Created on
+              </label>
+              <input
+                type="text"
+                value={form.createdOn}
+                readOnly
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
+            </div> */}
+            {/* <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Order Status
+              </label>
+              <input
+                type="text"
+                value={status}
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                readOnly
+              />
+            </div> */}
+            {/* Optional entries */}
+            {/* <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Sale Agreement No (if applicable)
+              </label>
+              <input
+                type="text"
+                name="saleAgreementNo"
+                value={form.saleAgreementNo}
+                onChange={handleSimpleChange}
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div> */}
+            {/* <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Purchase Reference No
+              </label>
+              <input
+                type="text"
+                name="purchaseRef"
+                value={form.purchaseRef}
+                onChange={handleSimpleChange}
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div> */}
+           
+            {/* <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Delivery Mode
+              </label>
+              <input
+                type="text"
+                name="deliveryMode"
+                value={form.deliveryMode}
+                onChange={handleSimpleChange}
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div> */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Order Id
@@ -636,6 +725,20 @@ const CreditNoteform = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded"
               />
             </div>
+            {/* <div>
+              <label className="block text-sm font-medium text-gray-600">
+                  Posted Ledger Account
+              </label>
+              <input
+                type="number"
+                name="advance"
+                value={advance}
+                onChange={(e) => setAdvance(Number(e.target.value) || 0)}
+                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                min="0"
+                step="0.01"
+              />
+            </div> */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Remarks
@@ -649,6 +752,7 @@ const CreditNoteform = ({ handleCancel }) => {
                 className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
+             
           </div>
         </section>
 
@@ -864,7 +968,7 @@ const CreditNoteform = ({ handleCancel }) => {
             <button
               type="button"
               onClick={() => {
-                setSelectedCustomer("");
+                setSelectedDebitNote("");
                 setSelectedItem(null);
                 setQuantity(1);
                 setPrice(0);
@@ -916,4 +1020,4 @@ const CreditNoteform = ({ handleCancel }) => {
   );
 };
 
-export default CreditNoteform;
+export default SaleOrderform;

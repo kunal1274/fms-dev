@@ -1,18 +1,18 @@
 import React, { useState } from "react";
 
-import CreditNoteViewPage from "./CreditNoteViewPage";
+import DebitNoteViewPage from "./DebitNoteViewPage";
 import { Button } from "../../../../Component/Button/Button";
-import CreditNoteForm from "./CreditNoteForm";
-import CreditNoteList from "./CreditNotelistDummy";
+import DebitNoteForm from "./DebitNoteForm";
+import DebitNoteList from "./DebitNotelist";
 
-const CreditNotePage = () => {
+const DebitNotePage = () => {
   const [view, setView] = useState("list");
-  const [debits, setCreditNotes] = useState([]);
-  const [selectedCreditNote, setSelectedCreditNote] = useState(null);
+  const [debits, setDebitNotes] = useState([]);
+  const [selectedDebitNote, setSelectedDebitNote] = useState(null);
 
   /** Save or update a debit */
-  const handleSaveCreditNote = (debit) => {
-    setCreditNotes((prev) => {
+  const handleSaveDebitNote = (debit) => {
+    setDebitNotes((prev) => {
       const idx = prev.findIndex(
         (c) => c.debitAccountNo === debit.debitAccountNo
       );
@@ -27,22 +27,22 @@ const CreditNotePage = () => {
     setView("list");
   };
 
-  /** Open the "Add CreditNote" form */
-  const handleAddCreditNote = () => {
-    setSelectedCreditNote(null);
+  /** Open the "Add DebitNote" form */
+  const handleAddDebitNote = () => {
+    setSelectedDebitNote(null);
     setView("form");
   };
 
   /** Show debit details */
-  const handleViewCreditNote = (debitAccountNo) => {
+  const handleViewDebitNote = (debitAccountNo) => {
     const cust = debits.find((c) => c.debitAccountNo === debitAccountNo);
-    setSelectedCreditNote(cust);
+    setSelectedDebitNote(cust);
     setView("details");
   };
 
   /** Delete selected debits */
-  const handleDeleteCreditNote = (toDeleteAccounts) => {
-    setCreditNotes((prev) =>
+  const handleDeleteDebitNote = (toDeleteAccounts) => {
+    setDebitNotes((prev) =>
       prev.filter((c) => !toDeleteAccounts.includes(c.debitAccountNo))
     );
   };
@@ -52,20 +52,20 @@ const CreditNotePage = () => {
 
   /** Render header with title and actions */
   const renderHeader = () => {
-    let title = "CreditNotes";
+    let title = "DebitNotes";
     let action = null;
 
     if (view === "list") {
-      action = <Button onClick={handleAddCreditNote}>Add CreditNote</Button>;
+      action = <Button onClick={handleAddDebitNote}>Add DebitNote</Button>;
     } else if (view === "form") {
-      title = selectedCreditNote ? "Edit CreditNote" : "New CreditNote";
+      title = selectedDebitNote ? "Edit DebitNote" : "New DebitNote";
       action = (
         <Button variant="secondary" onClick={handleCancel}>
           Cancel
         </Button>
       );
     } else if (view === "details") {
-      title = "CreditNote Details";
+      title = "DebitNote Details";
       action = (
         <Button variant="secondary" onClick={handleCancel}>
           Back to List
@@ -85,24 +85,24 @@ const CreditNotePage = () => {
     <div className="">
       <div>
         {view === "list" && (
-          <CreditNoteList
+          <DebitNoteList
             debits={debits}
-            handleAddCreditNote={handleAddCreditNote}
-            onView={handleViewCreditNote}
-            onDelete={handleDeleteCreditNote}
+            handleAddDebitNote={handleAddDebitNote}
+            onView={handleViewDebitNote}
+            onDelete={handleDeleteDebitNote}
           />
         )}
 
         {view === "form" && (
-          <CreditNoteForm
-            debit={selectedCreditNote}
-            handleAddCreditNote={handleAddCreditNote}
+          <DebitNoteForm
+            debit={selectedDebitNote}
+            handleAddDebitNote={handleAddDebitNote}
             handleCancel={handleCancel}
           />
         )}
-        {view === "details" && selectedCreditNote && (
-          <CreditNoteViewPage
-            debit={selectedCreditNote}
+        {view === "details" && selectedDebitNote && (
+          <DebitNoteViewPage
+            debit={selectedDebitNote}
             onEdit={() => setView("form")}
             onBack={handleCancel}
           />
@@ -112,4 +112,4 @@ const CreditNotePage = () => {
   );
 };
 
-export default CreditNotePage;
+export default DebitNotePage;
