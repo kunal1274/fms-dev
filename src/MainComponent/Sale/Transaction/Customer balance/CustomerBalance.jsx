@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+
 const salesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
 
 const CustomerBalance = () => {
@@ -56,9 +61,93 @@ const CustomerBalance = () => {
     fetchBalances();
   }, []);
 
+  // ---- Export Handlers ----
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+
+    doc.text("Customer Balance Summary", 14, 15);
+
+    const tableColumn = [
+      "S.N",
+      "Customer Code",
+      "Customer Name",
+      "Total Invoice",
+      "Total Paid",
+      "Balance Due",
+      "Last Invoice Date",
+      "Status",
+    ];
+
+    const tableRows = balances.map((row, index) => [
+      index + 1,
+      row.code,
+      row.name,
+      row.totalInvoice.toFixed(2),
+      row.totalPaid.toFixed(2),
+      row.balanceDue.toFixed(2),
+      new Date(row.lastInvoiceDate).toLocaleDateString(),
+      row.status,
+    ]);
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+    });
+
+    doc.save("customer_balance_summary.pdf");
+  };
+
+  const handleExportExcel = () => {
+    const worksheetData = balances.map((row, index) => ({
+      "S.N": index + 1,
+      "Customer Code": row.code,
+      "Customer Name": row.name,
+      "Total Invoice": row.totalInvoice.toFixed(2),
+      "Total Paid": row.totalPaid.toFixed(2),
+      "Balance Due": row.balanceDue.toFixed(2),
+      "Last Invoice Date": new Date(row.lastInvoiceDate).toLocaleDateString(),
+      Status: row.status,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Customer Balance");
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    const data = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+    });
+
+    saveAs(data, "customer_balance_summary.xlsx");
+  };
+
   return (
     <div className="mt-8">
-      <h2 className="text-lg font-semibold mb-4">Customer Balance Summary</h2>
+      <div className="flex items-center justify-between">
+        {/* Title aligned left */}
+        <h2 className="text-lg font-semibold">Customer Balance Summary</h2>
+
+        {/* Buttons aligned right */}
+        <div className="space-x-2">
+          <button
+            onClick={handleExportPDF}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+          >
+            Export PDF
+          </button>
+          <button
+            onClick={handleExportExcel}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+          >
+            Export Excel
+          </button>
+        </div>
+      </div>
 
       {loading ? (
         <p>Loading...</p>

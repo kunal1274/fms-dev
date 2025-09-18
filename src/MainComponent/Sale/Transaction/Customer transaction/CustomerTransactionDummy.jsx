@@ -1,4 +1,10 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
+
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -113,10 +119,8 @@ const CustomerTransaction = () => {
     setTransactions(dummyTransactions);
   }, []);
 
-  // helper to get unique ID for selection
   const getId = (tx) => tx.transactionId;
 
-  // filtered list (dummy search + filter example)
   const filteredCreditNotes = transactions.filter((tx) => {
     const matchesSearch =
       tx.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -127,56 +131,130 @@ const CustomerTransaction = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Dummy actions
-  const handleAddCreditNote = () => toast.success("Add Credit Note clicked!");
-  const handleDeleteSelected = () => {
-    toast.info("Deleted selected notes");
-    setSelectedIds([]);
-  };
-  const generatePDF = () => toast.info("PDF generated");
-  const exportToExcel = () => toast.info("Exported to Excel");
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
-  const handleSortChange = (e) => setSortOption(e.target.value);
-  const handleStatusChange = (e) => setStatusFilter(e.target.value);
-  const toggleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedIds(filteredCreditNotes.map((c) => getId(c)));
-    } else {
-      setSelectedIds([]);
-    }
-  };
-  const handleCheckboxChange = (id) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-  const handleCreditNoteClick = (id) => toast.info(`Clicked on ${id}`);
-  const onTabClick = (tab) => setActiveTab(tab);
-
-  const fetchCreditNotes = async () => {
-    toast.info("Fetching CreditNotes (dummy)");
-  };
-  const fetchMetrics = async () => {
-    toast.info("Fetching Metrics (dummy)");
-  };
-
   const isRangeValid =
     startDate && endDate && new Date(endDate) > new Date(startDate);
+
+  // ✅ PDF Export
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    doc.text("Customer Transactions Report", 14, 10);
+
+    const rows = filteredCreditNotes.map((tx, idx) => [
+      idx + 1,
+      tx.transactionType,
+      tx.referenceId,
+      tx.transactionId,
+      formatDate(tx.transactionDate),
+      tx.customerId,
+      tx.customerName,
+      tx.itemName,
+      tx.itemNumber,
+      tx.quantity,
+      formatCurrency(tx.unitPrice),
+      formatCurrency(tx.discount),
+      formatCurrency(tx.taxAmount),
+      formatCurrency(tx.charges),
+      formatCurrency(tx.commission),
+      formatCurrency(tx.totalAmount),
+      tx.paymentMethod,
+      tx.paymentStatus,
+      tx.orderStatus,
+      tx.invoiceNumber,
+      formatCurrency(tx.revenue),
+      tx.positionTransaction,
+      tx.positionVoucher,
+      tx.physicalTransaction,
+      tx.physicalVoucher,
+      tx.financialTransaction,
+    ]);
+
+    doc.autoTable({
+      head: [tableHeaders],
+      body: rows,
+      startY: 20,
+      styles: { fontSize: 7, cellPadding: 1 },
+    });
+
+    doc.save("customer_transactions.pdf");
+    toast.success("PDF Exported!");
+  };
+
+  // ✅ Excel Export
+  const exportToExcel = () => {
+    const worksheetData = [
+      tableHeaders,
+      ...filteredCreditNotes.map((tx, idx) => [
+        idx + 1,
+        tx.transactionType,
+        tx.referenceId,
+        tx.transactionId,
+        formatDate(tx.transactionDate),
+        tx.customerId,
+        tx.customerName,
+        tx.itemName,
+        tx.itemNumber,
+        tx.quantity,
+        tx.unitPrice,
+        tx.discount,
+        tx.taxAmount,
+        tx.charges,
+        tx.commission,
+        tx.totalAmount,
+        tx.paymentMethod,
+        tx.paymentStatus,
+        tx.orderStatus,
+        tx.invoiceNumber,
+        tx.revenue,
+        tx.positionTransaction,
+        tx.positionVoucher,
+        tx.physicalTransaction,
+        tx.physicalVoucher,
+        tx.financialTransaction,
+      ]),
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const data = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(data, "customer_transactions.xlsx");
+
+    toast.success("Excel Exported!");
+  };
 
   return (
     <div>
       <ToastContainer />
 
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center space-x-2 ">
-          <h3 className="text-xl font-semibold mb-6">Credit Note List</h3>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+        {/* Title on left */}
+        <h2 className="text-lg font-bold">Customer Transactions</h2>
+
+        {/* Buttons on right */}
+        <div className="mt-2 sm:mt-0 space-x-2">
+          <button
+            onClick={generatePDF}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+          >
+            Export PDF
+          </button>
+          <button
+            onClick={exportToExcel}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+          >
+            Export Excel
+          </button>
         </div>
       </div>
-      <h2 className="text-lg font-bold mb-2">Customer Transactions</h2>
 
       {/* Scroll wrapper */}
-      <div className="mx-auto w-[100vw] max-w-[1500px] rounded-lg border bg-white ">
+      <div className="mx-auto w-[150vw] max-w-[1500px] rounded-lg border bg-white ">
         <div className="h-[400px] overflow-x-auto overflow-y-auto">
           <table className="min-w-[2000px] border border-gray-300 text-xs">
             <thead className="bg-gray-100 text-gray-700 sticky top-0 z-10">

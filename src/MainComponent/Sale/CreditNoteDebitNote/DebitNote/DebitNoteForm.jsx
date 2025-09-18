@@ -12,7 +12,7 @@ const SummaryCard = ({ label, value }) => (
   </div>
 );
 
-const SaleOrderform = ({ handleCancel }) => {
+const DebitOrderform = ({ handleCancel }) => {
   // -------------------------
   // API endpoints
   // -------------------------
@@ -21,9 +21,8 @@ const SaleOrderform = ({ handleCancel }) => {
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
   const siteBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/sites";
   const customersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/customers";
-  const salesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
-
-
+  const debitsOrderUrl =
+    "https://fms-qkmw.onrender.com/fms/api/v0/debitsorders";
 
   // -------------------------
   // UI/loaders
@@ -69,7 +68,7 @@ const SaleOrderform = ({ handleCancel }) => {
     warehouse: "",
     orderDate: "",
     createdOn: new Date().toLocaleString(),
-    saleAgreementNo: "",
+    debitAgreementNo: "",
     purchaseRef: "",
     paymentTerms: "",
     deliveryMode: "",
@@ -80,7 +79,7 @@ const SaleOrderform = ({ handleCancel }) => {
   const status = "Draft";
   const [docId, setDocId] = useState("");
   const [debitnote, setDebitnote] = useState(null);
-  const [viewingSaleId, setViewingSaleId] = useState(null);
+  const [viewingDebitId, setViewingDebitId] = useState(null);
 
   // One line-item fields
   const [quantity, setQuantity] = useState(1);
@@ -229,7 +228,9 @@ const SaleOrderform = ({ handleCancel }) => {
       });
       return;
     }
-    const c = customers.find((x) => String(x._id) === String(selectedDebitNote));
+    const c = customers.find(
+      (x) => String(x._id) === String(selectedDebitNote)
+    );
     setSelectedDebitNoteDetails({
       name: c?.name || "",
       contactNum: c?.contactNum || "",
@@ -356,22 +357,22 @@ const SaleOrderform = ({ handleCancel }) => {
       withholdingTax: Number(tcs) || 0,
       charges: Number(charges) || 0,
       advance: Number(advance) || 0,
-      // salesAddress: salesAddress,
+      // debitsAddress: debitsAddress,
     };
 
     const payload = clean(payloadRaw);
 
     try {
       setLoading(true);
-      const id = toast.loading("Creating Sales Order…");
-      const { data } = await axios.post(salesOrderUrl, payload, {
+      const id = toast.loading("Creating Debits Order…");
+      const { data } = await axios.post(debitsOrderUrl, payload, {
         headers: { "Content-Type": "application/json" },
       });
       const newNum = data?.data?.orderNum;
       setDebitnote(newNum || null);
       setDocId(data?.data?._id || "");
       toast.update(id, {
-        render: `Sales Order Created Successfully! Order Number: ${
+        render: `Debits Order Created Successfully! Order Number: ${
           newNum || "N/A"
         }`,
         type: "success",
@@ -381,7 +382,7 @@ const SaleOrderform = ({ handleCancel }) => {
       });
     } catch (error) {
       const msg =
-        error?.response?.data?.message || "Failed to create Sales Order";
+        error?.response?.data?.message || "Failed to create Debits Order";
       toast.error(`Error: ${msg}`);
       // keep state so user can correct and resubmit
     } finally {
@@ -394,23 +395,23 @@ const SaleOrderform = ({ handleCancel }) => {
       toast.info("No document to view yet.");
       return;
     }
-    setViewingSaleId(docId);
+    setViewingDebitId(docId);
   };
 
   // If you have DebitnoteViewPage, this allows instant view after create.
-  if (viewingSaleId) {
+  if (viewingDebitId) {
     return (
       <div>
         {/* <DebitnoteViewPage
-          saleId={viewingSaleId}
-          onClose={() => setViewingSaleId(null)}
+          debitId={viewingDebitId}
+          onClose={() => setViewingDebitId(null)}
         /> */}
         <div className="p-6 border rounded-lg">
           <p className="mb-4 text-sm text-gray-600">
             Replace this with your <code>DebitnoteViewPage</code> component.
           </p>
           <button
-            onClick={() => setViewingSaleId(null)}
+            onClick={() => setViewingDebitId(null)}
             className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
           >
             Close
@@ -434,8 +435,7 @@ const SaleOrderform = ({ handleCancel }) => {
       {/* Header */}
       <div className="flex justify-between ">
         <div className="flex items-center space-x-2">
-        
-          <h3 className="text-xl font-semibold">            Debit Note Details</h3>
+          <h3 className="text-xl font-semibold"> Debit Note Details</h3>
         </div>
       </div>
 
@@ -487,24 +487,24 @@ const SaleOrderform = ({ handleCancel }) => {
             </div>
           </div>
 
-          {/* Sale details */}
+          {/* Debit details */}
           <h2 className="text-lg font-medium text-gray-700 mb-4">
-                      Debit Note Details
+            Debit Note Details
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
-               Debit Note ID
+                Debit Note ID
               </label>
               <input
                 type="text"
-                name="saleOrder"
-               
-                placeholder="Sale Order"
+                name="debitOrder"
+                placeholder="Debit Order"
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
               />
-            </div> <div>
+            </div>{" "}
+            <div>
               <label className="block text-sm font-medium text-gray-600">
                 Reference Transaction ID
               </label>
@@ -513,7 +513,8 @@ const SaleOrderform = ({ handleCancel }) => {
                 readOnly
                 className="w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
-            </div>     <div>
+            </div>{" "}
+            <div>
               <label className="block text-sm font-medium text-gray-600">
                 Issue Date & Time
               </label>
@@ -555,21 +556,19 @@ const SaleOrderform = ({ handleCancel }) => {
                     readOnly
                   />
                 </div>
-  <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Currency
-              </label>
-              <input
-                type="text"
-                value={selectedDebitNoteDetails.currency}
-                placeholder="Currency"
-                readOnly
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-            </div>
-     
+                <div>
+                  <label className="block text-sm font-medium text-gray-600">
+                    Currency
+                  </label>
+                  <input
+                    type="text"
+                    value={selectedDebitNoteDetails.currency}
+                    placeholder="Currency"
+                    readOnly
+                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                  />
+                </div>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-600">
                   DebitNote Address
@@ -580,29 +579,29 @@ const SaleOrderform = ({ handleCancel }) => {
                   readOnly
                   className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 />
-              </div>    {selectedDebitNoteDetails && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Reason
-                  </label>
-                  <input type="text" className="w-full p-2 border rounded" />
-                </div>
+              </div>{" "}
+              {selectedDebitNoteDetails && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      Reason
+                    </label>
+                    <input type="text" className="w-full p-2 border rounded" />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Debit Note Status
-                  </label>
-                  <input
-                    type="text"
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                
-              </>
-            )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">
+                      Debit Note Status
+                    </label>
+                    <input
+                      type="text"
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                      className="w-full p-2 border rounded"
+                    />
+                  </div>
+                </>
+              )}
             </div>
             {/* <div>
               <label className="block text-sm font-medium text-gray-600">
@@ -616,10 +615,9 @@ const SaleOrderform = ({ handleCancel }) => {
                 readOnly
               />
             </div> */}
-          
             {/* <div>
               <label className="block text-sm font-medium text-gray-600">
-                Sale Order no
+                Debit Order no
               </label>
               <input
                 type="text"
@@ -631,7 +629,7 @@ const SaleOrderform = ({ handleCancel }) => {
             </div> */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-           Total Debit Amount
+                Total Debit Amount
               </label>
               <input
                 type="text"
@@ -678,12 +676,12 @@ const SaleOrderform = ({ handleCancel }) => {
             {/* Optional entries */}
             {/* <div>
               <label className="block text-sm font-medium text-gray-600">
-                Sale Agreement No (if applicable)
+                Debit Agreement No (if applicable)
               </label>
               <input
                 type="text"
-                name="saleAgreementNo"
-                value={form.saleAgreementNo}
+                name="debitAgreementNo"
+                value={form.debitAgreementNo}
                 onChange={handleSimpleChange}
                 className="mt-1 w-full p-2 border rounded"
               />
@@ -700,7 +698,6 @@ const SaleOrderform = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded"
               />
             </div> */}
-           
             {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Delivery Mode
@@ -715,7 +712,7 @@ const SaleOrderform = ({ handleCancel }) => {
             </div> */}
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Order Id
+                Posted Ledger Account
               </label>
               <input
                 type="text"
@@ -752,7 +749,6 @@ const SaleOrderform = ({ handleCancel }) => {
                 className="mt-1 m w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               />
             </div>{" "}
-             
           </div>
         </section>
 
@@ -989,7 +985,7 @@ const SaleOrderform = ({ handleCancel }) => {
                   deliveryMode: "",
                   orderId: "",
                   purchaseRef: "",
-                  saleAgreementNo: "",
+                  debitAgreementNo: "",
                 }));
                 toast.info("Form reset");
               }}
@@ -1020,4 +1016,4 @@ const SaleOrderform = ({ handleCancel }) => {
   );
 };
 
-export default SaleOrderform;
+export default DebitOrderform;

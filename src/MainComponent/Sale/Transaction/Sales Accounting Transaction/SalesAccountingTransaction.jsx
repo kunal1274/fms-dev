@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -28,11 +24,37 @@ const SalesAccountingTransaction = () => {
     fetchTransactions();
   }, []);
 
+  // Export handlers
+  const handleExportPDF = () => {
+    // Just a placeholder example — integrate jsPDF if needed
+    alert("Export to PDF clicked!");
+  };
+
+  const handleExportExcel = () => {
+    // Just a placeholder example — integrate SheetJS/xlsx if needed
+    alert("Export to Excel clicked!");
+  };
+
   return (
     <div className="mt-8">
-      <h2 className="text-lg font-semibold mb-2">
-        Sales Accounting Transactions
-      </h2>
+      {/* Header with title on left & buttons on right */}
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-lg font-semibold">Sales Accounting Transactions</h2>
+        <div className="space-x-2">
+          <button
+            onClick={handleExportPDF}
+            className="px-3 py-1 border rounded bg-gray-100 hover:bg-gray-200 text-sm"
+          >
+            Export PDF
+          </button>
+          <button
+            onClick={handleExportExcel}
+            className="px-3 py-1 border rounded bg-gray-100 hover:bg-gray-200 text-sm"
+          >
+            Export Excel
+          </button>
+        </div>
+      </div>
 
       {loading && <p className="text-sm">Loading...</p>}
       {error && <p className="text-sm text-red-600">{error}</p>}

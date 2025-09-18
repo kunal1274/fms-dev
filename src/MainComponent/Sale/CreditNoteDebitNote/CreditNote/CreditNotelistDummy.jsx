@@ -533,6 +533,7 @@ export default function CreditNoteList() {
                   "Date & Time",
                   "Credit Note Status",
                   " Invoice id agints Credit Note",
+                  "Item Code",
                   "Item Name",
                   "Order Qty",
                   "Unit of Measure (UOM)",

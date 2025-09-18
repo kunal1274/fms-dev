@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 // Simple summary card component
 const SummaryCard = ({ label, value }) => (
   <div className="flex flex-col">
@@ -50,9 +55,29 @@ const ProformaConfirmationInvoice = () => {
 
   return (
     <div className="p-6 text-sm text-gray-700">
-      <h2 className="text-lg font-bold mb-4">
+            <div className="flex items-center justify-between">
+        {/* Title */}
+  <h2 className="text-lg font-bold mb-4">
         Sales Proforma Confirmation Invoice
       </h2>
+
+        {/* Buttons aligned to the right */}
+        <div className="space-x-2">
+          <button
+            onClick={handleExportPDF}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+          >
+            Export PDF
+          </button>
+          <button
+            onClick={handleExportExcel}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+          >
+            Export Excel
+          </button>
+        </div>
+      </div>
+    
 
       {/* Header Form Section */}
       <section

@@ -1,8 +1,8 @@
 import React from "react";
-//
+
 import Dashbord from "./Component/Dashbord/Dashbord";
 
-// import Dashbord from "./MainComponent/Sale/";
+// import Dashbord from "./MainComponent/Sale/Transaction/Customer balance/CustomerBalance";
 const App = () => {
   return (
     <div>

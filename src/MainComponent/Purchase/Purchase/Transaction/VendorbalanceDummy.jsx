@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 const purchasesOrderUrl =
   "https://fms-qkmw.onrender.com/fms/api/v0/purchasesorders";
@@ -15,7 +19,7 @@ export default function VendorBalance() {
       invoiceAmount: 1200.5,
       paymentPaid: 600.25,
       balanceDue: 600.25,
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week later
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       status: "Partially Paid",
     },
     {
@@ -26,7 +30,7 @@ export default function VendorBalance() {
       invoiceAmount: 800,
       paymentPaid: 0,
       balanceDue: 800,
-      dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 2 weeks later
+      dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
       status: "Unpaid",
     },
     {
@@ -37,7 +41,7 @@ export default function VendorBalance() {
       invoiceAmount: 500,
       paymentPaid: 500,
       balanceDue: 0,
-      dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days later
+      dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
       status: "Paid",
     },
   ]);
@@ -86,9 +90,75 @@ export default function VendorBalance() {
     fetchBalances();
   }, []);
 
+  // 📌 Export PDF
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Vendor Balance Summary", 14, 10);
+    doc.autoTable({
+      head: [
+        [
+          "Vendor ID / No",
+          "Vendor Name",
+          "Invoice Date",
+          "Invoice Number",
+          "Invoice Amount",
+          "Payment Paid",
+          "Balance Due",
+          "Due Date",
+          "Status",
+        ],
+      ],
+      body: balances.map((row) => [
+        row.vendorId,
+        row.vendorName,
+        new Date(row.invoiceDate).toLocaleDateString(),
+        row.invoiceNumber,
+        row.invoiceAmount.toFixed(2),
+        row.paymentPaid.toFixed(2),
+        row.balanceDue.toFixed(2),
+        row.dueDate ? new Date(row.dueDate).toLocaleDateString() : "-",
+        row.status,
+      ]),
+      startY: 20,
+    });
+    doc.save("vendor_balance_summary.pdf");
+  };
+
+  // 📌 Export Excel
+  const handleExportExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(balances);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Vendor Balance");
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const data = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(data, "vendor_balance_summary.xlsx");
+  };
+
   return (
     <div className="mt-8">
-      <h2 className="text-lg font-semibold mb-4">Vendor Balance Summary</h2>
+      {/* Header with h2 left, buttons right */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">Vendor Balance Summary</h2>
+        <div className="space-x-2">
+          <button
+            onClick={handleExportPDF}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md 
+                       transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+          >
+            Export PDF
+          </button>
+          <button
+            onClick={handleExportExcel}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md 
+                       transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+          >
+            Export Excel
+          </button>
+        </div>
+      </div>
 
       {loading ? (
         <p>Loading...</p>
