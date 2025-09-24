@@ -586,7 +586,7 @@ export default function CustomerForm({ handleCancel, onSaved }) {
                 ))}
               </select>
             </div>{" "}
-            <input type="text" value={form.contactNum} />
+        
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Contact No

@@ -667,7 +667,8 @@ const CreditNoteform = ({ handleCancel }) => {
                       "Qty",
                       "Unit",
                       "Price",
-                      "Discount ",
+                      "Discount%",
+                      "Discountamount",
                       "Amount",
                       "Tax %",
                       "TCS/TDS %",
@@ -688,9 +689,7 @@ const CreditNoteform = ({ handleCancel }) => {
                 <tbody className="divide-y divide-gray-200">
                   <tr key="purchase-order-row" className="hover:bg-gray-50">
                     <td className="border text-center px-2 py-1">1</td>
-
                     <td className="border px-2 py-1 text-center">{itemCode}</td>
-
                     <td className="border px-2 py-1">
                       <select
                         value={selectedItem?._id || ""}
@@ -708,7 +707,6 @@ const CreditNoteform = ({ handleCancel }) => {
                         ))}
                       </select>
                     </td>
-
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
@@ -717,7 +715,6 @@ const CreditNoteform = ({ handleCancel }) => {
                         className="w-full border rounded text-center px-2 py-1 bg-gray-100"
                       />
                     </td>
-
                     <td className="border px-2 py-1">
                       <select
                         value={selectedSite}
@@ -738,7 +735,6 @@ const CreditNoteform = ({ handleCancel }) => {
                         ))}
                       </select>
                     </td>
-
                     <td className="border px-2 py-1">
                       <select
                         name="warehouse"
@@ -762,7 +758,6 @@ const CreditNoteform = ({ handleCancel }) => {
                         })}
                       </select>
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="number"
@@ -775,7 +770,6 @@ const CreditNoteform = ({ handleCancel }) => {
                         }
                       />
                     </td>
-
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
@@ -784,7 +778,6 @@ const CreditNoteform = ({ handleCancel }) => {
                         className="w-full border rounded text-center px-2 py-1 bg-gray-100"
                       />
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="number"
@@ -795,7 +788,18 @@ const CreditNoteform = ({ handleCancel }) => {
                         onChange={(e) => setPrice(Number(e.target.value) || 0)}
                       />
                     </td>
-
+                    <td className="border px-2 py-1">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="w-full border rounded text-center px-2 py-1"
+                        value={discount}
+                        onChange={(e) =>
+                          setDiscount(Number(e.target.value) || 0)
+                        }
+                      />
+                    </td>{" "}
                     <td className="border px-2 py-1">
                       <input
                         type="number"
@@ -808,13 +812,11 @@ const CreditNoteform = ({ handleCancel }) => {
                         }
                       />
                     </td>
-
                     <td className="border px-2 py-1 text-center">
                       {isNaN(amountBeforeTax)
                         ? "0.00"
                         : amountBeforeTax.toFixed(2)}
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="number"
@@ -825,7 +827,6 @@ const CreditNoteform = ({ handleCancel }) => {
                         onChange={(e) => setTax(Number(e.target.value) || 0)}
                       />
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="number"
@@ -836,7 +837,6 @@ const CreditNoteform = ({ handleCancel }) => {
                         onChange={(e) => setTcs(Number(e.target.value) || 0)}
                       />
                     </td>
-
                     <td className="border px-2 py-1 text-center">{lineAmt}</td>
                   </tr>
                 </tbody>

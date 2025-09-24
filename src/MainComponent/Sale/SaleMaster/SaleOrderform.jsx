@@ -441,9 +441,10 @@ const SaleOrderform = ({ handleCancel }) => {
     selectedItem?.unit || selectedItem?.uom || selectedItem?.unitName || "";
 
   return (
-    <div className="">
+    <div>
       <ToastContainer />
       {/* Header */}
+
       <div className="flex justify-between ">
         <div className="flex items-center space-x-2">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
@@ -623,30 +624,7 @@ const SaleOrderform = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Sale Order no
-              </label>
-              <input
-                type="text"
-                value={selectedCustomerDetails.currency}
-                placeholder="Currency"
-                readOnly
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Purchase Reference No{" "}
-              </label>
-              <input
-                type="text"
-                value={selectedCustomerDetails.currency}
-                placeholder="Currency"
-                readOnly
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-            </div>
+          
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Order Date{" "}
@@ -796,6 +774,7 @@ const SaleOrderform = ({ handleCancel }) => {
                       "Unit",
                       "Price",
                       "Discount %",
+                      "Discount Amount",
                       "Amount",
                       "Tax %",
                       "TCS/TDS %",

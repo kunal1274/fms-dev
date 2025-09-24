@@ -366,7 +366,7 @@ export default function ItemList({ handleAddItem }) {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-2 ">
-          <h3 className="text-xl font-semibold mb-6">Item List</h3>
+          <h3 className="text-xl font-semibold mb-6">Items List</h3>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">

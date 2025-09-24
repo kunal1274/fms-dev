@@ -30,18 +30,18 @@ const DebitOrderform = ({ handleCancel }) => {
   const [loading, setLoading] = useState(false);
   const [loadingWarehouses, setLoadingWarehouses] = useState(false);
   const [loadingSites, setLoadingSites] = useState(false);
-  const [loadingDebitNotes, setLoadingDebitNotes] = useState(false);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [loadingItems, setLoadingItems] = useState(false);
 
   // -------------------------
   // Top-level choices
   // -------------------------
-  const [customers, setDebitNotes] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [sites, setSites] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [items, setItems] = useState([]);
 
-  const [selectedDebitNote, setSelectedDebitNote] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState("");
   const [selectedSite, setSelectedSite] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -85,14 +85,15 @@ const DebitOrderform = ({ handleCancel }) => {
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState(0);
   const [discount, setDiscount] = useState(0); // %
+    const [discountamount, setDiscountamount] = useState(0); 
   const [tax, setTax] = useState(0); // %
   const [tcs, setTcs] = useState(0); // %
   const [charges, setCharges] = useState(0);
   const [advance, setAdvance] = useState(0);
   const [lineAmt, setLineAmt] = useState("0.00");
 
-  // DebitNote preview card
-  const [selectedDebitNoteDetails, setSelectedDebitNoteDetails] = useState({
+  // Customer preview card
+  const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
     name: "",
     contactNum: "",
     currency: "",
@@ -167,20 +168,20 @@ const DebitOrderform = ({ handleCancel }) => {
         { setLoading: setLoadingItems }
       );
 
-    const fetchDebitNotes = () =>
+    const fetchCustomers = () =>
       withToast(
-        "DebitNotes",
+        "Customers",
         async () => {
           const res = await axios.get(customersBaseUrl);
           const list = listFromApi(res);
-          setDebitNotes(list);
+          setCustomers(list);
           return list;
         },
-        { setLoading: setLoadingDebitNotes }
+        { setLoading: setLoadingCustomers }
       );
 
     // run in parallel
-    Promise.allSettled([fetchSites(), fetchItems(), fetchDebitNotes()]).catch(
+    Promise.allSettled([fetchSites(), fetchItems(), fetchCustomers()]).catch(
       () => {}
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -215,11 +216,11 @@ const DebitOrderform = ({ handleCancel }) => {
   }, [selectedSite]);
 
   // -------------------------
-  // DebitNote details preview
+  // Customer details preview
   // -------------------------
   useEffect(() => {
-    if (!selectedDebitNote) {
-      setSelectedDebitNoteDetails({
+    if (!selectedCustomer) {
+      setSelectedCustomerDetails({
         name: "",
         contactNum: "",
         currency: "",
@@ -229,16 +230,16 @@ const DebitOrderform = ({ handleCancel }) => {
       return;
     }
     const c = customers.find(
-      (x) => String(x._id) === String(selectedDebitNote)
+      (x) => String(x._id) === String(selectedCustomer)
     );
-    setSelectedDebitNoteDetails({
+    setSelectedCustomerDetails({
       name: c?.name || "",
       contactNum: c?.contactNum || "",
       currency: c?.currency || "",
       address: c?.address || "",
       email: c?.email || "",
     });
-  }, [selectedDebitNote, customers]);
+  }, [selectedCustomer, customers]);
 
   // -------------------------
   // Item pick → default numbers
@@ -315,10 +316,10 @@ const DebitOrderform = ({ handleCancel }) => {
     }
   };
 
-  const onSelectDebitNote = (id) => {
-    setSelectedDebitNote(id);
+  const onSelectCustomer = (id) => {
+    setSelectedCustomer(id);
     const c = customers.find((x) => String(x._id) === String(id));
-    toast.success(`DebitNote selected: ${c?.name || id}`);
+    toast.success(`Customer selected: ${c?.name || id}`);
   };
 
   const clean = (obj) =>
@@ -336,8 +337,8 @@ const DebitOrderform = ({ handleCancel }) => {
     e.preventDefault();
 
     // Validations
-    if (!selectedDebitNote) {
-      toast.warn("⚠️ DebitNote selection is required.");
+    if (!selectedCustomer) {
+      toast.warn("⚠️ Customer selection is required.");
       return;
     }
     if (!selectedItem?._id) {
@@ -347,7 +348,7 @@ const DebitOrderform = ({ handleCancel }) => {
 
     const lineTotal = Number(lineAmt || 0);
     const payloadRaw = {
-      customer: selectedDebitNote,
+      customer: selectedCustomer,
       item: selectedItem._id || selectedItem.id || "",
       quantity: Number(quantity) || 1,
       price: Number(price) || 0,
@@ -525,15 +526,15 @@ const DebitOrderform = ({ handleCancel }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                DebitNote Account
+                Customer Account
               </label>
               <select
-                value={selectedDebitNote}
-                onChange={(e) => onSelectDebitNote(e.target.value)}
+                value={selectedCustomer}
+                onChange={(e) => onSelectCustomer(e.target.value)}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
                 <option value="">
-                  {loadingDebitNotes ? "Loading…" : "Select DebitNote"}
+                  {loadingCustomers ? "Loading…" : "Select Customer"}
                 </option>
                 {customers.map((c) => (
                   <option key={c._id} value={c._id}>
@@ -546,12 +547,12 @@ const DebitOrderform = ({ handleCancel }) => {
               <div className="flex flex-col gap-4 h-full">
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    DebitNote Name
+                  Customer Name
                   </label>
                   <input
                     type="text"
-                    value={selectedDebitNoteDetails.name}
-                    placeholder="DebitNote Name"
+                    value={selectedCustomerDetails.name}
+                    placeholder="Customer Name"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
@@ -562,7 +563,7 @@ const DebitOrderform = ({ handleCancel }) => {
                   </label>
                   <input
                     type="text"
-                    value={selectedDebitNoteDetails.currency}
+                    value={selectedCustomerDetails.currency}
                     placeholder="Currency"
                     readOnly
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
@@ -571,16 +572,16 @@ const DebitOrderform = ({ handleCancel }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600">
-                  DebitNote Address
+           Customer Address
                 </label>
                 <textarea
                   rows="4"
-                  value={selectedDebitNoteDetails.address}
+                  value={selectedCustomerDetails.address}
                   readOnly
                   className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 />
               </div>{" "}
-              {selectedDebitNoteDetails && (
+              {selectedCustomerDetails && (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-600">
@@ -591,7 +592,7 @@ const DebitOrderform = ({ handleCancel }) => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-600">
-                      Debit Note Status
+                    Customer Status
                     </label>
                     <input
                       type="text"
@@ -609,7 +610,7 @@ const DebitOrderform = ({ handleCancel }) => {
               </label>
               <input
                 type="text"
-                value={selectedDebitNoteDetails.contactNum}
+                value={selectedCustomerDetails.contactNum}
                 placeholder="Contact Number"
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
@@ -621,7 +622,7 @@ const DebitOrderform = ({ handleCancel }) => {
               </label>
               <input
                 type="text"
-                value={selectedDebitNoteDetails.currency}
+                value={selectedCustomerDetails.currency}
                 placeholder="Currency"
                 readOnly
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
@@ -633,7 +634,7 @@ const DebitOrderform = ({ handleCancel }) => {
               </label>
               <input
                 type="text"
-                value={selectedDebitNoteDetails.currency}
+                value={selectedCustomerDetails.currency}
                 placeholder="Currency"
                 readOnly
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
@@ -645,7 +646,7 @@ const DebitOrderform = ({ handleCancel }) => {
               </label>
               <input
                 type="text"
-                value={selectedDebitNoteDetails.currency}
+                value={selectedCustomerDetails.currency}
                 placeholder="Currency"
                 readOnly
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
@@ -770,6 +771,7 @@ const DebitOrderform = ({ handleCancel }) => {
                       "Unit",
                       "Price",
                       "Discount %",
+                         "Discount Amount",
                       "Amount",
                       "Tax %",
                       "TCS/TDS %",
@@ -907,6 +909,17 @@ const DebitOrderform = ({ handleCancel }) => {
                           setDiscount(Number(e.target.value) || 0)
                         }
                       />
+                    </td> <td className="border px-2 py-1">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="w-full border rounded text-center px-2 py-1"
+                        value={discountamount}
+                        onChange={(e) =>
+                          setDiscount(Number(e.target.value) || 0)
+                        }
+                      />
                     </td>
 
                     <td className="border px-2 py-1 text-center">
@@ -964,7 +977,7 @@ const DebitOrderform = ({ handleCancel }) => {
             <button
               type="button"
               onClick={() => {
-                setSelectedDebitNote("");
+                setSelectedCustomer("");
                 setSelectedItem(null);
                 setQuantity(1);
                 setPrice(0);

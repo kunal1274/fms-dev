@@ -767,7 +767,7 @@ const ReturnForm = ({ handleCancel }) => {
                       "Warehouse",
                       "Unit",
                       "Price",
-                      "Discount %",
+                      "Discount %", "Discountamount",
                       "Amount",
                       "Tax %",
                       "TCS/TDS %",
@@ -870,7 +870,17 @@ const ReturnForm = ({ handleCancel }) => {
                         }
                       />
                     </td>
-
+    <td className="border px-2 py-1">
+                      <input
+                        type="number"
+                        min="0"
+                        className="w-full border rounded text-center px-2 py-1"
+                        value={discount || ""}
+                        onChange={(e) =>
+                          setDiscount(Number(e.target.value) || 0)
+                        }
+                      />
+                    </td>
                     <td className="border px-2 py-1 text-center">
                       {isNaN(amountBeforeTax)
                         ? "0.00"

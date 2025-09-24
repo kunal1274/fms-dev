@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { FaSortAmountDown, FaFilter, FaSearch } from "react-icons/fa";
-import CreditViewPage from "./CreditViewPageDummy.jsx";
 
 // Dummy helpers
 const getId = (c) => c.id;
@@ -10,14 +9,7 @@ const getName = (c) => c.customerName;
 const getAddress = (c) => c.customerAccount;
 const isActive = (c) => c.status === "Active";
 
-// Small helper to mimic addDays
-const addDays = (dateStr, days) => {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split("T")[0];
-};
-
-export default function CreditNoteList(handleAddCreditNote) {
+export default function CreditNoteList() {
   // Dummy summary data
   const [summary, setSummary] = useState({
     count: 12,
@@ -72,205 +64,202 @@ export default function CreditNoteList(handleAddCreditNote) {
       warehouse: "WH-02",
       contactNum: "321-654-9870",
       status: "Inactive",
-    },
-    {
-      id: "DN003",
-      code: "CRN-103",
-      referenceTransactionID: "TXN-5003",
-      customerAccount: "AC-9003",
-      customerName: "Michael Johnson",
-      createdAt: new Date().toISOString(),
-      creditNoteStatus: "Approved",
-      invoiceId: "INV-778",
-      itemName: "Laptop",
-      orderQty: 2,
-      uom: "pcs",
-      unitPrice: 1200,
-      subtotal: 2400,
-      grandTotal: 2500,
-      currency: "USD",
-      orderId: "ORD-103",
-      site: "NY",
-      warehouse: "WH-03",
-      contactNum: "555-123-4567",
-      status: "Active",
-    },
-    {
-      id: "DN004",
-      code: "CRN-104",
-      referenceTransactionID: "TXN-5004",
-      customerAccount: "AC-9004",
-      customerName: "Emily Davis",
-      createdAt: new Date().toISOString(),
-      creditNoteStatus: "Rejected",
-      invoiceId: "INV-779",
-      itemName: "Tablet",
-      orderQty: 3,
-      uom: "pcs",
-      unitPrice: 300,
-      subtotal: 900,
-      grandTotal: 950,
-      currency: "USD",
-      orderId: "ORD-104",
-      site: "SF",
-      warehouse: "WH-04",
-      contactNum: "987-654-3210",
-      status: "Inactive",
-    },
-    {
-      id: "DN005",
-      code: "CRN-105",
-      referenceTransactionID: "TXN-5005",
-      customerAccount: "AC-9005",
-      customerName: "Robert Brown",
-      createdAt: new Date().toISOString(),
-      creditNoteStatus: "Pending",
-      invoiceId: "INV-780",
-      itemName: "Monitor",
-      orderQty: 4,
-      uom: "pcs",
-      unitPrice: 200,
-      subtotal: 800,
-      grandTotal: 850,
-      currency: "USD",
-      orderId: "ORD-105",
-      site: "TX",
-      warehouse: "WH-05",
-      contactNum: "654-321-0987",
-      status: "Active",
-    },
-    {
-      id: "DN006",
-      code: "CRN-106",
-      referenceTransactionID: "TXN-5006",
-      customerAccount: "AC-9006",
-      customerName: "Sophia Wilson",
-      createdAt: new Date().toISOString(),
-      creditNoteStatus: "Approved",
-      invoiceId: "INV-781",
-      itemName: "Headphones",
-      orderQty: 10,
-      uom: "pcs",
-      unitPrice: 50,
-      subtotal: 500,
-      grandTotal: 550,
-      currency: "USD",
-      orderId: "ORD-106",
-      site: "LA",
-      warehouse: "WH-06",
-      contactNum: "123-456-7890",
-      status: "Inactive",
-    },
-    {
-      id: "DN007",
-      code: "CRN-107",
-      referenceTransactionID: "TXN-5007",
-      customerAccount: "AC-9007",
-      customerName: "Daniel Martinez",
-      createdAt: new Date().toISOString(),
-      creditNoteStatus: "Pending",
-      invoiceId: "INV-782",
-      itemName: "Keyboard",
-      orderQty: 7,
-      uom: "pcs",
-      unitPrice: 80,
-      subtotal: 560,
-      grandTotal: 600,
-      currency: "USD",
-      orderId: "ORD-107",
-      site: "NY",
-      warehouse: "WH-07",
-      contactNum: "321-987-6543",
-      status: "Active",
-    },
-    {
-      id: "DN008",
-      code: "CRN-108",
-      referenceTransactionID: "TXN-5008",
-      customerAccount: "AC-9008",
-      customerName: "Olivia Garcia",
-      createdAt: new Date().toISOString(),
-      creditNoteStatus: "Approved",
-      invoiceId: "INV-783",
-      itemName: "Printer",
-      orderQty: 1,
-      uom: "pcs",
-      unitPrice: 400,
-      subtotal: 400,
-      grandTotal: 420,
-      currency: "USD",
-      orderId: "ORD-108",
-      site: "SF",
-      warehouse: "WH-08",
-      contactNum: "444-555-6666",
-      status: "Inactive",
-    },
-    {
-      id: "DN009",
-      code: "CRN-109",
-      referenceTransactionID: "TXN-5009",
-      customerAccount: "AC-9009",
-      customerName: "William Lee",
-      createdAt: new Date().toISOString(),
-      creditNoteStatus: "Rejected",
-      invoiceId: "INV-784",
-      itemName: "Smartwatch",
-      orderQty: 6,
-      uom: "pcs",
-      unitPrice: 150,
-      subtotal: 900,
-      grandTotal: 950,
-      currency: "USD",
-      orderId: "ORD-109",
-      site: "TX",
-      warehouse: "WH-09",
-      contactNum: "111-222-3333",
-      status: "Active",
-    },
-    {
-      id: "DN010",
-      code: "CRN-110",
-      referenceTransactionID: "TXN-5010",
-      customerAccount: "AC-9010",
-      customerName: "Ava Taylor",
-      createdAt: new Date().toISOString(),
-      creditNoteStatus: "Pending",
-      invoiceId: "INV-785",
-      itemName: "Camera",
-      orderQty: 2,
-      uom: "pcs",
-      unitPrice: 800,
-      subtotal: 1600,
-      grandTotal: 1700,
-      currency: "USD",
-      orderId: "ORD-110",
-      site: "LA",
-      warehouse: "WH-10",
-      contactNum: "777-888-9999",
-      status: "Inactive",
-    },
-    {
-      id: "DN011",
-      code: "CRN-111",
-      referenceTransactionID: "TXN-5011",
-      customerAccount: "AC-9011",
-      customerName: "James Anderson",
-      createdAt: new Date().toISOString(),
-      creditNoteStatus: "Approved",
-      invoiceId: "INV-786",
-      itemName: "Speaker",
-      orderQty: 8,
-      uom: "pcs",
-      unitPrice: 120,
-      subtotal: 960,
-      grandTotal: 1000,
-      currency: "USD",
-      orderId: "ORD-111",
-      site: "NY",
-      warehouse: "WH-11",
-      contactNum: "999-000-1111",
-      status: "Active",
-    },
+    },  {
+    id: "DN003",
+    code: "CRN-103",
+    referenceTransactionID: "TXN-5003",
+    customerAccount: "AC-9003",
+    customerName: "Michael Johnson",
+    createdAt: new Date().toISOString(),
+    creditNoteStatus: "Approved",
+    invoiceId: "INV-778",
+    itemName: "Laptop",
+    orderQty: 2,
+    uom: "pcs",
+    unitPrice: 1200,
+    subtotal: 2400,
+    grandTotal: 2500,
+    currency: "USD",
+    orderId: "ORD-103",
+    site: "NY",
+    warehouse: "WH-03",
+    contactNum: "555-123-4567",
+    status: "Active",
+  },  {
+    id: "DN004",
+    code: "CRN-104",
+    referenceTransactionID: "TXN-5004",
+    customerAccount: "AC-9004",
+    customerName: "Emily Davis",
+    createdAt: new Date().toISOString(),
+    creditNoteStatus: "Rejected",
+    invoiceId: "INV-779",
+    itemName: "Tablet",
+    orderQty: 3,
+    uom: "pcs",
+    unitPrice: 300,
+    subtotal: 900,
+    grandTotal: 950,
+    currency: "USD",
+    orderId: "ORD-104",
+    site: "SF",
+    warehouse: "WH-04",
+    contactNum: "987-654-3210",
+    status: "Inactive",
+  }, {
+    id: "DN005",
+    code: "CRN-105",
+    referenceTransactionID: "TXN-5005",
+    customerAccount: "AC-9005",
+    customerName: "Robert Brown",
+    createdAt: new Date().toISOString(),
+    creditNoteStatus: "Pending",
+    invoiceId: "INV-780",
+    itemName: "Monitor",
+    orderQty: 4,
+    uom: "pcs",
+    unitPrice: 200,
+    subtotal: 800,
+    grandTotal: 850,
+    currency: "USD",
+    orderId: "ORD-105",
+    site: "TX",
+    warehouse: "WH-05",
+    contactNum: "654-321-0987",
+    status: "Active",
+  },
+  {
+    id: "DN006",
+    code: "CRN-106",
+    referenceTransactionID: "TXN-5006",
+    customerAccount: "AC-9006",
+    customerName: "Sophia Wilson",
+    createdAt: new Date().toISOString(),
+    creditNoteStatus: "Approved",
+    invoiceId: "INV-781",
+    itemName: "Headphones",
+    orderQty: 10,
+    uom: "pcs",
+    unitPrice: 50,
+    subtotal: 500,
+    grandTotal: 550,
+    currency: "USD",
+    orderId: "ORD-106",
+    site: "LA",
+    warehouse: "WH-06",
+    contactNum: "123-456-7890",
+    status: "Inactive",
+  },
+  {
+    id: "DN007",
+    code: "CRN-107",
+    referenceTransactionID: "TXN-5007",
+    customerAccount: "AC-9007",
+    customerName: "Daniel Martinez",
+    createdAt: new Date().toISOString(),
+    creditNoteStatus: "Pending",
+    invoiceId: "INV-782",
+    itemName: "Keyboard",
+    orderQty: 7,
+    uom: "pcs",
+    unitPrice: 80,
+    subtotal: 560,
+    grandTotal: 600,
+    currency: "USD",
+    orderId: "ORD-107",
+    site: "NY",
+    warehouse: "WH-07",
+    contactNum: "321-987-6543",
+    status: "Active",
+  },
+  {
+    id: "DN008",
+    code: "CRN-108",
+    referenceTransactionID: "TXN-5008",
+    customerAccount: "AC-9008",
+    customerName: "Olivia Garcia",
+    createdAt: new Date().toISOString(),
+    creditNoteStatus: "Approved",
+    invoiceId: "INV-783",
+    itemName: "Printer",
+    orderQty: 1,
+    uom: "pcs",
+    unitPrice: 400,
+    subtotal: 400,
+    grandTotal: 420,
+    currency: "USD",
+    orderId: "ORD-108",
+    site: "SF",
+    warehouse: "WH-08",
+    contactNum: "444-555-6666",
+    status: "Inactive",
+  },
+  {
+    id: "DN009",
+    code: "CRN-109",
+    referenceTransactionID: "TXN-5009",
+    customerAccount: "AC-9009",
+    customerName: "William Lee",
+    createdAt: new Date().toISOString(),
+    creditNoteStatus: "Rejected",
+    invoiceId: "INV-784",
+    itemName: "Smartwatch",
+    orderQty: 6,
+    uom: "pcs",
+    unitPrice: 150,
+    subtotal: 900,
+    grandTotal: 950,
+    currency: "USD",
+    orderId: "ORD-109",
+    site: "TX",
+    warehouse: "WH-09",
+    contactNum: "111-222-3333",
+    status: "Active",
+  },
+  {
+    id: "DN010",
+    code: "CRN-110",
+    referenceTransactionID: "TXN-5010",
+    customerAccount: "AC-9010",
+    customerName: "Ava Taylor",
+    createdAt: new Date().toISOString(),
+    creditNoteStatus: "Pending",
+    invoiceId: "INV-785",
+    itemName: "Camera",
+    orderQty: 2,
+    uom: "pcs",
+    unitPrice: 800,
+    subtotal: 1600,
+    grandTotal: 1700,
+    currency: "USD",
+    orderId: "ORD-110",
+    site: "LA",
+    warehouse: "WH-10",
+    contactNum: "777-888-9999",
+    status: "Inactive",
+  },
+  {
+    id: "DN011",
+    code: "CRN-111",
+    referenceTransactionID: "TXN-5011",
+    customerAccount: "AC-9011",
+    customerName: "James Anderson",
+    createdAt: new Date().toISOString(),
+    creditNoteStatus: "Approved",
+    invoiceId: "INV-786",
+    itemName: "Speaker",
+    orderQty: 8,
+    uom: "pcs",
+    unitPrice: 120,
+    subtotal: 960,
+    grandTotal: 1000,
+    currency: "USD",
+    orderId: "ORD-111",
+    site: "NY",
+    warehouse: "WH-11",
+    contactNum: "999-000-1111",
+    status: "Active",
+  }
   ]);
   // Dummy state handlers
   const [selectedIds, setSelectedIds] = useState([]);
@@ -281,14 +270,13 @@ export default function CreditNoteList(handleAddCreditNote) {
   const [endDate, setEndDate] = useState("");
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [activeTab, setActiveTab] = useState("All");
-  const [viewingCreditId, setViewingCreditId] = useState(null); // ✅ Added state
 
   const tabNames = ["All", "Active", "Inactive"];
   const anyFiltersOn =
     searchTerm || statusFilter !== "All" || sortOption || startDate || endDate;
 
   // Dummy actions
-  
+  const handleAddCreditNote = () => toast.success("Add Credit Note clicked!");
   const handleDeleteSelected = () => toast.info("Deleted selected notes");
   const generatePDF = () => toast.info("PDF generated");
   const exportToExcel = () => toast.info("Exported to Excel");
@@ -302,34 +290,13 @@ export default function CreditNoteList(handleAddCreditNote) {
       setSelectedIds([]);
     }
   };
-const [selectedCreditNote, setSelectedCreditNote] = useState(null);
-
-// const handleCreditNoteClick = (creditNote) => {
-//   setSelectedCreditNote(creditNote); // store the full object
-//   setShowCreditViewPage(true);
-// };
-
-const handleBack = () => {
-  // setShowCreditViewPage(false);
-  setSelectedCreditNote(null);
-};
-
-if ( selectedCreditNote) {
-  return <CreditViewPage credit={selectedCreditNote} goBack={handleBack} />;
-}
-
   const handleCheckboxChange = (id) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
-  const handleCreditNoteClick = (creditId) => {
-    setViewingCreditId(creditId); // ✅ fixed name
-  };
-
-  const goBack = () => setViewingCreditId(null); // ✅ goBack handler
-
-  const onTabClick = (tab) => setActiveTab(tab); // ✅ define onTabClick
+  const handleCreditNoteClick = (id) => toast.info(`Clicked on ${id}`);
+  const onTabClick = (tab) => setActiveTab(tab);
 
   const fetchCreditNotes = async () => {
     toast.info("Fetching CreditNotes (dummy)");
@@ -340,21 +307,17 @@ if ( selectedCreditNote) {
 
   const isRangeValid =
     startDate && endDate && new Date(endDate) > new Date(startDate);
-  if (viewingCreditId) {
-    return (
-      <div className="p-4">
-        <CreditViewPage creditid={viewingCreditId} goBack={goBack} />
-      </div>
-    );
-  }
+
   return (
     <div>
       <ToastContainer />
+
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-2 ">
           <h3 className="text-xl font-semibold mb-6">Credit Note List</h3>
         </div>
+
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
             onClick={handleAddCreditNote}

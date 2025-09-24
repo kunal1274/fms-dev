@@ -258,7 +258,6 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
   const [quantity, setQuantity] = useState(0);
   const [price, setPrice] = useState(0);
   const [discount, setDiscount] = useState(0); // %
-    const [discountamount, setDiscountamount] = useState(0); // %
   const [tax, setTax] = useState(0); // %
   const [tcs, setTcs] = useState(0); // %
   const [advance, setAdvance] = useState(0);
@@ -751,9 +750,9 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
       <h1 className="mb-4 text-xl font-bold">Sales Order View Page</h1>
 
       {/* Maintain / Status / Settlement */}
-     <div className="flex flex-wrap w-full gap-2">
-      <div className="p-2 h-17 bg-white">
-       <div className="grid grid-cols-1 md:grid-cols-3 w-full gap-6">
+      <div className="flex flex-wrap gap-2">
+        <div className="h-17 bg-white p-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {/* Maintain */}
             <div className="flex flex-col gap-2 rounded-lg border bg-gray-50 p-4">
               <h2 className="text-sm font-semibold text-gray-700">Maintain</h2>
@@ -839,10 +838,14 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
       </div>
 
       {!loading && saleData && (
-          <div className="p-2 h-17 bg-white">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* === Header Fields === */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Sale Order */}
 
+            {/* Customer Account */}
+
+            
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Sale Order
@@ -852,7 +855,7 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
                 name="saleOrder"
                 value={saleData?.orderNum ?? ""}
                 placeholder="Sale Order"
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 readOnly
               />
             </div>
@@ -958,18 +961,7 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
                 readOnly
               />
             </div>
- <div>
-              <label className="block text-sm font-medium text-gray-600">
-              Sale Agreement No
-              </label>
-              <input
-                type="text"
-                value={saleData?.orderNum ?? ""}
-                placeholder="Sale Order No"
-                readOnly
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Currency
@@ -985,17 +977,16 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
               />
             </div>
 
-             <div>
+            <div>
               <label className="block text-sm font-medium text-gray-600">
-                Purchase Reference No
+                Sale Order no
               </label>
               <input
                 type="text"
-                name="purchaseRef"
-                value={form.purchaseRef ?? ""}
-                onChange={handleSimpleChange}
-                disabled={!isEditing}
-                className="mt-1 w-full p-2 border rounded"
+                value={saleData?.orderNum ?? ""}
+                placeholder="Sale Order No"
+                readOnly
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
             </div>
 
@@ -1010,17 +1001,7 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
             </div>
- <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Order Status
-              </label>
-              <input
-                type="text"
-                value={saleData?.status ?? status ?? ""}
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                readOnly
-              />
-            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Created on
@@ -1033,10 +1014,48 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
               />
             </div>
 
-           
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Order Status
+              </label>
+              <input
+                type="text"
+                value={saleData?.status ?? status ?? ""}
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                readOnly
+              />
+            </div>
 
             {/* Optional entries */}
-          <div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Sale Agreement No (if applicable)
+              </label>
+              <input
+                type="text"
+                name="saleAgreementNo"
+                value={form.saleAgreementNo ?? ""}
+                onChange={handleSimpleChange}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600">
+                Purchase Reference No
+              </label>
+              <input
+                type="text"
+                name="purchaseRef"
+                value={form.purchaseRef ?? ""}
+                onChange={handleSimpleChange}
+                disabled={!isEditing}
+                className="mt-1 w-full p-2 border rounded"
+              />
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-gray-600">
                 Terms of payment
               </label>
@@ -1055,9 +1074,6 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
                 ))}
               </select>
             </div>
-          
-
-            
 
             <div>
               <label className="block text-sm font-medium text-gray-600">
@@ -1118,7 +1134,7 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
               />
             </div>
           </div>
-   
+
           {/* === Lines Section === */}
           <section className="p-6">
             <div className="mt-4 max-h-96 overflow-y-auto rounded-lg border bg-white">
@@ -1137,7 +1153,6 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
                         "Unit",
                         "Price",
                         "Discount %",
-                           "Discountamount ",
                         "Amount",
                         "Tax %",
                         "TCS/TDS %",
@@ -1302,19 +1317,7 @@ const SaleorderViewPage = ({ saleId, goBack }) => {
                           readOnly={!isEditing}
                         />
                       </td>
-  <td className="border px-2 py-1">
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          className="w-full rounded border px-2 py-1 text-center"
-                          value={discountamount}
-                          onChange={(e) =>
-                            setDiscount(Number(e.target.value) || 0)
-                          }
-                          readOnly={!isEditing}
-                        />
-                      </td>
+
                       {/* Amount (before tax) */}
                       <td className="border px-2 py-1 text-center">
                         {isNaN(amountBeforeTax)

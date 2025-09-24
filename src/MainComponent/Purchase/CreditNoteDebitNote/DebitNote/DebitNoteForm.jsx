@@ -773,7 +773,7 @@ const SaleOrderform = ({ handleCancel }) => {
                       "Qty",
                       "Unit",
                       "Price",
-                      "Discount %",
+                      "Discount %", "Discountamount",
                       "Amount",
                       "Tax %",
                       "TCS/TDS %",
