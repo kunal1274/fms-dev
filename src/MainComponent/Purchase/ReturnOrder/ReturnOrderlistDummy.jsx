@@ -18,12 +18,12 @@ const ReturnOrderList = () => {
     {
       id: 1,
       returnOrderNo: "R001",
-      salesOrderNo: "SO123",
+      purchasesOrderNo: "SO123",
       returnDate: new Date().toISOString(),
       custAccount: "CUST001",
-      customerName: "Customer A",
+      customerName: "Vendor A",
       returnStatus: "Approved",
-      saleInvoiceId: "INV1001",
+      purchaseInvoiceId: "INV1001",
       itemName: "Product X",
       orderQty: 10,
       uom: "pcs",
@@ -39,12 +39,12 @@ const ReturnOrderList = () => {
     {
       id: 2,
       returnOrderNo: "R002",
-      salesOrderNo: "SO124",
+      purchasesOrderNo: "SO124",
       returnDate: new Date().toISOString(),
       custAccount: "CUST002",
-      customerName: "Customer B",
+      customerName: "Vendor aa",
       returnStatus: "Pending",
-      saleInvoiceId: "INV1002",
+      purchaseInvoiceId: "INV1002",
       itemName: "Product Y",
       orderQty: 5,
       uom: "pcs",
@@ -168,7 +168,7 @@ const ReturnOrderList = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md mb-2 space-y-3 md:space-y-0 md:space-x-4">
+      <div className="flex flex-wrap Purchases-center text-sm justify-between p-2 bg-white rounded-md mb-2 space-y-3 md:space-y-0 md:space-x-4">
         <div className="flex items-center space-x-4">
           {/* Sort By */}
           <div className="relative">
@@ -316,12 +316,12 @@ const ReturnOrderList = () => {
                 </th>
                 {[
                   "Return Order No",
-                  "Sales Order No.",
+                  "Purchase Order No",
                   "Return Date & Time",
-                  "Cust Account",
-                  "Customer Name",
+                  "Vendor Account",
+                  "Vendor Name",
                   "Return Status",
-                  "Sale Invoice id agints return",
+                  "Purchase Invoice id agints return",
                   "Item Name",
                   "Order Qty",
                   "Unit of Measure (UOM)",
@@ -358,7 +358,7 @@ const ReturnOrderList = () => {
                       />
                     </td>
                     <td className="px-6 py-4">{c.returnOrderNo}</td>
-                    <td className="px-6 py-4">{c.salesOrderNo}</td>
+                    <td className="px-6 py-4">{c.purchasesOrderNo}</td>
                     <td className="px-6 py-4">
                       {c.returnDate
                         ? new Date(c.returnDate).toLocaleString()
@@ -367,7 +367,7 @@ const ReturnOrderList = () => {
                     <td className="px-6 py-4">{c.custAccount}</td>
                     <td className="px-6 py-4">{c.customerName}</td>
                     <td className="px-6 py-4">{c.returnStatus}</td>
-                    <td className="px-6 py-4">{c.saleInvoiceId}</td>
+                    <td className="px-6 py-4">{c.purchaseInvoiceId}</td>
                     <td className="px-6 py-4">{c.itemName}</td>
                     <td className="px-6 py-4">{c.orderQty}</td>
                     <td className="px-6 py-4">{c.uom}</td>

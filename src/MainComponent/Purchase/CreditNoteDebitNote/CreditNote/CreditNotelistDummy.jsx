@@ -5,8 +5,8 @@ import { FaSortAmountDown, FaFilter, FaSearch } from "react-icons/fa";
 // Dummy helpers
 const getId = (c) => c.id;
 const getCode = (c) => c.code;
-const getName = (c) => c.customerName;
-const getAddress = (c) => c.customerAccount;
+const getName = (c) => c.vendorName;
+const getAddress = (c) => c.vendorAccount;
 const isActive = (c) => c.status === "Active";
 
 export default function CreditNoteList() {
@@ -25,8 +25,8 @@ export default function CreditNoteList() {
       id: "DN001",
       code: "CRN-101", // CreditNoteID
       referenceTransactionID: "TXN-5001",
-      customerAccount: "AC-9001",
-      customerName: "John Doe",
+      vendorAccount: "AC-9001",
+      vendorName: "John Doe",
       createdAt: new Date().toISOString(),
       creditNoteStatus: "Approved",
       invoiceId: "INV-555",
@@ -47,8 +47,8 @@ export default function CreditNoteList() {
       id: "DN002",
       code: "CRN-102",
       referenceTransactionID: "TXN-5002",
-      customerAccount: "AC-9002",
-      customerName: "Jane Smith",
+      vendorAccount: "AC-9002",
+      vendorName: "Jane Smith",
       createdAt: new Date().toISOString(),
       creditNoteStatus: "Pending",
       invoiceId: "INV-777",
@@ -68,8 +68,8 @@ export default function CreditNoteList() {
     id: "DN003",
     code: "CRN-103",
     referenceTransactionID: "TXN-5003",
-    customerAccount: "AC-9003",
-    customerName: "Michael Johnson",
+    vendorAccount: "AC-9003",
+    vendorName: "Michael Johnson",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Approved",
     invoiceId: "INV-778",
@@ -89,8 +89,8 @@ export default function CreditNoteList() {
     id: "DN004",
     code: "CRN-104",
     referenceTransactionID: "TXN-5004",
-    customerAccount: "AC-9004",
-    customerName: "Emily Davis",
+    vendorAccount: "AC-9004",
+    vendorName: "Emily Davis",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Rejected",
     invoiceId: "INV-779",
@@ -110,8 +110,8 @@ export default function CreditNoteList() {
     id: "DN005",
     code: "CRN-105",
     referenceTransactionID: "TXN-5005",
-    customerAccount: "AC-9005",
-    customerName: "Robert Brown",
+    vendorAccount: "AC-9005",
+    vendorName: "Robert Brown",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Pending",
     invoiceId: "INV-780",
@@ -132,8 +132,8 @@ export default function CreditNoteList() {
     id: "DN006",
     code: "CRN-106",
     referenceTransactionID: "TXN-5006",
-    customerAccount: "AC-9006",
-    customerName: "Sophia Wilson",
+    vendorAccount: "AC-9006",
+    vendorName: "Sophia Wilson",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Approved",
     invoiceId: "INV-781",
@@ -154,8 +154,8 @@ export default function CreditNoteList() {
     id: "DN007",
     code: "CRN-107",
     referenceTransactionID: "TXN-5007",
-    customerAccount: "AC-9007",
-    customerName: "Daniel Martinez",
+    vendorAccount: "AC-9007",
+    vendorName: "Daniel Martinez",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Pending",
     invoiceId: "INV-782",
@@ -176,8 +176,8 @@ export default function CreditNoteList() {
     id: "DN008",
     code: "CRN-108",
     referenceTransactionID: "TXN-5008",
-    customerAccount: "AC-9008",
-    customerName: "Olivia Garcia",
+    vendorAccount: "AC-9008",
+    vendorName: "Olivia Garcia",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Approved",
     invoiceId: "INV-783",
@@ -198,8 +198,8 @@ export default function CreditNoteList() {
     id: "DN009",
     code: "CRN-109",
     referenceTransactionID: "TXN-5009",
-    customerAccount: "AC-9009",
-    customerName: "William Lee",
+    vendorAccount: "AC-9009",
+    vendorName: "William Lee",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Rejected",
     invoiceId: "INV-784",
@@ -220,8 +220,8 @@ export default function CreditNoteList() {
     id: "DN010",
     code: "CRN-110",
     referenceTransactionID: "TXN-5010",
-    customerAccount: "AC-9010",
-    customerName: "Ava Taylor",
+    vendorAccount: "AC-9010",
+    vendorName: "Ava Taylor",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Pending",
     invoiceId: "INV-785",
@@ -242,8 +242,8 @@ export default function CreditNoteList() {
     id: "DN011",
     code: "CRN-111",
     referenceTransactionID: "TXN-5011",
-    customerAccount: "AC-9011",
-    customerName: "James Anderson",
+    vendorAccount: "AC-9011",
+    vendorName: "James Anderson",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Approved",
     invoiceId: "INV-786",
@@ -528,12 +528,12 @@ export default function CreditNoteList() {
                 {[
                   "CreditNoteID",
                   "ReferenceTransactionID",
-                  "Cust Account",
-                  "Customer Name",
+                  "Vendor Account",
+                  "Vendor Name",
                   "Date & Time",
                   "Credit Note Status",
                   " Invoice id agints Credit Note",
-                  "Item Name",
+                  "Item Name",     "Item Code",
                   "Order Qty",
                   "Unit of Measure (UOM)",
                   "Unit Price",
@@ -577,8 +577,8 @@ export default function CreditNoteList() {
                       </button>
                     </td>
                     <td className="px-6 py-4">{c.referenceTransactionID}</td>
-                    <td className="px-6 py-4">{c.customerAccount}</td>
-                    <td className="px-6 py-4">{c.customerName}</td>
+                    <td className="px-6 py-4">{c.vendorAccount}</td>
+                    <td className="px-6 py-4">{c.vendorName}</td>
                     <td className="px-6 py-3 truncate">
                       {c?.createdAt
                         ? new Date(c.createdAt).toLocaleString()

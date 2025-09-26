@@ -524,7 +524,7 @@ const SaleOrderform = ({ handleCancel }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                DebitNote Account
+              Vendor Account
               </label>
               <select
                 value={selectedDebitNote}
@@ -545,7 +545,7 @@ const SaleOrderform = ({ handleCancel }) => {
               <div className="flex flex-col gap-4 h-full">
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    DebitNote Name
+                  Vendor  Name
                   </label>
                   <input
                     type="text"
@@ -572,7 +572,7 @@ const SaleOrderform = ({ handleCancel }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-600">
-                  DebitNote Address
+                   Vendor Address
                 </label>
                 <textarea
                   rows="4"
@@ -591,7 +591,7 @@ const SaleOrderform = ({ handleCancel }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Debit Note Status
+                 Return Status
                   </label>
                   <input
                     type="text"
@@ -617,18 +617,17 @@ const SaleOrderform = ({ handleCancel }) => {
               />
             </div> */}
           
-            {/* <div>
+            <div>
               <label className="block text-sm font-medium text-gray-600">
-                Sale Order no
+             Posted Ledger Account
               </label>
               <input
                 type="text"
-                value={selectedDebitNoteDetails.currency}
-                placeholder="Currency"
+         
                 readOnly
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
-            </div> */}
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
            Total Debit Amount
@@ -641,18 +640,7 @@ const SaleOrderform = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Order Date{" "}
-              </label>
-              <input
-                type="text"
-                value={selectedDebitNoteDetails.currency}
-                placeholder="Currency"
-                readOnly
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-            </div>
+       
             {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Created on
@@ -765,13 +753,14 @@ const SaleOrderform = ({ handleCancel }) => {
                   <tr>
                     {[
                       "S.N",
+                      "Invoice id agints Credit",
                       "Item Code",
                       "Item Name",
                       "Description",
                       "Site",
                       "Warehouse",
                       "Qty",
-                      "Unit",
+                      "Unit of Measure (UOM)",
                       "Price",
                       "Discount %", "Discountamount",
                       "Amount",
@@ -948,7 +937,7 @@ const SaleOrderform = ({ handleCancel }) => {
 
               {/* Summary */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
-                <SummaryCard label="Advance" value={advance} />
+                {/* <SummaryCard label="Advance" value={advance} /> */}
                 <SummaryCard
                   label="Subtotal / line amount"
                   value={
@@ -956,7 +945,7 @@ const SaleOrderform = ({ handleCancel }) => {
                   }
                 />
                 <SummaryCard label="Discount (%)" value={discount} />
-                <SummaryCard label="Total (incl tax)" value={lineAmt} />
+                <SummaryCard label="Total (incl tax)" value={lineAmt} />          <SummaryCard label=" Grand Total " value={lineAmt} />
               </div>
             </div>
           </div>

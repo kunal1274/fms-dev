@@ -585,14 +585,14 @@ const CreditNoteform = ({ handleCancel }) => {
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Reason
+                  Credit/ Debite purpose
                   </label>
                   <input type="text" className="w-full p-2 border rounded" />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Credit Note Status
+               Return Status
                   </label>
                   <input
                     type="text"
@@ -617,6 +617,16 @@ const CreditNoteform = ({ handleCancel }) => {
                 readOnly
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
+            </div>    <div>
+              <label className="block text-sm font-medium text-gray-600">
+        Posted Ledger Account
+              </label>
+              <input
+                type="text"
+           
+                readOnly
+                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
@@ -630,7 +640,7 @@ const CreditNoteform = ({ handleCancel }) => {
                 className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
               />
             </div>
-     
+        
             <div>
               <label className="block text-sm font-medium text-gray-600">
                 Order Id
@@ -670,6 +680,7 @@ const CreditNoteform = ({ handleCancel }) => {
                   <tr>
                     {[
                       "S.N",
+                      "Invoice id agints Credit",
                       "Item Code",
                       "Item Name",
                       "Description",

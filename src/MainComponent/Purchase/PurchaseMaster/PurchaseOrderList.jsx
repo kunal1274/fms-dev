@@ -357,29 +357,7 @@ const PurchaseOrderListPage = ({ handleAddPurchaseOrder, invoice }) => {
               {/* Header Buttons */}
               <div className="flex justify-between ">
                 <div className="flex items-center space-x-2">
-                  <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-                    {" "}
-                    <button
-                      type="button"
-                      className="text-blue-600 mt-2 text-sm hover:underline"
-                    >
-                      Upload Photo
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-8 w-8 text-gray-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
-                        />
-                      </svg>{" "}
-                    </button>
-                  </div>
+                
 
                   {/* </div> */}
                   <h3 className="text-xl font-semibold">
@@ -418,29 +396,7 @@ const PurchaseOrderListPage = ({ handleAddPurchaseOrder, invoice }) => {
 
               {/* Metrics */}
               <div className=" bg-white rounded-lg ">
-                <div className="flex gap-2">
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="border rounded px-2 py-1"
-                  />
-                  <input
-                    type="date"
-                    // value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="border rounded px-2 py-1"
-                  />
-                  <button
-                    onClick={() => {
-                      fetchMetrics();
-                      fetchCustomers(startDate, endDate);
-                    }}
-                    className="px-3 py-1 border rounded"
-                  >
-                    {loadingMetrics ? "Applying…" : "Apply"}
-                  </button>
-                </div>
+             
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
                     ["Total Purchases", PurchaseSummary.count],
@@ -516,7 +472,31 @@ const PurchaseOrderListPage = ({ handleAddPurchaseOrder, invoice }) => {
                     >
                       <FaSearch className="w-5 h-5" />
                     </button>
+                    
                   </div>
+                     <div className="flex gap-2">
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="border rounded px-2 py-1"
+                  />
+                  <input
+                    type="date"
+                    // value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="border rounded px-2 py-1"
+                  />
+                  <button
+                    onClick={() => {
+                      fetchMetrics();
+                      fetchCustomers(startDate, endDate);
+                    }}
+                    className="px-3 py-1 border rounded"
+                  >
+                    {loadingMetrics ? "Applying…" : "Apply"}
+                  </button>
+                </div>
                 </div>
 
                 {/* Right side: Reset Filter */}

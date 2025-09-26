@@ -158,7 +158,7 @@ const ReturnForm = ({ handleCancel }) => {
         draggable: true,
         theme: "colored",
       });
-      toast.warn("⚠️ Customer selection is required.", {
+      toast.warn("⚠️ Vendorselection is required.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -387,7 +387,7 @@ const ReturnForm = ({ handleCancel }) => {
   }, [lineItems]);
 
   // -------------------------
-  // Fetch Customer Details on Customer Selection
+  // Fetch VendorDetails on VendorSelection
   // -------------------------
   const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
     contactNum: "",
@@ -397,7 +397,7 @@ const ReturnForm = ({ handleCancel }) => {
   });
   useEffect(() => {
     if (selectedCustomer) {
-      const Customer = Customers.find((c) => c._id === selectedCustomer);
+      const Vendor = Customers.find((c) => c._id === selectedCustomer);
       if (Customer) {
         setSelectedCustomerDetails({
           contactNum: Customer.contactNum || "",
@@ -586,7 +586,7 @@ const ReturnForm = ({ handleCancel }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-600">
-              Sale Order
+                Purchase Order
               </label>
               <input
                 type="text"
@@ -626,7 +626,7 @@ const ReturnForm = ({ handleCancel }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Customer Name
+                Vendor Name
               </label>
               <select
                 value={selectedCustomer}
@@ -644,7 +644,7 @@ const ReturnForm = ({ handleCancel }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Customer Account
+                Vendor Account
               </label>
               <input
                 type="text"
@@ -671,7 +671,7 @@ const ReturnForm = ({ handleCancel }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Customer Address
+                    Vendor Address
                   </label>
                   <textarea
                     rows="4"
@@ -696,7 +696,7 @@ const ReturnForm = ({ handleCancel }) => {
                   <label className="block text-sm font-medium text-gray-600">
                     Return reason
                   </label>
-                <input
+                  <input
                     type="text"
                     name="status"
                     value={form.status || ""}
@@ -758,7 +758,7 @@ const ReturnForm = ({ handleCancel }) => {
                   <tr>
                     {[
                       "S.N",
-                      "Sale Order ID (Against Return)",
+                      "PurchaseOrder ID (Against Return)",
                       "Item Code",
                       "Item Name",
                       "Description",
@@ -767,7 +767,8 @@ const ReturnForm = ({ handleCancel }) => {
                       "Warehouse",
                       "Unit",
                       "Price",
-                      "Discount %", "Discountamount",
+                      "Discount %",
+                      "Discountamount",
                       "Amount",
                       "Tax %",
                       "TCS/TDS %",
@@ -870,7 +871,7 @@ const ReturnForm = ({ handleCancel }) => {
                         }
                       />
                     </td>
-    <td className="border px-2 py-1">
+                    <td className="border px-2 py-1">
                       <input
                         type="number"
                         min="0"
@@ -907,27 +908,23 @@ const ReturnForm = ({ handleCancel }) => {
                       />
                     </td>
 
-                    <td className="border px-2 py-1 text-center">
-                    
-                    </td>
+                    <td className="border px-2 py-1 text-center"></td>
                   </tr>
                 </tbody>
               </table>
 
               {/* Summary Section */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
-                <SummaryCard label="Advance" value={advance || 0} />
                 <SummaryCard
-                  label="Amount"
+                  label="Subtotal /  line amount"
                   value={
                     isNaN(amountBeforeTax) ? "0.00" : amountBeforeTax.toFixed(2)
                   }
                 />
-                <SummaryCard label="Discount" value={discount || 0} />
-                <SummaryCard
-                  label="Line Amount"
-                
-                />
+                <SummaryCard label="Total Discount" value={discount || 0} />
+                <SummaryCard label="Total Tax" />
+                <SummaryCard label="Total Tds/ Tcs" />{" "}
+                <SummaryCard label="Grand Total" />
               </div>
             </div>
           </div>

@@ -5,8 +5,8 @@ import { FaSortAmountDown, FaFilter, FaSearch } from "react-icons/fa";
 // Dummy helpers
 const getId = (c) => c.id;
 const getCode = (c) => c.code;
-const getName = (c) => c.customerName;
-const getAddress = (c) => c.customerAccount;
+const getName = (c) => c.vendorName;
+const getAddress = (c) => c.vendorAccount;
 const isActive = (c) => c.status === "Active";
 
 export default function DebitNoteList() {
@@ -26,8 +26,8 @@ export default function DebitNoteList() {
     id: "DN001",
     code: "CRN-101",
     referenceTransactionID: "TXN-5001",
-    customerAccount: "AC-9001",
-    customerName: "John Doe",
+    vendorAccount: "AC-9001",
+    vendorName: "John Doe",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Approved",
     invoiceId: "INV-555",
@@ -48,8 +48,8 @@ export default function DebitNoteList() {
     id: "DN002",
     code: "CRN-102",
     referenceTransactionID: "TXN-5002",
-    customerAccount: "AC-9002",
-    customerName: "Jane Smith",
+    vendorAccount: "AC-9002",
+    vendorName: "Jane Smith",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Pending",
     invoiceId: "INV-556",
@@ -70,8 +70,8 @@ export default function DebitNoteList() {
     id: "DN003",
     code: "CRN-103",
     referenceTransactionID: "TXN-5003",
-    customerAccount: "AC-9003",
-    customerName: "Michael Johnson",
+    vendorAccount: "AC-9003",
+    vendorName: "Michael Johnson",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Approved",
     invoiceId: "INV-557",
@@ -92,8 +92,8 @@ export default function DebitNoteList() {
     id: "DN004",
     code: "CRN-104",
     referenceTransactionID: "TXN-5004",
-    customerAccount: "AC-9004",
-    customerName: "Emily Davis",
+    vendorAccount: "AC-9004",
+    vendorName: "Emily Davis",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Rejected",
     invoiceId: "INV-558",
@@ -114,8 +114,8 @@ export default function DebitNoteList() {
     id: "DN005",
     code: "CRN-105",
     referenceTransactionID: "TXN-5005",
-    customerAccount: "AC-9005",
-    customerName: "Robert Brown",
+    vendorAccount: "AC-9005",
+    vendorName: "Robert Brown",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Approved",
     invoiceId: "INV-559",
@@ -136,8 +136,8 @@ export default function DebitNoteList() {
     id: "DN006",
     code: "CRN-106",
     referenceTransactionID: "TXN-5006",
-    customerAccount: "AC-9006",
-    customerName: "Sophia Wilson",
+    vendorAccount: "AC-9006",
+    vendorName: "Sophia Wilson",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Pending",
     invoiceId: "INV-560",
@@ -158,8 +158,8 @@ export default function DebitNoteList() {
     id: "DN007",
     code: "CRN-107",
     referenceTransactionID: "TXN-5007",
-    customerAccount: "AC-9007",
-    customerName: "William Martinez",
+    vendorAccount: "AC-9007",
+    vendorName: "William Martinez",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Approved",
     invoiceId: "INV-561",
@@ -180,8 +180,8 @@ export default function DebitNoteList() {
     id: "DN008",
     code: "CRN-108",
     referenceTransactionID: "TXN-5008",
-    customerAccount: "AC-9008",
-    customerName: "Olivia Garcia",
+    vendorAccount: "AC-9008",
+    vendorName: "Olivia Garcia",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Approved",
     invoiceId: "INV-562",
@@ -202,8 +202,8 @@ export default function DebitNoteList() {
     id: "DN009",
     code: "CRN-109",
     referenceTransactionID: "TXN-5009",
-    customerAccount: "AC-9009",
-    customerName: "James Lee",
+    vendorAccount: "AC-9009",
+    vendorName: "James Lee",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Pending",
     invoiceId: "INV-563",
@@ -224,8 +224,8 @@ export default function DebitNoteList() {
     id: "DN010",
     code: "CRN-110",
     referenceTransactionID: "TXN-5010",
-    customerAccount: "AC-9010",
-    customerName: "Isabella Thompson",
+    vendorAccount: "AC-9010",
+    vendorName: "Isabella Thompson",
     createdAt: new Date().toISOString(),
     creditNoteStatus: "Approved",
     invoiceId: "INV-564",
@@ -246,10 +246,10 @@ export default function DebitNoteList() {
 
     {
       id: "DN001",
-      code: "CRN-101", // CreditNoteID
+      code: "CRN-101", // DebitNoteID
       referenceTransactionID: "TXN-5001",
-      customerAccount: "AC-9001",
-      customerName: "John Doe",
+      vendorAccount: "AC-9001",
+      vendorName: "John Doe",
       createdAt: new Date().toISOString(),
       creditNoteStatus: "Approved",
       invoiceId: "INV-555",
@@ -270,8 +270,8 @@ export default function DebitNoteList() {
       id: "DN002",
       code: "CRN-102",
       referenceTransactionID: "TXN-5002",
-      customerAccount: "AC-9002",
-      customerName: "Jane Smith",
+      vendorAccount: "AC-9002",
+      vendorName: "Jane Smith",
       createdAt: new Date().toISOString(),
       creditNoteStatus: "Pending",
       invoiceId: "INV-777",
@@ -380,7 +380,7 @@ export default function DebitNoteList() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
           {[
             ["Total DebitNotes", summary.count],
-            ["Credit Limit", summary.creditLimit],
+            ["Debit Limit", summary.creditLimit],
             ["Paid DebitNotes", summary.paidDebitNotes],
             ["Active DebitNotes", summary.activeDebitNotes],
             ["On-Hold DebitNotes", summary.onHoldDebitNotes],
@@ -554,13 +554,13 @@ export default function DebitNoteList() {
                   />
                 </th>
                 {[
-                  "CreditNoteID",
+                  "DebitNoteID",
                   "ReferenceTransactionID",
                   "Cust Account",
-                  "Customer Name",
+                  "Vendor Name",
                   "Date & Time",
-                  "Credit Note Status",
-                  " Invoice id agints Credit Note",
+                  "Debit Note Status",
+                  " Invoice id agints Debit Note",
                   "Item Name",
                   "Order Qty",
                   "Unit of Measure (UOM)",
@@ -605,8 +605,8 @@ export default function DebitNoteList() {
                       </button>
                     </td>
                     <td className="px-6 py-4">{c.referenceTransactionID}</td>
-                    <td className="px-6 py-4">{c.customerAccount}</td>
-                    <td className="px-6 py-4">{c.customerName}</td>
+                    <td className="px-6 py-4">{c.vendorAccount}</td>
+                    <td className="px-6 py-4">{c.vendorName}</td>
                     <td className="px-6 py-3 truncate">
                       {c?.createdAt
                         ? new Date(c.createdAt).toLocaleString()

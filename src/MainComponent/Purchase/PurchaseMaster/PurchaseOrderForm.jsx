@@ -525,20 +525,7 @@ const PurchaseOrderform = ({ handleCancel }) => {
               className="text-blue-600 mt-2 text-sm hover:underline"
             >
               Upload Photo
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
-                />
-              </svg>{" "}
+           
             </button>
           </div>
           <h3 className="text-xl font-semibold">Purchase Order Form</h3>
@@ -780,7 +767,7 @@ const PurchaseOrderform = ({ handleCancel }) => {
                 {/* Contact Email */}
 
                 {/* Site */}
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Site
                   </label>
@@ -797,10 +784,10 @@ const PurchaseOrderform = ({ handleCancel }) => {
                       </option>
                     ))}
                   </select>
-                </div>
+                </div> */}
 
                 {/* Warehouse */}
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-600">
                     Warehouse
                   </label>
@@ -817,7 +804,7 @@ const PurchaseOrderform = ({ handleCancel }) => {
                       </option>
                     ))}
                   </select>
-                </div>
+                </div> */}
 
                 {/* Payment Terms */}
                 <div>
@@ -888,7 +875,7 @@ const PurchaseOrderform = ({ handleCancel }) => {
             )}
 
             {/* Remarks */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600">
                 Remarks
               </label>
@@ -899,7 +886,7 @@ const PurchaseOrderform = ({ handleCancel }) => {
                 onChange={(e) => setRemarks(e.target.value)}
                 className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring focus:ring-blue-300"
               />
-            </div>
+            </div> */}
           </div>
         </section>
 
