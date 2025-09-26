@@ -36,17 +36,17 @@ const CustomerAgingReport = () => {
               "Vendor ID",
               "Vendor Name",
               "Invoice Number",
-              "Invoice Number",
+              
               "Invoice Date",
               "Due Date",
               "Invoice Amount",
-              "Payment Received",
+              "Payment Payment Paid Amt",
               "Balance Due",
               "0–30 Days",
               "31–60 Days",
               "61–90 Days",
               "90+ Days",
-              "Status",
+            
             ].map((heading) => (
               <th key={heading} className="border px-2 py-1 text-left">
                 {heading}

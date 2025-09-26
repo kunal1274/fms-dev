@@ -5,8 +5,8 @@ import { FaSortAmountDown, FaFilter, FaSearch } from "react-icons/fa";
 // Dummy helpers
 const getId = (c) => c.id;
 const getCode = (c) => c.code;
-const getName = (c) => c.customerName;
-const getAddress = (c) => c.customerAccount;
+const getName = (c) => c.vendorName;
+const getAddress = (c) => c.vendorAccount;
 const isActive = (c) => c.status === "Active";
 
 // ✅ Helper for date
@@ -20,8 +20,8 @@ const dummyFreeTaxings = [
   {
     id: "FTI001",
     code: "CRN-201",
-    customerAccount: "AC-1001",
-    customerName: "John Doe",
+    vendorAccount: "AC-1001",
+    vendorName: "John Doe",
     status: "Active",
     transactionType: "Sale",
     itemCode: "ITM-001",
@@ -39,8 +39,8 @@ const dummyFreeTaxings = [
   {
     id: "FTI002",
     code: "CRN-202",
-    customerAccount: "AC-1002",
-    customerName: "Jane Smith",
+    vendorAccount: "AC-1002",
+    vendorName: "Jane Smith",
     status: "Inactive",
     transactionType: "Return",
     itemCode: "ITM-002",
@@ -58,8 +58,8 @@ const dummyFreeTaxings = [
   {
     id: "FTI003",
     code: "CRN-203",
-    customerAccount: "AC-1003",
-    customerName: "Mike Johnson",
+    vendorAccount: "AC-1003",
+    vendorName: "Mike Johnson",
     status: "Active",
     transactionType: "Sale",
     itemCode: "ITM-003",
@@ -77,8 +77,8 @@ const dummyFreeTaxings = [
   {
     id: "FTI004",
     code: "CRN-204",
-    customerAccount: "AC-1004",
-    customerName: "Emily Davis",
+    vendorAccount: "AC-1004",
+    vendorName: "Emily Davis",
     status: "Active",
     transactionType: "Sale",
   },
@@ -376,8 +376,8 @@ export default function FreeTaxingList() {
                 </th>
                 {[
                   "Free Tax Invoice ID",
-                  "Cust Account",
-                  "Customer Name",
+                  "Vendor Account",
+                  "Vendor Name",
                   "Status",
                   "Transaction type",
                   "Item Code",
@@ -388,6 +388,7 @@ export default function FreeTaxingList() {
                   "Unit Price",
                   "Subtotal /  line amount",
                   "Currency",
+                      "Grand total",
                   "Order Id",
                   "Site",
                   "Warehouse",
@@ -424,8 +425,8 @@ export default function FreeTaxingList() {
                         {c.code}
                       </button>
                     </td>
-                    <td className="px-6 py-4">{c.customerAccount}</td>
-                    <td className="px-6 py-4">{c.customerName}</td>
+                    <td className="px-6 py-4">{c.vendorAccount}</td>
+                    <td className="px-6 py-4">{c.vendorName}</td>
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

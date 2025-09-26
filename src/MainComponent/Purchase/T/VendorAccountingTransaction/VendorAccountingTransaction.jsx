@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -52,10 +48,6 @@ const SalesAccountingTransaction = () => {
               "Subtotal",
               "Discount",
 
-
-
-
-              
               "Tax (%)",
               "Tax Amount",
               "Total Amount",

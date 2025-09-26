@@ -28,7 +28,7 @@ const PurchaseAccountingBalance = () => {
 
   return (
     <div className="mt-8">
-      <h2 className="text-lg font-semibold mb-2">Sales Accounting Balance</h2>
+      <h2 className="text-lg font-semibold mb-2">Purchases Accounting Balance</h2>
       <div className="overflow-auto">
         <table className="min-w-full border border-gray-300 text-xs">
           <thead className="bg-gray-100 text-gray-700">
@@ -40,7 +40,7 @@ const PurchaseAccountingBalance = () => {
                 "From Date",
                 "To Date",
                 "Opening Balance",
-                "Total Sales Invoiced",
+                "Total Purchases Invoiced",
                 "Payments Received",
           
                 "Debit Notes",
@@ -65,7 +65,7 @@ const PurchaseAccountingBalance = () => {
                 <td className="border px-2 py-1">{row.fromDate}</td>
                 <td className="border px-2 py-1">{row.toDate}</td>
                 <td className="border px-2 py-1">{row.openingBalance}</td>
-                <td className="border px-2 py-1">{row.totalSalesInvoiced}</td>
+                <td className="border px-2 py-1">{row.totalPurchasesInvoiced}</td>
                 <td className="border px-2 py-1">{row.paymentsReceived}</td>
                 <td className="border px-2 py-1">{row.creditNotes}</td>
                 <td className="border px-2 py-1">{row.adjustments}</td>

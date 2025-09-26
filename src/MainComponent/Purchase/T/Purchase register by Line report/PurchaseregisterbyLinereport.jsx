@@ -31,16 +31,20 @@ const PurchaseRegisterByLineReport = () => {
     "Invoice Date",
     "Posting Date",
     "Transaction Type",
-    "Purchases Type",
-    "Purchases Reference No",
-    "Status",
+    " Invoice Status",
+
+    "Purchases order No",
+
+    "Vendor Code",
+    "Vendor NAme",
+    "Vendor GSTIN",
     "Vendor Address",
     "Vendor Type",
     "Line Number",
     "Item Code",
     "Item Name",
     "Quantity",
-    "Payment Terms",
+    "Unit Of Measure",
     "Price Per Unit",
     "Discount Amount",
     "Tax %",
@@ -62,7 +66,6 @@ const PurchaseRegisterByLineReport = () => {
     "Invoice Amount (Net / Total)",
     "Transporter Details",
     "Delivery Date",
-    "Remarks",
   ];
 
   return (

@@ -6,7 +6,8 @@ const PurchaseRegisterByHeaderReport = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const PurchasesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Purchasesorders";
+  const PurchasesOrderUrl =
+    "https://fms-qkmw.onrender.com/fms/api/v0/Purchasesorders";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,11 +43,8 @@ const PurchaseRegisterByHeaderReport = () => {
                 "Invoice Date",
                 "Vendor Code",
                 "Vendor Name",
-                "Purchases Person",
+                "Buyer Person",
                 "Payment Terms",
-                "Invoice Amount (Gross)",
-                "Discount Amount",
-                "Tax Amount",
                 "Invoice Amount (Net / Total)",
                 "Status",
                 "Currency",

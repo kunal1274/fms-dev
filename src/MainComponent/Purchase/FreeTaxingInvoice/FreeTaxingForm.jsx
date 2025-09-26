@@ -12,7 +12,7 @@ const SummaryCard = ({ label, value }) => (
 );
 const FreeTaxingInvoice = ({ handleCancel }) => {
   const itemsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/items";
-  const CustomersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Customers";
+  const VendorsBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Vendors";
   const PurchasesOrderUrl =
     "https://fms-qkmw.onrender.com/fms/api/v0/purchasesorders";
   const paymentTerms = [
@@ -27,8 +27,8 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
   ];
   const [goForInvoice, setGoPurchaseInvoice] = useState(null);
   const [advance, setAdvance] = useState(0);
-  const [Customer, setCustomer] = useState([]);
-  const [Customers, setCustomers] = useState([]);
+  const [Vendor, setVendor] = useState([]);
+  const [Vendors, setVendors] = useState([]);
   const [viewingPurchaseId, setViewingPurchaseId] = useState(null);
   const [selectedPurchaseOrderId, setSelectedPurchaseOrderId] = useState("");
   const [items, setItems] = useState([]);
@@ -36,7 +36,7 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
 
   const [purchaseOrderNum, setPurchaseOrderNum] = useState(null);
   // Global form states (for a single order line)
-  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [selectedVendor, setSelectedVendor] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [price, setPrice] = useState(0);
@@ -104,15 +104,15 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
   });
 
   // -------------------------
-  // Fetch Customers & Items
+  // Fetch Vendors & Items
   // -------------------------
   useEffect(() => {
-    const fetchCustomers = async () => {
+    const fetchVendors = async () => {
       try {
-        const response = await axios.get(CustomersBaseUrl);
-        setCustomers(response.data.data || []);
+        const response = await axios.get(VendorsBaseUrl);
+        setVendors(response.data.data || []);
       } catch (error) {
-        console.error("Error fetching Customers:", error);
+        console.error("Error fetching Vendors:", error);
       }
     };
 
@@ -125,7 +125,7 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
       }
     };
 
-    fetchCustomers();
+    fetchVendors();
     fetchItems();
   }, []);
 
@@ -133,7 +133,7 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
   // Basic Form Validation
   // -------------------------
   const validateForm = () => {
-    if (!selectedCustomer) {
+    if (!selectedVendor) {
       toast.warn("⚠️ No purchase order selected to delete.", {
         position: "top-right",
         autoClose: 3000,
@@ -143,7 +143,7 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
         draggable: true,
         theme: "colored",
       });
-      toast.warn("⚠️ Customer selection is required.", {
+      toast.warn("⚠️ Vendor selection is required.", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -203,7 +203,7 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
 
     // Construct payload from global fields
     const payload = {
-      Customer: selectedCustomer,
+      Vendor: selectedVendor,
       item: selectedItem._id || selectedItem.id || "",
       quantity: Number(quantity) || 1,
       price: Number(price) || 0,
@@ -372,34 +372,34 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
   }, [lineItems]);
 
   // -------------------------
-  // Fetch Customer Details on Customer Selection
+  // Fetch Vendor Details on Vendor Selection
   // -------------------------
-  const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
+  const [selectedVendorDetails, setSelectedVendorDetails] = useState({
     contactNum: "",
     currency: "",
     address: "",
     email: "",
   });
   useEffect(() => {
-    if (selectedCustomer) {
-      const Customer = Customers.find((c) => c._id === selectedCustomer);
-      if (Customer) {
-        setSelectedCustomerDetails({
-          contactNum: Customer.contactNum || "",
-          currency: Customer.currency || "",
-          address: Customer.address || "",
-          email: Customer.email || "", // ← correct!
+    if (selectedVendor) {
+      const Vendor = Vendors.find((c) => c._id === selectedVendor);
+      if (Vendor) {
+        setSelectedVendorDetails({
+          contactNum: Vendor.contactNum || "",
+          currency: Vendor.currency || "",
+          address: Vendor.address || "",
+          email: Vendor.email || "", // ← correct!
         });
       }
     } else {
-      setSelectedCustomerDetails({
+      setSelectedVendorDetails({
         contactNum: "",
         currency: "",
         address: "",
         email: "",
       });
     }
-  }, [selectedCustomer, Customers]);
+  }, [selectedVendor, Vendors]);
 
   // -------------------------
   // Fetch Item Details on Global Item Selection
@@ -605,17 +605,17 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Customer Account
+                Vendor Account
               </label>
               <select
-                value={selectedCustomer}
-                onChange={(e) => setselectedCustomer(e.target.value)}
+                value={selectedVendor}
+                onChange={(e) => setselectedVendor(e.target.value)}
                 className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
               >
-                <option value="">Select Customer</option>
-                {Customers.map((Customer) => (
-                  <option key={Customer._id} value={Customer._id}>
-                    {Customer.name}
+                <option value="">Select Vendor</option>
+                {Vendors.map((Vendor) => (
+                  <option key={Vendor._id} value={Vendor._id}>
+                    {Vendor.name}
                   </option>
                 ))}
               </select>
@@ -625,12 +625,12 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                 {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
-                    Customer Name
+                    Vendor Name
                   </label>
                   <input
                     type="text"
-                    value={selectedCustomerDetails?.account || ""}
-                    placeholder="Customer Account"
+                    value={selectedVendorDetails?.account || ""}
+                    placeholder="Vendor Account"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
@@ -643,7 +643,7 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                   </label>
                   <input
                     type="text"
-                    value={selectedCustomerDetails.email}
+                    value={selectedVendorDetails.email}
                     placeholder=" Currency"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
@@ -653,11 +653,11 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
               {/* Address */}
               <div>
                 <label className="block text-sm font-medium text-gray-600">
-                  Customer Address
+                  Vendor Address
                 </label>
                 <textarea
                   rows="4"
-                  value={selectedCustomerDetails?.address || ""}
+                  value={selectedVendorDetails?.address || ""}
                   readOnly
                   className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 />
@@ -674,8 +674,8 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                   </label>
                   <input
                     type="text"
-                    value={selectedCustomerDetails?.account || ""}
-                    placeholder="Customer Account"
+                    value={selectedVendorDetails?.account || ""}
+                    placeholder="Vendor Account"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
                   />
@@ -688,7 +688,7 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                   </label>
                   <input
                     type="text"
-                    value={selectedCustomerDetails.email}
+                    value={selectedVendorDetails.email}
                     placeholder=" Currency"
                     className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                     readOnly
@@ -702,7 +702,7 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                 </label>
                 <textarea
                   rows="4"
-                  value={selectedCustomerDetails?.address || ""}
+                  value={selectedVendorDetails?.address || ""}
                   readOnly
                   className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
                 />
@@ -710,7 +710,7 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
 
               {/* Name + Currency */}
             </div>
-            {selectedCustomerDetails && (
+            {selectedVendorDetails && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-600">
@@ -786,11 +786,9 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                 <tbody className="divide-y divide-gray-200">
                   <tr key="purchase-order-row" className="hover:bg-gray-50">
                     <td className="border text-center px-2 py-1">1</td>
-
                     <td className="border px-2 py-1 text-center">
                       {selectedItem?.code || ""}
                     </td>
-
                     <td className="border px-2 py-1">
                       <select
                         value={selectedItem?._id || ""}
@@ -812,7 +810,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         ))}
                       </select>
                     </td>
-
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
@@ -821,21 +818,20 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         className="w-full border rounded text-center px-2 py-1 bg-gray-100"
                       />
                     </td>
-
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
                         placeholder="Site"
                         className="w-full border rounded text-center px-2 py-1"
                       />
-                    </td>   <td className="border px-2 py-1 text-center">
+                    </td>{" "}
+                    <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
                         placeholder="Site"
                         className="w-full border rounded text-center px-2 py-1"
                       />
                     </td>
-
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
@@ -843,7 +839,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         className="w-full border rounded text-center px-2 py-1"
                       />
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -854,7 +849,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         }
                       />
                     </td>
-
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
@@ -863,7 +857,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         className="w-full border rounded text-center px-2 py-1 bg-gray-100"
                       />
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -872,7 +865,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         onChange={(e) => setPrice(Number(e.target.value) || 0)}
                       />
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -883,13 +875,11 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         }
                       />
                     </td>
-
                     <td className="border px-2 py-1 text-center">
                       {isNaN(amountBeforeTax)
                         ? "0.00"
                         : amountBeforeTax.toFixed(2)}
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -898,7 +888,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         onChange={(e) => setTax(Number(e.target.value) || 0)}
                       />
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -907,7 +896,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         onChange={(e) => setTcs(Number(e.target.value) || 0)}
                       />
                     </td>
-
                     <td className="border px-2 py-1 text-center">{lineAmt}</td>
                   </tr>
                 </tbody>

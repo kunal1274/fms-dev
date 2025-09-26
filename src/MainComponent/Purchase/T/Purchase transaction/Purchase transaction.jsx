@@ -12,10 +12,10 @@ const transactionTypes = [
   "Revenue Journals",
   "Refunds or Adjustments",
   "Correct/ cancel/ reverse",
-
 ];
 
 const tableHeaders = [
+    "Transaction Type/ Name",
   "Referance ID",
 
   "Transaction ID",

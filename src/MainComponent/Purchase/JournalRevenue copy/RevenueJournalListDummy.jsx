@@ -7,41 +7,44 @@ import "react-toastify/dist/ReactToastify.css";
 const dummyJournalRevenues = [
   {
     id: 1,
-    code: "JRN-001",
-    name: "Sales Journal",
-    address: "2025-Q1",
-    createdAt: new Date().toISOString(),
-    contactNum: "ACC-1001",
+    code: "JR-001",
+    name: "Revenue Journal A",
+    createdAt: "2025-09-20T10:00:00Z",
+    postingDate: "2025-09-21",
+    description: "Monthly sales revenue",
+    currency: "USD",
+    postingPeriod: "Sep 2025",
     active: true,
-    debit: 1200,
-    credit: 800,
-    postingAccNo: "PA-100",
-    postingAcc: "Main Ledger",
-    totalAmount: 2000,
-    invoiceNumber: "INV-001",
   },
   {
     id: 2,
-    code: "JRN-002",
-    name: "Purchase Journal",
-    address: "2025-Q2",
-    createdAt: new Date().toISOString(),
-    contactNum: "ACC-1002",
+    code: "JR-002",
+    name: "Revenue Journal B",
+    createdAt: "2025-09-21T12:30:00Z",
+    postingDate: "2025-09-22",
+    description: "Quarterly marketing revenue",
+    currency: "USD",
+    postingPeriod: "Q3 2025",
     active: false,
-    debit: 600,
-    credit: 600,
-    postingAccNo: "PA-101",
-    postingAcc: "Expense Ledger",
-    totalAmount: 1200,
-    invoiceNumber: "INV-002",
+  },
+  {
+    id: 3,
+    code: "JR-003",
+    name: "Revenue Journal C",
+    createdAt: "2025-09-22T09:15:00Z",
+    postingDate: "2025-09-23",
+    description: "Annual finance revenue",
+    currency: "USD",
+    postingPeriod: "2025",
+    active: true,
   },
 ];
 
 const dummySummary = {
-  count: 2,
+  count: dummyJournalRevenues.length,
   creditLimit: 50000,
-  paidJournalRevenues: 1,
-  activeJournalRevenues: 1,
+  paidJournalRevenues: 2,
+  activeJournalRevenues: dummyJournalRevenues.filter((j) => j.active).length,
   onHoldJournalRevenues: 0,
 };
 
@@ -54,11 +57,7 @@ export default function JournalRevenueList() {
   const [activeTab, setActiveTab] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Helpers
   const getId = (c) => c.id;
-  const getCode = (c) => c.code;
-  const getName = (c) => c.name;
-  const getAddress = (c) => c.address;
   const isActive = (c) => c.active;
 
   const toggleSelectAll = () => {
@@ -118,10 +117,7 @@ export default function JournalRevenueList() {
 
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center space-x-2 ">
-          <h3 className="text-xl font-semibold mb-6">JournalRevenue List</h3>
-        </div>
-
+        <h3 className="text-xl font-semibold mb-6">JournalRevenue List</h3>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
             onClick={handleAddJournalRevenue}
@@ -151,45 +147,24 @@ export default function JournalRevenueList() {
         </div>
       </div>
 
-      {/* Date + Metrics */}
-      <div className="bg-white rounded-lg my-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-          {[
-            ["Total JournalRevenues", dummySummary.count],
-            ["Credit Limit", dummySummary.creditLimit],
-            ["Paid JournalRevenues", dummySummary.paidJournalRevenues],
-            ["Active JournalRevenues", dummySummary.activeJournalRevenues],
-            ["On-Hold JournalRevenues", dummySummary.onHoldJournalRevenues],
-          ].map(([label, value]) => (
-            <div key={label} className="p-4 bg-gray-50 rounded-lg text-center">
-              <div className="text-2xl font-bold">{value}</div>
-              <div className="text-sm">{label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Filters */}
-      <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md mb-2 space-y-3 md:space-y-0 md:space-x-4">
-        <div className="flex items-center space-x-4">
-          {/* Search */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <FaSearch className="w-5 h-5" />
-            </div>
+      <div className="flex flex-wrap items-center justify-between p-2 bg-white rounded-md mb-2">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <FaSearch className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex">
+      <div className="flex mb-2">
         <ul className="flex space-x-6 list-none p-0 m-0">
           {tabNames.map((tab) => (
             <li
@@ -224,19 +199,15 @@ export default function JournalRevenueList() {
                 />
               </th>
               {[
-                "Journal code ",
+                "Journal code",
+                "Creation Date",
                 "Journal name",
-                "Posting period",
                 "Posting_Date",
-                "Account",
-                "Account ID",
-                "Debit",
-                "Credit",
-                "Posting Account no.",
-                "Posting account",
-                "Total Amount",
-                "Invoice Number",
+                "Description",
+                "Currency",
+                "Posting period",
                 "Status",
+                "Posting_Date.",
               ].map((h) => (
                 <th
                   key={h}
@@ -250,56 +221,42 @@ export default function JournalRevenueList() {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredJournalRevenues.length ? (
               filteredJournalRevenues.map((c) => (
-                <tr
-                  key={getId(c)}
-                  className="hover:bg-gray-100 transition-colors"
-                >
+                <tr key={c.id} className="hover:bg-gray-100 transition-colors">
                   <td className="px-4 py-2">
                     <input
                       type="checkbox"
-                      checked={selectedIds.includes(getId(c))}
-                      onChange={() => handleCheckboxChange(getId(c))}
+                      checked={selectedIds.includes(c.id)}
+                      onChange={() => handleCheckboxChange(c.id)}
                       className="form-checkbox"
                     />
                   </td>
+                  <td className="px-6 py-4">{c.code}</td>
                   <td className="px-6 py-4">
-                    <button
-                      className="text-blue-600 hover:underline focus:outline-none"
-                      onClick={() => handleJournalRevenueClick(getId(c))}
-                    >
-                      {getCode(c)}
-                    </button>
+                    {new Date(c.createdAt).toLocaleString()}
                   </td>
-                  <td className="px-6 py-4">{getName(c)}</td>
-                  <td className="px-6 py-4">{getAddress(c)}</td>
-                  <td className="px-6 py-3 truncate">
-                    {c?.createdAt ? new Date(c.createdAt).toLocaleString() : ""}
-                  </td>
-                  <td className="px-6 py-4">{c?.contactNum || ""}</td>
-                  <td className="px-6 py-4">{c?.debit}</td>
-                  <td className="px-6 py-4">{c?.credit}</td>
-                  <td className="px-6 py-4">{c?.postingAccNo}</td>
-                  <td className="px-6 py-4">{c?.postingAcc}</td>
-                  <td className="px-6 py-4">{c?.totalAmount}</td>{" "}
-                  <td className="px-6 py-4">{c?.totalAmount}</td>
-                  <td className="px-6 py-4">{c?.invoiceNumber}</td>
+                  <td className="px-6 py-4">{c.name}</td>
+                  <td className="px-6 py-4">{c.postingDate}</td>
+                  <td className="px-6 py-4">{c.description}</td>
+                  <td className="px-6 py-4">{c.currency}</td>
+                  <td className="px-6 py-4">{c.postingPeriod}</td>
                   <td className="px-6 py-4">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        isActive(c)
+                        c.active
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {isActive(c) ? "Active" : "Inactive"}
+                      {c.active ? "Active" : "Inactive"}
                     </span>
                   </td>
+                  <td className="px-6 py-4">{c.postingDate}</td>
                 </tr>
               ))
             ) : (
               <tr>
                 <td
-                  colSpan={13}
+                  colSpan={10}
                   className="px-6 py-4 text-center text-sm text-gray-500"
                 >
                   No data

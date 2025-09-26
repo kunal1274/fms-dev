@@ -67,11 +67,14 @@ const Vendorbalance = () => {
           <thead className="bg-gray-100 text-gray-700">
             <tr>
               {[
-                "Vendor ID / No",
+       
                 "Vendor Code",
-                "Vendor Name","Invoice Date",
-                "Total Invoice Amount","Invoice Number",
-                "Total Paid",
+                "Vendor Name",
+                "Invoice Date",
+  "Invoice Number",
+                "Total Invoice Amount",
+              
+                "Payment  Paid",
                 "Balance Due",
                 "Due Date",
                 "Status",
