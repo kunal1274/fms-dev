@@ -2,7 +2,7 @@ import React from "react";
 
 import Dashbord from "./Component/Dashbord/Dashbord";
 
-// import Dashbord from "./MainComponent/Sale/SaleMaster/SaleOrderViewPage";
+// import Dashbord from "./MainComponent/Sale/JournalRevenue/JournalRevenueForm";
 const App = () => {
   return (
     <div>

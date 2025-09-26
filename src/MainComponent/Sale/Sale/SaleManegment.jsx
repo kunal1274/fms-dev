@@ -6,9 +6,9 @@ import { PAGE, VIEW_MODES, groups, setupSections } from "./constants";
 import CustomerPage from "../../Customer/CustomerPage";
 import SaleOrderPage from "../../Sale/SaleMaster/SalePage";
 import SalesProformaInvoice from "../../Sale/Transaction/SalesProformaInvoice/SalesProformaInvoice";
-import ReturnOrder from "../ReturnOrder/ReturnOrderlistDummy.jsx";
-import CreditNote from "../CreditNoteDebitNote/CreditNote/CreditNotelistDummy.jsx";
-import DebitNote from "../../Sale/CreditNoteDebitNote/DebitNote/DebitNotelistDummy.jsx";
+import ReturnOrder from "../ReturnOrder/ReturnOrderPage.jsx";
+import CreditNote from "../CreditNoteDebitNote/CreditNote/CreditNotePage.jsx";
+import DebitNote from "../../Sale/CreditNoteDebitNote/DebitNote/DebitNotePage.jsx";
 import JournalPage from "../../Sale/JournalRevenue/JournaRevenuePage.jsx";
 import FreeTaxInvoice from "../../Sale/FreeTaxingInvoice/FreeTaxinglistDummy.jsx";
 import CustomerTransaction from "../Transaction/Customer transaction/CustomerTransactionDummy.jsx";
@@ -17,6 +17,9 @@ import CustomerAgingReport from "../Transaction/Customer Aging Report/CustomerAg
 import SalesAccountingTransaction from "../../Sale/Transaction/Sales Accounting Transaction/SalesAccountingTransaction";
 import SalesAccountingBalance from "../Transaction/Sales Accounting Balance/SalesAccountingBalance";
 import SalesMarginReport from "../../Sale/Transaction/Sale margine  report/Salemarginereport";
+
+import Salesregisterbyheaderreport from "../../Sale/Transaction/Sale register by header report/Saleregisterbyheaderreport.jsx";
+import SalesregisterbyLinereport from "../../Sale/Transaction/Sales register by Line report/SalesregisterbyLinereport.jsx";
 import SalesInvoice from "../Transaction/SalesInvoice/SalesInvoice";
 import SalesConfirmationInvoice from "../Transaction/SalesConfirmationInvoice/SalesConfirmationInvoice";
 import SalesProformaConfirmationInvoice from "../Transaction/SalesProformaConfirmationInvoice/SalesProformaConfirmationInvoice.jsx";
@@ -55,6 +58,8 @@ export default function ViewTogglePage() {
       [PAGE.SALES_ACCOUNTING_TRANSACTION]: <SalesAccountingTransaction />,
       [PAGE.SALES_ACCOUNTING_BALANCE]: <SalesAccountingBalance />,
       [PAGE.SALES_MARGIN_REPORT]: <SalesMarginReport />,
+      [PAGE.SALES_REGISTER_BY_LINE_REPORT]: <SalesregisterbyLinereport />,
+      [PAGE.SALES_REGISTER_BY_HEADER_REPORT]: <Salesregisterbyheaderreport />,
       [PAGE.SALES_CONFIRMATION_INVOICE]: <SalesConfirmationInvoice />,
       [PAGE.SALES_PROFORMA_INVOICE_ALT]: <SalesProformaInvoice />,
       [PAGE.SALES_INVOICE]: <SalesInvoice />,

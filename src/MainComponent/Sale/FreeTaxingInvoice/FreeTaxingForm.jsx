@@ -15,16 +15,7 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
   const CustomersBaseUrl = "https://fms-qkmw.onrender.com/fms/api/v0/Customers";
   const PurchasesOrderUrl =
     "https://fms-qkmw.onrender.com/fms/api/v0/purchasesorders";
-  const paymentTerms = [
-    "COD",
-    "Net30D",
-    "Net7D",
-    "Net15D",
-    "Net45D",
-    "Net60D",
-    "Net90D",
-    "Advance",
-  ];
+
   const [goForInvoice, setGoPurchaseInvoice] = useState(null);
   const [advance, setAdvance] = useState(0);
   const [Customer, setCustomer] = useState([]);
@@ -496,20 +487,7 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
               className="text-blue-600 mt-2 text-sm hover:underline"
             >
               Upload Photo
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
-                />
-              </svg>
+         
             </button>
           </div>
           <h3 className="text-xl font-semibold"> Free Taxing Invoice</h3>
@@ -566,51 +544,31 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
           <h2 className="text-lg font-medium text-gray-700 mb-4 mt-4">
             Free Taxing Invoice
           </h2>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Invoice ID */}
             <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Free Tax Invoice no/ ID
+              <label className="block text-sm font-semibold text-gray-700">
+                Free Tax Invoice No / ID
               </label>
               <input
                 type="text"
                 name="purchaseOrder"
                 value={purchaseOrderNum || ""}
                 placeholder="Purchase Order"
-                className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                className="mt-2 w-full p-2.5 border rounded-lg bg-gray-50 text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 readOnly
               />
-            </div>{" "}
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Invoice ID
-              </label>
-              <input
-                type="text"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="mt-1 w-full p-2 border rounded"
-              />
             </div>
+
+            {/* Customer Account */}
             <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Creation Date & Time
-              </label>
-              <input
-                type="text"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="mt-1 w-full p-2 border rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
+              <label className="block text-sm font-semibold text-gray-700">
                 Customer Account
               </label>
               <select
                 value={selectedCustomer}
                 onChange={(e) => setselectedCustomer(e.target.value)}
-                className="mt-1 w-full p-2 border rounded focus:ring-2 focus:ring-blue-200"
+                className="mt-2 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
               >
                 <option value="">Select Customer</option>
                 {Customers.map((Customer) => (
@@ -620,114 +578,118 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                 ))}
               </select>
             </div>
-            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-4 h-full">
-                {/* Name */}
+
+            {/* Customer Details */}
+            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Customer Name
                   </label>
                   <input
                     type="text"
                     value={selectedCustomerDetails?.account || ""}
                     placeholder="Customer Account"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    className="mt-2 w-full p-2.5 border rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
                     readOnly
                   />
                 </div>
 
-                {/* Currency */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Currency
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Creation Date & Time
                   </label>
                   <input
                     type="text"
                     value={selectedCustomerDetails.email}
-                    placeholder=" Currency"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                    placeholder="Creation Date"
+                    className="mt-2 w-full p-2.5 border rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
                     readOnly
                   />
                 </div>
               </div>
-              {/* Address */}
+
               <div>
-                <label className="block text-sm font-medium text-gray-600">
+                <label className="block text-sm font-semibold text-gray-700">
                   Customer Address
                 </label>
                 <textarea
                   rows="4"
                   value={selectedCustomerDetails?.address || ""}
                   readOnly
-                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                  className="mt-2 w-full p-2.5 border rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed resize-none"
                 />
               </div>
+  
 
-              {/* Name + Currency */}
-            </div>
-            <div className="sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-4 h-full">
-                {/* Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Order Status
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedCustomerDetails?.account || ""}
-                    placeholder="Customer Account"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
-
-                {/* Currency */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Purchase Agreement No (if applicable)
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedCustomerDetails.email}
-                    placeholder=" Currency"
-                    className="mt-1 w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
-                    readOnly
-                  />
-                </div>
-              </div>
-              {/* Address */}
               <div>
-                <label className="block text-sm font-medium text-gray-600">
-                  Remarks
+                <label className="block text-sm font-semibold text-gray-700">
+                  Currency
+                </label>
+                <input
+                  type="text"
+                  value={selectedCustomerDetails.email}
+                  placeholder="Currency"
+                  className="mt-2 w-full p-2.5 border rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                  readOnly
+                />
+              </div> <div>
+                <label className="block text-sm font-semibold text-gray-700">
+                Remarks
                 </label>
                 <textarea
                   rows="4"
                   value={selectedCustomerDetails?.address || ""}
                   readOnly
-                  className="mt-1 w-full  p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+                  className="mt-2 w-full p-2.5 border rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed resize-none"
                 />
               </div>
-
-              {/* Name + Currency */}
             </div>
-            {selectedCustomerDetails && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600">
-                    Transaction type
-                  </label>
-                  <input type="text" className="w-full p-2 border rounded" />
-                </div>
-              </>
-            )}
+
+            {/* Order Status */}
             <div>
-              <label className="block text-sm font-medium text-gray-600">
+              <label className="block text-sm font-semibold text-gray-700">
+                Order Status
+              </label>
+              <input
+                type="text"
+                value={selectedCustomerDetails?.account || ""}
+                placeholder="Order Status"
+                className="mt-2 w-full p-2.5 border rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                readOnly
+              />
+            </div>
+
+            {/* Remarks */}
+         
+
+            {/* Transaction Type */}
+            {selectedCustomerDetails && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700">
+                  Transaction Type
+                </label>
+                <input
+                  type="text"
+                  className="mt-2 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-200"
+                />
+              </div>
+            )}
+
+            {/* Total Invoice Amount */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700">
                 Total Invoice Amount
               </label>
-              <input type="text" className="w-full p-2 border rounded" />
+              <input
+                type="text"
+                className="mt-2 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-200"
+              />
             </div>
+
+            {/* Ledger Account */}
             <div>
-              <label className="block text-sm font-medium text-gray-600">
+              <label className="block text-sm font-semibold text-gray-700">
                 Posted Ledger Account
               </label>
               <input
@@ -736,14 +698,20 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                 onChange={(e) =>
                   setAdvance(Number(e.target.value.replace(/\D/g, "")) || 0)
                 }
-                className="w-full p-2 border rounded"
+                className="mt-2 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-200"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600">
-                Invoice_date
+            </div>  <div>
+              <label className="block text-sm font-semibold text-gray-700">
+            Order ID
               </label>
-              <input type="text" className="w-full p-2 border rounded" />
+              <input
+                type="text"
+                value={advance}
+                onChange={(e) =>
+                  setAdvance(Number(e.target.value.replace(/\D/g, "")) || 0)
+                }
+                className="mt-2 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-200"
+              />
             </div>
           </div>
         </section>
@@ -767,7 +735,8 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                       "Qty",
                       "Unit",
                       "Price",
-                      "Discount %",   "Discountamount",
+                      "Discount %",
+                      "Discountamount",
                       "Amount",
                       "Tax %",
                       "TCS/TDS %",
@@ -786,11 +755,9 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                 <tbody className="divide-y divide-gray-200">
                   <tr key="purchase-order-row" className="hover:bg-gray-50">
                     <td className="border text-center px-2 py-1">1</td>
-
                     <td className="border px-2 py-1 text-center">
                       {selectedItem?.code || ""}
                     </td>
-
                     <td className="border px-2 py-1">
                       <select
                         value={selectedItem?._id || ""}
@@ -812,7 +779,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         ))}
                       </select>
                     </td>
-
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
@@ -821,21 +787,20 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         className="w-full border rounded text-center px-2 py-1 bg-gray-100"
                       />
                     </td>
-
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
                         placeholder="Site"
                         className="w-full border rounded text-center px-2 py-1"
                       />
-                    </td>   <td className="border px-2 py-1 text-center">
+                    </td>{" "}
+                    <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
                         placeholder="Site"
                         className="w-full border rounded text-center px-2 py-1"
                       />
                     </td>
-
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
@@ -843,7 +808,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         className="w-full border rounded text-center px-2 py-1"
                       />
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -854,7 +818,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         }
                       />
                     </td>
-
                     <td className="border px-2 py-1 text-center">
                       <input
                         type="text"
@@ -863,7 +826,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         className="w-full border rounded text-center px-2 py-1 bg-gray-100"
                       />
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -872,7 +834,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         onChange={(e) => setPrice(Number(e.target.value) || 0)}
                       />
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -883,7 +844,7 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         }
                       />
                     </td>
-  <td className="border px-2 py-1">
+                    <td className="border px-2 py-1">
                       <input
                         type="text"
                         className="w-full border rounded text-center px-2 py-1"
@@ -898,7 +859,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         ? "0.00"
                         : amountBeforeTax.toFixed(2)}
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -907,7 +867,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         onChange={(e) => setTax(Number(e.target.value) || 0)}
                       />
                     </td>
-
                     <td className="border px-2 py-1">
                       <input
                         type="text"
@@ -916,7 +875,6 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
                         onChange={(e) => setTcs(Number(e.target.value) || 0)}
                       />
                     </td>
-
                     <td className="border px-2 py-1 text-center">{lineAmt}</td>
                   </tr>
                 </tbody>
@@ -924,7 +882,7 @@ const FreeTaxingInvoice = ({ handleCancel }) => {
 
               {/* Summary Section */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
-                <SummaryCard label="Advance" value={advance} />
+                {/* <SummaryCard label="Advance" value={advance} /> */}
                 <SummaryCard
                   label="Subtotal /  line amount"
                   value={

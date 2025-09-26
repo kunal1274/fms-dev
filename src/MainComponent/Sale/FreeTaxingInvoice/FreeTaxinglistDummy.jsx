@@ -84,7 +84,7 @@ const dummyFreeTaxings = [
   },
 ];
 
-export default function FreeTaxingList() {
+export default function FreeTaxingList({handleAddFreeTaxing}) {
   // Dummy summary data
   const [summary, setSummary] = useState({
     count: 12,
@@ -126,7 +126,7 @@ export default function FreeTaxingList() {
   });
 
   // Dummy actions
-  const handleAddFreeTaxing = () => toast.success("Add Debit Note clicked!");
+  // const handleAddFreeTaxing = () => toast.success("Add Debit Note clicked!");
   const handleDeleteSelected = () => toast.info("Deleted selected notes");
   const generatePDF = () => toast.info("PDF generated");
   const exportToExcel = () => toast.info("Exported to Excel");
@@ -170,7 +170,7 @@ export default function FreeTaxingList() {
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
-            // onClick={handleAddDebitNote}
+            onClick={handleAddFreeTaxing}
             className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
           >
             + Add

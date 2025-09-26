@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import DebitNoteViewPage from "./DebitNoteViewPage";
 import { Button } from "../../../../Component/Button/Button";
 import DebitNoteForm from "./DebitNoteForm";
-import DebitNoteList from "./DebitNotelist";
+import DebitNoteList from "./DebitNotelistDummy";
 
 const DebitNotePage = () => {
   const [view, setView] = useState("list");

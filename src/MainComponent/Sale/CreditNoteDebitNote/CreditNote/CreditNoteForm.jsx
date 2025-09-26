@@ -811,6 +811,39 @@ const CreditNoteform = ({ handleCancel }) => {
                           setDiscount(Number(e.target.value) || 0)
                         }
                       />
+                    </td>     <td className="border px-2 py-1">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="w-full border rounded text-center px-2 py-1"
+                        value={discount}
+                        onChange={(e) =>
+                          setDiscount(Number(e.target.value) || 0)
+                        }
+                      />
+                    </td>     <td className="border px-2 py-1">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="w-full border rounded text-center px-2 py-1"
+                        value={discount}
+                        onChange={(e) =>
+                          setDiscount(Number(e.target.value) || 0)
+                        }
+                      />
+                    </td>     <td className="border px-2 py-1">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="w-full border rounded text-center px-2 py-1"
+                        value={discount}
+                        onChange={(e) =>
+                          setDiscount(Number(e.target.value) || 0)
+                        }
+                      />
                     </td>
                     <td className="border px-2 py-1 text-center">
                       {isNaN(amountBeforeTax)
@@ -853,6 +886,7 @@ const CreditNoteform = ({ handleCancel }) => {
                 />
                 <SummaryCard label="Discount (%)" value={discount} />
                 <SummaryCard label="Total (incl tax)" value={lineAmt} />
+                    <SummaryCard label="Grand Total (incl tax)" />
               </div>
             </div>
           </div>

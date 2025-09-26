@@ -1,30 +1,56 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 
 const SalesAccountingBalance = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Dummy data only
+  const dummyData = [
+    {
+      customerCode: "CUST001",
+      customerName: "ABC Traders",
+      currency: "USD",
+      fromDate: "2023-01-01",
+      toDate: "2023-12-31",
+      openingBalance: 5000,
+      totalSalesInvoiced: 12000,
+      paymentsReceived: 8000,
+      creditNotes: 1000,
+      adjustments: -500,
+      overdueAmount: 2000,
+      salespersonName: "John Doe",
+      orderId: "ORD-1001",
+    },
+    {
+      customerCode: "CUST002",
+      customerName: "XYZ Supplies",
+      currency: "EUR",
+      fromDate: "2023-01-01",
+      toDate: "2023-12-31",
+      openingBalance: 3000,
+      totalSalesInvoiced: 9000,
+      paymentsReceived: 6000,
+      creditNotes: 500,
+      adjustments: 100,
+      overdueAmount: 1500,
+      salespersonName: "Jane Smith",
+      orderId: "ORD-1002",
+    },
+    {
+      customerCode: "CUST003",
+      customerName: "Global Tech",
+      currency: "GBP",
+      fromDate: "2023-01-01",
+      toDate: "2023-12-31",
+      openingBalance: 10000,
+      totalSalesInvoiced: 25000,
+      paymentsReceived: 20000,
+      creditNotes: 2000,
+      adjustments: 500,
+      overdueAmount: 3000,
+      salespersonName: "Michael Lee",
+      orderId: "ORD-1003",
+    },
+  ];
 
-  const salesOrderUrl = "https://fms-qkmw.onrender.com/fms/api/v0/salesorders";
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get(salesOrderUrl);
-        setData(res.data?.data || []);
-      } catch (err) {
-        setError("Failed to load sales accounting balance.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) return <div className="mt-4 text-sm">Loading...</div>;
-  if (error) return <div className="mt-4 text-sm text-red-600">{error}</div>;
+  const [data] = useState(dummyData);
 
   return (
     <div className="mt-8">
@@ -56,24 +82,36 @@ const SalesAccountingBalance = () => {
             </tr>
           </thead>
           <tbody>
-            {data.map((row, idx) => (
-              <tr key={idx} className="hover:bg-gray-50">
-                <td className="border px-2 py-1">{row.customerCode}</td>
-                <td className="border px-2 py-1">{row.customerName}</td>
-                <td className="border px-2 py-1">{row.currency}</td>
-                <td className="border px-2 py-1">{row.fromDate}</td>
-                <td className="border px-2 py-1">{row.toDate}</td>
-                <td className="border px-2 py-1">{row.openingBalance}</td>
-                <td className="border px-2 py-1">{row.totalSalesInvoiced}</td>
-                <td className="border px-2 py-1">{row.paymentsReceived}</td>
-                <td className="border px-2 py-1">{row.creditNotes}</td>
-                <td className="border px-2 py-1">{row.adjustments}</td>
-                <td className="border px-2 py-1">{row.closingBalance}</td>
-                <td className="border px-2 py-1">{row.overdueAmount}</td>
-                <td className="border px-2 py-1">{row.salespersonName}</td>
-                <td className="border px-2 py-1">{row.orderId}</td>
-              </tr>
-            ))}
+            {data.map((row, idx) => {
+              // Compute closing balance using formula
+              const closingBalance =
+                (Number(row.openingBalance) || 0) +
+                (Number(row.totalSalesInvoiced) || 0) -
+                (Number(row.paymentsReceived) || 0) -
+                (Number(row.creditNotes) || 0) +
+                (Number(row.adjustments) || 0);
+
+              return (
+                <tr key={idx} className="hover:bg-gray-50">
+                  <td className="border px-2 py-1">{row.customerCode}</td>
+                  <td className="border px-2 py-1">{row.customerName}</td>
+                  <td className="border px-2 py-1">{row.currency}</td>
+                  <td className="border px-2 py-1">{row.fromDate}</td>
+                  <td className="border px-2 py-1">{row.toDate}</td>
+                  <td className="border px-2 py-1">{row.openingBalance}</td>
+                  <td className="border px-2 py-1">{row.totalSalesInvoiced}</td>
+                  <td className="border px-2 py-1">{row.paymentsReceived}</td>
+                  <td className="border px-2 py-1">{row.creditNotes}</td>
+                  <td className="border px-2 py-1">{row.adjustments}</td>
+                  <td className="border px-2 py-1 font-medium">
+                    {closingBalance}
+                  </td>
+                  <td className="border px-2 py-1">{row.overdueAmount}</td>
+                  <td className="border px-2 py-1">{row.salespersonName}</td>
+                  <td className="border px-2 py-1">{row.orderId}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -82,4 +120,3 @@ const SalesAccountingBalance = () => {
 };
 
 export default SalesAccountingBalance;
-

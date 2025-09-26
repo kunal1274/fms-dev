@@ -7,7 +7,6 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./c.css";
 
-
 const SummaryCard = ({ label, value }) => (
   <div className="flex flex-col">
     <span className="text-sm text-gray-600">{label}</span>
@@ -16,7 +15,6 @@ const SummaryCard = ({ label, value }) => (
     </span>
   </div>
 );
-
 
 const CreditViewPagee = ({ creditId, credit }) => {
   const [isEditing, setIsEditing] = useState(true);
@@ -358,7 +356,8 @@ const CreditViewPagee = ({ creditId, credit }) => {
                       "Qty",
                       "Unit",
                       "Price",
-                      "Discount ",
+                      "Discount%",
+                      "DiscountAmount",
                       "Amount",
                       "Tax %",
                       "TCS/TDS %",
@@ -490,6 +489,11 @@ const CreditViewPagee = ({ creditId, credit }) => {
                         }
                       />
                     </td>
+                    <td className="border px-2 py-1 text-center">
+                      {isNaN(amountBeforeTax)
+                        ? "0.00"
+                        : amountBeforeTax.toFixed(2)}
+                    </td>{" "}
                     <td className="border px-2 py-1 text-center">
                       {isNaN(amountBeforeTax)
                         ? "0.00"

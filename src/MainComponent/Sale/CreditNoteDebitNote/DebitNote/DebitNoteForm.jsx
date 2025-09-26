@@ -592,7 +592,7 @@ const DebitOrderform = ({ handleCancel }) => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-600">
-                    Customer Status
+             Debit Status
                     </label>
                     <input
                       type="text"
@@ -642,7 +642,7 @@ const DebitOrderform = ({ handleCancel }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600">
-                Order Date{" "}
+                Order ID
               </label>
               <input
                 type="text"
@@ -762,6 +762,7 @@ const DebitOrderform = ({ handleCancel }) => {
                   <tr>
                     {[
                       "S.N",
+                      "Invoice Id agints Debit",
                       "Item Code",
                       "Item Name",
                       "Description",
@@ -792,6 +793,7 @@ const DebitOrderform = ({ handleCancel }) => {
                     <td className="border text-center px-2 py-1">1</td>
 
                     <td className="border px-2 py-1 text-center">{itemCode}</td>
+ <td className="border px-2 py-1 text-center">{itemCode}</td>
 
                     <td className="border px-2 py-1">
                       <select

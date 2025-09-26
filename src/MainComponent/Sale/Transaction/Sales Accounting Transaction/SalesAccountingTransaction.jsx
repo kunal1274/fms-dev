@@ -68,6 +68,7 @@ const SalesAccountingTransaction = () => {
               "Customer ID",
               "Customer Name",
               "Invoice Number",
+              "order Id",
               "Product/Service",
               "Quantity",
               "Unit Price",

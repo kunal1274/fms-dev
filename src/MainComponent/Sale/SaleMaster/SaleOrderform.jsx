@@ -454,20 +454,7 @@ const SaleOrderform = ({ handleCancel }) => {
               onClick={() => toast.info("Photo upload coming soon")}
             >
               Upload Photo
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
-                />
-              </svg>
+          
             </button>
           </div>
           <h3 className="text-xl font-semibold">Sale Order Form</h3>
@@ -913,7 +900,18 @@ const SaleOrderform = ({ handleCancel }) => {
                         }
                       />
                     </td>
-
+   <td className="border px-2 py-1">
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="w-full border rounded text-center px-2 py-1"
+                        value={discount}
+                        onChange={(e) =>
+                          setDiscount(Number(e.target.value) || 0)
+                        }
+                      />
+                    </td>
                     <td className="border px-2 py-1 text-center">
                       {isNaN(amountBeforeTax)
                         ? "0.00"

@@ -40,7 +40,36 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
     activeSales: 0,
     onHoldSales: 0,
   });
+  const toStartOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStr}T00:00:00.000Z`).toISOString();
+  const toEndOfDayISO = (dateStr /* 'YYYY-MM-DD' */) =>
+    new Date(`${dateStr}T23:59:59.999Z`).toISOString();
 
+  // addDays that is timezone-safe (strictly next day for 'min' on endDate)
+  const addDays = (dateStr, days) => {
+    if (!dateStr) return "";
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + days);
+    const yyyy = dt.getUTCFullYear();
+    const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getUTCDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const todayStr = () => {
+    const dt = new Date();
+    const yyyy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, "0");
+    const dd = String(dt.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
+  const isRangeValid = useMemo(() => {
+    if (!startDate || !endDate) return false;
+    const s = new Date(startDate).getTime();
+    const e = new Date(endDate).getTime();
+    return e > s;
+  }, [startDate, endDate]);
   const { id } = useParams();
 
   const handleDeleteSelected = async () => {
@@ -369,28 +398,6 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
               {/* Header Buttons */}
               <div className="flex justify-between ">
                 <div className="flex items-center space-x-2">
-                  <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-                    <button
-                      type="button"
-                      className="text-blue-600 mt-2 text-sm hover:underline"
-                    >
-                      Upload Photo
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-8 w-8 text-gray-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 11c1.656 0 3-1.344 3-3s-1.344-3-3-3-3 1.344-3 3 1.344 3 3 3zm0 2c-2.761 0-5 2.239-5 5v3h10v-3c0-2.761-2.239-5-5-5z"
-                        />
-                      </svg>{" "}
-                    </button>
-                  </div>
                   <h3 className="text-xl font-semibold">
                     Sale Order List Page
                   </h3>
@@ -435,28 +442,6 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
 
               {/* Metrics */}
               <div className=" bg-white rounded-lg ">
-                <div className="flex gap-2">
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="border rounded px-2 py-1"
-                  />
-                  <input
-                    type="date"
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="border rounded px-2 py-1"
-                  />
-                  <button
-                    onClick={() => {
-                      fetchMetrics();
-                      fetchCustomers(startDate, endDate);
-                    }}
-                    className="px-3 py-1 border rounded"
-                  >
-                    {loadingMetrics ? "Applying…" : "Apply"}
-                  </button>
-                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
                   {[
                     ["Total Sales", SaleSummary.count],
@@ -526,6 +511,50 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                       onChange={handleSearchChange}
                       className="w-60 pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
+</div>
+                    <div className="flex gap-2">
+                      <label className="block text-sm font-medium text-gray-600 mb-1 mt-2">
+                        To
+                      </label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="border rounded px-2 py-1"
+                      />
+                      <label className="block text-sm font-medium text-gray-600 mb-1 mt-2">
+                        From
+                      </label>
+                      <input
+                        type="date"
+                        value={endDate}
+                        min={startDate ? addDays(startDate, 1) : undefined}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="border rounded px-2 py-1"
+                      />
+                      <button
+                        onClick={() => {
+                          if (!isRangeValid) {
+                            toast.info(
+                              "Pick a valid Start and End date (End > Start)."
+                            );
+                            return;
+                          }
+                          fetchMetrics({
+                            fromDate: startDate,
+                            toDate: endDate,
+                          });
+                          fetchCustomers({
+                            fromDate: startDate,
+                            toDate: endDate,
+                          });
+                        }}
+                        disabled={!isRangeValid || loadingMetrics}
+                        className="px-3 py-1 border rounded"
+                      >
+                        {loadingMetrics ? "Applying…" : "Apply"}
+                      </button>
+                    </div>
                     <button
                       type="button"
                       onClick={handleSearchSubmit}
@@ -533,7 +562,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                     >
                       <FaSearch className="w-5 h-5" />
                     </button>
-                  </div>
+                
                 </div>
 
                 {/* Right side: Reset Filter */}
@@ -576,7 +605,7 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
                           "Unit of Measure (UOM)",
                           "Subtotal /  line amount",
                           "Grand Total",
-                          "Order Qty",
+
                           "Currency",
                           "Order Id",
                           "Site",
@@ -661,10 +690,6 @@ const SaleOrderListPage = ({ handleAddSaleOrder, invoice }) => {
 
                             <td className="px-6 py-4 align-middle whitespace-nowrap">
                               {sale?.total || sale?.grandTotal || ""}
-                            </td>
-
-                            <td className="px-6 py-4 align-middle whitespace-nowrap">
-                              {sale?.quantity || sale?.qty || ""}
                             </td>
 
                             <td className="px-6 py-4 align-middle whitespace-nowrap">

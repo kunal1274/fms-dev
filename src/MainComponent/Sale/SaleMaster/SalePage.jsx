@@ -117,7 +117,7 @@ const SalePage = () => {
   }
 
   return (
-    <div className="w-full bg-white rounded-lg">
+    <div>
       <ToastContainer position="top-right" autoClose={2500} hideProgressBar />
       {view === "list" && (
         <SaleOrderListPage

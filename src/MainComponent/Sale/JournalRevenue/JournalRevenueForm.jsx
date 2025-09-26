@@ -166,7 +166,7 @@ const JournaRevenueOrderform = ({ handleCancel }) => {
                     "Description",
                     "Debit",
                     "Credit",
-                    "Posting No.",
+                    "Posting Account ID.",
                     "Posting Account",
                     "Tax %",
                     "TCS/TDS %",
@@ -197,12 +197,16 @@ const JournaRevenueOrderform = ({ handleCancel }) => {
         {/* Summary Section */}
         <section className="p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg">
-        
             <SummaryCard label="  Tax_Code " value="  Order ID" />
             <SummaryCard label="Total Tax Amount  " value="101" />
             <SummaryCard label="Invoice Number" value="INV-2025-01" />
             <SummaryCard label="Posted Date" value="2025-07-03" />
             <SummaryCard label="Approval Status" value="Pending" />
+            <SummaryCard label="Order_ID" value="INV-2025" />
+            <SummaryCard label="Invoice_Date" value="NV-2024-09" />
+            <SummaryCard label="Total Amount" value="909" />
+
+            <SummaryCard label="Approval Amount" value="99" />
           </div>
         </section>
 

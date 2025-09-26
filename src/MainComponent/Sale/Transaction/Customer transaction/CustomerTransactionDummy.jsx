@@ -62,6 +62,7 @@ const CustomerTransaction = () => {
     {
       transactionType: "Sale order",
       referenceId: "REF123",
+      OrderId:"jshj",
       transactionId: "TXN001",
       transactionDate: "2025-09-10",
       customerId: "CUST001",

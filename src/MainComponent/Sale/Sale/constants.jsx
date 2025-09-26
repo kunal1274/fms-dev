@@ -25,6 +25,9 @@ export const PAGE = {
   SALES_ACCOUNTING_TRANSACTION: "SALES_ACCOUNTING_TRANSACTION",
   SALES_ACCOUNTING_BALANCE: "SALES_ACCOUNTING_BALANCE",
   SALES_MARGIN_REPORT: "SALES_MARGIN_REPORT",
+  SALES_REGISTER_BY_LINE_REPORT: "SALES_REGISTER_BY_LINE_REPORT",
+  SALES_REGISTER_BY_HEADER_REPORT:
+    "SALES_REGISTER_BY_HEADER_REPORTSALES_MARGIN_REPORT",
   SALES_CONFIRMATION_INVOICE: "SALES_CONFIRMATION_INVOICE",
   SALES_PROFORMA_INVOICE_ALT: "SALES_PROFORMA_INVOICE_ALT",
   SALES_INVOICE: "SALES_INVOICE",
@@ -117,7 +120,7 @@ export const setupSections = [
         icon: <FaMap />,
         page: PAGE.SALE_ORDER,
       },
-  
+
       {
         id: "Debit note",
         title: "Debit note",
@@ -184,6 +187,18 @@ export const setupSections = [
         title: "Sales margin report",
         icon: <FaListUl />,
         page: PAGE.SALES_MARGIN_REPORT,
+      },
+      {
+        id: "Sales register by header report",
+        title: "Sales register by header report",
+        icon: <FaListUl />,
+        page: PAGE.SALES_REGISTER_BY_HEADER_REPORT, // fixed constant name
+      },
+      {
+        id: "Sales register by line report",
+        title: "Sales register by line report", // lowercase "line" for consistency
+        icon: <FaListUl />,
+        page: PAGE.SALES_REGISTER_BY_LINE_REPORT, // fixed reference
       },
     ],
   },

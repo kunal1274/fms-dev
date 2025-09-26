@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import CreditNoteViewPage from "./CreditNoteViewPage";
+// import CreditNoteViewPage from "./CreditNoteViewPage";
 import { Button } from "../../../../Component/Button/Button";
 import CreditNoteForm from "./CreditNoteForm";
 import CreditNoteList from "./CreditNotelistDummy";
@@ -100,13 +100,13 @@ const CreditNotePage = () => {
             handleCancel={handleCancel}
           />
         )}
-        {view === "details" && selectedCreditNote && (
+        {/* {view === "details" && selectedCreditNote && (
           <CreditNoteViewPage
             debit={selectedCreditNote}
             onEdit={() => setView("form")}
             onBack={handleCancel}
           />
-        )}
+        )} */}
       </div>
     </div>
   );

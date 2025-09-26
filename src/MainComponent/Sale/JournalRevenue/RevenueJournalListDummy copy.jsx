@@ -172,6 +172,53 @@ export default function JournalRevenueList() {
       {/* Filters */}
       <div className="flex flex-wrap Sales-center text-sm justify-between p-2 bg-white rounded-md mb-2 space-y-3 md:space-y-0 md:space-x-4">
         <div className="flex items-center space-x-4">
+          {/* Sort By */}
+          <div className="relative">
+            <FaSortAmountDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <select
+              value={
+                sortOption === "name-asc"
+                  ? "Customer Name"
+                  : sortOption === "code-asc"
+                  ? "Customer Account in Ascending"
+                  : sortOption === "code-desc"
+                  ? "Customer Account in descending"
+                  : ""
+              }
+              onChange={handleSortChange}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+            >
+              <option value="">Sort By</option>
+              <option value="Customer Name">Customer Name</option>
+              <option value="Customer Account in Ascending">
+                Customer Account in Ascending
+              </option>
+              <option value="Customer Account in descending">
+                Customer Account in descending
+              </option>
+            </select>
+          </div>
+
+          {/* Filter By Status */}
+          <div className="relative">
+            <FaFilter className="text-sm absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <select
+              value={
+                statusFilter === "Active"
+                  ? "yes"
+                  : statusFilter === "Inactive"
+                  ? "no"
+                  : "All"
+              }
+              onChange={handleStatusChange}
+              className="pl-10 pr-4 py-2 border text-sm border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+            >
+              <option value="All">Filter By Status</option>
+              <option value="yes">Active</option>
+              <option value="no">Inactive</option>
+            </select>
+          </div>
+
           {/* Search */}
           <div className="relative">
             <input
@@ -185,7 +232,65 @@ export default function JournalRevenueList() {
               <FaSearch className="w-5 h-5" />
             </div>
           </div>
+          <div className="flex gap-2">
+            <label className="block text-sm font-medium text-gray-600 mb-1 mt-2">
+              To
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border rounded px-2 py-1"
+            />
+            <label className="block text-sm font-medium text-gray-600 mb-1 mt-2">
+              From
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              min={startDate ? addDays(startDate, 1) : undefined}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border rounded px-2 py-1"
+            />
+            <button
+              onClick={() => {
+                if (!isRangeValid) {
+                  toast.info("Pick a valid Start and End date (End > Start).");
+                  return;
+                }
+                fetchMetrics({ fromDate: startDate, toDate: endDate });
+                fetchCustomers({ fromDate: startDate, toDate: endDate });
+              }}
+              disabled={!isRangeValid || loadingMetrics}
+              className="px-3 py-1 border rounded"
+            >
+              {loadingMetrics ? "Applying…" : "Apply"}
+            </button>
+          </div>
         </div>
+
+        {/* Reset */}
+        <button
+          onClick={async () => {
+            setSearchTerm("");
+            setStatusFilter("All");
+            setSelectedIds([]);
+            setSortOption("");
+            setStartDate("");
+            setEndDate("");
+            await fetchCustomers(); // all
+            await fetchMetrics(); // all
+          }}
+          disabled={!anyFiltersOn}
+          className={`font-medium w-full sm:w-auto transition
+          ${
+            anyFiltersOn
+              ? "text-red-500 hover:text-red-600 cursor-pointer"
+              : "text-gray-400 cursor-not-allowed"
+          }`}
+        >
+          Reset Filter
+        </button>
       </div>
 
       {/* Tabs */}
@@ -233,8 +338,9 @@ export default function JournalRevenueList() {
                 "Name",
                 "Debit",
                 "Credit",
+                     "Posting account Id ",
                 "Posting Account ",
-                "Posting account Id ",
+           
                 "Total Amount",
                 "Invoice Number",
                 "Status",

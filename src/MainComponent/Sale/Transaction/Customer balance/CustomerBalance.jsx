@@ -69,12 +69,17 @@ const CustomerBalance = () => {
 
     const tableColumn = [
       "S.N",
-      "Customer Code",
+      "Customer ID / No",
+
       "Customer Name",
-      "Total Invoice",
+      "Invoice Date",
+      "Invoice Number",
+      " Invoice Amount",
       "Total Paid",
+      "Payment Received",
       "Balance Due",
-      "Last Invoice Date",
+      "Order Id",
+      "Due Date",
       "Status",
     ];
 
