@@ -1,4 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const numberFmt = (v) =>
   typeof v === "number" && !Number.isNaN(v) ? v.toLocaleString() : v ?? "";
@@ -21,13 +24,12 @@ export default function BankTransactionReport() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Keep headers + keys + optional formatter together
   const columns = [
-    { key: "transactionId", label: "Txn ID" },
-    { key: "transactionDate", label: "Txn Date", fmt: dateFmt },
+    { key: "TransactionID", label: "Txn ID" },
+    { key: "TransactionDate", label: "Txn Date", fmt: dateFmt },
     { key: "bankName", label: "Bank Name" },
     { key: "bankAccountNumber", label: "Bank A/C No." },
-    { key: "transactionType", label: "Txn Type" }, // e.g., NEFT/IMPS/Cash
+    { key: "transactionType", label: "Txn Type" },
     { key: "referenceNumber", label: "Reference No." },
     { key: "description", label: "Description" },
     { key: "partyName", label: "Party Name" },
@@ -38,13 +40,12 @@ export default function BankTransactionReport() {
     { key: "creditAmount", label: "Credit", fmt: moneyFmt },
     { key: "openingBalance", label: "Opening Bal", fmt: moneyFmt },
     { key: "closingBalance", label: "Closing Bal", fmt: moneyFmt },
-    { key: "transactionMode", label: "Mode" }, // Inhouse/Outhouse/etc.
-    { key: "status", label: "Status" }, // Posted/Pending/etc.
-    { key: "reconciliationStatus", label: "Reconciled" }, // Yes/No/Partial
+    { key: "transactionMode", label: "Mode" },
+    { key: "status", label: "Status" },
+    { key: "reconciliationStatus", label: "Reconciled" },
   ];
 
   useEffect(() => {
-    // Simulated API delay + realistic sample rows
     const t = setTimeout(() => {
       setData([
         {
@@ -104,13 +105,68 @@ export default function BankTransactionReport() {
     );
   }, [data]);
 
+  // ✅ Export to Excel
+  const handleExportExcel = () => {
+    const wb = XLSX.utils.book_new();
+    const sheetData = [
+      columns.map((c) => c.label),
+      ...data.map((row) =>
+        columns.map((c) => (c.fmt ? c.fmt(row[c.key]) : row[c.key]))
+      ),
+    ];
+    XLSX.utils.book_append_sheet(
+      wb,
+      XLSX.utils.aoa_to_sheet(sheetData),
+      "Bank Transactions"
+    );
+    XLSX.writeFile(wb, "Bank_Transaction_Report.xlsx");
+  };
+
+  // ✅ Export to PDF
+  const handleExportPDF = () => {
+    const doc = new jsPDF({ orientation: "landscape" });
+    doc.text("Bank Transaction Report", 14, 10);
+    const tableData = data.map((row) =>
+      columns.map((c) => (c.fmt ? c.fmt(row[c.key]) : row[c.key]))
+    );
+    doc.autoTable({
+      head: [columns.map((c) => c.label)],
+      body: tableData,
+      startY: 14,
+      styles: { fontSize: 7 },
+      theme: "grid",
+      headStyles: { fillColor: [220, 220, 220] },
+    });
+    doc.save("Bank_Transaction_Report.pdf");
+  };
+
   if (loading) return <div className="mt-4 text-sm">Loading...</div>;
 
   return (
     <div className="mt-8">
-      <h2 className="text-lg font-semibold mb-2">Bank Transaction Report</h2>
+      {" "}
+      <div className="flex items-center justify-between">
+        {/* Title */}
+        <h2 className="text-lg font-semibold mb-2">Bank Transaction Report</h2>
 
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
+        {/* Buttons aligned to the right */}
+        <div className="space-x-2">
+          <button
+            onClick={handleExportPDF}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+          >
+            Export PDF
+          </button>
+          <button
+            onClick={handleExportExcel}
+            className="h-8 px-3 border border-green-500 bg-white text-sm rounded-md transition hover:bg-blue-500 hover:text-blue-700 hover:scale-[1.02]"
+          >
+            Export Excel
+          </button>
+        </div>
+      </div>
+   
+      <div className="overflow-x-auto rounded-lg border mt-2 border-gray-200">
         <table className="min-w-full text-xs">
           <thead className="bg-gray-50 text-gray-700">
             <tr>
@@ -129,8 +185,8 @@ export default function BankTransactionReport() {
             {data.length === 0 ? (
               <tr>
                 <td
-                  className="px-2 py-3 text-center text-gray-500"
                   colSpan={columns.length}
+                  className="px-2 py-3 text-center text-gray-500"
                 >
                   No records found.
                 </td>
@@ -158,29 +214,23 @@ export default function BankTransactionReport() {
           {data.length > 0 && (
             <tfoot>
               <tr className="bg-gray-100 font-semibold">
-                {/* Span up to the Debit column index */}
                 <td
                   className="px-2 py-2 border-t"
                   colSpan={columns.findIndex((c) => c.key === "debitAmount")}
                 >
                   Totals
                 </td>
-                {/* Debit */}
                 <td className="px-2 py-2 border-t">{moneyFmt(totals.debit)}</td>
-                {/* Credit */}
                 <td className="px-2 py-2 border-t">
                   {moneyFmt(totals.credit)}
                 </td>
-                {/* Fill remaining footer cells */}
                 <td
                   className="px-2 py-2 border-t"
                   colSpan={
                     columns.length -
                     (columns.findIndex((c) => c.key === "creditAmount") + 1)
                   }
-                >
-                  {/* empty */}
-                </td>
+                />
               </tr>
             </tfoot>
           )}
