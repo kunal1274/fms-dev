@@ -1,0 +1,205 @@
+import {
+  FaThLarge,
+  FaListUl,
+  FaTh,
+  FaWarehouse,
+  FaMap,
+  FaMapMarkerAlt,
+  FaSortAmountDown,
+  FaArchive,
+} from "react-icons/fa";
+
+// Page Constants
+export const PAGE = {
+  TOGGLE: "TOGGLE",
+  CUSTOMER: "CUSTOMER",
+  SALE_ORDER: "SALE_ORDER",
+
+  CREDIT_NOTE: "CREDIT_NOTE",
+  DEBIT_NOTE: "DEBIT_NOTE",
+  JOURNAL: "JOURNAL",
+  FREE_TAX_INVOICE: "FREE_TAX_INVOICE",
+  CUSTOMER_TRANSACTION: "CUSTOMER_TRANSACTION",
+  CUSTOMER_BALANCE: "CUSTOMER_BALANCE",
+  CUSTOMER_AGING_REPORT: "CUSTOMER_AGING_REPORT",
+  SALES_ACCOUNTING_TRANSACTION: "SALES_ACCOUNTING_TRANSACTION",
+  SALES_ACCOUNTING_BALANCE: "SALES_ACCOUNTING_BALANCE",
+  SALES_MARGIN_REPORT: "SALES_MARGIN_REPORT",
+  SALES_REGISTER_BY_LINE_REPORT: "SALES_REGISTER_BY_LINE_REPORT",
+  SALES_REGISTER_BY_HEADER_REPORT:
+    "SALES_REGISTER_BY_HEADER_REPORTSALES_MARGIN_REPORT",
+  SALES_CONFIRMATION_INVOICE: "SALES_CONFIRMATION_INVOICE",
+  SALES_PROFORMA_INVOICE_ALT: "SALES_PROFORMA_INVOICE_ALT",
+  SALES_INVOICE: "SALES_INVOICE",
+  SALES_PROFORMA_CONFIRMATION_INVOICE: "SALES_PROFORMA_CONFIRMATION_INVOICE",
+};
+
+export const VIEW_MODES = {
+  GRID: "GRID",
+  ICON: "ICON",
+  LIST: "LIST",
+};
+
+export const groups = [
+  {
+    id: "master",
+    title: "Customer Master",
+    items: [
+      {
+        id: "Customer",
+        title: "Customer",
+        icon: <FaThLarge />,
+        page: PAGE.CUSTOMER,
+      },
+    ],
+  },
+  {
+    id: "setups",
+    title: "Order",
+    items: [], // handled in setupSections
+  },
+  {
+    id: "Invoice &  document",
+    title: "Invoice & Document",
+    subgroups: [
+      {
+        id: "Sales Proforma Confirmation",
+        title: "Sales Proforma Confirmation",
+        items: [
+          {
+            id: "Sales Proforma Confirmation Invoice",
+            title: "Sales Proforma Confirmation Invoice",
+            icon: <FaArchive />,
+            page: PAGE.SALES_PROFORMA_CONFIRMATION_INVOICE,
+          },
+          {
+            id: "Sales Confirmation Invoice",
+            title: "Sales Confirmation Invoice",
+            icon: <FaArchive />,
+            page: PAGE.SALES_CONFIRMATION_INVOICE,
+          },
+          {
+            id: "Sales Proforma Invoice",
+            title: "Sales Proforma Invoice",
+            icon: <FaSortAmountDown />,
+            page: PAGE.SALES_PROFORMA_INVOICE_ALT,
+          },
+          {
+            id: "SalesInvoice",
+            title: "Sales Invoice",
+            icon: <FaListUl />,
+            page: PAGE.SALES_INVOICE,
+          },
+        ],
+      },
+      {
+        id: "Setup and Configuration",
+        title: "Setup and Configuration",
+        items: [
+          {
+            id: "Term of Payment",
+            title: "Term of Payment",
+            icon: <FaTh />,
+            // You may optionally add a `page:` key here if needed
+          },
+        ],
+      },
+    ],
+  },
+];
+
+export const setupSections = [
+  {
+    id: "Order",
+    title: "Sale Order",
+    cols: 3,
+    items: [
+      {
+        id: "Sale order",
+        title: "Sale order",
+        icon: <FaMap />,
+        page: PAGE.SALE_ORDER,
+      },
+
+      {
+        id: "Debit note",
+        title: "Debit note",
+        icon: <FaMapMarkerAlt />,
+        page: PAGE.DEBIT_NOTE,
+      },
+      {
+        id: "Credit note",
+        title: "Credit note",
+        icon: <FaListUl />,
+        page: PAGE.CREDIT_NOTE,
+      },
+      {
+        id: "Free Tax Invoicing",
+        title: "Free Tax Invoicing",
+        icon: <FaListUl />,
+        page: PAGE.FREE_TAX_INVOICE,
+      },
+      {
+        id: "Journal",
+        title: "Journal",
+        icon: <FaListUl />,
+        page: PAGE.JOURNAL,
+      },
+    ],
+  },
+  {
+    id: "TransactionReport",
+    title: "Transaction and Report",
+    cols: 3,
+    items: [
+      {
+        id: "Customer transaction",
+        title: "Customer transaction",
+        icon: <FaMap />,
+        page: PAGE.CUSTOMER_TRANSACTION,
+      },
+      {
+        id: "Customer balance",
+        title: "Customer balance",
+        icon: <FaWarehouse />,
+        page: PAGE.CUSTOMER_BALANCE,
+      },
+      {
+        id: "Customer aging report",
+        title: "Customer aging report",
+        icon: <FaMapMarkerAlt />,
+        page: PAGE.CUSTOMER_AGING_REPORT,
+      },
+      {
+        id: "Sales accounting transaction",
+        title: "Sales accounting transaction",
+        icon: <FaListUl />,
+        page: PAGE.SALES_ACCOUNTING_TRANSACTION,
+      },
+      {
+        id: "Sales accounting balance",
+        title: "Sales accounting balance",
+        icon: <FaListUl />,
+        page: PAGE.SALES_ACCOUNTING_BALANCE,
+      },
+      {
+        id: "Sales margin report",
+        title: "Sales margin report",
+        icon: <FaListUl />,
+        page: PAGE.SALES_MARGIN_REPORT,
+      },
+      {
+        id: "Sales register by header report",
+        title: "Sales register by header report",
+        icon: <FaListUl />,
+        page: PAGE.SALES_REGISTER_BY_HEADER_REPORT, // fixed constant name
+      },
+      {
+        id: "Sales register by line report",
+        title: "Sales register by line report", // lowercase "line" for consistency
+        icon: <FaListUl />,
+        page: PAGE.SALES_REGISTER_BY_LINE_REPORT, // fixed reference
+      },
+    ],
+  },
+];
