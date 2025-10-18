@@ -1,6 +1,5 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { cn } from '@/utils/cn'
 import {
   HomeIcon,
   BuildingOfficeIcon,
@@ -128,10 +127,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         <div>
                           <button
                             onClick={() => toggleExpanded(item.name)}
-                            className={cn(
-                              'group flex w-full items-center gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                              isActive(item.href) && 'bg-gray-50 dark:bg-gray-800 text-primary'
-                            )}
+                            className={`group flex w-full items-center gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                              isActive(item.href) ? 'bg-gray-50 dark:bg-gray-800 text-primary' : ''
+                            }`}
                           >
                             <item.icon
                               className="h-6 w-6 shrink-0"
@@ -139,10 +137,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                             />
                             {item.name}
                             <ChevronRightIcon
-                              className={cn(
-                                'ml-auto h-5 w-5 transition-transform',
-                                expandedItems.includes(item.name) && 'rotate-90'
-                              )}
+                              className={`ml-auto h-5 w-5 transition-transform ${
+                                expandedItems.includes(item.name) ? 'rotate-90' : ''
+                              }`}
                             />
                           </button>
                           {expandedItems.includes(item.name) && (
@@ -151,10 +148,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                 <li key={child.name}>
                                   <Link
                                     to={child.href}
-                                    className={cn(
-                                      'group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                                      isActive(child.href) && 'bg-gray-50 dark:bg-gray-800 text-primary'
-                                    )}
+                                    className={`group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                                      isActive(child.href) ? 'bg-gray-50 dark:bg-gray-800 text-primary' : ''
+                                    }`}
                                     onClick={onClose}
                                   >
                                     {child.name}
@@ -167,10 +163,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       ) : (
                         <Link
                           to={item.href}
-                          className={cn(
-                            'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                            isActive(item.href) && 'bg-gray-50 dark:bg-gray-800 text-primary'
-                          )}
+                          className={`group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                            isActive(item.href) ? 'bg-gray-50 dark:bg-gray-800 text-primary' : ''
+                          }`}
                           onClick={onClose}
                         >
                           <item.icon
@@ -190,10 +185,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       </div>
 
       {/* Mobile sidebar */}
-      <div className={cn(
-        'fixed inset-0 z-50 lg:hidden',
-        isOpen ? 'block' : 'hidden'
-      )}>
+      <div className={`fixed inset-0 z-50 lg:hidden ${isOpen ? 'block' : 'hidden'}`}>
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={onClose} />
         <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 shadow-xl">
           <div className="flex h-16 shrink-0 items-center px-6">
@@ -216,10 +208,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         <div>
                           <button
                             onClick={() => toggleExpanded(item.name)}
-                            className={cn(
-                              'group flex w-full items-center gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                              isActive(item.href) && 'bg-gray-50 dark:bg-gray-800 text-primary'
-                            )}
+                            className={`group flex w-full items-center gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                              isActive(item.href) ? 'bg-gray-50 dark:bg-gray-800 text-primary' : ''
+                            }`}
                           >
                             <item.icon
                               className="h-6 w-6 shrink-0"
@@ -227,10 +218,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                             />
                             {item.name}
                             <ChevronRightIcon
-                              className={cn(
-                                'ml-auto h-5 w-5 transition-transform',
-                                expandedItems.includes(item.name) && 'rotate-90'
-                              )}
+                              className={`ml-auto h-5 w-5 transition-transform ${
+                                expandedItems.includes(item.name) ? 'rotate-90' : ''
+                              }`}
                             />
                           </button>
                           {expandedItems.includes(item.name) && (
@@ -239,10 +229,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                 <li key={child.name}>
                                   <Link
                                     to={child.href}
-                                    className={cn(
-                                      'group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                                      isActive(child.href) && 'bg-gray-50 dark:bg-gray-800 text-primary'
-                                    )}
+                                    className={`group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                                      isActive(child.href) ? 'bg-gray-50 dark:bg-gray-800 text-primary' : ''
+                                    }`}
                                     onClick={onClose}
                                   >
                                     {child.name}
@@ -255,10 +244,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       ) : (
                         <Link
                           to={item.href}
-                          className={cn(
-                            'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                            isActive(item.href) && 'bg-gray-50 dark:bg-gray-800 text-primary'
-                          )}
+                          className={`group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                            isActive(item.href) ? 'bg-gray-50 dark:bg-gray-800 text-primary' : ''
+                          }`}
                           onClick={onClose}
                         >
                           <item.icon

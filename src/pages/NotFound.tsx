@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Button } from '@/components/ui/Button'
+import { Button } from '../components/ui/Button'
 import { HomeIcon } from '@heroicons/react/24/outline'
 
 const NotFound: React.FC = () => {

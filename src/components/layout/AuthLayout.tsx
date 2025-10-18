@@ -1,5 +1,4 @@
 import React from 'react'
-import { cn } from '@/utils/cn'
 
 interface AuthLayoutProps {
   children: React.ReactNode

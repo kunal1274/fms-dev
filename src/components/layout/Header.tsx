@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { cn } from '@/utils/cn'
 import type { RootState } from '@/store'
 import { logout } from '@/store/slices/authSlice'
 import {

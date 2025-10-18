@@ -1,12 +1,12 @@
 import React from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card'
 import {
   CurrencyDollarIcon,
   ShoppingCartIcon,
   ShoppingBagIcon,
   CubeIcon,
-  TrendingUpIcon,
-  TrendingDownIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
 } from '@heroicons/react/24/outline'
 
 const Dashboard: React.FC = () => {
@@ -75,9 +75,9 @@ const Dashboard: React.FC = () => {
                         stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
                       }`}>
                         {stat.changeType === 'positive' ? (
-                          <TrendingUpIcon className="h-4 w-4 flex-shrink-0 self-center" />
+                          <ArrowTrendingUpIcon className="h-4 w-4 flex-shrink-0 self-center" />
                         ) : (
-                          <TrendingDownIcon className="h-4 w-4 flex-shrink-0 self-center" />
+                          <ArrowTrendingDownIcon className="h-4 w-4 flex-shrink-0 self-center" />
                         )}
                         <span className="sr-only">
                           {stat.changeType === 'positive' ? 'Increased' : 'Decreased'} by
