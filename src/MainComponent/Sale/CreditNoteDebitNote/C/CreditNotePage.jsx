@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import DebitNoteViewPage from "./DebitNoteViewPage";
-import { Button } from "../../../../Component/Button/Button";
+import { Button } from "@/components/ui/Button";
 import DebitNoteForm from "./DebitNoteForm";
 import DebitNoteList from "./DebitNotelist";
 

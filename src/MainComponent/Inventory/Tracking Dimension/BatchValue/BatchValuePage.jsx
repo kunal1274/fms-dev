@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import BatchList from "./BatchValueList";
 import BatchForm from "./Form";
 import BatchViewPage from "./BatchValueViewPagee";
-import { Button } from "../../../../Component/Button/Button";
+import { Button } from "@/components/ui/Button";
 
 export default function BatchPage() {
   const [view, setView] = useState("list");

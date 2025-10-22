@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import FreeTaxingViewPage from "./FreeTaxingViewPage";
-import { Button } from "../../../Component/Button/Button";
+import { Button } from "@/components/ui/Button";
 import FreeTaxingForm from "./FreeTaxingForm";
 import FreeTaxingList from "./FreeTaxinglistDummy";
 

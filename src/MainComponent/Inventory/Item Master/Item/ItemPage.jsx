@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import ItemViewPage from "./ItemViewPage";
 import ItemForm from "./ItemForm";
 import ItemList from "./Customerlist";
-import { Button } from "../../../../../src/Component/Button/Button";
+import { Button } from "@/components/ui/Button";
 
 import CompanyContext from "../../../../context/CompanyContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

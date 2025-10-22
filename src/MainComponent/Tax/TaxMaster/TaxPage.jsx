@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button } from "../../../Component/Button/Button.jsx";
+import { Button } from "@/components/ui/Button";
 import TaxForm from "./TaxForm.jsx";
 import TaxList from "./TaxList.jsx";
 import TaxViewPage from "./TaxViewPage.jsx";

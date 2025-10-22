@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
-import { Button } from '@/components/ui/Button'
-import { loginSuccess } from '@/store/slices/authSlice'
+import { Button } from '../../components/ui/Button'
+import { loginSuccess } from '../../store/slices/authSlice'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
 const Login: React.FC = () => {

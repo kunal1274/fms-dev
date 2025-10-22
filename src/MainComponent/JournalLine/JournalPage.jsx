@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button } from "../../Component/Button/Button.jsx";
+import { Button } from "@/components/ui/Button";
 import JournalForm from "./JournalForm.jsx";
 import JournalList from "./JournalList.jsx";
 import JournalViewPage from "./JournalViewPage.jsx";

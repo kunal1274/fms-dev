@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import CompanyViewPage from "./CompanyViewPage";
-import { Button } from "../../Component/Button/Button";
+import { Button } from "@/components/ui/Button";
 import CompanyForm from "./CompanyForm";
 import CompanyList from "./Companyist";
 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import BankViewPage from "./BankViewPagee";
-import { Button } from "../../../Component/Button/Button";
+import { Button } from "@/components/ui/Button";
 import BankForm from "./BankForm";
 import BankList from "./BanklistDummy";
 
