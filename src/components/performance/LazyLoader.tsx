@@ -202,21 +202,22 @@ export const useLazyImport = () => {
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<Error | null>(null)
 
-  const lazyImport = React.useCallback(async <T>(
-    importFunc: () => Promise<T>
-  ): Promise<T | null> => {
-    try {
-      setLoading(true)
-      setError(null)
-      const module = await importFunc()
-      return module
-    } catch (err) {
-      setError(err as Error)
-      return null
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const lazyImport = React.useCallback(
+    async (importFunc: () => Promise<any>): Promise<any | null> => {
+      try {
+        setLoading(true)
+        setError(null)
+        const module = await importFunc()
+        return module
+      } catch (err) {
+        setError(err as Error)
+        return null
+      } finally {
+        setLoading(false)
+      }
+    },
+    []
+  )
 
   return { lazyImport, loading, error }
 }
