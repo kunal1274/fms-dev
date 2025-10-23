@@ -1,168 +1,198 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card'
-import {
-  CurrencyDollarIcon,
-  ShoppingCartIcon,
-  ShoppingBagIcon,
-  CubeIcon,
-  ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon,
-} from '@heroicons/react/24/outline'
+import { Button } from '../../components/ui/Button'
+import { ArrowPathIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon } from '@heroicons/react/24/outline'
+import DashboardWidgets from '../../components/dashboard/DashboardWidgets'
+import Charts from '../../components/dashboard/Charts'
+import { useGetCompaniesQuery, useGetCustomersQuery, useGetVendorsQuery, useGetItemsQuery } from '../../store/api'
 
 const Dashboard: React.FC = () => {
-  const stats = [
-    {
-      name: 'Total Revenue',
-      value: '$45,231.89',
-      change: '+20.1%',
-      changeType: 'positive',
-      icon: CurrencyDollarIcon,
-    },
-    {
-      name: 'Total Sales',
-      value: '2,350',
-      change: '+15.3%',
-      changeType: 'positive',
-      icon: ShoppingCartIcon,
-    },
-    {
-      name: 'Total Purchases',
-      value: '1,234',
-      change: '-2.4%',
-      changeType: 'negative',
-      icon: ShoppingBagIcon,
-    },
-    {
-      name: 'Inventory Items',
-      value: '5,432',
-      change: '+8.2%',
-      changeType: 'positive',
-      icon: CubeIcon,
-    },
-  ]
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  // Fetch data for dashboard widgets
+  const { data: companiesData, isLoading: companiesLoading } = useGetCompaniesQuery({ page: 1, limit: 1 })
+  const { data: customersData, isLoading: customersLoading } = useGetCustomersQuery({ page: 1, limit: 1 })
+  const { data: vendorsData, isLoading: vendorsLoading } = useGetVendorsQuery({ page: 1, limit: 1 })
+  const { data: itemsData, isLoading: itemsLoading } = useGetItemsQuery({ page: 1, limit: 1 })
+
+  const isLoading = companiesLoading || customersLoading || vendorsLoading || itemsLoading
+
+  // Mock data for demonstration
+  const dashboardData = {
+    totalCompanies: companiesData?.pagination?.total || 0,
+    totalCustomers: customersData?.pagination?.total || 0,
+    totalVendors: vendorsData?.pagination?.total || 0,
+    totalItems: itemsData?.pagination?.total || 0,
+    totalSales: 125000,
+    totalPurchases: 85000,
+    pendingOrders: 12,
+    lowStockItems: 8,
+  }
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    // Simulate refresh delay
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    setLastUpdated(new Date())
+    setIsRefreshing(false)
+  }
+
+  // Auto-refresh every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLastUpdated(new Date())
+    }, 5 * 60 * 1000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Welcome back! Here's what's happening with your business today.
-        </p>
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Welcome to your ERP dashboard. Here's an overview of your business.
+          </p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Last updated: {lastUpdated.toLocaleTimeString()}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <ArrowPathIcon className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.name}>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <stat.icon
-                    className="h-8 w-8 text-gray-400"
-                    aria-hidden="true"
-                  />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                      {stat.name}
-                    </dt>
-                    <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900 dark:text-white">
-                        {stat.value}
-                      </div>
-                      <div className={`ml-2 flex items-baseline text-sm font-semibold ${
-                        stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {stat.changeType === 'positive' ? (
-                          <ArrowTrendingUpIcon className="h-4 w-4 flex-shrink-0 self-center" />
-                        ) : (
-                          <ArrowTrendingDownIcon className="h-4 w-4 flex-shrink-0 self-center" />
-                        )}
-                        <span className="sr-only">
-                          {stat.changeType === 'positive' ? 'Increased' : 'Decreased'} by
-                        </span>
-                        {stat.change}
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Key Metrics Widgets */}
+      <DashboardWidgets data={dashboardData} isLoading={isLoading} />
+
+      {/* Charts Section */}
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h2>
+          <div className="flex items-center space-x-2">
+            <ArrowTrendingUpIcon className="h-5 w-5 text-green-500" />
+            <span className="text-sm text-green-600 dark:text-green-400">+12% this month</span>
+          </div>
+        </div>
+        <Charts isLoading={isLoading} />
       </div>
 
-      {/* Charts and Recent Activity */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {/* Revenue Chart */}
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Revenue Overview</CardTitle>
+            <CardTitle>Recent Sales Orders</CardTitle>
             <CardDescription>
-              Monthly revenue for the past 12 months
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80 flex items-center justify-center text-gray-500 dark:text-gray-400">
-              Chart component will be implemented here
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>
-              Latest transactions and updates
+              Latest sales orders and their status
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0">
-                  <div className="h-2 w-2 bg-green-400 rounded-full"></div>
+              {[
+                { id: 'SO-001', customer: 'ABC Corp', amount: '$2,500', status: 'Completed' },
+                { id: 'SO-002', customer: 'XYZ Ltd', amount: '$1,800', status: 'Processing' },
+                { id: 'SO-003', customer: 'DEF Inc', amount: '$3,200', status: 'Pending' },
+                { id: 'SO-004', customer: 'GHI Co', amount: '$950', status: 'Shipped' },
+              ].map((order) => (
+                <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">{order.id}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{order.customer}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-gray-900 dark:text-white">{order.amount}</p>
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      order.status === 'Completed'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        : order.status === 'Processing'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                        : order.status === 'Pending'
+                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                        : 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                    }`}>
+                      {order.status}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    New sale order #SO-001 created
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    2 minutes ago
-                  </p>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Low Stock Items</CardTitle>
+            <CardDescription>
+              Items that need restocking
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[
+                { name: 'Laptop Pro 15"', current: 5, minimum: 10, category: 'Electronics' },
+                { name: 'Office Chair', current: 3, minimum: 8, category: 'Furniture' },
+                { name: 'Wireless Mouse', current: 12, minimum: 20, category: 'Electronics' },
+                { name: 'Desk Lamp', current: 2, minimum: 5, category: 'Furniture' },
+              ].map((item, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">{item.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{item.category}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {item.current}/{item.minimum}
+                    </p>
+                    <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-red-500 h-2 rounded-full" 
+                        style={{ width: `${(item.current / item.minimum) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0">
-                  <div className="h-2 w-2 bg-blue-400 rounded-full"></div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    Inventory updated for Item #IT-001
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    15 minutes ago
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0">
-                  <div className="h-2 w-2 bg-yellow-400 rounded-full"></div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    Purchase order #PO-001 approved
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    1 hour ago
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>
+            Common tasks and shortcuts
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+              <span className="text-sm font-medium">New Sale</span>
+            </Button>
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+              <span className="text-sm font-medium">New Purchase</span>
+            </Button>
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+              <span className="text-sm font-medium">Add Customer</span>
+            </Button>
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
+              <span className="text-sm font-medium">Add Vendor</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

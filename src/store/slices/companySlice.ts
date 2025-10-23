@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import type { Company } from '@/types'
+import type { Company } from '../../types'
 
 interface CompanyState {
   current: Company | null

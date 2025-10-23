@@ -17,15 +17,7 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/pages/*": ["./src/pages/*"],
-      "@/hooks/*": ["./src/hooks/*"],
-      "@/utils/*": ["./src/utils/*"],
-      "@/types/*": ["./src/types/*"],
-      "@/store/*": ["./src/store/*"],
-      "@/services/*": ["./src/services/*"],
-      "@/assets/*": ["./src/assets/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"],

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import CreditNoteViewPage from "./CreditNoteViewPage";
-import { Button } from "../../../../Component/Button/Button";
+import { Button } from "@/components/ui/Button";
 import CreditNoteForm from "./CreditNoteForm";
 import CreditNoteList from "./CreditNotelistDummy";
 

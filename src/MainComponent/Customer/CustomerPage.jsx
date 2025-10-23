@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import CustomerViewPage from "./CustomerViewPage";
-import { Button } from "../../Component/Button/Button";
+import { Button } from "@/components/ui/Button";
 import CustomerForm from "./CustomerForm";
 import CustomerList from "./Customerlist";
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import JournalRevenueViewPage from "./JournalRevenueViewPage";
-import { Button } from "../../../Component/Button/Button";
+import { Button } from "@/components/ui/Button";
 import JournalRevenueForm from "./JournalRevenueForm";
 import JournalRevenueList from "./RevenueJournalListDummy";
 

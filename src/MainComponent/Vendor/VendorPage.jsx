@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import VendorList from "./Vendorlist"
 import VendorViewPage from "./Vv";
-import { Button } from "../../Component/Button/Button";
+import { Button } from "@/components/ui/Button";
 import VendorForm from "./V";
 // import VendorList from "./Vendorlist";
 

@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import type { User } from '@/types'
+import type { User } from '../../types'
 
 interface AuthState {
   user: User | null
@@ -9,13 +9,31 @@ interface AuthState {
   error: string | null
 }
 
+// Get stored user data from localStorage
+const getStoredUser = () => {
+  try {
+    const storedUser = localStorage.getItem('user')
+    return storedUser ? JSON.parse(storedUser) : null
+  } catch {
+    return null
+  }
+}
+
 const initialState: AuthState = {
-  user: null,
+  user: getStoredUser(),
   token: localStorage.getItem('token'),
-  isAuthenticated: false,
+  isAuthenticated: !!localStorage.getItem('token'),
   loading: false,
   error: null,
 }
+
+// Debug logging for auth initialization
+console.log('🔐 Auth Slice Initialization:', {
+  hasToken: !!localStorage.getItem('token'),
+  tokenLength: localStorage.getItem('token')?.length || 0,
+  hasUser: !!getStoredUser(),
+  isAuthenticated: !!localStorage.getItem('token')
+})
 
 const authSlice = createSlice({
   name: 'auth',
@@ -43,6 +61,7 @@ const authSlice = createSlice({
       state.loading = false
       state.error = null
       localStorage.setItem('token', action.payload.token)
+      localStorage.setItem('user', JSON.stringify(action.payload.user))
     },
     logout: (state) => {
       state.user = null
@@ -51,6 +70,7 @@ const authSlice = createSlice({
       state.loading = false
       state.error = null
       localStorage.removeItem('token')
+      localStorage.removeItem('user')
     },
     clearError: (state) => {
       state.error = null

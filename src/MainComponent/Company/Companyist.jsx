@@ -328,13 +328,35 @@ const [endDate, setEndDate] = useState("");
       toast.info("No companies selected to delete");
       return;
     }
-    if (
-      !window.confirm(
-        `Delete ${selectedIds.length} selected compan${
-          selectedIds.length > 1 ? "ies" : "y"
-        }?`
-      )
-    ) {
+    
+    // Show custom confirmation dialog instead of browser confirm
+    const confirmed = await new Promise((resolve) => {
+      const dialog = document.createElement('div');
+      dialog.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+          <div style="background: white; padding: 20px; border-radius: 8px; max-width: 400px; width: 90%;">
+            <h3 style="margin: 0 0 10px 0; color: #333;">Delete Companies</h3>
+            <p style="margin: 0 0 20px 0; color: #666;">Are you sure you want to delete ${selectedIds.length} selected compan${selectedIds.length > 1 ? "ies" : "y"}? This action cannot be undone.</p>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+              <button id="cancel-btn" style="padding: 8px 16px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
+              <button id="confirm-btn" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Delete</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(dialog);
+      
+      dialog.querySelector('#cancel-btn').onclick = () => {
+        document.body.removeChild(dialog);
+        resolve(false);
+      };
+      dialog.querySelector('#confirm-btn').onclick = () => {
+        document.body.removeChild(dialog);
+        resolve(true);
+      };
+    });
+    
+    if (!confirmed) {
       return;
     }
     try {

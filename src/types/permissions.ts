@@ -1,0 +1,381 @@
+export interface Permission {
+  id: string
+  name: string
+  description: string
+  resource: string
+  action: string
+  conditions?: PermissionCondition[]
+}
+
+export interface PermissionCondition {
+  field: string
+  operator: 'equals' | 'not_equals' | 'in' | 'not_in' | 'contains' | 'not_contains'
+  value: any
+}
+
+export interface Role {
+  id: string
+  name: string
+  description: string
+  permissions: string[] // Permission IDs
+  isSystem: boolean
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface UserRole {
+  userId: string
+  roleId: string
+  assignedAt: string
+  assignedBy: string
+  expiresAt?: string
+}
+
+export interface PermissionCheck {
+  resource: string
+  action: string
+  context?: Record<string, any>
+}
+
+export interface AccessControl {
+  canCreate: boolean
+  canRead: boolean
+  canUpdate: boolean
+  canDelete: boolean
+  canExport: boolean
+  canImport: boolean
+  canApprove: boolean
+  canReject: boolean
+  canAssign: boolean
+  canManage: boolean
+}
+
+// Predefined permissions
+export const PERMISSIONS = {
+  // Company permissions
+  COMPANY_CREATE: 'company:create',
+  COMPANY_READ: 'company:read',
+  COMPANY_UPDATE: 'company:update',
+  COMPANY_DELETE: 'company:delete',
+  COMPANY_EXPORT: 'company:export',
+  COMPANY_IMPORT: 'company:import',
+
+  // Customer permissions
+  CUSTOMER_CREATE: 'customer:create',
+  CUSTOMER_READ: 'customer:read',
+  CUSTOMER_UPDATE: 'customer:update',
+  CUSTOMER_DELETE: 'customer:delete',
+  CUSTOMER_EXPORT: 'customer:export',
+  CUSTOMER_IMPORT: 'customer:import',
+
+  // Vendor permissions
+  VENDOR_CREATE: 'vendor:create',
+  VENDOR_READ: 'vendor:read',
+  VENDOR_UPDATE: 'vendor:update',
+  VENDOR_DELETE: 'vendor:delete',
+  VENDOR_EXPORT: 'vendor:export',
+  VENDOR_IMPORT: 'vendor:import',
+
+  // Item permissions
+  ITEM_CREATE: 'item:create',
+  ITEM_READ: 'item:read',
+  ITEM_UPDATE: 'item:update',
+  ITEM_DELETE: 'item:delete',
+  ITEM_EXPORT: 'item:export',
+  ITEM_IMPORT: 'item:import',
+
+  // Sales permissions
+  SALES_CREATE: 'sales:create',
+  SALES_READ: 'sales:read',
+  SALES_UPDATE: 'sales:update',
+  SALES_DELETE: 'sales:delete',
+  SALES_EXPORT: 'sales:export',
+  SALES_IMPORT: 'sales:import',
+  SALES_APPROVE: 'sales:approve',
+
+  // Purchase permissions
+  PURCHASE_CREATE: 'purchase:create',
+  PURCHASE_READ: 'purchase:read',
+  PURCHASE_UPDATE: 'purchase:update',
+  PURCHASE_DELETE: 'purchase:delete',
+  PURCHASE_EXPORT: 'purchase:export',
+  PURCHASE_IMPORT: 'purchase:import',
+  PURCHASE_APPROVE: 'purchase:approve',
+
+  // Bank permissions
+  BANK_CREATE: 'bank:create',
+  BANK_READ: 'bank:read',
+  BANK_UPDATE: 'bank:update',
+  BANK_DELETE: 'bank:delete',
+  BANK_EXPORT: 'bank:export',
+  BANK_IMPORT: 'bank:import',
+
+  // Tax permissions
+  TAX_CREATE: 'tax:create',
+  TAX_READ: 'tax:read',
+  TAX_UPDATE: 'tax:update',
+  TAX_DELETE: 'tax:delete',
+  TAX_EXPORT: 'tax:export',
+  TAX_IMPORT: 'tax:import',
+
+  // User permissions
+  USER_CREATE: 'user:create',
+  USER_READ: 'user:read',
+  USER_UPDATE: 'user:update',
+  USER_DELETE: 'user:delete',
+  USER_EXPORT: 'user:export',
+  USER_IMPORT: 'user:import',
+
+  // Role permissions
+  ROLE_CREATE: 'role:create',
+  ROLE_READ: 'role:read',
+  ROLE_UPDATE: 'role:update',
+  ROLE_DELETE: 'role:delete',
+  ROLE_EXPORT: 'role:export',
+  ROLE_IMPORT: 'role:import',
+
+  // Report permissions
+  REPORT_CREATE: 'report:create',
+  REPORT_READ: 'report:read',
+  REPORT_UPDATE: 'report:update',
+  REPORT_DELETE: 'report:delete',
+  REPORT_EXPORT: 'report:export',
+  REPORT_IMPORT: 'report:import',
+
+  // Audit permissions
+  AUDIT_READ: 'audit:read',
+  AUDIT_EXPORT: 'audit:export',
+
+  // Dashboard permissions
+  DASHBOARD_READ: 'dashboard:read',
+  DASHBOARD_EXPORT: 'dashboard:export',
+
+  // Settings permissions
+  SETTINGS_READ: 'settings:read',
+  SETTINGS_UPDATE: 'settings:update',
+
+  // System permissions
+  SYSTEM_ADMIN: 'system:admin',
+  SYSTEM_MANAGE: 'system:manage',
+} as const
+
+// Predefined roles
+export const ROLES = {
+  SUPER_ADMIN: 'super_admin',
+  ADMIN: 'admin',
+  MANAGER: 'manager',
+  ACCOUNTANT: 'accountant',
+  SALES_MANAGER: 'sales_manager',
+  PURCHASE_MANAGER: 'purchase_manager',
+  INVENTORY_MANAGER: 'inventory_manager',
+  SALES_USER: 'sales_user',
+  PURCHASE_USER: 'purchase_user',
+  INVENTORY_USER: 'inventory_user',
+  VIEWER: 'viewer',
+} as const
+
+// Role definitions with permissions
+export const ROLE_PERMISSIONS: Record<string, string[]> = {
+  [ROLES.SUPER_ADMIN]: Object.values(PERMISSIONS),
+  [ROLES.ADMIN]: [
+    PERMISSIONS.COMPANY_CREATE,
+    PERMISSIONS.COMPANY_READ,
+    PERMISSIONS.COMPANY_UPDATE,
+    PERMISSIONS.COMPANY_DELETE,
+    PERMISSIONS.COMPANY_EXPORT,
+    PERMISSIONS.CUSTOMER_CREATE,
+    PERMISSIONS.CUSTOMER_READ,
+    PERMISSIONS.CUSTOMER_UPDATE,
+    PERMISSIONS.CUSTOMER_DELETE,
+    PERMISSIONS.CUSTOMER_EXPORT,
+    PERMISSIONS.VENDOR_CREATE,
+    PERMISSIONS.VENDOR_READ,
+    PERMISSIONS.VENDOR_UPDATE,
+    PERMISSIONS.VENDOR_DELETE,
+    PERMISSIONS.VENDOR_EXPORT,
+    PERMISSIONS.ITEM_CREATE,
+    PERMISSIONS.ITEM_READ,
+    PERMISSIONS.ITEM_UPDATE,
+    PERMISSIONS.ITEM_DELETE,
+    PERMISSIONS.ITEM_EXPORT,
+    PERMISSIONS.SALES_CREATE,
+    PERMISSIONS.SALES_READ,
+    PERMISSIONS.SALES_UPDATE,
+    PERMISSIONS.SALES_DELETE,
+    PERMISSIONS.SALES_EXPORT,
+    PERMISSIONS.SALES_APPROVE,
+    PERMISSIONS.PURCHASE_CREATE,
+    PERMISSIONS.PURCHASE_READ,
+    PERMISSIONS.PURCHASE_UPDATE,
+    PERMISSIONS.PURCHASE_DELETE,
+    PERMISSIONS.PURCHASE_EXPORT,
+    PERMISSIONS.PURCHASE_APPROVE,
+    PERMISSIONS.BANK_CREATE,
+    PERMISSIONS.BANK_READ,
+    PERMISSIONS.BANK_UPDATE,
+    PERMISSIONS.BANK_DELETE,
+    PERMISSIONS.BANK_EXPORT,
+    PERMISSIONS.TAX_CREATE,
+    PERMISSIONS.TAX_READ,
+    PERMISSIONS.TAX_UPDATE,
+    PERMISSIONS.TAX_DELETE,
+    PERMISSIONS.TAX_EXPORT,
+    PERMISSIONS.USER_CREATE,
+    PERMISSIONS.USER_READ,
+    PERMISSIONS.USER_UPDATE,
+    PERMISSIONS.USER_DELETE,
+    PERMISSIONS.ROLE_CREATE,
+    PERMISSIONS.ROLE_READ,
+    PERMISSIONS.ROLE_UPDATE,
+    PERMISSIONS.ROLE_DELETE,
+    PERMISSIONS.REPORT_CREATE,
+    PERMISSIONS.REPORT_READ,
+    PERMISSIONS.REPORT_UPDATE,
+    PERMISSIONS.REPORT_DELETE,
+    PERMISSIONS.REPORT_EXPORT,
+    PERMISSIONS.AUDIT_READ,
+    PERMISSIONS.AUDIT_EXPORT,
+    PERMISSIONS.DASHBOARD_READ,
+    PERMISSIONS.DASHBOARD_EXPORT,
+    PERMISSIONS.SETTINGS_READ,
+    PERMISSIONS.SETTINGS_UPDATE,
+  ],
+  [ROLES.MANAGER]: [
+    PERMISSIONS.COMPANY_READ,
+    PERMISSIONS.COMPANY_EXPORT,
+    PERMISSIONS.CUSTOMER_CREATE,
+    PERMISSIONS.CUSTOMER_READ,
+    PERMISSIONS.CUSTOMER_UPDATE,
+    PERMISSIONS.CUSTOMER_EXPORT,
+    PERMISSIONS.VENDOR_CREATE,
+    PERMISSIONS.VENDOR_READ,
+    PERMISSIONS.VENDOR_UPDATE,
+    PERMISSIONS.VENDOR_EXPORT,
+    PERMISSIONS.ITEM_CREATE,
+    PERMISSIONS.ITEM_READ,
+    PERMISSIONS.ITEM_UPDATE,
+    PERMISSIONS.ITEM_EXPORT,
+    PERMISSIONS.SALES_CREATE,
+    PERMISSIONS.SALES_READ,
+    PERMISSIONS.SALES_UPDATE,
+    PERMISSIONS.SALES_EXPORT,
+    PERMISSIONS.SALES_APPROVE,
+    PERMISSIONS.PURCHASE_CREATE,
+    PERMISSIONS.PURCHASE_READ,
+    PERMISSIONS.PURCHASE_UPDATE,
+    PERMISSIONS.PURCHASE_EXPORT,
+    PERMISSIONS.PURCHASE_APPROVE,
+    PERMISSIONS.BANK_READ,
+    PERMISSIONS.BANK_EXPORT,
+    PERMISSIONS.TAX_READ,
+    PERMISSIONS.TAX_EXPORT,
+    PERMISSIONS.REPORT_CREATE,
+    PERMISSIONS.REPORT_READ,
+    PERMISSIONS.REPORT_UPDATE,
+    PERMISSIONS.REPORT_EXPORT,
+    PERMISSIONS.DASHBOARD_READ,
+    PERMISSIONS.DASHBOARD_EXPORT,
+  ],
+  [ROLES.ACCOUNTANT]: [
+    PERMISSIONS.COMPANY_READ,
+    PERMISSIONS.CUSTOMER_READ,
+    PERMISSIONS.VENDOR_READ,
+    PERMISSIONS.ITEM_READ,
+    PERMISSIONS.SALES_READ,
+    PERMISSIONS.SALES_EXPORT,
+    PERMISSIONS.PURCHASE_READ,
+    PERMISSIONS.PURCHASE_EXPORT,
+    PERMISSIONS.BANK_CREATE,
+    PERMISSIONS.BANK_READ,
+    PERMISSIONS.BANK_UPDATE,
+    PERMISSIONS.BANK_EXPORT,
+    PERMISSIONS.TAX_CREATE,
+    PERMISSIONS.TAX_READ,
+    PERMISSIONS.TAX_UPDATE,
+    PERMISSIONS.TAX_EXPORT,
+    PERMISSIONS.REPORT_CREATE,
+    PERMISSIONS.REPORT_READ,
+    PERMISSIONS.REPORT_EXPORT,
+    PERMISSIONS.DASHBOARD_READ,
+  ],
+  [ROLES.SALES_MANAGER]: [
+    PERMISSIONS.CUSTOMER_CREATE,
+    PERMISSIONS.CUSTOMER_READ,
+    PERMISSIONS.CUSTOMER_UPDATE,
+    PERMISSIONS.CUSTOMER_EXPORT,
+    PERMISSIONS.ITEM_READ,
+    PERMISSIONS.SALES_CREATE,
+    PERMISSIONS.SALES_READ,
+    PERMISSIONS.SALES_UPDATE,
+    PERMISSIONS.SALES_EXPORT,
+    PERMISSIONS.SALES_APPROVE,
+    PERMISSIONS.REPORT_CREATE,
+    PERMISSIONS.REPORT_READ,
+    PERMISSIONS.REPORT_EXPORT,
+    PERMISSIONS.DASHBOARD_READ,
+  ],
+  [ROLES.PURCHASE_MANAGER]: [
+    PERMISSIONS.VENDOR_CREATE,
+    PERMISSIONS.VENDOR_READ,
+    PERMISSIONS.VENDOR_UPDATE,
+    PERMISSIONS.VENDOR_EXPORT,
+    PERMISSIONS.ITEM_READ,
+    PERMISSIONS.PURCHASE_CREATE,
+    PERMISSIONS.PURCHASE_READ,
+    PERMISSIONS.PURCHASE_UPDATE,
+    PERMISSIONS.PURCHASE_EXPORT,
+    PERMISSIONS.PURCHASE_APPROVE,
+    PERMISSIONS.REPORT_CREATE,
+    PERMISSIONS.REPORT_READ,
+    PERMISSIONS.REPORT_EXPORT,
+    PERMISSIONS.DASHBOARD_READ,
+  ],
+  [ROLES.INVENTORY_MANAGER]: [
+    PERMISSIONS.ITEM_CREATE,
+    PERMISSIONS.ITEM_READ,
+    PERMISSIONS.ITEM_UPDATE,
+    PERMISSIONS.ITEM_DELETE,
+    PERMISSIONS.ITEM_EXPORT,
+    PERMISSIONS.REPORT_CREATE,
+    PERMISSIONS.REPORT_READ,
+    PERMISSIONS.REPORT_EXPORT,
+    PERMISSIONS.DASHBOARD_READ,
+  ],
+  [ROLES.SALES_USER]: [
+    PERMISSIONS.CUSTOMER_READ,
+    PERMISSIONS.ITEM_READ,
+    PERMISSIONS.SALES_CREATE,
+    PERMISSIONS.SALES_READ,
+    PERMISSIONS.SALES_UPDATE,
+    PERMISSIONS.SALES_EXPORT,
+    PERMISSIONS.DASHBOARD_READ,
+  ],
+  [ROLES.PURCHASE_USER]: [
+    PERMISSIONS.VENDOR_READ,
+    PERMISSIONS.ITEM_READ,
+    PERMISSIONS.PURCHASE_CREATE,
+    PERMISSIONS.PURCHASE_READ,
+    PERMISSIONS.PURCHASE_UPDATE,
+    PERMISSIONS.PURCHASE_EXPORT,
+    PERMISSIONS.DASHBOARD_READ,
+  ],
+  [ROLES.INVENTORY_USER]: [
+    PERMISSIONS.ITEM_READ,
+    PERMISSIONS.ITEM_UPDATE,
+    PERMISSIONS.ITEM_EXPORT,
+    PERMISSIONS.DASHBOARD_READ,
+  ],
+  [ROLES.VIEWER]: [
+    PERMISSIONS.COMPANY_READ,
+    PERMISSIONS.CUSTOMER_READ,
+    PERMISSIONS.VENDOR_READ,
+    PERMISSIONS.ITEM_READ,
+    PERMISSIONS.SALES_READ,
+    PERMISSIONS.PURCHASE_READ,
+    PERMISSIONS.BANK_READ,
+    PERMISSIONS.TAX_READ,
+    PERMISSIONS.REPORT_READ,
+    PERMISSIONS.DASHBOARD_READ,
+  ],
+}
