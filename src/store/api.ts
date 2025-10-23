@@ -97,10 +97,18 @@ export const api = createApi({
       }),
       invalidatesTags: ['User'],
     }),
-    getCurrentUser: builder.query<{ success: boolean; data: { token: string; user: any }; message: string }, void>({
-      query: () => '/otp-auth/me',
-      providesTags: ['User'],
-    }),
+        getCurrentUser: builder.query<{ success: boolean; data: { token: string; user: any }; message: string }, void>({
+          query: () => '/otp-auth/me',
+          providesTags: ['User'],
+        }),
+        loginWithPassword: builder.mutation<{ success: boolean; data: { token: string; user: any }; message: string }, { email: string; password: string }>({
+          query: (data) => ({
+            url: '/otp-auth/login-password',
+            method: 'POST',
+            body: data,
+          }),
+          invalidatesTags: ['User'],
+        }),
   }),
 })
 
@@ -109,6 +117,7 @@ export const {
   useSendOtpMutation,
   useVerifyOtpMutation,
   useRegisterMutation,
+  useLoginWithPasswordMutation,
   useGetCurrentUserQuery,
 } = api
 
