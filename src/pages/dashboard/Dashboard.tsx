@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
-import { RefreshIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon } from '@heroicons/react/24/outline'
+import { ArrowPathIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon } from '@heroicons/react/24/outline'
 import DashboardWidgets from '../../components/dashboard/DashboardWidgets'
 import Charts from '../../components/dashboard/Charts'
 import { useGetCompaniesQuery, useGetCustomersQuery, useGetVendorsQuery, useGetItemsQuery } from '../../store/api'
@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
             onClick={handleRefresh}
             disabled={isRefreshing}
           >
-            <RefreshIcon className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <ArrowPathIcon className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>

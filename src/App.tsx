@@ -8,7 +8,7 @@ import './styles/globals.css'
 function App() {
   return (
     <Provider store={store}>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
         <div className="min-h-screen bg-background text-foreground">
           <AppRouter />
           <Toaster

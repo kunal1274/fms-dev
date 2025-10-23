@@ -9,8 +9,18 @@ import { purchasesApi } from './api/purchases'
 import { banksApi } from './api/banks'
 import { taxesApi } from './api/taxes'
 
+// Log environment variables for debugging
+console.log('🔧 Main API Environment Variables:', {
+  VITE_API_BASE: import.meta.env.VITE_API_BASE,
+  NODE_ENV: import.meta.env.NODE_ENV,
+  MODE: import.meta.env.MODE
+})
+
+const baseUrl = import.meta.env.VITE_API_BASE || 'http://localhost:3000/fms/api/v0'
+console.log('🌐 Main API Base URL:', baseUrl)
+
 const baseQuery = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_API_URL || '/api',
+  baseUrl: baseUrl,
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as RootState).auth.token
     if (token) {
@@ -21,29 +31,34 @@ const baseQuery = fetchBaseQuery({
   },
 })
 
-const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
-  let result = await baseQuery(args, api, extraOptions)
+// Custom baseQuery with logging
+const baseQueryWithLogging = async (args: any, api: any, extraOptions: any) => {
+  console.log('🚀 RTK Query Request:', {
+    url: args.url,
+    method: args.method,
+    body: args.body,
+    baseUrl: baseUrl
+  })
   
-  if (result.error && result.error.status === 401) {
-    // Try to get a new token
-    const refreshResult = await baseQuery('/auth/refresh', api, extraOptions)
-    if (refreshResult.data) {
-      // Store the new token
-      api.dispatch({ type: 'auth/setToken', payload: refreshResult.data })
-      // Retry the original query
-      result = await baseQuery(args, api, extraOptions)
-    } else {
-      // Refresh failed, logout
-      api.dispatch({ type: 'auth/logout' })
-    }
+  try {
+    const result = await baseQuery(args, api, extraOptions)
+    
+    console.log('📥 RTK Query Response:', {
+      status: result.meta?.response?.status,
+      data: result.data,
+      error: result.error
+    })
+    
+    return result
+  } catch (error) {
+    console.error('❌ RTK Query Error:', error)
+    throw error
   }
-  
-  return result
 }
 
 export const api = createApi({
   reducerPath: 'api',
-  baseQuery: baseQueryWithReauth,
+  baseQuery: baseQueryWithLogging,
   tagTypes: [
     'User',
     'Company',
@@ -57,8 +72,45 @@ export const api = createApi({
     'Transaction',
     'Report',
   ],
-  endpoints: () => ({}),
+  endpoints: (builder) => ({
+    // Auth endpoints
+    sendOtp: builder.mutation<{ success: boolean; message: string }, { email: string; method: 'email' | 'sms' | 'whatsapp' }>({
+      query: (data) => ({
+        url: '/otp-auth/send-otp',
+        method: 'POST',
+        body: data,
+      }),
+    }),
+    verifyOtp: builder.mutation<{ success: boolean; data: { token: string; user: any }; message: string }, { email: string; otp: string }>({
+      query: (data) => ({
+        url: '/otp-auth/verify-otp',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['User'],
+    }),
+    register: builder.mutation<{ success: boolean; data: { token: string; user: any }; message: string }, { email: string; name: string; password: string; confirmPassword: string }>({
+      query: (data) => ({
+        url: '/otp-auth/register',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['User'],
+    }),
+    getCurrentUser: builder.query<{ success: boolean; data: { token: string; user: any }; message: string }, void>({
+      query: () => '/otp-auth/me',
+      providesTags: ['User'],
+    }),
+  }),
 })
+
+// Export auth hooks from main API
+export const {
+  useSendOtpMutation,
+  useVerifyOtpMutation,
+  useRegisterMutation,
+  useGetCurrentUserQuery,
+} = api
 
 // Export all API hooks
 export * from './api/companies'

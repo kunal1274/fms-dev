@@ -26,7 +26,7 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [
-          api.util.resetApiState.type, 
+          api.util.resetApiState.type,
           companiesApi.util.resetApiState.type,
           customersApi.util.resetApiState.type,
           vendorsApi.util.resetApiState.type,
@@ -38,7 +38,7 @@ export const store = configureStore({
         ],
       },
     }).concat(
-      api.middleware, 
+      api.middleware,
       companiesApi.middleware, 
       customersApi.middleware, 
       vendorsApi.middleware,

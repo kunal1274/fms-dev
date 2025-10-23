@@ -4,21 +4,37 @@ import { Button } from '../../components/ui/Button'
 import { DataTable } from '../../components/ui/DataTable'
 import { Modal, FormModal } from '../../components/ui/Modal'
 import { DataTableSkeleton } from '../../components/ui/Loading'
+import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import { PlusIcon } from '@heroicons/react/24/outline'
-import { useGetCompaniesQuery, useDeleteCompanyMutation, useBulkDeleteCompaniesMutation } from '../../store/api'
+import { useGetCompaniesQuery, useDeleteCompanyMutation, useBulkDeleteCompaniesMutation } from '../../store/api/companies'
 import type { Company, Column } from '../../types/models'
 import CompanyForm from './CompanyForm'
 import CompanyView from './CompanyView'
+import { toast } from 'react-hot-toast'
 
 const Company: React.FC = () => {
   const [view, setView] = useState<'list' | 'form' | 'view'>('list')
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null)
+  const [companiesToDelete, setCompaniesToDelete] = useState<Company[]>([])
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const { data: companiesResponse, isLoading, error } = useGetCompaniesQuery({
     page: 1,
     limit: 50,
+  })
+
+  // Debug logging
+  console.log('🔍 Company Component Debug:', {
+    companiesResponse,
+    isLoading,
+    error,
+    companies: companiesResponse?.data || [],
+    count: companiesResponse?.count || 0
   })
 
   const [deleteCompany] = useDeleteCompanyMutation()
@@ -42,24 +58,48 @@ const Company: React.FC = () => {
     setIsViewModalOpen(true)
   }
 
-  const handleDelete = async (company: Company) => {
-    if (window.confirm(`Are you sure you want to delete ${company.companyName}?`)) {
-      try {
-        await deleteCompany(company.id || company._id || '').unwrap()
-      } catch (error) {
-        console.error('Failed to delete company:', error)
-      }
+  const handleDelete = (company: Company) => {
+    setCompanyToDelete(company)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleBulkDelete = (selectedCompanies: Company[]) => {
+    setCompaniesToDelete(selectedCompanies)
+    setIsBulkDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!companyToDelete) return
+    
+    setIsDeleting(true)
+    try {
+      await deleteCompany(companyToDelete.id || companyToDelete._id || '').unwrap()
+      toast.success(`${companyToDelete.companyName} deleted successfully`)
+      setIsDeleteDialogOpen(false)
+      setCompanyToDelete(null)
+    } catch (error) {
+      console.error('Failed to delete company:', error)
+      toast.error('Failed to delete company')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
-  const handleBulkDelete = async (selectedCompanies: Company[]) => {
-    if (window.confirm(`Are you sure you want to delete ${selectedCompanies.length} companies?`)) {
-      try {
-        const ids = selectedCompanies.map(company => company.id || company._id || '').filter(Boolean)
-        await bulkDeleteCompanies(ids).unwrap()
-      } catch (error) {
-        console.error('Failed to delete companies:', error)
-      }
+  const confirmBulkDelete = async () => {
+    if (companiesToDelete.length === 0) return
+    
+    setIsDeleting(true)
+    try {
+      const ids = companiesToDelete.map(company => company.id || company._id || '').filter(Boolean)
+      await bulkDeleteCompanies(ids).unwrap()
+      toast.success(`${companiesToDelete.length} companies deleted successfully`)
+      setIsBulkDeleteDialogOpen(false)
+      setCompaniesToDelete([])
+    } catch (error) {
+      console.error('Failed to delete companies:', error)
+      toast.error('Failed to delete companies')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -213,12 +253,13 @@ const Company: React.FC = () => {
         onClose={() => setIsFormModalOpen(false)}
         onSubmit={(e) => {
           e.preventDefault()
-          // Handle form submission
-          setIsFormModalOpen(false)
+          // Form submission is handled by CompanyForm component
         }}
         title={selectedCompany ? 'Edit Company' : 'Add New Company'}
         description={selectedCompany ? 'Update company information' : 'Create a new company'}
-        size="lg"
+        submitText={selectedCompany ? 'Update Company' : 'Create Company'}
+        cancelText="Cancel"
+        size="xl"
       >
         <CompanyForm
           company={selectedCompany}
@@ -245,6 +286,38 @@ const Company: React.FC = () => {
           />
         )}
       </Modal>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false)
+          setCompanyToDelete(null)
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Company"
+        message={`Are you sure you want to delete "${companyToDelete?.companyName}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isBulkDeleteDialogOpen}
+        onClose={() => {
+          setIsBulkDeleteDialogOpen(false)
+          setCompaniesToDelete([])
+        }}
+        onConfirm={confirmBulkDelete}
+        title="Delete Companies"
+        message={`Are you sure you want to delete ${companiesToDelete.length} selected companies? This action cannot be undone.`}
+        confirmText="Delete All"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

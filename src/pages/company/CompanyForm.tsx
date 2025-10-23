@@ -250,7 +250,7 @@ const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess, onCancel 
   const isLoading = isCreating || isUpdating
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form id="modal-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <FormGroup>
         <FormRow>
           <FormField label="Company Code" error={errors.companyCode?.message} required>
@@ -537,15 +537,7 @@ const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess, onCancel 
         />
       </FormField>
 
-      {/* Form Actions */}
-      <div className="flex justify-end gap-3 pt-6 border-t">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : company ? 'Update Company' : 'Create Company'}
-        </Button>
-      </div>
+      {/* Form Actions - Removed duplicate buttons as FormModal provides them */}
     </form>
   )
 }

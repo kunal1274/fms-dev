@@ -76,7 +76,7 @@ export function Modal({
       {/* Modal */}
       <div
         className={cn(
-          'relative bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-4 max-h-[90vh] overflow-hidden',
+          'relative bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col',
           sizeClasses[size],
           className
         )}
@@ -110,7 +110,7 @@ export function Modal({
         )}
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+        <div className="p-6 overflow-y-auto flex-1 min-h-0">
           {children}
         </div>
 
@@ -209,6 +209,7 @@ export function FormModal({
       title={title}
       description={description}
       size={size}
+      className="max-h-[85vh]"
       footer={
         <div className="flex gap-3">
           <Button variant="outline" onClick={onClose} disabled={loading}>

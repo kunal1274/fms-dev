@@ -1,7 +1,11 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 import { Button } from '../../components/ui/Button'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { useRegisterMutation } from '../../store/api'
+import { loginSuccess } from '../../store/slices/authSlice'
+import { toast } from 'react-hot-toast'
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -13,16 +17,106 @@ const Register: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<{[key: string]: string}>({})
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  
+  const [register] = useRegisterMutation()
+
+  // Password validation function
+  const validatePassword = (password: string) => {
+    const errors: string[] = []
+    
+    if (password.length < 8) {
+      errors.push('Password must be at least 8 characters long')
+    }
+    
+    if (!/(?=.*[a-z])/.test(password)) {
+      errors.push('Password must contain at least one lowercase letter')
+    }
+    
+    if (!/(?=.*[A-Z])/.test(password)) {
+      errors.push('Password must contain at least one uppercase letter')
+    }
+    
+    if (!/(?=.*\d)/.test(password)) {
+      errors.push('Password must contain at least one number')
+    }
+    
+    return errors
+  }
+
+  // Form validation function
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {}
+    
+    // Email validation
+    if (!formData.email) {
+      newErrors.email = 'Email is required'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address'
+    }
+    
+    // Name validation
+    if (!formData.name.trim()) {
+      newErrors.name = 'Full name is required'
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = 'Full name must be at least 2 characters long'
+    }
+    
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = 'Password is required'
+    } else {
+      const passwordErrors = validatePassword(formData.password)
+      if (passwordErrors.length > 0) {
+        newErrors.password = passwordErrors[0] // Show first error
+      }
+    }
+    
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password'
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      toast.error('Please fix the errors below')
+      return
+    }
+    
     setLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const result = await register(formData).unwrap()
+      
+      if (result.success && result.data.token) {
+        // Store token in localStorage
+        localStorage.setItem('token', result.data.token)
+        
+        // Dispatch login success
+        dispatch(loginSuccess({
+          user: result.data.user,
+          token: result.data.token
+        }))
+        
+        toast.success('Account created successfully!')
+        navigate('/dashboard')
+      }
+    } catch (error: any) {
+      toast.error(error.data?.message || 'Registration failed')
+    } finally {
       setLoading(false)
-      // Handle registration success
-    }, 1000)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,10 +148,17 @@ const Register: React.FC = () => {
             type="text"
             autoComplete="name"
             required
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className={`mt-1 block w-full rounded-md shadow-sm focus:ring-primary sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
+              errors.name 
+                ? 'border-red-500 focus:border-red-500' 
+                : 'border-gray-300 dark:border-gray-600 focus:border-primary'
+            }`}
             value={formData.name}
             onChange={handleChange}
           />
+          {errors.name && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
+          )}
         </div>
 
         <div>
@@ -70,10 +171,17 @@ const Register: React.FC = () => {
             type="email"
             autoComplete="email"
             required
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className={`mt-1 block w-full rounded-md shadow-sm focus:ring-primary sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
+              errors.email 
+                ? 'border-red-500 focus:border-red-500' 
+                : 'border-gray-300 dark:border-gray-600 focus:border-primary'
+            }`}
             value={formData.email}
             onChange={handleChange}
           />
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+          )}
         </div>
 
         <div>
@@ -87,7 +195,11 @@ const Register: React.FC = () => {
               type={showPassword ? 'text' : 'password'}
               autoComplete="new-password"
               required
-              className="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white pr-10"
+              className={`block w-full rounded-md shadow-sm focus:ring-primary sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white pr-10 ${
+                errors.password 
+                  ? 'border-red-500 focus:border-red-500' 
+                  : 'border-gray-300 dark:border-gray-600 focus:border-primary'
+              }`}
               value={formData.password}
               onChange={handleChange}
             />
@@ -103,6 +215,9 @@ const Register: React.FC = () => {
               )}
             </button>
           </div>
+          {errors.password && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+          )}
         </div>
 
         <div>
@@ -116,7 +231,11 @@ const Register: React.FC = () => {
               type={showConfirmPassword ? 'text' : 'password'}
               autoComplete="new-password"
               required
-              className="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-primary focus:ring-primary sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white pr-10"
+              className={`block w-full rounded-md shadow-sm focus:ring-primary sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white pr-10 ${
+                errors.confirmPassword 
+                  ? 'border-red-500 focus:border-red-500' 
+                  : 'border-gray-300 dark:border-gray-600 focus:border-primary'
+              }`}
               value={formData.confirmPassword}
               onChange={handleChange}
             />
@@ -132,6 +251,9 @@ const Register: React.FC = () => {
               )}
             </button>
           </div>
+          {errors.confirmPassword && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.confirmPassword}</p>
+          )}
         </div>
 
         <div className="flex items-center">
